@@ -14,11 +14,13 @@ class Credentials:
     
     def __init__(self):
         # Kiwoom API 설정
-        self.KIWOOM_REST_BASE_URL = "https://api.kiwoom.com"
+        # 실전투자: https://openapi.kiwoom.com
+        # 모의투자: https://openapivts.kiwoom.com
+        self.KIWOOM_REST_BASE_URL = os.getenv('KIWOOM_REST_BASE_URL', 'https://openapi.kiwoom.com')
         self.KIWOOM_REST_APPKEY = os.getenv('KIWOOM_REST_APPKEY', 'TjgoRS0k_U-EcnCBxwn23EM6wbTxHiFmuMHGpIYObRU')
         self.KIWOOM_REST_SECRETKEY = os.getenv('KIWOOM_REST_SECRETKEY', 'LAcgLwxqlOduBocdLIDO57t4kHHjoyxVonSe2ghnt3U')
         self.ACCOUNT_NUMBER = os.getenv('ACCOUNT_NUMBER', '64523232-10')
-        self.KIWOOM_WEBSOCKET_URL = "wss://api.kiwoom.com:10000/api/dostk/websocket"
+        self.KIWOOM_WEBSOCKET_URL = os.getenv('KIWOOM_WEBSOCKET_URL', 'wss://openapi.kiwoom.com:9443')
         
         # Gemini API 설정
         self.GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', 'AIzaSyB1xDbzci0UpmcqG-2DJHH6EWv4QYBZUzQ')

@@ -118,18 +118,19 @@ class KiwoomRESTClient:
     def _create_session(self) -> requests.Session:
         """재시도 기능이 있는 HTTP 세션 생성"""
         session = requests.Session()
-        
+
+        # 500 에러는 재시도하지 않음 (서버 측 문제이므로 즉시 확인 필요)
         retry_strategy = Retry(
             total=self.max_retries,
-            status_forcelist=[429, 500, 502, 503, 504],
+            status_forcelist=[429, 502, 503, 504],  # 500 제거
             allowed_methods=["HEAD", "GET", "POST", "PUT", "DELETE"],
             backoff_factor=self.retry_backoff
         )
-        
+
         adapter = HTTPAdapter(max_retries=retry_strategy)
         session.mount("https://", adapter)
         session.mount("http://", adapter)
-        
+
         logger.info("HTTP 세션 생성 완료 (자동 재시도 활성화)")
         return session
     
@@ -389,8 +390,10 @@ class KiwoomRESTClient:
                 logger.error(f"API 에러 응답 ({api_id}):")
                 logger.error(f"  URL: {url}")
                 logger.error(f"  상태 코드: {res.status_code}")
+                logger.error(f"  요청 본문: {body}")
+                logger.error(f"  응답 헤더: {dict(res.headers)}")
                 logger.error(f"  응답 본문: {res.text[:1000]}")
-            
+
             # 401 에러 처리 (토큰 갱신 후 재시도)
             if res.status_code == 401 and retry_on_auth:
                 logger.warning(f"401 에러 - 토큰 갱신 후 재시도 ({api_id})")
