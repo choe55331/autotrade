@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
+import json
 import logging
 from core import KiwoomRESTClient
 from api import AccountAPI
@@ -48,10 +49,13 @@ def main():
         print("3️⃣ 예수금 조회 중...")
         deposit = account_api.get_deposit()
 
+        print(f"\n📋 예수금 응답 전체:")
+        print(f"{json.dumps(deposit, indent=2, ensure_ascii=False)}\n")
+
         if deposit:
             print("✅ 예수금 조회 성공")
-            print(f"   예수금: {deposit.get('deposit_available', 0):,}원")
-            print(f"   출금 가능 금액: {deposit.get('withdraw_available', 0):,}원")
+            print(f"   주문가능금액: {deposit.get('ord_alow_amt', '0'):,}원")
+            print(f"   출금가능금액: {deposit.get('pymn_alow_amt', '0'):,}원")
         else:
             print("❌ 예수금 조회 실패")
             print(f"   마지막 에러: {client.last_error_msg}")
@@ -62,21 +66,23 @@ def main():
         print("4️⃣ 잔고 조회 중...")
         balance = account_api.get_balance()
 
+        print(f"\n📋 잔고 응답 전체:")
+        print(f"{json.dumps(balance, indent=2, ensure_ascii=False)}\n")
+
         if balance:
             print("✅ 잔고 조회 성공")
 
             # 보유 종목
-            holdings = balance.get('output1', [])
+            holdings = balance.get('acnt_evlt_remn_indv_tot', [])
             print(f"   보유 종목: {len(holdings)}개")
 
             for holding in holdings[:3]:  # 최대 3개만 출력
-                print(f"     - {holding.get('stock_name')} ({holding.get('stock_code')}): "
-                      f"{holding.get('quantity')}주 @ {holding.get('current_price'):,}원")
+                print(f"     - {holding.get('stk_nm')} ({holding.get('stk_cd')}): "
+                      f"{holding.get('rmnd_qty')}주 @ {holding.get('cur_prc'):,}원")
 
             # 계좌 요약
-            summary = balance.get('output2', {})
-            print(f"   총 평가금액: {summary.get('total_evaluation', 0):,}원")
-            print(f"   총 손익: {summary.get('total_profit_loss', 0):+,}원")
+            print(f"   총 평가금액: {balance.get('tot_evlt_amt', '0'):,}원")
+            print(f"   총 손익: {balance.get('tot_evlt_pl', '0'):+}원")
         else:
             print("❌ 잔고 조회 실패")
             print(f"   마지막 에러: {client.last_error_msg}")
