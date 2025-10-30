@@ -1,0 +1,145 @@
+"""
+config 패키지
+설정 관리 모듈
+"""
+from .settings import (
+    LOG_CONFIG,
+    FILE_PATHS,
+    API_RATE_LIMIT,
+    MAIN_CYCLE_CONFIG,
+    get_default_control_state,
+    validate_environment,
+)
+from .credentials import (
+    Credentials,
+    get_credentials,
+    credentials,
+    KIWOOM_REST_BASE_URL,
+    KIWOOM_REST_APPKEY,
+    KIWOOM_REST_SECRETKEY,
+    ACCOUNT_NUMBER,
+    KIWOOM_WEBSOCKET_URL,
+    GEMINI_API_KEY,
+    GEMINI_MODEL_NAME,
+)
+from .trading_params import (
+    TRADING_PARAMS,
+    POSITION_CONFIG,
+    PROFIT_LOSS_CONFIG,
+    FILTER_CONFIG,
+    AI_CONFIG,
+    validate_trading_params,
+    get_trading_params_summary,
+)
+
+# 하위 호환성을 위한 변수
+LOG_FILE_PATH = LOG_CONFIG['LOG_FILE_PATH']
+LOG_LEVEL = LOG_CONFIG['LOG_LEVEL']
+LOG_FILE_MAX_BYTES = LOG_CONFIG['LOG_FILE_MAX_BYTES']
+LOG_FILE_BACKUP_COUNT = LOG_CONFIG['LOG_FILE_BACKUP_COUNT']
+
+CONTROL_FILE_PATH = FILE_PATHS['CONTROL_FILE']
+STRATEGY_STATE_FILE = FILE_PATHS['STRATEGY_STATE_FILE']
+WEBSOCKET_STATUS_FILE = FILE_PATHS['WEBSOCKET_STATUS_FILE']
+
+API_RATE_LIMIT_SECONDS = API_RATE_LIMIT['REST_CALL_INTERVAL']
+MAIN_CYCLE_SLEEP_SECONDS = MAIN_CYCLE_CONFIG['SLEEP_SECONDS']
+
+# 기본 제어 상태
+DEFAULT_CONTROL_STATE = get_default_control_state()
+
+# 매매 파라미터
+MAX_OPEN_POSITIONS = POSITION_CONFIG['MAX_OPEN_POSITIONS']
+RISK_PER_TRADE_RATIO = POSITION_CONFIG['RISK_PER_TRADE_RATIO']
+TAKE_PROFIT_RATIO = PROFIT_LOSS_CONFIG['TAKE_PROFIT_RATIO']
+STOP_LOSS_RATIO = PROFIT_LOSS_CONFIG['STOP_LOSS_RATIO']
+
+FILTER_MIN_PRICE = FILTER_CONFIG['FILTER_MIN_PRICE']
+FILTER_MIN_VOLUME = FILTER_CONFIG['FILTER_MIN_VOLUME']
+FILTER_MIN_RATE = FILTER_CONFIG['FILTER_MIN_RATE']
+FILTER_MAX_RATE = FILTER_CONFIG['FILTER_MAX_RATE']
+
+AI_ANALYSIS_ENABLED = AI_CONFIG['AI_ANALYSIS_ENABLED']
+AI_MIN_ANALYSIS_SCORE = AI_CONFIG['AI_MIN_ANALYSIS_SCORE']
+AI_CONFIDENCE_THRESHOLD = AI_CONFIG['AI_CONFIDENCE_THRESHOLD']
+AI_MARKET_ANALYSIS_INTERVAL = AI_CONFIG['AI_MARKET_ANALYSIS_INTERVAL']
+AI_ADJUST_FILTERS_AUTOMATICALLY = AI_CONFIG['AI_ADJUST_FILTERS_AUTOMATICALLY']
+
+def validate_config():
+    """전체 설정 검증"""
+    errors = []
+    
+    # 환경 검증
+    env_errors = validate_environment()
+    errors.extend(env_errors)
+    
+    # 자격증명 검증
+    is_valid, cred_errors = credentials.validate()
+    errors.extend(cred_errors)
+    
+    # 매매 파라미터 검증
+    is_valid, param_errors = validate_trading_params()
+    errors.extend(param_errors)
+    
+    if errors:
+        error_msg = "\n".join(f"- {err}" for err in errors)
+        raise ValueError(f"설정 오류:\n{error_msg}")
+    
+    return True
+
+__all__ = [
+    # Settings
+    'LOG_CONFIG',
+    'FILE_PATHS',
+    'API_RATE_LIMIT',
+    'MAIN_CYCLE_CONFIG',
+    'get_default_control_state',
+    'validate_environment',
+    
+    # Credentials
+    'Credentials',
+    'get_credentials',
+    'credentials',
+    'KIWOOM_REST_BASE_URL',
+    'KIWOOM_REST_APPKEY',
+    'KIWOOM_REST_SECRETKEY',
+    'ACCOUNT_NUMBER',
+    'KIWOOM_WEBSOCKET_URL',
+    'GEMINI_API_KEY',
+    'GEMINI_MODEL_NAME',
+    
+    # Trading Params
+    'TRADING_PARAMS',
+    'POSITION_CONFIG',
+    'PROFIT_LOSS_CONFIG',
+    'FILTER_CONFIG',
+    'AI_CONFIG',
+    'validate_trading_params',
+    'get_trading_params_summary',
+    
+    # Legacy compatibility
+    'LOG_FILE_PATH',
+    'LOG_LEVEL',
+    'LOG_FILE_MAX_BYTES',
+    'LOG_FILE_BACKUP_COUNT',
+    'CONTROL_FILE_PATH',
+    'STRATEGY_STATE_FILE',
+    'WEBSOCKET_STATUS_FILE',
+    'API_RATE_LIMIT_SECONDS',
+    'MAIN_CYCLE_SLEEP_SECONDS',
+    'DEFAULT_CONTROL_STATE',
+    'MAX_OPEN_POSITIONS',
+    'RISK_PER_TRADE_RATIO',
+    'TAKE_PROFIT_RATIO',
+    'STOP_LOSS_RATIO',
+    'FILTER_MIN_PRICE',
+    'FILTER_MIN_VOLUME',
+    'FILTER_MIN_RATE',
+    'FILTER_MAX_RATE',
+    'AI_ANALYSIS_ENABLED',
+    'AI_MIN_ANALYSIS_SCORE',
+    'AI_CONFIDENCE_THRESHOLD',
+    'AI_MARKET_ANALYSIS_INTERVAL',
+    'AI_ADJUST_FILTERS_AUTOMATICALLY',
+    'validate_config',
+]

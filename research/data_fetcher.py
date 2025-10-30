@@ -1,0 +1,590 @@
+"""
+research/data_fetcher.py
+데이터 수집 모듈
+"""
+import logging
+from typing import Dict, Any, Optional, List
+from datetime import datetime
+
+logger = logging.getLogger(__name__)
+
+
+class DataFetcher:
+    """
+    키움증권 REST API 데이터 수집 클래스
+    
+    주요 기능:
+    - 계좌 정보 조회
+    - 시세 데이터 조회
+    - 종목 검색
+    - 순위 정보 조회
+    """
+    
+    def __init__(self, client):
+        """
+        DataFetcher 초기화
+        
+        Args:
+            client: KiwoomRESTClient 인스턴스
+        """
+        self.client = client
+        logger.info("DataFetcher 초기화 완료")
+    
+    # ==================== 계좌 정보 조회 ====================
+    
+    def get_balance(self, account_number: str = None) -> Optional[Dict[str, Any]]:
+        """
+        계좌 잔고 조회
+        
+        Args:
+            account_number: 계좌번호 (None이면 기본 계좌)
+        
+        Returns:
+            잔고 정보 딕셔너리
+            {
+                'output1': [  # 보유 종목 리스트
+                    {
+                        'stock_code': '005930',
+                        'stock_name': '삼성전자',
+                        'quantity': 10,
+                        'purchase_price': 70000,
+                        'current_price': 72000,
+                        'profit_loss': 20000,
+                        'profit_loss_rate': 2.86,
+                        'evaluation_amount': 720000
+                    }
+                ],
+                'output2': {  # 계좌 요약
+                    'total_evaluation': 720000,
+                    'total_profit_loss': 20000,
+                    'total_profit_loss_rate': 2.86
+                }
+            }
+        """
+        if not account_number:
+            account_info = self.client.get_account_info()
+            account_number = account_info['account_number']
+        
+        parts = account_number.split('-')
+        account_code = parts[0]
+        account_suffix = parts[1] if len(parts) > 1 else '01'
+        
+        body = {
+            "account_code": account_code,
+            "account_suffix": account_suffix
+        }
+        
+        response = self.client.request(
+            api_id="DOSK_0059",
+            body=body,
+            path="/api/dostk/inquire/balance"
+        )
+        
+        if response and response.get('return_code') == 0:
+            logger.info("잔고 조회 성공")
+            return response.get('output', {})
+        else:
+            logger.error(f"잔고 조회 실패: {response.get('return_msg')}")
+            return None
+    
+    def get_deposit(self, account_number: str = None) -> Optional[Dict[str, Any]]:
+        """
+        예수금 조회
+        
+        Args:
+            account_number: 계좌번호
+        
+        Returns:
+            예수금 정보
+            {
+                'deposit_available': 1000000,  # 주문 가능 금액
+                'deposit_total': 1000000,      # 예수금 총액
+                'withdraw_available': 1000000   # 출금 가능 금액
+            }
+        """
+        if not account_number:
+            account_info = self.client.get_account_info()
+            account_number = account_info['account_number']
+        
+        parts = account_number.split('-')
+        account_code = parts[0]
+        account_suffix = parts[1] if len(parts) > 1 else '01'
+        
+        body = {
+            "account_code": account_code,
+            "account_suffix": account_suffix
+        }
+        
+        response = self.client.request(
+            api_id="DOSK_0085",
+            body=body,
+            path="/api/dostk/inquire/deposit"
+        )
+        
+        if response and response.get('return_code') == 0:
+            output = response.get('output', {})
+            logger.info(f"예수금 조회 성공: {output.get('deposit_available', 0):,}원")
+            return output
+        else:
+            logger.error(f"예수금 조회 실패: {response.get('return_msg')}")
+            return None
+    
+    def get_holdings(self, account_number: str = None) -> List[Dict[str, Any]]:
+        """
+        보유 종목 리스트 조회
+        
+        Args:
+            account_number: 계좌번호
+        
+        Returns:
+            보유 종목 리스트
+        """
+        balance = self.get_balance(account_number)
+        
+        if not balance:
+            return []
+        
+        holdings = []
+        output_list = balance.get('output1', [])
+        
+        for item in output_list:
+            holding = {
+                'stock_code': item.get('stock_code', ''),
+                'stock_name': item.get('stock_name', ''),
+                'quantity': int(item.get('quantity', 0)),
+                'purchase_price': float(item.get('purchase_price', 0)),
+                'current_price': float(item.get('current_price', 0)),
+                'profit_loss': float(item.get('profit_loss', 0)),
+                'profit_loss_rate': float(item.get('profit_loss_rate', 0)),
+                'evaluation_amount': float(item.get('evaluation_amount', 0)),
+            }
+            holdings.append(holding)
+        
+        logger.info(f"보유 종목 {len(holdings)}개 조회 완료")
+        return holdings
+    
+    # ==================== 시세 조회 ====================
+    
+    def get_current_price(self, stock_code: str) -> Optional[Dict[str, Any]]:
+        """
+        종목 현재가 조회
+        
+        Args:
+            stock_code: 종목코드 (6자리)
+        
+        Returns:
+            현재가 정보
+            {
+                'stock_code': '005930',
+                'stock_name': '삼성전자',
+                'current_price': 72000,
+                'change_price': 1000,
+                'change_rate': 1.41,
+                'volume': 10000000,
+                'trading_value': 720000000000,
+                'open_price': 71000,
+                'high_price': 72500,
+                'low_price': 70500,
+                'prev_close': 71000
+            }
+        """
+        body = {
+            "stock_code": stock_code
+        }
+        
+        response = self.client.request(
+            api_id="DOSK_0002",
+            body=body,
+            path="/api/dostk/inquire/price"
+        )
+        
+        if response and response.get('return_code') == 0:
+            price_info = response.get('output', {})
+            current_price = int(price_info.get('current_price', 0))
+            logger.info(f"{stock_code} 현재가: {current_price:,}원")
+            return price_info
+        else:
+            logger.error(f"현재가 조회 실패: {response.get('return_msg')}")
+            return None
+    
+    def get_orderbook(self, stock_code: str) -> Optional[Dict[str, Any]]:
+        """
+        호가 조회
+        
+        Args:
+            stock_code: 종목코드
+        
+        Returns:
+            호가 정보 (매도/매수 10호가)
+            {
+                'sell_hoga': [  # 매도 호가 (10개)
+                    {'price': 72500, 'quantity': 1000},
+                    {'price': 72400, 'quantity': 2000},
+                    ...
+                ],
+                'buy_hoga': [  # 매수 호가 (10개)
+                    {'price': 72300, 'quantity': 1500},
+                    {'price': 72200, 'quantity': 2500},
+                    ...
+                ]
+            }
+        """
+        body = {
+            "stock_code": stock_code
+        }
+        
+        response = self.client.request(
+            api_id="DOSK_0003",
+            body=body,
+            path="/api/dostk/inquire/orderbook"
+        )
+        
+        if response and response.get('return_code') == 0:
+            orderbook = response.get('output', {})
+            logger.info(f"{stock_code} 호가 조회 완료")
+            return orderbook
+        else:
+            logger.error(f"호가 조회 실패: {response.get('return_msg')}")
+            return None
+    
+    def get_daily_price(
+        self,
+        stock_code: str,
+        start_date: str = None,
+        end_date: str = None
+    ) -> List[Dict[str, Any]]:
+        """
+        일봉 데이터 조회
+        
+        Args:
+            stock_code: 종목코드
+            start_date: 시작일 (YYYYMMDD)
+            end_date: 종료일 (YYYYMMDD)
+        
+        Returns:
+            일봉 데이터 리스트
+            [
+                {
+                    'date': '20250130',
+                    'open': 71000,
+                    'high': 72500,
+                    'low': 70500,
+                    'close': 72000,
+                    'volume': 10000000
+                },
+                ...
+            ]
+        """
+        if not start_date:
+            start_date = datetime.now().strftime('%Y%m%d')
+        if not end_date:
+            end_date = datetime.now().strftime('%Y%m%d')
+        
+        body = {
+            "stock_code": stock_code,
+            "period_code": "D",  # D: 일봉
+            "start_date": start_date,
+            "end_date": end_date
+        }
+        
+        response = self.client.request(
+            api_id="DOSK_0001",
+            body=body,
+            path="/api/dostk/inquire/dailyprice"
+        )
+        
+        if response and response.get('return_code') == 0:
+            daily_data = response.get('output', [])
+            logger.info(f"{stock_code} 일봉 데이터 {len(daily_data)}개 조회 완료")
+            return daily_data
+        else:
+            logger.error(f"일봉 조회 실패: {response.get('return_msg')}")
+            return []
+    
+    def get_minute_price(
+        self,
+        stock_code: str,
+        minute_type: str = '1'
+    ) -> List[Dict[str, Any]]:
+        """
+        분봉 데이터 조회
+        
+        Args:
+            stock_code: 종목코드
+            minute_type: 분봉 타입 ('1', '3', '5', '10', '30', '60')
+        
+        Returns:
+            분봉 데이터 리스트
+        """
+        body = {
+            "stock_code": stock_code,
+            "period_code": minute_type
+        }
+        
+        response = self.client.request(
+            api_id="DOSK_0001",
+            body=body,
+            path="/api/dostk/inquire/minuteprice"
+        )
+        
+        if response and response.get('return_code') == 0:
+            minute_data = response.get('output', [])
+            logger.info(f"{stock_code} {minute_type}분봉 데이터 {len(minute_data)}개 조회 완료")
+            return minute_data
+        else:
+            logger.error(f"분봉 조회 실패: {response.get('return_msg')}")
+            return []
+    
+    # ==================== 종목 검색/순위 ====================
+    
+    def search_stock(self, keyword: str) -> List[Dict[str, Any]]:
+        """
+        종목 검색
+        
+        Args:
+            keyword: 검색어 (종목명 또는 종목코드)
+        
+        Returns:
+            검색 결과 리스트
+            [
+                {
+                    'stock_code': '005930',
+                    'stock_name': '삼성전자',
+                    'market': 'KOSPI'
+                },
+                ...
+            ]
+        """
+        body = {
+            "keyword": keyword
+        }
+        
+        response = self.client.request(
+            api_id="DOSK_0006",
+            body=body,
+            path="/api/dostk/inquire/search"
+        )
+        
+        if response and response.get('return_code') == 0:
+            results = response.get('output', [])
+            logger.info(f"'{keyword}' 검색 결과 {len(results)}개")
+            return results
+        else:
+            logger.error(f"종목 검색 실패: {response.get('return_msg')}")
+            return []
+    
+    def get_volume_rank(
+        self,
+        market: str = 'ALL',
+        limit: int = 20
+    ) -> List[Dict[str, Any]]:
+        """
+        거래량 순위 조회
+        
+        Args:
+            market: 시장구분 ('ALL', 'KOSPI', 'KOSDAQ')
+            limit: 조회 건수
+        
+        Returns:
+            거래량 순위 리스트
+        """
+        body = {
+            "market_code": self._get_market_code(market),
+            "sort_type": "volume",
+            "limit": limit
+        }
+        
+        response = self.client.request(
+            api_id="DOSK_0010",
+            body=body,
+            path="/api/dostk/inquire/rank"
+        )
+        
+        if response and response.get('return_code') == 0:
+            rank_list = response.get('output', [])
+            logger.info(f"거래량 순위 {len(rank_list)}개 조회 완료")
+            return rank_list
+        else:
+            logger.error(f"거래량 순위 조회 실패: {response.get('return_msg')}")
+            return []
+    
+    def get_price_change_rank(
+        self,
+        market: str = 'ALL',
+        sort: str = 'rise',
+        limit: int = 20
+    ) -> List[Dict[str, Any]]:
+        """
+        등락률 순위 조회
+        
+        Args:
+            market: 시장구분 ('ALL', 'KOSPI', 'KOSDAQ')
+            sort: 정렬 ('rise': 상승률, 'fall': 하락률)
+            limit: 조회 건수
+        
+        Returns:
+            등락률 순위 리스트
+        """
+        body = {
+            "market_code": self._get_market_code(market),
+            "sort_type": sort,
+            "limit": limit
+        }
+        
+        response = self.client.request(
+            api_id="DOSK_0011",
+            body=body,
+            path="/api/dostk/inquire/rank"
+        )
+        
+        if response and response.get('return_code') == 0:
+            rank_list = response.get('output', [])
+            sort_name = "상승률" if sort == 'rise' else "하락률"
+            logger.info(f"{sort_name} 순위 {len(rank_list)}개 조회 완료")
+            return rank_list
+        else:
+            logger.error(f"등락률 순위 조회 실패: {response.get('return_msg')}")
+            return []
+    
+    def get_trading_value_rank(
+        self,
+        market: str = 'ALL',
+        limit: int = 20
+    ) -> List[Dict[str, Any]]:
+        """
+        거래대금 순위 조회
+        
+        Args:
+            market: 시장구분
+            limit: 조회 건수
+        
+        Returns:
+            거래대금 순위 리스트
+        """
+        body = {
+            "market_code": self._get_market_code(market),
+            "sort_type": "trading_value",
+            "limit": limit
+        }
+        
+        response = self.client.request(
+            api_id="DOSK_0012",
+            body=body,
+            path="/api/dostk/inquire/rank"
+        )
+        
+        if response and response.get('return_code') == 0:
+            rank_list = response.get('output', [])
+            logger.info(f"거래대금 순위 {len(rank_list)}개 조회 완료")
+            return rank_list
+        else:
+            logger.error(f"거래대금 순위 조회 실패: {response.get('return_msg')}")
+            return []
+    
+    # ==================== 투자자별 매매 동향 ====================
+    
+    def get_investor_trading(
+        self,
+        stock_code: str,
+        date: str = None
+    ) -> Optional[Dict[str, Any]]:
+        """
+        투자자별 매매 동향 조회 (외국인, 기관)
+        
+        Args:
+            stock_code: 종목코드
+            date: 조회일 (YYYYMMDD, None이면 오늘)
+        
+        Returns:
+            투자자별 매매 동향
+            {
+                'foreign_net': 10000,      # 외국인 순매수
+                'institution_net': 5000,   # 기관 순매수
+                'individual_net': -15000,  # 개인 순매수
+                'foreign_hold_rate': 52.5  # 외국인 보유 비율
+            }
+        """
+        if not date:
+            date = datetime.now().strftime('%Y%m%d')
+        
+        body = {
+            "stock_code": stock_code,
+            "date": date
+        }
+        
+        response = self.client.request(
+            api_id="DOSK_0040",
+            body=body,
+            path="/api/dostk/inquire/investor"
+        )
+        
+        if response and response.get('return_code') == 0:
+            investor_info = response.get('output', {})
+            logger.info(f"{stock_code} 투자자별 매매 동향 조회 완료")
+            return investor_info
+        else:
+            logger.error(f"투자자별 매매 동향 조회 실패: {response.get('return_msg')}")
+            return None
+    
+    # ==================== 종목 상세 정보 ====================
+    
+    def get_stock_info(self, stock_code: str) -> Optional[Dict[str, Any]]:
+        """
+        종목 상세 정보 조회
+        
+        Args:
+            stock_code: 종목코드
+        
+        Returns:
+            종목 상세 정보
+            {
+                'stock_code': '005930',
+                'stock_name': '삼성전자',
+                'market_cap': 500000000000000,  # 시가총액
+                'per': 15.5,                     # PER
+                'pbr': 1.2,                      # PBR
+                'eps': 5000,                     # EPS
+                'bps': 60000,                    # BPS
+                'dividend_yield': 2.5,           # 배당수익률
+                'listed_shares': 5000000000      # 상장주식수
+            }
+        """
+        body = {
+            "stock_code": stock_code
+        }
+        
+        response = self.client.request(
+            api_id="DOSK_0005",
+            body=body,
+            path="/api/dostk/inquire/stockinfo"
+        )
+        
+        if response and response.get('return_code') == 0:
+            stock_info = response.get('output', {})
+            logger.info(f"{stock_code} 상세 정보 조회 완료")
+            return stock_info
+        else:
+            logger.error(f"종목 정보 조회 실패: {response.get('return_msg')}")
+            return None
+    
+    # ==================== 유틸리티 ====================
+    
+    def _get_market_code(self, market: str) -> str:
+        """
+        시장 코드 변환
+        
+        Args:
+            market: 시장 문자열 ('ALL', 'KOSPI', 'KOSDAQ')
+        
+        Returns:
+            시장 코드
+        """
+        market_map = {
+            'ALL': '0',
+            'KOSPI': '0',
+            'KOSDAQ': '1'
+        }
+        return market_map.get(market.upper(), '0')
+
+
+__all__ = ['DataFetcher']
