@@ -65,7 +65,14 @@ class AccountAPI:
             logger.info("잔고 조회 성공")
             return response.get('output', {})
         else:
-            logger.error(f"잔고 조회 실패: {response.get('return_msg')}")
+            logger.error(f"잔고 조회 실패")
+            if response:
+                logger.error(f"  계좌: {account_prefix}-{account_suffix}")
+                logger.error(f"  return_code: {response.get('return_code')}")
+                logger.error(f"  return_msg: {response.get('return_msg')}")
+                logger.error(f"  전체 응답: {response}")
+            else:
+                logger.error("  응답이 None입니다")
             return None
     
     def get_deposit(self, account_number: str = None) -> Optional[Dict[str, Any]]:
@@ -102,7 +109,14 @@ class AccountAPI:
             logger.info(f"예수금 조회 성공: {output.get('deposit_available', 0):,}원")
             return output
         else:
-            logger.error(f"예수금 조회 실패: {response.get('return_msg')}")
+            logger.error(f"예수금 조회 실패")
+            if response:
+                logger.error(f"  계좌: {account_prefix}-{account_suffix}")
+                logger.error(f"  return_code: {response.get('return_code')}")
+                logger.error(f"  return_msg: {response.get('return_msg')}")
+                logger.error(f"  전체 응답: {response}")
+            else:
+                logger.error("  응답이 None입니다")
             return None
     
     def get_holdings(self, account_number: str = None) -> List[Dict[str, Any]]:

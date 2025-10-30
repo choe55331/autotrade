@@ -183,10 +183,13 @@ class KiwoomRESTClient:
             )
             
             logger.debug(f"토큰 요청 응답 상태: {res.status_code}")
-            
+
             if res.status_code != 200:
                 error_data = self._parse_error_response(res)
                 self._set_error(f"토큰 발급 실패 ({res.status_code}): {error_data}")
+                logger.error(f"토큰 요청 URL: {token_url}")
+                logger.error(f"토큰 요청 본문: appkey={self.appkey[:10]}..., secretkey={self.appsecret[:10]}...")
+                logger.error(f"응답 내용: {res.text[:500]}")
                 return False
             
             token_data = res.json()
@@ -380,6 +383,13 @@ class KiwoomRESTClient:
             
             elapsed_ms = (time.monotonic() - start_time) * 1000
             logger.info(f"[REST 응답] {api_id} - 상태:{res.status_code}, 지연:{elapsed_ms:.2f}ms")
+
+            # 에러 상태 코드일 경우 상세 로그
+            if res.status_code >= 400:
+                logger.error(f"API 에러 응답 ({api_id}):")
+                logger.error(f"  URL: {url}")
+                logger.error(f"  상태 코드: {res.status_code}")
+                logger.error(f"  응답 본문: {res.text[:1000]}")
             
             # 401 에러 처리 (토큰 갱신 후 재시도)
             if res.status_code == 401 and retry_on_auth:
@@ -435,12 +445,22 @@ class KiwoomRESTClient:
         
         return_code = result_data.get('return_code', 0)
         return_msg = result_data.get('return_msg', '메시지 없음')
-        
+
         if return_code != 0:
             logger.warning(f"API 로직 오류 ({api_id}): {return_msg} (코드: {return_code})")
+            logger.debug(f"전체 응답: {result_data}")
         else:
             logger.info(f"API 호출 성공 ({api_id})")
-        
+            # output 데이터 유무 로깅
+            if 'output' in result_data:
+                output_data = result_data['output']
+                if isinstance(output_data, list):
+                    logger.debug(f"  output: 리스트 {len(output_data)}개 항목")
+                elif isinstance(output_data, dict):
+                    logger.debug(f"  output: 딕셔너리 {len(output_data)}개 키")
+                else:
+                    logger.debug(f"  output: {type(output_data)}")
+
         return result_data
     
     def get_account_info(self) -> Dict[str, Any]:
