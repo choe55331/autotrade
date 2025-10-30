@@ -33,41 +33,36 @@ class AccountAPI:
     
     def get_balance(self, account_number: str = None) -> Optional[Dict[str, Any]]:
         """
-        계좌 잔고 조회
-        
+        계좌 잔고 조회 (kt00018)
+
         Args:
             account_number: 계좌번호 (None이면 기본 계좌)
-        
+
         Returns:
             잔고 정보 딕셔너리
         """
-        if not account_number:
-            account_info = self.client.get_account_info()
-            account_number = account_info['account_number']
-        
-        # 계좌번호 파싱
-        parts = account_number.split('-')
-        account_prefix = parts[0]
-        account_suffix = parts[1] if len(parts) > 1 else '01'
-        
+        # 키움증권 REST API: kt00018 (계좌평가잔고내역요청)
+        # URL: /api/dostk/acnt
+        # Body: {"qry_tp": "1", "dmst_stex_tp": "KRX"}  # 1: 합산, KRX: 한국거래소
+
         body = {
-            "account_code": account_prefix,
-            "account_suffix": account_suffix
+            "qry_tp": "1",           # 합산
+            "dmst_stex_tp": "KRX"    # 한국거래소
         }
-        
+
         response = self.client.request(
-            api_id="DOSK_0059",
+            api_id="kt00018",
             body=body,
-            path="/api/dostk/inquire/balance"
+            path="/api/dostk/acnt"
         )
-        
+
         if response and response.get('return_code') == 0:
+            output = response.get('output', {})
             logger.info("잔고 조회 성공")
-            return response.get('output', {})
+            return output
         else:
             logger.error(f"잔고 조회 실패")
             if response:
-                logger.error(f"  계좌: {account_prefix}-{account_suffix}")
                 logger.error(f"  return_code: {response.get('return_code')}")
                 logger.error(f"  return_msg: {response.get('return_msg')}")
                 logger.error(f"  전체 응답: {response}")
@@ -77,41 +72,37 @@ class AccountAPI:
     
     def get_deposit(self, account_number: str = None) -> Optional[Dict[str, Any]]:
         """
-        예수금 조회
-        
+        예수금 조회 (kt00001)
+
         Args:
             account_number: 계좌번호
-        
+
         Returns:
             예수금 정보
         """
-        if not account_number:
-            account_info = self.client.get_account_info()
-            account_number = account_info['account_number']
-        
-        parts = account_number.split('-')
-        account_prefix = parts[0]
-        account_suffix = parts[1] if len(parts) > 1 else '01'
-        
+        # 키움증권 REST API: kt00001 (예수금상세현황요청)
+        # URL: /api/dostk/acnt
+        # Body: {"qry_tp": "2"}  # 2: 일반조회
+
         body = {
-            "account_code": account_prefix,
-            "account_suffix": account_suffix
+            "qry_tp": "2"  # 일반조회
         }
-        
+
         response = self.client.request(
-            api_id="DOSK_0085",
+            api_id="kt00001",
             body=body,
-            path="/api/dostk/inquire/deposit"
+            path="/api/dostk/acnt"
         )
-        
+
         if response and response.get('return_code') == 0:
             output = response.get('output', {})
-            logger.info(f"예수금 조회 성공: {output.get('deposit_available', 0):,}원")
+            # 주요 필드: ord_alow_amt (주문가능금액), pymn_alow_amt (출금가능금액)
+            ord_alow_amt = int(output.get('ord_alow_amt', 0))
+            logger.info(f"예수금 조회 성공: 주문가능금액 {ord_alow_amt:,}원")
             return output
         else:
             logger.error(f"예수금 조회 실패")
             if response:
-                logger.error(f"  계좌: {account_prefix}-{account_suffix}")
                 logger.error(f"  return_code: {response.get('return_code')}")
                 logger.error(f"  return_msg: {response.get('return_msg')}")
                 logger.error(f"  전체 응답: {response}")
@@ -122,34 +113,35 @@ class AccountAPI:
     def get_holdings(self, account_number: str = None) -> List[Dict[str, Any]]:
         """
         보유 종목 조회
-        
+
         Args:
             account_number: 계좌번호
-        
+
         Returns:
             보유 종목 리스트
         """
         balance = self.get_balance(account_number)
-        
+
         if not balance:
             return []
-        
+
         holdings = []
-        output_list = balance.get('output1', [])
-        
+        # kt00018 응답 구조: acnt_evlt_remn_indv_tot (계좌평가잔고개별합산) 리스트
+        output_list = balance.get('acnt_evlt_remn_indv_tot', [])
+
         for item in output_list:
             holding = {
-                'stock_code': item.get('stock_code', ''),
-                'stock_name': item.get('stock_name', ''),
-                'quantity': int(item.get('quantity', 0)),
-                'purchase_price': float(item.get('purchase_price', 0)),
-                'current_price': float(item.get('current_price', 0)),
-                'profit_loss': float(item.get('profit_loss', 0)),
-                'profit_loss_rate': float(item.get('profit_loss_rate', 0)),
-                'evaluation_amount': float(item.get('evaluation_amount', 0)),
+                'stock_code': item.get('stk_cd', ''),        # 종목번호
+                'stock_name': item.get('stk_nm', ''),        # 종목명
+                'quantity': int(item.get('rmnd_qty', 0)),    # 보유수량
+                'purchase_price': float(item.get('pur_pric', 0)),  # 매입가
+                'current_price': float(item.get('cur_prc', 0)),    # 현재가
+                'profit_loss': float(item.get('evltv_prft', 0)),   # 평가손익
+                'profit_loss_rate': float(item.get('prft_rt', 0)), # 수익률(%)
+                'evaluation_amount': float(item.get('evlt_amt', 0)),  # 평가금액
             }
             holdings.append(holding)
-        
+
         logger.info(f"보유 종목 {len(holdings)}개 조회 완료")
         return holdings
     
@@ -337,38 +329,39 @@ class AccountAPI:
     def get_account_summary(self, account_number: str = None) -> Dict[str, Any]:
         """
         계좌 요약 정보 조회 (예수금 + 잔고)
-        
+
         Args:
             account_number: 계좌번호
-        
+
         Returns:
             계좌 요약 정보
         """
         deposit = self.get_deposit(account_number)
         balance = self.get_balance(account_number)
-        
+
         summary = {
-            'deposit_available': 0,
-            'total_evaluation': 0,
-            'total_profit_loss': 0,
-            'total_profit_loss_rate': 0.0,
-            'holdings_count': 0,
+            'deposit_available': 0,      # 주문가능금액
+            'total_evaluation': 0,       # 총평가금액
+            'total_profit_loss': 0,      # 총평가손익금액
+            'total_profit_loss_rate': 0.0,  # 총수익률(%)
+            'holdings_count': 0,         # 보유종목수
+            'total_assets': 0,           # 추정예탁자산
         }
-        
+
         if deposit:
-            summary['deposit_available'] = float(deposit.get('deposit_available', 0))
-        
+            # kt00001 응답: ord_alow_amt (주문가능금액)
+            summary['deposit_available'] = float(deposit.get('ord_alow_amt', 0))
+
         if balance:
-            output2 = balance.get('output2', {})
-            summary['total_evaluation'] = float(output2.get('total_evaluation', 0))
-            summary['total_profit_loss'] = float(output2.get('total_profit_loss', 0))
-            summary['total_profit_loss_rate'] = float(output2.get('total_profit_loss_rate', 0))
-            
-            holdings = balance.get('output1', [])
+            # kt00018 응답 필드
+            summary['total_evaluation'] = float(balance.get('tot_evlt_amt', 0))     # 총평가금액
+            summary['total_profit_loss'] = float(balance.get('tot_evlt_pl', 0))    # 총평가손익금액
+            summary['total_profit_loss_rate'] = float(balance.get('tot_prft_rt', 0))  # 총수익률(%)
+            summary['total_assets'] = float(balance.get('prsm_dpst_aset_amt', 0))  # 추정예탁자산
+
+            holdings = balance.get('acnt_evlt_remn_indv_tot', [])
             summary['holdings_count'] = len(holdings)
-        
-        summary['total_assets'] = summary['deposit_available'] + summary['total_evaluation']
-        
+
         logger.info(f"계좌 요약 조회 완료: 총 자산 {summary['total_assets']:,.0f}원")
         return summary
 
