@@ -57,9 +57,9 @@ class AccountAPI:
         )
 
         if response and response.get('return_code') == 0:
-            output = response.get('output', {})
+            # 응답이 바로 데이터입니다 (output으로 감싸져 있지 않음)
             logger.info("잔고 조회 성공")
-            return output
+            return response
         else:
             logger.error(f"잔고 조회 실패")
             if response:
@@ -95,11 +95,11 @@ class AccountAPI:
         )
 
         if response and response.get('return_code') == 0:
-            output = response.get('output', {})
+            # 응답이 바로 데이터입니다 (output으로 감싸져 있지 않음)
             # 주요 필드: ord_alow_amt (주문가능금액), pymn_alow_amt (출금가능금액)
-            ord_alow_amt = int(output.get('ord_alow_amt', 0))
+            ord_alow_amt = int(response.get('ord_alow_amt', 0))
             logger.info(f"예수금 조회 성공: 주문가능금액 {ord_alow_amt:,}원")
-            return output
+            return response
         else:
             logger.error(f"예수금 조회 실패")
             if response:
