@@ -480,7 +480,7 @@ def create_app(bot_instance=None):
 def run_dashboard(bot_instance=None, host='0.0.0.0', port=5000, debug=False):
     """
     대시보드 실행
-    
+
     Args:
         bot_instance: 트레이딩 봇 인스턴스
         host: 호스트
@@ -489,7 +489,15 @@ def run_dashboard(bot_instance=None, host='0.0.0.0', port=5000, debug=False):
     """
     app = create_app(bot_instance)
     logger.info(f"대시보드 시작: http://{host}:{port}")
-    app.run(host=host, port=port, debug=debug)
+
+    # Flask 서버 실행 (백그라운드 스레드에서 안전하게 실행)
+    app.run(
+        host=host,
+        port=port,
+        debug=debug,
+        use_reloader=False,  # 리로더 비활성화 (멀티스레드 환경에서 문제 방지)
+        threaded=True        # 멀티스레드 지원
+    )
 
 
 __all__ = ['run_dashboard', 'create_app']
