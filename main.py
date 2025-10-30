@@ -554,45 +554,72 @@ def signal_handler(signum, frame):
 
 def main():
     """메인 함수"""
-    # 로거 설정
+    # 로거 설정 (가장 먼저 실행)
     setup_logger(
         name='trading_bot',
         log_file=Path('logs/bot.log'),
         level='INFO',
         console=True
     )
-    
+
     # 시그널 핸들러 등록
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
-    
+
+    print("\n" + "="*60)
+    print("프로그램 시작".center(60))
+    print("="*60 + "\n")
     logger.info("프로그램 시작")
-    
+
     try:
         # 봇 생성
+        print("1. 트레이딩 봇 초기화 중...")
+        logger.info("트레이딩 봇 생성 시작")
         bot = TradingBot()
-        
+        print("✓ 트레이딩 봇 초기화 완료\n")
+
         # 대시보드 시작 (별도 스레드)
+        print("2. 웹 대시보드 시작 중...")
         try:
             from dashboard import run_dashboard
+
+            # Flask 워커 스레드로 실행
             dashboard_thread = threading.Thread(
                 target=run_dashboard,
                 args=(bot,),
                 kwargs={'host': '0.0.0.0', 'port': 5000, 'debug': False},
-                daemon=True
+                daemon=True,
+                name='DashboardThread'
             )
             dashboard_thread.start()
+
+            # 대시보드가 시작될 때까지 잠깐 대기
+            time.sleep(1)
+
+            print("✓ 웹 대시보드 시작 완료")
+            print(f"  → http://127.0.0.1:5000")
+            print(f"  → http://localhost:5000\n")
             logger.info("대시보드 시작: http://localhost:5000")
+
         except Exception as e:
+            print(f"⚠ 대시보드 시작 실패: {e}\n")
             logger.warning(f"대시보드 시작 실패: {e}")
-        
+
         # 봇 시작
+        print("3. 자동매매 봇 시작 중...")
+        print("="*60 + "\n")
         bot.start()
-        
+
+    except KeyboardInterrupt:
+        print("\n\n사용자에 의한 중단")
+        logger.info("사용자에 의한 중단")
+        return 0
+
     except Exception as e:
+        print(f"\n❌ 프로그램 오류: {e}")
         logger.error(f"프로그램 오류: {e}", exc_info=True)
         return 1
-    
+
     return 0
 
 
