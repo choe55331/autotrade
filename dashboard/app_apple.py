@@ -1531,66 +1531,64 @@ def get_v42_all_status():
 def get_chart_data(stock_code: str):
     """Get real chart data from Kiwoom API"""
     try:
-        if bot_instance and hasattr(bot_instance, 'market_api'):
+        if bot_instance and hasattr(bot_instance, 'data_fetcher'):
             # Get real OHLCV data from Kiwoom
             chart_data = []
-            
-            # Try to get historical data
+
             try:
-                # This would call actual Kiwoom API
-                # For now, we'll return a structured response
-                # that indicates we're ready to receive real data
-                
-                # Get current price
-                price_info = bot_instance.market_api.get_current_price(stock_code)
-                current_price = int(price_info.get('prpr', 0)) if price_info else 0
-                stock_name = price_info.get('prdt_name', stock_code) if price_info else stock_code
-                
-                # Generate realistic data based on current price
-                import random
-                now = int(time.time())
-                for i in range(100, 0, -1):
-                    timestamp = now - (i * 3600)
-                    base_price = current_price if current_price > 0 else 70000
-                    variation = random.uniform(-0.02, 0.02)
-                    
-                    open_price = base_price * (1 + variation)
-                    high = open_price * (1 + abs(random.uniform(0, 0.01)))
-                    low = open_price * (1 - abs(random.uniform(0, 0.01)))
-                    close = open_price + random.uniform(-500, 500)
-                    
-                    chart_data.append({
-                        'time': timestamp,
-                        'open': round(open_price),
-                        'high': round(high),
-                        'low': round(low),
-                        'close': round(close)
-                    })
-                
-                # Generate AI trading signals
+                from datetime import datetime, timedelta
+
+                # Calculate date range for last 100 trading days
+                # Request more days to account for weekends/holidays
+                end_date = datetime.now()
+                start_date = end_date - timedelta(days=150)  # ~100 trading days
+
+                # Format dates as YYYYMMDD
+                start_date_str = start_date.strftime('%Y%m%d')
+                end_date_str = end_date.strftime('%Y%m%d')
+
+                # Get daily price data from Kiwoom API
+                daily_data = bot_instance.data_fetcher.get_daily_price(
+                    stock_code=stock_code,
+                    start_date=start_date_str,
+                    end_date=end_date_str
+                )
+
+                # Get current price and stock name
+                current_price = 0
+                stock_name = stock_code
+                try:
+                    price_info = bot_instance.market_api.get_current_price(stock_code)
+                    if price_info:
+                        current_price = int(price_info.get('prpr', 0))
+                        stock_name = price_info.get('prdt_name', stock_code)
+                except:
+                    pass
+
+                # Convert daily data to chart format
+                if daily_data:
+                    for item in daily_data[:100]:  # Limit to 100 most recent days
+                        try:
+                            # Parse date string to timestamp
+                            date_str = item.get('date', item.get('stck_bsop_date', ''))
+                            if date_str:
+                                date_obj = datetime.strptime(date_str, '%Y%m%d')
+                                timestamp = int(date_obj.timestamp())
+
+                                chart_data.append({
+                                    'time': timestamp,
+                                    'open': int(item.get('open', item.get('stck_oprc', 0))),
+                                    'high': int(item.get('high', item.get('stck_hgpr', 0))),
+                                    'low': int(item.get('low', item.get('stck_lwpr', 0))),
+                                    'close': int(item.get('close', item.get('stck_clpr', 0)))
+                                })
+                        except Exception as e:
+                            print(f"Error parsing chart data item: {e}")
+                            continue
+
+                # Generate AI trading signals (placeholder - would come from real AI analysis)
                 signals = []
-                for i in range(20, len(chart_data), 25):
-                    if random.random() > 0.5:
-                        signals.append({
-                            'time': chart_data[i]['time'],
-                            'position': 'belowBar',
-                            'color': '#10b981',
-                            'shape': 'arrowUp',
-                            'text': f"🟢 AI 매수\\n가격: ₩{chart_data[i]['close']:,}\\n신뢰도: {random.randint(80, 95)}%",
-                            'size': 2
-                        })
-                
-                for i in range(35, len(chart_data), 30):
-                    if random.random() > 0.6:
-                        signals.append({
-                            'time': chart_data[i]['time'],
-                            'position': 'aboveBar',
-                            'color': '#ef4444',
-                            'shape': 'arrowDown',
-                            'text': f"🔴 AI 매도\\n가격: ₩{chart_data[i]['close']:,}\\n신뢰도: {random.randint(75, 90)}%",
-                            'size': 2
-                        })
-                
+
                 return jsonify({
                     'success': True,
                     'data': chart_data,
@@ -1598,9 +1596,11 @@ def get_chart_data(stock_code: str):
                     'name': stock_name,
                     'current_price': current_price
                 })
-                
+
             except Exception as e:
                 print(f"Chart data fetch error: {e}")
+                import traceback
+                traceback.print_exc()
                 # Return empty but valid structure
                 return jsonify({
                     'success': True,
@@ -1618,10 +1618,83 @@ def get_chart_data(stock_code: str):
                 'name': stock_code,
                 'current_price': 0
             })
-            
+
     except Exception as e:
         print(f"Chart API error: {e}")
         return jsonify({'success': False, 'error': str(e)})
+
+
+@app.route('/api/market/volume-rank')
+def get_market_volume_rank():
+    """Get stocks ranked by trading volume"""
+    try:
+        market = request.args.get('market', 'ALL')
+        limit = int(request.args.get('limit', 20))
+
+        if bot_instance and hasattr(bot_instance, 'data_fetcher'):
+            rank_list = bot_instance.data_fetcher.get_volume_rank(market, limit)
+            return jsonify({
+                'success': True,
+                'data': rank_list
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Bot instance not available',
+                'data': []
+            })
+    except Exception as e:
+        print(f"Volume rank API error: {e}")
+        return jsonify({'success': False, 'error': str(e), 'data': []})
+
+
+@app.route('/api/market/price-change-rank')
+def get_market_price_change_rank():
+    """Get stocks ranked by price change rate"""
+    try:
+        market = request.args.get('market', 'ALL')
+        sort = request.args.get('sort', 'rise')  # 'rise' or 'fall'
+        limit = int(request.args.get('limit', 20))
+
+        if bot_instance and hasattr(bot_instance, 'data_fetcher'):
+            rank_list = bot_instance.data_fetcher.get_price_change_rank(market, sort, limit)
+            return jsonify({
+                'success': True,
+                'data': rank_list
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Bot instance not available',
+                'data': []
+            })
+    except Exception as e:
+        print(f"Price change rank API error: {e}")
+        return jsonify({'success': False, 'error': str(e), 'data': []})
+
+
+@app.route('/api/market/trading-value-rank')
+def get_market_trading_value_rank():
+    """Get stocks ranked by trading value"""
+    try:
+        market = request.args.get('market', 'ALL')
+        limit = int(request.args.get('limit', 20))
+
+        if bot_instance and hasattr(bot_instance, 'data_fetcher'):
+            rank_list = bot_instance.data_fetcher.get_trading_value_rank(market, limit)
+            return jsonify({
+                'success': True,
+                'data': rank_list
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Bot instance not available',
+                'data': []
+            })
+    except Exception as e:
+        print(f"Trading value rank API error: {e}")
+        return jsonify({'success': False, 'error': str(e), 'data': []})
 
 
 @app.route('/api/trading-activity')
@@ -1702,34 +1775,24 @@ def get_ai_auto_analysis():
             # Sentiment Analysis
             try:
                 # Would call sentiment analyzer on current market
-                result['sentiment'] = {
-                    'overall_sentiment': 7.2,
-                    'sentiment': 'Positive',
-                    'confidence': 'High'
-                }
+                # For now, return None until real sentiment analysis is implemented
+                result['sentiment'] = None
             except Exception as e:
                 print(f"Sentiment analysis error: {e}")
-        
+
             # Risk Analysis
             try:
-                result['risk'] = {
-                    'var': 500000,
-                    'cvar': 750000,
-                    'volatility': 18.5,
-                    'sharpe_ratio': 2.1,
-                    'risk_level': '중간'
-                }
+                # Would calculate real risk metrics from portfolio
+                # For now, return None until real risk analysis is implemented
+                result['risk'] = None
             except Exception as e:
                 print(f"Risk analysis error: {e}")
-        
+
             # Multi-Agent Consensus
             try:
-                result['consensus'] = {
-                    'final_action': 'hold',
-                    'consensus_level': 0.75,
-                    'confidence': 0.82,
-                    'votes': {'buy': 2, 'hold': 3, 'sell': 0}
-                }
+                # Would run multi-agent consensus analysis
+                # For now, return None until real consensus is implemented
+                result['consensus'] = None
             except Exception as e:
                 print(f"Consensus analysis error: {e}")
         
