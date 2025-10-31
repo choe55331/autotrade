@@ -349,8 +349,15 @@ update_thread.start()
 # MAIN ENTRY POINT
 # ============================================================================
 
-def run_dashboard(port: int = 5000, debug: bool = False, bot=None):
-    """Run the Apple-style dashboard"""
+def run_dashboard(bot=None, host: str = '0.0.0.0', port: int = 5000, debug: bool = False):
+    """Run the Apple-style dashboard
+
+    Args:
+        bot: Trading bot instance
+        host: Host to bind to (default: '0.0.0.0')
+        port: Port to bind to (default: 5000)
+        debug: Enable debug mode (default: False)
+    """
     global bot_instance
     bot_instance = bot
 
@@ -362,7 +369,7 @@ def run_dashboard(port: int = 5000, debug: bool = False, bot=None):
     print(f"🎨 Design: Apple-inspired minimalist UI")
     print("=" * 80)
 
-    socketio.run(app, host='0.0.0.0', port=port, debug=debug, allow_unsafe_werkzeug=True)
+    socketio.run(app, host=host, port=port, debug=debug, allow_unsafe_werkzeug=True)
 
 
 def create_app():

@@ -350,17 +350,25 @@ class Analyzer:
     
     def get_market_status(self) -> Dict[str, Any]:
         """
-        시장 상태 정보 (정규장 + 시간외 + NXT)
+        시장 상태 정보 (정규장 + NXT 시장)
+
+        NXT 시장 운영 시간: 오전 8시 ~ 오후 8시
+        - 프리마켓: 08:00~08:50 (지정가만)
+        - 메인마켓: 09:00~15:20
+        - KRX 종가 결정: 15:20~15:30 (신규 주문 불가, 취소만 가능)
+        - NXT 일시 중단: 15:30~15:40 (거래 불가)
+        - 애프터마켓: 15:40~20:00 (지정가만)
 
         Returns:
             시장 상태 정보
             {
                 'is_trading_hours': True,
                 'is_test_mode': False,
-                'market_type': '정규장',
+                'market_type': 'NXT 프리마켓',
                 'current_time': '15:30:00',
-                'market_status': '장 운영 중',
-                'next_open': '2025-01-31 09:00:00'
+                'market_status': 'NXT 프리마켓 운영 중',
+                'next_open': '2025-01-31 08:00:00',
+                'order_type_limit': 'limit_only'  # 'limit_only' or 'all'
             }
         """
         now = datetime.now()
@@ -372,57 +380,73 @@ class Analyzer:
         is_test_mode = False
         market_type = '폐장'
         market_status = '폐장'
+        order_type_limit = 'all'  # 'limit_only' or 'all'
+        can_cancel_only = False  # 취소만 가능한지 여부
 
-        # 주말 체크
+        # 주말 체크 - 종가 기준 테스트 모드
         if weekday >= 5:  # 토요일, 일요일
-            market_status = '주말'
-            is_trading_hours = False
+            market_status = '주말 (종가 테스트 모드)'
+            is_trading_hours = True  # 테스트 모드 활성화
+            is_test_mode = True
+            market_type = '테스트 모드'
 
-        # 평일 거래 시간 체크
+        # 평일 NXT 시장 시간 체크
         else:
-            # 1. 정규장: 09:00 ~ 15:30
-            if time(9, 0) <= current_time < time(15, 30):
+            # 1. NXT 프리마켓: 08:00 ~ 08:50 (지정가만)
+            if time(8, 0) <= current_time < time(8, 50):
                 is_trading_hours = True
-                market_type = '정규장'
-                market_status = '정규장 운영 중'
+                market_type = 'NXT 프리마켓'
+                market_status = 'NXT 프리마켓 운영 중 (지정가만)'
                 is_test_mode = False
+                order_type_limit = 'limit_only'
 
-            # 2. 시간외 종가: 15:30 ~ 18:00
-            elif time(15, 30) <= current_time < time(18, 0):
-                is_trading_hours = True
-                market_type = '시간외'
-                market_status = '시간외 거래 중'
-                is_test_mode = False
-
-            # 3. NXT 야간시장: 18:00 ~ 23:59
-            elif time(18, 0) <= current_time <= time(23, 59):
-                is_trading_hours = True
-                market_type = 'NXT (야간시장)'
-                market_status = 'NXT 거래 중 (테스트 모드)'
-                is_test_mode = True  # NXT는 테스트 모드
-
-            # 4. NXT 야간시장: 00:00 ~ 02:00 (다음날)
-            elif time(0, 0) <= current_time < time(2, 0):
-                is_trading_hours = True
-                market_type = 'NXT (야간시장)'
-                market_status = 'NXT 거래 중 (테스트 모드)'
-                is_test_mode = True  # NXT는 테스트 모드
-
-            # 5. 시간외 단일가: 08:30 ~ 09:00
-            elif time(8, 30) <= current_time < time(9, 0):
-                is_trading_hours = True
-                market_type = '시간외 (장 시작전)'
-                market_status = '시간외 단일가 거래 중'
-                is_test_mode = False
-
-            # 그 외 시간 (폐장)
-            else:
+            # 2. NXT 프리마켓 종료 대기: 08:50 ~ 09:00
+            elif time(8, 50) <= current_time < time(9, 0):
                 is_trading_hours = False
-                market_status = '폐장'
-                if current_time < time(8, 30):
-                    market_status = '장 시작 전'
-                elif time(2, 0) <= current_time < time(8, 30):
-                    market_status = '장 시작 전'
+                market_type = 'NXT 프리마켓 종료'
+                market_status = 'NXT 메인마켓 시작 대기'
+                is_test_mode = False
+
+            # 3. NXT 메인마켓: 09:00 ~ 15:20
+            elif time(9, 0) <= current_time < time(15, 20):
+                is_trading_hours = True
+                market_type = 'NXT 메인마켓'
+                market_status = 'NXT 메인마켓 운영 중'
+                is_test_mode = False
+                order_type_limit = 'all'
+
+            # 4. KRX 종가 결정 시간: 15:20 ~ 15:30 (취소만 가능)
+            elif time(15, 20) <= current_time < time(15, 30):
+                is_trading_hours = True
+                market_type = 'KRX 종가 결정'
+                market_status = 'KRX 종가 결정 시간 (취소만 가능)'
+                is_test_mode = False
+                can_cancel_only = True
+
+            # 5. NXT 일시 중단: 15:30 ~ 15:40
+            elif time(15, 30) <= current_time < time(15, 40):
+                is_trading_hours = False
+                market_type = 'NXT 일시 중단'
+                market_status = 'NXT 애프터마켓 시작 대기'
+                is_test_mode = False
+
+            # 6. NXT 애프터마켓: 15:40 ~ 20:00 (지정가만)
+            elif time(15, 40) <= current_time < time(20, 0):
+                is_trading_hours = True
+                market_type = 'NXT 애프터마켓'
+                market_status = 'NXT 애프터마켓 운영 중 (지정가만)'
+                is_test_mode = False
+                order_type_limit = 'limit_only'
+
+            # 7. 그 외 시간 (폐장) - 종가 테스트 모드
+            else:
+                is_trading_hours = True  # 테스트 모드 활성화
+                is_test_mode = True
+                market_type = '테스트 모드'
+                if current_time < time(8, 0):
+                    market_status = '장 시작 전 (종가 테스트 모드)'
+                elif current_time >= time(20, 0):
+                    market_status = '장 종료 후 (종가 테스트 모드)'
 
         # 다음 개장 시간 계산
         next_open = self._calculate_next_market_open(now)
@@ -435,31 +459,33 @@ class Analyzer:
             'weekday': ['월', '화', '수', '목', '금', '토', '일'][weekday],
             'market_status': market_status,
             'next_open': next_open.strftime('%Y-%m-%d %H:%M:%S') if next_open else None,
+            'order_type_limit': order_type_limit,  # 주문 유형 제한
+            'can_cancel_only': can_cancel_only,  # 취소만 가능 여부
             # 호환성을 위한 필드
             'is_open': is_trading_hours
         }
     
     def _calculate_next_market_open(self, now: datetime) -> Optional[datetime]:
-        """다음 장 시작 시간 계산"""
+        """다음 NXT 장 시작 시간 계산 (오전 8시)"""
         current_time = now.time()
         weekday = now.weekday()
-        
-        # 오늘 장 시작 전이면 오늘 09:00
-        if weekday < 5 and current_time < time(9, 0):
-            return datetime.combine(now.date(), time(9, 0))
-        
-        # 평일이고 장 마감 후면 내일 09:00
+
+        # 오늘 NXT 시장 시작 전이면 오늘 08:00
+        if weekday < 5 and current_time < time(8, 0):
+            return datetime.combine(now.date(), time(8, 0))
+
+        # 평일이고 NXT 시장 마감 후면 내일 08:00
         if weekday < 4:  # 월~목
             next_day = now + timedelta(days=1)
-            return datetime.combine(next_day.date(), time(9, 0))
-        
-        # 금요일 장 마감 후 또는 주말이면 다음 월요일 09:00
+            return datetime.combine(next_day.date(), time(8, 0))
+
+        # 금요일 장 마감 후 또는 주말이면 다음 월요일 08:00
         days_until_monday = (7 - weekday) % 7
         if days_until_monday == 0:
             days_until_monday = 7
-        
+
         next_monday = now + timedelta(days=days_until_monday)
-        return datetime.combine(next_monday.date(), time(9, 0))
+        return datetime.combine(next_monday.date(), time(8, 0))
     
     # ==================== 포지션 분석 ====================
     
