@@ -431,3 +431,124 @@ def create_app():
 
 if __name__ == '__main__':
     run_dashboard(port=5000, debug=True)
+
+# ============================================================================
+# NEW FEATURES API (v3.5)
+# ============================================================================
+
+@app.route('/api/orderbook/<stock_code>')
+def get_orderbook_api(stock_code: str):
+    """Get real-time order book for stock"""
+    try:
+        from features.order_book import OrderBookService
+
+        if bot_instance and hasattr(bot_instance, 'market_api'):
+            service = OrderBookService(bot_instance.market_api)
+            data = service.get_order_book_for_dashboard(stock_code)
+            return jsonify(data)
+        else:
+            return jsonify({'success': False, 'message': 'Bot not initialized'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@app.route('/api/performance')
+def get_performance_api():
+    """Get performance metrics"""
+    try:
+        from features.profit_tracker import ProfitTracker
+
+        tracker = ProfitTracker()
+        summary = tracker.get_performance_summary()
+        return jsonify(summary)
+    except Exception as e:
+        print(f"Performance API error: {e}")
+        return jsonify({})
+
+
+@app.route('/api/portfolio/optimize')
+def get_portfolio_optimization():
+    """Get portfolio optimization analysis"""
+    try:
+        from features.portfolio_optimizer import PortfolioOptimizer
+
+        if bot_instance and hasattr(bot_instance, 'account_api'):
+            holdings = bot_instance.account_api.get_holdings()
+
+            # Convert holdings to position format
+            positions = []
+            for h in holdings:
+                positions.append({
+                    'code': h.get('pdno', ''),
+                    'name': h.get('prdt_name', ''),
+                    'quantity': int(h.get('hldg_qty', 0)),
+                    'avg_price': int(h.get('pchs_avg_pric', 0)),
+                    'current_price': int(h.get('prpr', 0)),
+                    'value': int(h.get('eval_amt', 0))
+                })
+
+            optimizer = PortfolioOptimizer()
+            result = optimizer.get_optimization_for_dashboard(positions)
+            return jsonify(result)
+        else:
+            return jsonify({'success': False, 'message': 'Bot not initialized'})
+    except Exception as e:
+        print(f"Portfolio optimization API error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@app.route('/api/news/<stock_code>')
+def get_news_api(stock_code: str):
+    """Get news feed for stock with sentiment analysis"""
+    try:
+        from features.news_feed import NewsFeedService
+
+        # Get stock name from bot if available
+        stock_name = stock_code
+        if bot_instance and hasattr(bot_instance, 'market_api'):
+            # Try to get stock name from market API
+            # For now, use code as fallback
+            pass
+
+        service = NewsFeedService()
+        result = service.get_news_for_dashboard(stock_code, stock_name, limit=10)
+        return jsonify(result)
+    except Exception as e:
+        print(f"News API error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@app.route('/api/risk/analysis')
+def get_risk_analysis():
+    """Get portfolio risk analysis with correlation heatmap"""
+    try:
+        from features.risk_analyzer import RiskAnalyzer
+
+        if bot_instance and hasattr(bot_instance, 'account_api'):
+            holdings = bot_instance.account_api.get_holdings()
+
+            # Convert holdings to position format with sector info
+            positions = []
+            for h in holdings:
+                code = h.get('pdno', '')
+                positions.append({
+                    'code': code,
+                    'name': h.get('prdt_name', ''),
+                    'value': int(h.get('eval_amt', 0)),
+                    'weight': 0,  # Will be calculated
+                    'sector': '기타'  # Will be determined by analyzer
+                })
+
+            # Calculate weights
+            total_value = sum(p['value'] for p in positions)
+            for p in positions:
+                p['weight'] = (p['value'] / total_value * 100) if total_value > 0 else 0
+
+            analyzer = RiskAnalyzer()
+            result = analyzer.get_risk_analysis_for_dashboard(positions)
+            return jsonify(result)
+        else:
+            return jsonify({'success': False, 'message': 'Bot not initialized'})
+    except Exception as e:
+        print(f"Risk analysis API error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
