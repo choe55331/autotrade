@@ -498,6 +498,69 @@
                 opacity: 1;
             }
         }
+
+        /* AI Feature Cards */
+        .ai-feature-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ai-feature-card:hover {
+            border-color: var(--color-primary);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(59, 130, 246, 0.2);
+        }
+
+        .ai-feature-card:active {
+            transform: translateY(-2px);
+        }
+
+        .ai-feature-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+            margin-bottom: 12px;
+        }
+
+        .ai-feature-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text-primary);
+        }
+
+        .ai-feature-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+            margin-bottom: 12px;
+        }
+
+        .ai-feature-result {
+            font-size: 12px;
+            color: var(--color-primary);
+            min-height: 20px;
+            font-weight: 500;
+        }
+
+        .ai-feature-result.success {
+            color: var(--color-success);
+        }
+
+        .ai-feature-result.error {
+            color: var(--color-danger);
+        }
     </style>
 </head>
 <body>
@@ -688,6 +751,79 @@
                             <div class="spinner"></div>
                             <p style="margin-top: 12px;">데이터 로딩 중...</p>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- v4.2 AI Features Section -->
+            <div class="card" style="margin-top: 20px;">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fas fa-robot"></i>
+                        v4.2 AI 기능
+                    </div>
+                    <span style="font-size: 12px; color: var(--text-secondary);">새롭게 추가된 AI 시스템</span>
+                </div>
+
+                <div class="grid-2" style="grid-template-columns: repeat(3, 1fr); gap: 16px;">
+                    <!-- Portfolio Optimization -->
+                    <div class="ai-feature-card" onclick="testPortfolioOptimization()">
+                        <div class="ai-feature-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                        <div class="ai-feature-title">포트폴리오 최적화</div>
+                        <div class="ai-feature-desc">Markowitz, Risk Parity 알고리즘 기반 자산 배분</div>
+                        <div class="ai-feature-result" id="portfolio-result"></div>
+                    </div>
+
+                    <!-- Sentiment Analysis -->
+                    <div class="ai-feature-card" onclick="testSentimentAnalysis()">
+                        <div class="ai-feature-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <div class="ai-feature-title">감정 분석</div>
+                        <div class="ai-feature-desc">뉴스 + 소셜 미디어 종합 감정 분석</div>
+                        <div class="ai-feature-result" id="sentiment-result"></div>
+                    </div>
+
+                    <!-- Multi-Agent Consensus -->
+                    <div class="ai-feature-card" onclick="testMultiAgent()">
+                        <div class="ai-feature-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="ai-feature-title">다중 에이전트</div>
+                        <div class="ai-feature-desc">5개 AI 에이전트의 합의 기반 의사결정</div>
+                        <div class="ai-feature-result" id="multiagent-result"></div>
+                    </div>
+
+                    <!-- Risk Assessment -->
+                    <div class="ai-feature-card" onclick="testRiskAssessment()">
+                        <div class="ai-feature-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div class="ai-feature-title">리스크 평가</div>
+                        <div class="ai-feature-desc">VaR/CVaR 기반 포트폴리오 리스크 관리</div>
+                        <div class="ai-feature-result" id="risk-result"></div>
+                    </div>
+
+                    <!-- Market Regime Detection -->
+                    <div class="ai-feature-card" onclick="testRegimeDetection()">
+                        <div class="ai-feature-icon" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);">
+                            <i class="fas fa-chart-area"></i>
+                        </div>
+                        <div class="ai-feature-title">시장 상태 감지</div>
+                        <div class="ai-feature-desc">Bull/Bear/Sideways 시장 구분 및 전략 추천</div>
+                        <div class="ai-feature-result" id="regime-result"></div>
+                    </div>
+
+                    <!-- Options Pricing -->
+                    <div class="ai-feature-card" onclick="testOptionsPricing()">
+                        <div class="ai-feature-icon" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
+                            <i class="fas fa-calculator"></i>
+                        </div>
+                        <div class="ai-feature-title">옵션 가격 책정</div>
+                        <div class="ai-feature-desc">Black-Scholes 모델 + Greeks 계산</div>
+                        <div class="ai-feature-result" id="options-result"></div>
                     </div>
                 </div>
             </div>
@@ -981,6 +1117,179 @@
 
         function toggleTheme() {
             showToast('테마 전환 기능은 개발 중입니다', 'info');
+        }
+
+        // ===== v4.2 AI Feature Test Functions =====
+
+        async function testPortfolioOptimization() {
+            const resultEl = document.getElementById('portfolio-result');
+            resultEl.textContent = '⏳ 분석 중...';
+            resultEl.className = 'ai-feature-result';
+
+            try {
+                const response = await fetch('/api/v4.2/portfolio/optimize', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        stock_codes: ['005930', '000660', '035720'],
+                        method: 'markowitz'
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    const result = data.result;
+                    resultEl.textContent = `✅ 최적 배분 완료 | 수익률: ${result.expected_return}% | 리스크: ${result.risk}% | Sharpe: ${result.sharpe_ratio}`;
+                    resultEl.className = 'ai-feature-result success';
+                    showToast('포트폴리오 최적화 완료', 'success');
+                } else {
+                    throw new Error(data.error || 'Unknown error');
+                }
+            } catch (error) {
+                resultEl.textContent = `❌ Error: ${error.message}`;
+                resultEl.className = 'ai-feature-result error';
+                showToast('포트폴리오 최적화 실패', 'error');
+            }
+        }
+
+        async function testSentimentAnalysis() {
+            const resultEl = document.getElementById('sentiment-result');
+            resultEl.textContent = '⏳ 분석 중...';
+            resultEl.className = 'ai-feature-result';
+
+            try {
+                const response = await fetch('/api/v4.2/sentiment/005930');
+                const data = await response.json();
+
+                if (data.success) {
+                    const result = data.result;
+                    resultEl.textContent = `✅ ${result.sentiment} (${result.confidence}) | 점수: ${result.overall_sentiment}/10`;
+                    resultEl.className = 'ai-feature-result success';
+                    showToast(`감정 분석 완료: ${result.recommendation}`, 'success');
+                } else {
+                    throw new Error(data.error || 'Unknown error');
+                }
+            } catch (error) {
+                resultEl.textContent = `❌ Error: ${error.message}`;
+                resultEl.className = 'ai-feature-result error';
+                showToast('감정 분석 실패', 'error');
+            }
+        }
+
+        async function testMultiAgent() {
+            const resultEl = document.getElementById('multiagent-result');
+            resultEl.textContent = '⏳ 에이전트 협의 중...';
+            resultEl.className = 'ai-feature-result';
+
+            try {
+                const response = await fetch('/api/v4.2/multi_agent/consensus', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({})
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    const result = data.result;
+                    const action = result.final_action.toUpperCase();
+                    resultEl.textContent = `✅ 최종 결정: ${action} | 합의도: ${result.consensus_level} | 신뢰도: ${result.confidence}`;
+                    resultEl.className = 'ai-feature-result success';
+                    showToast(`다중 에이전트 결정: ${action}`, 'success');
+                } else {
+                    throw new Error(data.error || 'Unknown error');
+                }
+            } catch (error) {
+                resultEl.textContent = `❌ Error: ${error.message}`;
+                resultEl.className = 'ai-feature-result error';
+                showToast('다중 에이전트 실패', 'error');
+            }
+        }
+
+        async function testRiskAssessment() {
+            const resultEl = document.getElementById('risk-result');
+            resultEl.textContent = '⏳ 리스크 계산 중...';
+            resultEl.className = 'ai-feature-result';
+
+            try {
+                const response = await fetch('/api/v4.2/risk/assess', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ portfolio_value: 10000000 })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    const result = data.result;
+                    resultEl.textContent = `✅ VaR: ${(result.var/10000).toFixed(0)}만원 | CVaR: ${(result.cvar/10000).toFixed(0)}만원 | 레벨: ${result.risk_level}`;
+                    resultEl.className = 'ai-feature-result success';
+                    showToast(`리스크 평가: ${result.recommendation}`, 'success');
+                } else {
+                    throw new Error(data.error || 'Unknown error');
+                }
+            } catch (error) {
+                resultEl.textContent = `❌ Error: ${error.message}`;
+                resultEl.className = 'ai-feature-result error';
+                showToast('리스크 평가 실패', 'error');
+            }
+        }
+
+        async function testRegimeDetection() {
+            const resultEl = document.getElementById('regime-result');
+            resultEl.textContent = '⏳ 시장 분석 중...';
+            resultEl.className = 'ai-feature-result';
+
+            try {
+                const response = await fetch('/api/v4.2/regime/detect', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({})
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    const result = data.result;
+                    resultEl.textContent = `✅ 상태: ${result.regime_type.toUpperCase()} | 신뢰도: ${result.confidence} | 변동성: ${result.volatility}%`;
+                    resultEl.className = 'ai-feature-result success';
+                    showToast(`시장 상태: ${result.recommended_strategy}`, 'success');
+                } else {
+                    throw new Error(data.error || 'Unknown error');
+                }
+            } catch (error) {
+                resultEl.textContent = `❌ Error: ${error.message}`;
+                resultEl.className = 'ai-feature-result error';
+                showToast('시장 상태 감지 실패', 'error');
+            }
+        }
+
+        async function testOptionsPricing() {
+            const resultEl = document.getElementById('options-result');
+            resultEl.textContent = '⏳ 옵션 가격 계산 중...';
+            resultEl.className = 'ai-feature-result';
+
+            try {
+                const response = await fetch('/api/v4.2/options/price', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        spot_price: 70000,
+                        strike_price: 75000
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    const result = data.result;
+                    resultEl.textContent = `✅ Call: ${(result.call_price/1000).toFixed(1)}천원 | Put: ${(result.put_price/1000).toFixed(1)}천원 | IV: ${(result.implied_volatility*100).toFixed(1)}%`;
+                    resultEl.className = 'ai-feature-result success';
+                    showToast('옵션 가격 계산 완료', 'success');
+                } else {
+                    throw new Error(data.error || 'Unknown error');
+                }
+            } catch (error) {
+                resultEl.textContent = `❌ Error: ${error.message}`;
+                resultEl.className = 'ai-feature-result error';
+                showToast('옵션 가격 계산 실패', 'error');
+            }
         }
     </script>
 </body>
