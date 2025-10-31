@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 import json
 import os
 
-from ..utils.logger import setup_logger
+from utils.logger import setup_logger
 
 logger = setup_logger(__name__)
 

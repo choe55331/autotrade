@@ -11,7 +11,7 @@ from enum import Enum
 
 from .base_analyzer import BaseAnalyzer
 from .gemini_analyzer import GeminiAnalyzer
-from ..utils.logger import setup_logger
+from utils.logger import setup_logger
 
 logger = setup_logger(__name__)
 
