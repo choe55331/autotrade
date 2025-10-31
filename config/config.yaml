@@ -1,0 +1,390 @@
+# ====================================
+# 자동 트레이딩 시스템 통합 설정
+# ====================================
+
+# 시스템 정보
+system:
+  name: "AutoTrade Pro"
+  version: "2.0.0"
+  environment: "production"  # production, development, test
+  timezone: "Asia/Seoul"
+
+# 로깅 설정
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  file_path: "logs/bot.log"
+  max_file_size: 10485760  # 10MB
+  backup_count: 30
+  rotation: "00:00"  # 매일 자정
+  format: "{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function}:{line} - {message}"
+  console_output: true
+  colored_output: true
+
+# 데이터베이스 설정
+database:
+  type: "sqlite"  # sqlite, postgresql
+  path: "data/autotrade.db"
+  # PostgreSQL 설정 (향후 확장용)
+  # host: "localhost"
+  # port: 5432
+  # name: "autotrade"
+  # user: "autotrade_user"
+  # password: "${DB_PASSWORD}"
+  pool_size: 5
+  max_overflow: 10
+  echo: false
+
+# API 설정
+api:
+  kiwoom:
+    base_url: "https://openapi.koreainvestment.com:9443"
+    rest_call_interval: 0.3  # 초
+    max_retries: 3
+    retry_backoff: 1.0
+    timeout: 30
+    websocket:
+      reconnect_delay: 5
+      max_reconnects: 10
+      ping_interval: 30
+      ping_timeout: 10
+
+# ====================================
+# 트레이딩 전략 설정
+# ====================================
+
+# 포지션 관리
+position:
+  max_open_positions: 5
+  risk_per_trade_ratio: 0.20  # 거래당 리스크 비율 (20%)
+  max_position_size_ratio: 0.25  # 단일 포지션 최대 크기 (25%)
+  min_position_size: 100000  # 최소 포지션 크기 (원)
+
+# 손익 관리
+profit_loss:
+  take_profit_ratio: 0.10  # 목표 수익률 (10%)
+  stop_loss_ratio: -0.05   # 손절 비율 (-5%)
+  trailing_stop_enabled: false
+  trailing_stop_ratio: 0.03  # 트레일링 스톱 비율 (3%)
+  daily_loss_limit: -0.15  # 일일 최대 손실 (-15%)
+  max_consecutive_losses: 3  # 최대 연속 손실 횟수
+
+# ====================================
+# 3단계 스캐닝 파이프라인
+# ====================================
+
+scanning:
+  # Fast Scan (10초 주기)
+  fast_scan:
+    enabled: true
+    interval: 10  # 초
+    max_candidates: 50
+    filters:
+      min_price: 1000
+      max_price: 1000000
+      min_volume: 100000
+      min_rate: 1.0  # 등락률 (%)
+      max_rate: 15.0
+      min_market_cap: 0  # 억원
+
+  # Deep Scan (1분 주기)
+  deep_scan:
+    enabled: true
+    interval: 60  # 초
+    max_candidates: 20
+    analyze_institutional_flow: true
+    analyze_foreign_flow: true
+    min_institutional_net_buy: 10000000  # 원
+    min_foreign_net_buy: 5000000  # 원
+
+  # AI Scan (5분 주기)
+  ai_scan:
+    enabled: true
+    interval: 300  # 초
+    max_candidates: 5
+    min_analysis_score: 7.0
+    min_confidence: "Medium"  # Low, Medium, High
+    min_upside_potential: 0.06  # 6%
+    max_risk_level: "MEDIUM"  # LOW, MEDIUM, HIGH
+
+# ====================================
+# 10가지 기준 스코어링 시스템 (440점 만점)
+# ====================================
+
+scoring:
+  total_max_score: 440
+
+  criteria:
+    # 1. 거래량 급증 (60점)
+    volume_surge:
+      weight: 60
+      thresholds:
+        excellent: 5.0  # 5배 이상
+        good: 3.0
+        fair: 2.0
+        poor: 1.0
+
+    # 2. 가격 모멘텀 (60점)
+    price_momentum:
+      weight: 60
+      thresholds:
+        excellent: 0.05  # 5% 이상
+        good: 0.03
+        fair: 0.02
+        poor: 0.01
+
+    # 3. 기관 매수세 (60점)
+    institutional_buying:
+      weight: 60
+      min_net_buy: 10000000  # 원
+
+    # 4. 매수 호가 강도 (40점)
+    bid_strength:
+      weight: 40
+      min_ratio: 1.2  # 매수/매도 호가 비율
+
+    # 5. 체결 강도 (40점)
+    execution_intensity:
+      weight: 40
+      min_value: 120  # %
+
+    # 6. 주요 증권사 활동 (40점)
+    broker_activity:
+      weight: 40
+      top_brokers: 5
+
+    # 7. 프로그램 매매 (40점)
+    program_trading:
+      weight: 40
+      min_net_buy: 5000000  # 원
+
+    # 8. 기술적 지표 (40점)
+    technical_indicators:
+      weight: 40
+      rsi:
+        min: 30
+        max: 70
+      macd:
+        bullish_crossover: true
+      moving_average:
+        ma5_above_ma20: true
+
+    # 9. 테마/뉴스 (40점)
+    theme_news:
+      weight: 40
+      trending_theme: true
+      positive_news: true
+
+    # 10. 변동성 패턴 (20점)
+    volatility_pattern:
+      weight: 20
+      min_volatility: 0.02  # 2%
+      max_volatility: 0.15  # 15%
+
+# ====================================
+# 동적 리스크 관리 모드
+# ====================================
+
+risk_management:
+  # 성과 기반 모드 전환
+  mode_switching:
+    enabled: true
+    evaluation_interval: 3600  # 1시간 (초)
+
+  # Aggressive 모드 (수익률 +5% 이상)
+  aggressive:
+    trigger_return: 0.05
+    max_open_positions: 12
+    risk_per_trade_ratio: 0.25
+    take_profit_ratio: 0.15
+    stop_loss_ratio: -0.07
+    ai_min_score: 6.5
+
+  # Normal 모드 (수익률 -5% ~ +5%)
+  normal:
+    trigger_return_min: -0.05
+    trigger_return_max: 0.05
+    max_open_positions: 10
+    risk_per_trade_ratio: 0.20
+    take_profit_ratio: 0.10
+    stop_loss_ratio: -0.05
+    ai_min_score: 7.0
+
+  # Conservative 모드 (수익률 -10% ~ -5%)
+  conservative:
+    trigger_return_min: -0.10
+    trigger_return_max: -0.05
+    max_open_positions: 7
+    risk_per_trade_ratio: 0.15
+    take_profit_ratio: 0.08
+    stop_loss_ratio: -0.04
+    ai_min_score: 7.5
+
+  # Very Conservative 모드 (수익률 -10% 이하)
+  very_conservative:
+    trigger_return: -0.10
+    max_open_positions: 5
+    risk_per_trade_ratio: 0.10
+    take_profit_ratio: 0.05
+    stop_loss_ratio: -0.03
+    ai_min_score: 8.0
+
+# ====================================
+# AI 분석 설정
+# ====================================
+
+ai:
+  enabled: true
+
+  # Primary AI: Google Gemini
+  gemini:
+    enabled: true
+    model: "gemini-2.0-flash-exp"
+    temperature: 0.7
+    max_tokens: 2000
+    timeout: 30
+
+  # Secondary AI: Anthropic Claude
+  claude:
+    enabled: false
+    model: "claude-3-5-sonnet-20241022"
+    temperature: 0.7
+    max_tokens: 2000
+    timeout: 30
+
+  # Tertiary AI: OpenAI GPT-4
+  gpt4:
+    enabled: false
+    model: "gpt-4-turbo-preview"
+    temperature: 0.7
+    max_tokens: 2000
+    timeout: 30
+
+  # Ensemble 분석
+  ensemble:
+    enabled: false
+    min_consensus: 2  # 최소 동의 AI 수
+    weight_gemini: 0.5
+    weight_claude: 0.3
+    weight_gpt4: 0.2
+
+  # AI 게이팅 조건
+  gating:
+    min_confidence: 0.70  # 70%
+    min_upside_potential: 0.06  # 6%
+    max_risk_level: "MEDIUM"
+
+# ====================================
+# 대시보드 설정
+# ====================================
+
+dashboard:
+  enabled: true
+  host: "0.0.0.0"
+  port: 5000
+  debug: false
+
+  # WebSocket 실시간 업데이트
+  websocket:
+    enabled: true
+    update_interval: 1  # 초
+
+  # 데이터 갱신 주기
+  refresh:
+    account_info: 10  # 초
+    positions: 5
+    activities: 2
+    candidates: 30
+
+  # UI 설정
+  ui:
+    theme: "dark"  # light, dark
+    card_layout: true
+    gradient_colors: true
+    fixed_navigation: true
+    mobile_responsive: true
+    max_activities_display: 100
+    max_candidates_display: 50
+
+# ====================================
+# 알림 설정
+# ====================================
+
+notification:
+  telegram:
+    enabled: false
+    bot_token: "${TELEGRAM_BOT_TOKEN}"
+    chat_id: "${TELEGRAM_CHAT_ID}"
+    events:
+      - "trade_executed"
+      - "stop_loss_triggered"
+      - "take_profit_triggered"
+      - "risk_mode_changed"
+      - "error_occurred"
+
+  email:
+    enabled: false
+    smtp_server: "smtp.gmail.com"
+    smtp_port: 587
+    sender: "${EMAIL_SENDER}"
+    password: "${EMAIL_PASSWORD}"
+    recipients: []
+
+# ====================================
+# 백테스팅 설정
+# ====================================
+
+backtesting:
+  enabled: true
+  start_date: "2024-01-01"
+  end_date: "2024-12-31"
+  initial_capital: 10000000  # 1천만원
+  commission: 0.00015  # 0.015%
+  slippage: 0.001  # 0.1%
+
+  metrics:
+    calculate_sharpe: true
+    calculate_sortino: true
+    calculate_max_drawdown: true
+    calculate_win_rate: true
+    calculate_profit_factor: true
+
+# ====================================
+# 메인 사이클 설정
+# ====================================
+
+main_cycle:
+  sleep_seconds: 60
+  health_check_interval: 300  # 5분
+  state_save_interval: 60  # 1분
+
+  # 거래 시간
+  trading_hours:
+    regular:
+      enabled: true
+      start: "09:00"
+      end: "15:30"
+
+    after_hours:
+      enabled: true
+      start: "15:40"
+      end: "16:00"
+
+    nxt:
+      enabled: true
+      start: "16:00"
+      end: "18:00"
+
+  # 휴장일 자동 감지
+  auto_detect_holidays: true
+
+# ====================================
+# 개발/디버깅 설정
+# ====================================
+
+development:
+  test_mode: false
+  mock_trading: false
+  mock_ai_analysis: false
+  dry_run: false
+  verbose_logging: false
+  save_api_responses: false
