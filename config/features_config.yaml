@@ -1,0 +1,421 @@
+# ============================================================================
+# AutoTrade Pro v3.0 - Comprehensive Feature Configuration
+# ============================================================================
+# All features can be toggled on/off from the dashboard
+# This file contains 40+ configurable features across UI, Performance, and Trading Logic
+
+# ============================================================================
+# UI & DASHBOARD FEATURES (10 features)
+# ============================================================================
+ui:
+  # 1. Real-time data updates via WebSocket
+  realtime_updates:
+    enabled: true
+    update_interval: 2  # seconds
+
+  # 2. Responsive web design
+  responsive_design:
+    enabled: true
+    breakpoints:
+      mobile: 768
+      tablet: 1024
+      desktop: 1440
+
+  # 3. Data visualization with Chart.js
+  data_visualization:
+    enabled: true
+    chart_types:
+      portfolio_line: true
+      sector_pie: true
+      performance_bar: true
+      candlestick: true
+
+  # 4. Component-based UI
+  component_based_ui:
+    enabled: true
+    lazy_loading: true
+
+  # 5. Dark/Light mode
+  theme:
+    default: "dark"  # dark, light, auto
+    available_themes:
+      - dark
+      - light
+      - apple_light
+      - apple_dark
+
+  # 6. Customizable dashboard layout
+  custom_layout:
+    enabled: true
+    allow_drag_drop: true
+    save_layout: true
+
+  # 7. Notification system
+  notifications:
+    enabled: true
+    types:
+      toast: true
+      sound: false
+      desktop: false
+    events:
+      - order_filled
+      - target_reached
+      - system_error
+      - high_score_candidate
+
+  # 8. Loading states
+  loading_states:
+    enabled: true
+    use_skeleton: true
+    spinner_type: "apple"  # apple, circular, linear
+
+  # 9. Consistent design system (Apple-style)
+  design_system:
+    enabled: true
+    style: "apple"  # apple, material, custom
+    font_family: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif"
+    primary_color: "#007AFF"
+    success_color: "#34C759"
+    warning_color: "#FF9500"
+    error_color: "#FF3B30"
+
+  # 10. Intuitive navigation
+  navigation:
+    enabled: true
+    style: "sidebar"  # sidebar, topbar, hybrid
+    show_breadcrumbs: true
+
+# ============================================================================
+# PERFORMANCE OPTIMIZATION FEATURES (10 features)
+# ============================================================================
+performance:
+  # 1. Async API requests
+  async_api:
+    enabled: true
+    library: "httpx"  # httpx, aiohttp
+    max_concurrent: 10
+    timeout: 30
+
+  # 2. WebSocket optimization
+  websocket_optimization:
+    enabled: true
+    compression: true
+    heartbeat_interval: 30
+    reconnect_attempts: 5
+
+  # 3. Database connection pooling
+  db_connection_pool:
+    enabled: true
+    pool_size: 10
+    max_overflow: 20
+    pool_recycle: 3600
+
+  # 4. Caching
+  caching:
+    enabled: true
+    backend: "redis"  # redis, memory, both
+    redis_host: "localhost"
+    redis_port: 6379
+    redis_db: 0
+    ttl:
+      stock_info: 3600  # 1 hour
+      daily_data: 1800  # 30 minutes
+      realtime_data: 5  # 5 seconds
+
+  # 5. Background task queue
+  task_queue:
+    enabled: true
+    backend: "rq"  # celery, rq, none
+    broker_url: "redis://localhost:6379/1"
+    workers: 4
+
+  # 6. AI model optimization
+  ai_model_optimization:
+    enabled: true
+    use_fast_model: true
+    fast_model: "gemini-2.0-flash-exp"
+    batch_requests: true
+    max_batch_size: 5
+
+  # 7. Data serialization
+  data_serialization:
+    enabled: true
+    format: "msgpack"  # msgpack, json, pickle
+    compression: true
+
+  # 8. Query optimization
+  query_optimization:
+    enabled: true
+    eager_loading: true
+    query_cache: true
+    batch_size: 100
+
+  # 9. Static file optimization
+  static_file_optimization:
+    enabled: true
+    minify: true
+    gzip: true
+    cdn_enabled: false
+
+  # 10. Performance profiling
+  profiling:
+    enabled: false  # Only enable for debugging
+    profiler: "cProfile"  # cProfile, py-spy
+    log_slow_queries: true
+    slow_query_threshold: 1.0  # seconds
+
+# ============================================================================
+# TRADING LOGIC FEATURES (20+ features)
+# ============================================================================
+trading:
+  # === Technical Analysis Indicators ===
+
+  # 1. Technical indicators
+  technical_indicators:
+    enabled: true
+    indicators:
+      # Trend indicators
+      sma:
+        enabled: true
+        periods: [5, 20, 60, 120]
+      ema:
+        enabled: true
+        periods: [12, 26]
+      # Momentum indicators
+      rsi:
+        enabled: true
+        period: 14
+        overbought: 70
+        oversold: 30
+      macd:
+        enabled: true
+        fast_period: 12
+        slow_period: 26
+        signal_period: 9
+      stochastic:
+        enabled: true
+        k_period: 14
+        d_period: 3
+        overbought: 80
+        oversold: 20
+      # Volatility indicators
+      bollinger_bands:
+        enabled: true
+        period: 20
+        std_dev: 2
+      atr:
+        enabled: true
+        period: 14
+      # Volume indicators
+      volume_sma:
+        enabled: true
+        period: 20
+      obv:
+        enabled: true
+
+  # 2. Dynamic stop-loss/take-profit
+  dynamic_stops:
+    enabled: true
+    method: "atr"  # atr, percentage, fixed
+    stop_loss:
+      atr_multiplier: 2.0
+      min_percent: 3.0
+      max_percent: 10.0
+    take_profit:
+      atr_multiplier: 3.0
+      min_percent: 5.0
+      max_percent: 20.0
+
+  # 3. Trailing stop
+  trailing_stop:
+    enabled: true
+    method: "atr"  # atr, percentage
+    atr_multiplier: 1.5
+    percentage: 5.0
+    activation_profit: 3.0  # Activate after 3% profit
+
+  # 4. Volume/liquidity filters
+  volume_filters:
+    enabled: true
+    min_volume: 100000  # Minimum daily volume
+    min_value: 1000000000  # Minimum daily value in KRW (1 billion)
+    min_liquidity_ratio: 0.1  # Volume / Avg Volume
+
+  # 5. Market condition analysis
+  market_condition:
+    enabled: true
+    index: "KOSPI"  # KOSPI, KOSDAQ
+    methods:
+      ma_trend: true  # Above/below 60-day MA
+      adx: true  # ADX for trend strength
+      vix: true  # Volatility index
+    bull_market_multiplier: 1.2
+    bear_market_multiplier: 0.5
+
+  # 6. Portfolio rebalancing
+  portfolio_rebalancing:
+    enabled: true
+    frequency: "weekly"  # daily, weekly, monthly
+    method: "equal_weight"  # equal_weight, market_cap, risk_parity
+    threshold: 5.0  # Rebalance if drift > 5%
+
+  # 7. Volatility breakout strategy
+  volatility_breakout:
+    enabled: true
+    lookback_period: 20  # Days
+    k_value: 0.5  # Range multiplier
+    entry_time: "09:05"
+
+  # 8. News/sentiment analysis
+  news_sentiment:
+    enabled: true
+    sources:
+      - naver_news
+      - dart_disclosure
+      - telegram
+    update_interval: 300  # 5 minutes
+    sentiment_threshold: 0.6  # Positive sentiment > 0.6
+
+  # 9. AI confidence filtering
+  ai_confidence:
+    enabled: true
+    min_confidence: 0.7  # Minimum AI confidence score
+    require_consensus: false  # Require multiple AI models to agree
+    consensus_threshold: 0.8
+
+  # 10. VIX filter
+  vix_filter:
+    enabled: true
+    max_vix: 30  # Don't buy if VIX > 30
+    reduce_positions_above: 25
+
+  # 11. Sector rotation strategy
+  sector_rotation:
+    enabled: true
+    lookback_period: 60  # Days
+    top_sectors: 3
+    rebalance_frequency: "monthly"
+
+  # 12. Institutional/foreign flow analysis
+  flow_analysis:
+    enabled: true
+    min_net_buy: 1000000000  # 1 billion KRW
+    consecutive_days: 3
+    weight: 0.15  # Weight in scoring
+
+  # 13. Kelly Criterion position sizing
+  kelly_criterion:
+    enabled: false  # Advanced feature
+    method: "fractional"  # full, fractional
+    fraction: 0.25  # Use 25% of Kelly
+    max_position_size: 0.2  # Max 20% of portfolio
+
+  # 14. Multi-timeframe analysis
+  multi_timeframe:
+    enabled: true
+    timeframes:
+      - "1d"   # Daily
+      - "1h"   # Hourly
+      - "5m"   # 5-minute
+    require_alignment: true  # All timeframes must agree
+
+  # 15. Enhanced backtesting
+  backtesting:
+    enabled: true
+    include_slippage: true
+    slippage_percent: 0.1
+    commission: 0.015  # 0.015% commission
+    tax: 0.23  # 0.23% tax on sell
+
+  # 16. Parameter optimization
+  parameter_optimization:
+    enabled: false  # Resource intensive
+    method: "bayesian"  # grid, random, bayesian
+    max_iterations: 100
+    metrics: ["sharpe_ratio", "max_drawdown", "total_return"]
+
+  # 17. Short selling data
+  short_selling:
+    enabled: true
+    max_short_ratio: 10.0  # Avoid if short ratio > 10%
+    alert_threshold: 5.0
+
+  # 18. Scalping strategy
+  scalping:
+    enabled: false  # High frequency, requires fast execution
+    target_profit: 0.5  # 0.5%
+    max_holding_time: 300  # 5 minutes
+    use_order_book: true
+
+  # 19. Pair trading
+  pair_trading:
+    enabled: false  # Advanced strategy
+    pairs:
+      - ["005930", "000660"]  # Samsung Electronics / SK Hynix
+    z_score_entry: 2.0
+    z_score_exit: 0.5
+    lookback_period: 60
+
+  # 20. ML-based prediction
+  ml_prediction:
+    enabled: false  # Requires trained models
+    models:
+      lstm:
+        enabled: false
+        lookback: 60
+      xgboost:
+        enabled: false
+        features: 20
+    min_confidence: 0.65
+
+  # === Risk Management ===
+  risk_management:
+    max_portfolio_risk: 0.02  # 2% max portfolio risk per trade
+    max_correlation: 0.7  # Don't buy highly correlated stocks
+    max_sector_exposure: 0.3  # Max 30% in one sector
+    use_var: true  # Value at Risk
+    var_confidence: 0.95
+
+  # === Position Management ===
+  position_management:
+    max_positions: 10
+    min_position_size: 0.05  # Min 5% of portfolio
+    max_position_size: 0.15  # Max 15% of portfolio
+    scale_in: false  # Scale into positions
+    scale_out: true  # Scale out of positions
+
+  # === Order Execution ===
+  order_execution:
+    order_type: "limit"  # limit, market
+    limit_offset: 0.0  # Offset from current price
+    retry_attempts: 3
+    retry_delay: 1  # seconds
+    use_algo_order: false  # Use algorithmic orders
+
+# ============================================================================
+# SYSTEM SETTINGS
+# ============================================================================
+system:
+  auto_start: false
+  auto_reconnect: true
+  max_reconnect_attempts: 10
+  heartbeat_interval: 30
+  log_level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  backup_frequency: "daily"  # hourly, daily, weekly
+
+# ============================================================================
+# SCANNING PIPELINE (from previous config)
+# ============================================================================
+scanning:
+  fast_scan:
+    enabled: true
+    interval: 10
+    max_candidates: 50
+  deep_scan:
+    enabled: true
+    interval: 60
+    max_candidates: 20
+  ai_scan:
+    enabled: true
+    interval: 300
+    max_candidates: 5
