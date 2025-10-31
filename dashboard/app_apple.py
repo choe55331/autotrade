@@ -1279,3 +1279,221 @@ def get_all_ai_status():
     except Exception as e:
         print(f"All AI status error: {e}")
         return jsonify({'success': False, 'message': str(e)})
+
+
+# ============================================================================
+# v4.2 Advanced Systems API
+# ============================================================================
+
+@app.route('/api/v4.2/portfolio/optimize', methods=['POST'])
+def optimize_portfolio():
+    """Optimize portfolio allocation"""
+    try:
+        from ai.portfolio_optimization import get_portfolio_manager
+        from dataclasses import asdict
+        import numpy as np
+
+        data = request.get_json() or {}
+        n_assets = data.get('n_assets', 5)
+        method = data.get('method', 'markowitz')
+
+        # Mock returns
+        returns = np.random.randn(252, n_assets) * 0.01
+
+        manager = get_portfolio_manager()
+
+        if method == 'markowitz':
+            result = manager.markowitz.optimize(returns)
+        elif method == 'risk_parity':
+            result = manager.risk_parity.optimize(returns)
+        else:
+            result = manager.markowitz.optimize(returns)
+
+        return jsonify({
+            'success': True,
+            'allocation': asdict(result)
+        })
+    except Exception as e:
+        print(f"Portfolio optimization error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@app.route('/api/v4.2/sentiment/<stock_code>')
+def analyze_sentiment(stock_code: str):
+    """Analyze sentiment for stock"""
+    try:
+        from ai.sentiment_analysis import get_sentiment_manager
+        from dataclasses import asdict
+
+        manager = get_sentiment_manager()
+        report = manager.analyze_complete(stock_code)
+        alerts = manager.generate_alerts(report)
+
+        return jsonify({
+            'success': True,
+            'report': asdict(report),
+            'alerts': alerts
+        })
+    except Exception as e:
+        print(f"Sentiment analysis error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@app.route('/api/v4.2/multi_agent/consensus', methods=['POST'])
+def get_multi_agent_consensus():
+    """Get consensus decision from multi-agent system"""
+    try:
+        from ai.advanced_systems import get_multi_agent_system
+        from dataclasses import asdict
+
+        data = request.get_json() or {}
+        market_data = data.get('market_data', {
+            'price_change_pct': 2.5,
+            'z_score': -1.5,
+            'pe_ratio': 12
+        })
+
+        mas = get_multi_agent_system()
+        consensus = mas.get_consensus(market_data)
+
+        return jsonify({
+            'success': True,
+            'consensus': asdict(consensus)
+        })
+    except Exception as e:
+        print(f"Multi-agent consensus error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@app.route('/api/v4.2/risk/assess', methods=['POST'])
+def assess_portfolio_risk():
+    """Assess portfolio risk"""
+    try:
+        from ai.advanced_systems import get_risk_manager
+        from dataclasses import asdict
+        import numpy as np
+
+        data = request.get_json() or {}
+
+        # Mock portfolio returns
+        returns_matrix = np.random.randn(252, 5) * 0.01
+        positions = {
+            f'Asset_{i}': {'weight': 0.2}
+            for i in range(5)
+        }
+
+        rm = get_risk_manager()
+        metrics = rm.assess_portfolio_risk(positions, returns_matrix)
+
+        return jsonify({
+            'success': True,
+            'metrics': asdict(metrics)
+        })
+    except Exception as e:
+        print(f"Risk assessment error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@app.route('/api/v4.2/regime/detect', methods=['POST'])
+def detect_market_regime():
+    """Detect market regime"""
+    try:
+        from ai.advanced_systems import get_regime_detector
+        from dataclasses import asdict
+        import numpy as np
+
+        data = request.get_json() or {}
+
+        # Mock price data
+        price_data = np.cumsum(np.random.randn(100)) + 100
+
+        rd = get_regime_detector()
+        regime = rd.detect_regime(price_data)
+        transitions = rd.predict_regime_transition(regime.regime_type)
+
+        return jsonify({
+            'success': True,
+            'regime': asdict(regime),
+            'transitions': transitions
+        })
+    except Exception as e:
+        print(f"Regime detection error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@app.route('/api/v4.2/options/price', methods=['POST'])
+def price_option():
+    """Price option using Black-Scholes"""
+    try:
+        from ai.options_hft import get_bs_model
+        from dataclasses import asdict
+
+        data = request.get_json() or {}
+        spot_price = data.get('spot_price', 100)
+        strike_price = data.get('strike_price', 105)
+        time_to_expiry = data.get('time_to_expiry', 0.25)
+        volatility = data.get('volatility', 0.25)
+        option_type = data.get('option_type', 'call')
+
+        bs = get_bs_model()
+        price = bs.price_option(spot_price, strike_price, time_to_expiry, volatility, option_type)
+        greeks = bs.calculate_greeks(spot_price, strike_price, time_to_expiry, volatility, option_type)
+
+        return jsonify({
+            'success': True,
+            'price': price,
+            'greeks': asdict(greeks)
+        })
+    except Exception as e:
+        print(f"Options pricing error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@app.route('/api/v4.2/hft/status')
+def get_hft_status():
+    """Get HFT system status"""
+    try:
+        from ai.options_hft import get_hft_trader
+
+        hft = get_hft_trader()
+        metrics = hft.get_performance_metrics()
+
+        return jsonify({
+            'success': True,
+            'metrics': metrics
+        })
+    except Exception as e:
+        print(f"HFT status error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@app.route('/api/v4.2/all/status')
+def get_v42_all_status():
+    """Get comprehensive v4.2 system status"""
+    try:
+        from ai.portfolio_optimization import get_portfolio_manager
+        from ai.sentiment_analysis import get_sentiment_manager
+        from ai.advanced_systems import (
+            get_multi_agent_system, get_risk_manager,
+            get_regime_detector
+        )
+        from ai.options_hft import get_bs_model, get_hft_trader
+
+        return jsonify({
+            'success': True,
+            'version': '4.2',
+            'systems': {
+                'portfolio': 'active',
+                'sentiment': 'active',
+                'multi_agent': 'active',
+                'risk_management': 'active',
+                'regime_detection': 'active',
+                'options': 'active',
+                'hft': 'active'
+            },
+            'agents_count': len(get_multi_agent_system().agents),
+            'hft_avg_latency_us': get_hft_trader().avg_latency_us
+        })
+    except Exception as e:
+        print(f"v4.2 status error: {e}")
+        return jsonify({'success': False, 'message': str(e)})

@@ -13,6 +13,17 @@ v4.1 Modules:
 - Advanced RL: A3C, PPO, SAC algorithms
 - AutoML: Automatic hyperparameter optimization
 - Backtesting: Strategy validation engine
+
+v4.2 Modules:
+- Real-time System: WebSocket streaming, event-driven trading
+- Portfolio Optimization: Markowitz, Black-Litterman, Risk Parity, Monte Carlo
+- Sentiment Analysis: News and social media analysis
+- Multi-Agent System: Consensus-based decision making
+- Advanced Risk Management: VaR, CVaR, stress testing
+- Market Regime Detection: Bull/bear/sideways classification
+- Performance Optimization: Multi-processing, caching
+- Options Pricing: Black-Scholes, Greeks, strategies
+- High-Frequency Trading: Microsecond latency, arbitrage
 """
 
 # v4.0 modules
@@ -39,6 +50,36 @@ from .automl import (
 from .backtesting import (
     BacktestEngine, BacktestResult, BacktestConfig,
     Trade, Position, get_backtest_engine
+)
+
+# v4.2 modules
+from .realtime_system import (
+    RealTimeDataStream, EventDrivenTradingEngine,
+    StreamingTick, StreamingCandle, StreamingEvent,
+    get_data_stream, get_trading_engine
+)
+from .portfolio_optimization import (
+    PortfolioOptimizationManager, PortfolioAllocation, PortfolioMetrics,
+    MarkowitzOptimizer, BlackLittermanOptimizer, RiskParityOptimizer,
+    MonteCarloSimulator, get_portfolio_manager
+)
+from .sentiment_analysis import (
+    SentimentAnalysisManager, SentimentReport,
+    NewsSentimentAnalyzer, SocialMediaAnalyzer,
+    NewsArticle, SocialMediaPost,
+    get_sentiment_manager
+)
+from .advanced_systems import (
+    MultiAgentSystem, AdvancedRiskManager, MarketRegimeDetector,
+    PerformanceOptimizer, AgentDecision, ConsensusDecision,
+    RiskMetrics, MarketRegime,
+    get_multi_agent_system, get_risk_manager,
+    get_regime_detector, get_performance_optimizer
+)
+from .options_hft import (
+    BlackScholesModel, OptionsStrategyAnalyzer, HighFrequencyTrader,
+    OptionContract, OptionGreeks, HFTOrder, HFTSignal,
+    get_bs_model, get_options_analyzer, get_hft_trader
 )
 
 __all__ = [
@@ -93,4 +134,58 @@ __all__ = [
     'Trade',
     'Position',
     'get_backtest_engine',
+
+    # v4.2 - Real-time System
+    'RealTimeDataStream',
+    'EventDrivenTradingEngine',
+    'StreamingTick',
+    'StreamingCandle',
+    'StreamingEvent',
+    'get_data_stream',
+    'get_trading_engine',
+
+    # v4.2 - Portfolio Optimization
+    'PortfolioOptimizationManager',
+    'PortfolioAllocation',
+    'PortfolioMetrics',
+    'MarkowitzOptimizer',
+    'BlackLittermanOptimizer',
+    'RiskParityOptimizer',
+    'MonteCarloSimulator',
+    'get_portfolio_manager',
+
+    # v4.2 - Sentiment Analysis
+    'SentimentAnalysisManager',
+    'SentimentReport',
+    'NewsSentimentAnalyzer',
+    'SocialMediaAnalyzer',
+    'NewsArticle',
+    'SocialMediaPost',
+    'get_sentiment_manager',
+
+    # v4.2 - Advanced Systems
+    'MultiAgentSystem',
+    'AdvancedRiskManager',
+    'MarketRegimeDetector',
+    'PerformanceOptimizer',
+    'AgentDecision',
+    'ConsensusDecision',
+    'RiskMetrics',
+    'MarketRegime',
+    'get_multi_agent_system',
+    'get_risk_manager',
+    'get_regime_detector',
+    'get_performance_optimizer',
+
+    # v4.2 - Options & HFT
+    'BlackScholesModel',
+    'OptionsStrategyAnalyzer',
+    'HighFrequencyTrader',
+    'OptionContract',
+    'OptionGreeks',
+    'HFTOrder',
+    'HFTSignal',
+    'get_bs_model',
+    'get_options_analyzer',
+    'get_hft_trader',
 ]
