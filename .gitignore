@@ -119,3 +119,5 @@ logs/
 *.json.bak
 control.json
 strategy_state.json
+backup/
+data/

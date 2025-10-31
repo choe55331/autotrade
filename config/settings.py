@@ -18,11 +18,11 @@ LOG_CONFIG = {
     'LOG_FORMAT': '%(asctime)s - [%(levelname)s] - %(name)s - %(message)s (%(filename)s:%(lineno)d)'
 }
 
-# 파일 경로
+# 파일 경로 (정리된 구조)
 FILE_PATHS = {
-    'CONTROL_FILE': BASE_DIR / 'control.json',
-    'STRATEGY_STATE_FILE': BASE_DIR / 'strategy_state.json',
-    'WEBSOCKET_STATUS_FILE': BASE_DIR / 'websocket_status.txt',
+    'CONTROL_FILE': BASE_DIR / 'data' / 'control.json',
+    'STRATEGY_STATE_FILE': BASE_DIR / 'data' / 'strategy_state.json',
+    'WEBSOCKET_STATUS_FILE': BASE_DIR / 'data' / 'websocket_status.txt',
 }
 
 # API 호출 제한
