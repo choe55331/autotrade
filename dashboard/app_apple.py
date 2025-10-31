@@ -431,3 +431,36 @@ def create_app():
 
 if __name__ == '__main__':
     run_dashboard(port=5000, debug=True)
+
+# ============================================================================
+# NEW FEATURES API (v3.5)
+# ============================================================================
+
+@app.route('/api/orderbook/<stock_code>')
+def get_orderbook_api(stock_code: str):
+    """Get real-time order book for stock"""
+    try:
+        from features.order_book import OrderBookService
+
+        if bot_instance and hasattr(bot_instance, 'market_api'):
+            service = OrderBookService(bot_instance.market_api)
+            data = service.get_order_book_for_dashboard(stock_code)
+            return jsonify(data)
+        else:
+            return jsonify({'success': False, 'message': 'Bot not initialized'})
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@app.route('/api/performance')
+def get_performance_api():
+    """Get performance metrics"""
+    try:
+        from features.profit_tracker import ProfitTracker
+
+        tracker = ProfitTracker()
+        summary = tracker.get_performance_summary()
+        return jsonify(summary)
+    except Exception as e:
+        print(f"Performance API error: {e}")
+        return jsonify({})
