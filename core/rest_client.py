@@ -157,14 +157,20 @@ class KiwoomRESTClient:
         """토큰 유효성 확인"""
         if not self.token:
             return False
-        
-        # 만료 1분 전까지 유효한 것으로 간주
-        buffer_time = datetime.timedelta(minutes=1)
+
+        # 만료 5분 전까지 유효한 것으로 간주 (여유 시간 증가)
+        # 이전: 1분 전 -> 갱신 실패 시 토큰 만료 위험
+        # 개선: 5분 전 -> 갱신 실패해도 재시도 시간 확보
+        buffer_time = datetime.timedelta(minutes=5)
         return datetime.datetime.now() < (self.token_expiry - buffer_time)
     
-    def _get_token(self) -> bool:
+    def _get_token(self, retry_count: int = 0, max_retries: int = 3) -> bool:
         """
-        API 토큰 발급/갱신
+        API 토큰 발급/갱신 (재시도 로직 포함)
+
+        Args:
+            retry_count: 현재 재시도 횟수
+            max_retries: 최대 재시도 횟수
 
         Returns:
             성공 여부
@@ -182,7 +188,8 @@ class KiwoomRESTClient:
             self.last_error_msg = None
             return True
 
-        logger.info("API 토큰 발급 시도...")
+        retry_suffix = f" (재시도 {retry_count}/{max_retries})" if retry_count > 0 else ""
+        logger.info(f"API 토큰 발급 시도{retry_suffix}...")
 
         token_url = f"{self.base_url}/oauth2/token"
         payload = {
@@ -212,17 +219,47 @@ class KiwoomRESTClient:
                 logger.error(f"토큰 요청 URL: {token_url}")
                 logger.error(f"토큰 요청 본문: appkey={self.appkey[:10]}..., secretkey={self.appsecret[:10]}...")
                 logger.error(f"응답 내용: {res.text[:500]}")
+
+                # 재시도 로직 (네트워크 일시 오류 대응)
+                if retry_count < max_retries and res.status_code in [500, 502, 503, 504]:
+                    wait_time = 2 ** retry_count  # 지수 백오프: 1초, 2초, 4초
+                    logger.warning(f"서버 오류 - {wait_time}초 후 재시도...")
+                    time.sleep(wait_time)
+                    return self._get_token(retry_count + 1, max_retries)
+
                 return False
 
             token_data = res.json()
-            return self._process_token_response(token_data)
+            success = self._process_token_response(token_data)
+
+            # 토큰 발급 성공 시 재시도 카운터 리셋
+            if success and retry_count > 0:
+                logger.info(f"✅ 토큰 발급 성공 (재시도 {retry_count}회 만에 성공)")
+
+            return success
 
         except requests.exceptions.Timeout:
             self._set_error("토큰 요청 시간 초과")
+
+            # 타임아웃 시 재시도
+            if retry_count < max_retries:
+                wait_time = 2 ** retry_count
+                logger.warning(f"타임아웃 - {wait_time}초 후 재시도...")
+                time.sleep(wait_time)
+                return self._get_token(retry_count + 1, max_retries)
+
             return False
 
         except requests.exceptions.RequestException as e:
             self._set_error(f"토큰 요청 네트워크 오류: {e}")
+
+            # 네트워크 오류 시 재시도
+            if retry_count < max_retries:
+                wait_time = 2 ** retry_count
+                logger.warning(f"네트워크 오류 - {wait_time}초 후 재시도...")
+                time.sleep(wait_time)
+                return self._get_token(retry_count + 1, max_retries)
+
             return False
 
         except Exception as e:
