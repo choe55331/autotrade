@@ -84,24 +84,32 @@ class KiwoomRESTClient:
     def _load_config(self):
         """설정 로드 및 검증"""
         try:
-            from config import get_credentials, API_RATE_LIMIT
-            
+            from config import get_credentials, API_RATE_LIMIT, get_config
+
             credentials = get_credentials()
             kiwoom_config = credentials.get_kiwoom_config()
-            
+
             self.base_url = kiwoom_config['base_url']
             self.appkey = kiwoom_config['appkey']
             self.appsecret = kiwoom_config['secretkey']
             self.account_number_full = kiwoom_config['account_number']
             self.account_prefix = kiwoom_config['account_prefix']
             self.account_suffix = kiwoom_config['account_suffix']
-            
+
             # API 속도 제한 설정
             self.min_call_interval = API_RATE_LIMIT.get('REST_CALL_INTERVAL', 0.3)
             self.max_retries = API_RATE_LIMIT.get('REST_MAX_RETRIES', 3)
             self.retry_backoff = API_RATE_LIMIT.get('REST_RETRY_BACKOFF', 1.0)
-            
-            logger.info(f"계좌번호: {self.account_prefix}-{self.account_suffix}")
+
+            # 테스트 모드 설정
+            try:
+                config = get_config()
+                self.test_mode = config.get('development', {}).get('test_mode', False)
+            except:
+                self.test_mode = False
+
+            mode_str = "테스트 모드 (Mock API)" if self.test_mode else "실전 모드 (Real API)"
+            logger.info(f"계좌번호: {self.account_prefix}-{self.account_suffix} - {mode_str}")
         except ImportError:
             # config 모듈이 없을 경우 기본값 사용
             logger.warning("config 모듈을 찾을 수 없습니다. 기본값을 사용합니다.")
@@ -114,6 +122,7 @@ class KiwoomRESTClient:
             self.min_call_interval = 0.3
             self.max_retries = 3
             self.retry_backoff = 1.0
+            self.test_mode = False
     
     def _create_session(self) -> requests.Session:
         """재시도 기능이 있는 HTTP 세션 생성"""
@@ -156,7 +165,7 @@ class KiwoomRESTClient:
     def _get_token(self) -> bool:
         """
         API 토큰 발급/갱신
-        
+
         Returns:
             성공 여부
         """
@@ -164,17 +173,29 @@ class KiwoomRESTClient:
         if self._is_token_valid():
             logger.debug(f"기존 토큰 사용 (만료: {self.token_expiry.strftime('%Y-%m-%d %H:%M:%S')})")
             return True
-        
+
+        # 테스트 모드: 실제 API 호출 스킵, Mock 토큰 사용
+        if self.test_mode:
+            logger.info("🧪 테스트 모드: API 토큰 발급 스킵 (Mock 토큰 사용)")
+            self.token = "TEST_MOCK_TOKEN_FOR_DEVELOPMENT"
+            self.token_expiry = datetime.datetime.now() + datetime.timedelta(days=1)
+            self.last_error_msg = None
+            return True
+
         logger.info("API 토큰 발급 시도...")
-        
+
         token_url = f"{self.base_url}/oauth2/token"
         payload = {
             "grant_type": "client_credentials",
             "appkey": self.appkey,
             "secretkey": self.appsecret
         }
-        headers = {"content-type": "application/json;charset=UTF-8"}
-        
+        headers = {
+            "content-type": "application/json;charset=UTF-8",
+            "api-id": "au10001",
+            "User-Agent": "KiwoomTradingBot/1.0"
+        }
+
         try:
             res = self.session.post(
                 token_url,
@@ -182,7 +203,7 @@ class KiwoomRESTClient:
                 data=json.dumps(payload),
                 timeout=10
             )
-            
+
             logger.debug(f"토큰 요청 응답 상태: {res.status_code}")
 
             if res.status_code != 200:
@@ -192,27 +213,28 @@ class KiwoomRESTClient:
                 logger.error(f"토큰 요청 본문: appkey={self.appkey[:10]}..., secretkey={self.appsecret[:10]}...")
                 logger.error(f"응답 내용: {res.text[:500]}")
                 return False
-            
+
             token_data = res.json()
             return self._process_token_response(token_data)
-        
+
         except requests.exceptions.Timeout:
             self._set_error("토큰 요청 시간 초과")
             return False
-        
+
         except requests.exceptions.RequestException as e:
             self._set_error(f"토큰 요청 네트워크 오류: {e}")
             return False
-        
+
         except Exception as e:
             self._set_error(f"토큰 발급 중 예외: {e}")
             logger.exception("토큰 발급 중 예외 발생")
             return False
     
     def _process_token_response(self, token_data: Dict[str, Any]) -> bool:
-        """토큰 응답 처리"""
-        access_token = token_data.get('token')
-        expires_dt_str = token_data.get('expires_dt')
+        """토큰 응답 처리 (한국투자증권 OpenAPI 형식)"""
+        # 한국투자증권은 'token' 필드 사용 (access_token 아님)
+        access_token = token_data.get('access_token') or token_data.get('token')
+        expires_dt_str = token_data.get('access_token_token_expired') or token_data.get('expires_dt')
         
         if not access_token or not expires_dt_str:
             error_msg = token_data.get('return_msg', '알 수 없는 토큰 응답')
