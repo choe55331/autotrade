@@ -201,14 +201,14 @@
         .grid-2 {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
+            gap: 12px;
+            margin-bottom: 12px;
         }
 
         .card {
             background: var(--bg-card);
             border-radius: 12px;
-            padding: 20px;
+            padding: 16px;
             border: 1px solid var(--border-color);
         }
 
@@ -233,31 +233,31 @@
 
         /* Chart Container */
         #main-chart {
-            height: 500px;
+            height: 320px;
             position: relative;
         }
 
         #analysis-chart {
-            height: 250px;
+            height: 180px;
         }
 
         /* Analysis Panel */
         .analysis-panel {
             background: var(--bg-card);
             border-radius: 12px;
-            padding: 20px;
+            padding: 14px;
             border: 1px solid var(--border-color);
-            margin-bottom: 20px;
+            margin-bottom: 12px;
         }
 
         .analysis-step {
             display: flex;
             align-items: flex-start;
-            gap: 12px;
-            padding: 12px;
+            gap: 10px;
+            padding: 8px 10px;
             background: rgba(59, 130, 246, 0.05);
             border-radius: 8px;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             border-left: 3px solid var(--color-primary);
         }
 
@@ -503,8 +503,8 @@
         .ai-feature-card {
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 16px;
+            border-radius: 10px;
+            padding: 12px;
             cursor: pointer;
             transition: all 0.3s ease;
             position: relative;
@@ -513,44 +513,44 @@
 
         .ai-feature-card:hover {
             border-color: var(--color-primary);
-            transform: translateY(-4px);
-            box-shadow: 0 8px 16px rgba(59, 130, 246, 0.2);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(59, 130, 246, 0.2);
         }
 
         .ai-feature-card:active {
-            transform: translateY(-2px);
+            transform: translateY(-1px);
         }
 
         .ai-feature-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
+            font-size: 18px;
             color: white;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
         }
 
         .ai-feature-title {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             color: var(--text-primary);
         }
 
         .ai-feature-desc {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-secondary);
-            line-height: 1.4;
-            margin-bottom: 12px;
+            line-height: 1.3;
+            margin-bottom: 8px;
         }
 
         .ai-feature-result {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--color-primary);
-            min-height: 20px;
+            min-height: 18px;
             font-weight: 500;
         }
 
@@ -728,7 +728,7 @@
             </div>
 
             <!-- 기술적 분석 차트 -->
-            <div class="grid-2" style="margin-top: 20px;">
+            <div class="grid-2" style="margin-top: 12px;">
                 <div class="card">
                     <div class="card-header">
                         <div class="card-title">
@@ -756,7 +756,7 @@
             </div>
 
             <!-- v4.2 AI Features Section -->
-            <div class="card" style="margin-top: 20px;">
+            <div class="card" style="margin-top: 12px;">
                 <div class="card-header">
                     <div class="card-title">
                         <i class="fas fa-robot"></i>
@@ -765,7 +765,7 @@
                     <span style="font-size: 12px; color: var(--text-secondary);">새롭게 추가된 AI 시스템</span>
                 </div>
 
-                <div class="grid-2" style="grid-template-columns: repeat(3, 1fr); gap: 16px;">
+                <div class="grid-2" style="grid-template-columns: repeat(3, 1fr); gap: 10px;">
                     <!-- Portfolio Optimization -->
                     <div class="ai-feature-card" onclick="testPortfolioOptimization()">
                         <div class="ai-feature-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
@@ -884,7 +884,7 @@
             const chartContainer = document.getElementById('main-chart');
             mainChart = LightweightCharts.createChart(chartContainer, {
                 width: chartContainer.clientWidth,
-                height: 500,
+                height: 320,
                 layout: {
                     background: { color: '#1e2139' },
                     textColor: '#9ca3af',
@@ -916,6 +916,34 @@
             // Mock candlestick data
             const mockData = generateMockCandleData();
             candlestickSeries.setData(mockData);
+
+            // Add buy/sell signal markers
+            const markers = [];
+            // Buy signals (매수 타점)
+            for (let i = 20; i < mockData.length; i += 15) {
+                if (Math.random() > 0.5) {
+                    markers.push({
+                        time: mockData[i].time,
+                        position: 'belowBar',
+                        color: '#10b981',
+                        shape: 'arrowUp',
+                        text: '매수 @ ' + mockData[i].close.toFixed(0)
+                    });
+                }
+            }
+            // Sell signals (매도 타점)
+            for (let i = 30; i < mockData.length; i += 18) {
+                if (Math.random() > 0.6) {
+                    markers.push({
+                        time: mockData[i].time,
+                        position: 'aboveBar',
+                        color: '#ef4444',
+                        shape: 'arrowDown',
+                        text: '매도 @ ' + mockData[i].close.toFixed(0)
+                    });
+                }
+            }
+            candlestickSeries.setMarkers(markers);
 
             // Add volume series
             const volumeSeries = mainChart.addHistogramSeries({
