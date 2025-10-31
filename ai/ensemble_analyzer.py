@@ -104,7 +104,8 @@ class EnsembleAnalyzer(BaseAnalyzer):
         }
 
         logger.info(f"Ensemble Analyzer initialized with {len(self.analyzers)} models")
-        logger.info(f"Voting strategy: {voting_strategy.value}")
+        strategy_name = voting_strategy.value if isinstance(voting_strategy, VotingStrategy) else str(voting_strategy)
+        logger.info(f"Voting strategy: {strategy_name}")
 
     def initialize(self) -> bool:
         """
