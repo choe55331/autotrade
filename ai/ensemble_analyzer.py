@@ -564,3 +564,33 @@ class EnsembleAnalyzer(BaseAnalyzer):
             'conditions': ['Market analysis unavailable'],
             'timestamp': datetime.now().isoformat()
         }
+
+
+# Singleton instance
+_analyzer_instance: Optional[EnsembleAnalyzer] = None
+
+
+def get_analyzer(
+    voting_strategy: VotingStrategy = VotingStrategy.WEIGHTED,
+    enable_gpt4: bool = False,
+    enable_claude: bool = False
+) -> EnsembleAnalyzer:
+    """
+    Get singleton instance of EnsembleAnalyzer
+
+    Args:
+        voting_strategy: Strategy for combining model outputs
+        enable_gpt4: Enable GPT-4 integration
+        enable_claude: Enable Claude integration
+
+    Returns:
+        EnsembleAnalyzer instance
+    """
+    global _analyzer_instance
+    if _analyzer_instance is None:
+        _analyzer_instance = EnsembleAnalyzer(
+            voting_strategy=voting_strategy,
+            enable_gpt4=enable_gpt4,
+            enable_claude=enable_claude
+        )
+    return _analyzer_instance
