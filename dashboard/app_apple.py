@@ -93,7 +93,12 @@ def set_control_status(enabled: bool) -> bool:
 
 @app.route('/')
 def index():
-    """Serve main Professional Korean dashboard"""
+    """Serve v4.2 Korean AI dashboard (main)"""
+    return render_template('dashboard_v42_korean.html')
+
+@app.route('/old')
+def old_dashboard():
+    """Serve old v3 Korean dashboard"""
     return render_template('dashboard_pro_korean.html')
 
 @app.route('/classic')
@@ -103,7 +108,7 @@ def classic():
 
 @app.route('/v42')
 def v42_features():
-    """Serve v4.2 AI Features dashboard"""
+    """Serve v4.2 AI Features dashboard (English)"""
     return render_template('dashboard_v42.html')
 
 
