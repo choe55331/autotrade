@@ -245,48 +245,68 @@ class TradingBot:
         """메인 루프"""
         cycle_count = 0
         sleep_seconds = MAIN_CYCLE_CONFIG['SLEEP_SECONDS']
-        
+
         while self.is_running:
             cycle_count += 1
             logger.info(f"\n{'='*60}")
             logger.info(f"메인 사이클 #{cycle_count} 시작")
             logger.info(f"{'='*60}")
-            
+
             try:
                 # 1. 제어 파일 읽기
                 self._read_control_file()
-                
+
                 # 2. 실행 여부 확인
                 if not self.is_running:
                     logger.info("봇 실행 중지됨")
                     break
-                
-                # 3. 장 운영 시간 확인
-                if not self.research.is_market_open():
-                    logger.info("장 운영 시간이 아닙니다. 대기 중...")
+
+                # 3. 장 운영 시간 확인 및 테스트 모드 설정
+                market_status = self.research.analyzer.get_market_status()
+
+                if not market_status['is_trading_hours']:
+                    logger.info(f"장 운영 시간이 아닙니다: {market_status['market_status']}")
+                    self.monitor.update_screening_status(
+                        status='idle',
+                        market=market_status['market_status']
+                    )
                     time.sleep(sleep_seconds)
                     continue
-                
+
+                # 테스트 모드 설정 (NXT 시간)
+                is_test_mode = market_status['is_test_mode']
+                market_type = market_status['market_type']
+
+                if is_test_mode:
+                    logger.warning(f"⚠️  테스트 모드: {market_type} - 실제 주문 없이 시뮬레이션만 진행합니다")
+                    self.monitor.log_activity(
+                        'system',
+                        f'⚠️  {market_type} 테스트 모드로 작동 중',
+                        level='warning'
+                    )
+
+                logger.info(f"✓ 시장 상태: {market_type} (테스트 모드: {is_test_mode})")
+
                 # 4. 계좌 정보 업데이트
                 self._update_account_info()
-                
+
                 # 5. 매도 검토 (보유 종목)
                 if not self.pause_sell:
-                    self._check_sell_signals()
-                
+                    self._check_sell_signals(is_test_mode)
+
                 # 6. 매수 검토 (신규 종목)
                 if not self.pause_buy:
-                    self._check_buy_signals()
-                
+                    self._check_buy_signals(is_test_mode, market_type)
+
                 # 7. 상태 저장
                 self._save_state()
-                
+
                 # 8. 통계 출력
                 self._print_statistics()
-                
+
             except Exception as e:
                 logger.error(f"메인 루프 오류: {e}", exc_info=True)
-            
+
             # 대기
             logger.info(f"{sleep_seconds}초 대기 중...\n")
             time.sleep(sleep_seconds)
@@ -326,46 +346,54 @@ class TradingBot:
         except Exception as e:
             logger.error(f"계좌 정보 업데이트 실패: {e}")
     
-    def _check_sell_signals(self):
+    def _check_sell_signals(self, is_test_mode=False):
         """매도 신호 검토"""
         logger.info("매도 신호 검토 중...")
-        
+
         positions = self.strategy.get_all_positions()
-        
+
         if not positions:
             logger.info("보유 종목 없음")
             return
-        
+
         for stock_code, position in positions.items():
             try:
                 # 매도 여부 판단
                 should_sell = self.strategy.should_sell(stock_code, position)
-                
+
                 if should_sell:
-                    self._execute_sell(stock_code, position)
-                    
+                    self._execute_sell(stock_code, position, is_test_mode)
+
             except Exception as e:
                 logger.error(f"{stock_code} 매도 검토 오류: {e}")
     
-    def _check_buy_signals(self):
+    def _check_buy_signals(self, is_test_mode=False, market_type='정규장'):
         """매수 신호 검토"""
         logger.info("매수 신호 검토 중...")
 
         # 스크리닝 시작 로그
         self.monitor.update_screening_status(
             status='screening',
-            market='KOSPI/KOSDAQ',
+            market=market_type,
             conditions={
                 '거래량': '100,000+',
                 '가격대': '1,000~100,000',
                 '등락률': '1~15%'
             }
         )
-        self.monitor.log_activity(
-            'screening',
-            '종목 스크리닝 시작',
-            level='info'
-        )
+
+        if is_test_mode:
+            self.monitor.log_activity(
+                'screening',
+                f'🧪 종목 스크리닝 시작 ({market_type} 테스트 모드)',
+                level='info'
+            )
+        else:
+            self.monitor.log_activity(
+                'screening',
+                f'종목 스크리닝 시작 ({market_type})',
+                level='info'
+            )
 
         # 포지션 추가 가능 여부 확인
         if not self.portfolio_manager.can_add_position():
@@ -437,7 +465,7 @@ class TradingBot:
                 analysis = self._analyze_stock(stock_code)
 
                 if analysis and self.strategy.should_buy(stock_code, analysis):
-                    self._execute_buy(stock_code, analysis)
+                    self._execute_buy(stock_code, analysis, is_test_mode)
                     break  # 1회 사이클에 1개만 매수
 
             # 스크리닝 완료
@@ -517,10 +545,11 @@ class TradingBot:
             )
             return None
     
-    def _execute_buy(self, stock_code: str, analysis: dict):
+    def _execute_buy(self, stock_code: str, analysis: dict, is_test_mode=False):
         """매수 실행"""
         try:
-            logger.info(f"매수 실행: {stock_code}")
+            mode_str = "🧪 [테스트 모드] " if is_test_mode else ""
+            logger.info(f"{mode_str}매수 실행: {stock_code}")
             self.monitor.update_screening_status(status='trading')
 
             # 현재가 조회
@@ -569,52 +598,84 @@ class TradingBot:
 
             self.monitor.add_buy_plan(stock_code, buy_plan)
 
+            mode_prefix = "🧪 [테스트] " if is_test_mode else ""
             self.monitor.log_activity(
                 'buy',
-                f'{stock_code} 매수 계획 생성: {quantity}주 @ {current_price:,}원 (총 {total_amount:,}원)',
+                f'{mode_prefix}{stock_code} 매수 계획 생성: {quantity}주 @ {current_price:,}원 (총 {total_amount:,}원)',
                 {'plan': buy_plan},
                 level='info'
             )
 
-            # 주문 실행
-            order_result = self.order_api.buy(
-                stock_code=stock_code,
-                quantity=quantity,
-                price=current_price,
-                order_type='00'  # 지정가
-            )
-
-            if order_result:
-                order_no = order_result.get('order_no', '')
-                logger.info(f"✓ 매수 주문 성공: {quantity}주 @ {current_price:,}원 (주문번호: {order_no})")
+            # 주문 실행 (테스트 모드에서는 실제 주문하지 않음)
+            if is_test_mode:
+                # 테스트 모드: 시뮬레이션만 진행
+                logger.warning(f"🧪 [테스트 모드] 매수 시뮬레이션: {quantity}주 @ {current_price:,}원")
+                order_no = f"TEST_{stock_code}_{int(time.time())}"
 
                 self.monitor.log_activity(
                     'buy',
-                    f'✓ {stock_code} 매수 주문 성공: {quantity}주 @ {current_price:,}원',
+                    f'🧪 [테스트] {stock_code} 매수 시뮬레이션 완료: {quantity}주 @ {current_price:,}원',
                     {
                         'order_no': order_no,
                         'quantity': quantity,
                         'price': current_price,
-                        'total': total_amount
+                        'total': total_amount,
+                        'test_mode': True
                     },
-                    level='success'
+                    level='warning'
                 )
 
-                # 전략에 포지션 추가
-                self.strategy.add_position(
+                # 테스트 모드에서는 실제로 포지션 추가하지 않음
+                logger.warning("🧪 [테스트 모드] 실제 주문은 실행되지 않았습니다")
+                return
+
+            else:
+                # 실제 주문 실행
+                order_result = self.order_api.buy(
                     stock_code=stock_code,
                     quantity=quantity,
-                    purchase_price=current_price,
-                    order_id=order_no
+                    price=current_price,
+                    order_type='00'  # 지정가
                 )
 
-                # 거래 기록
-                self.strategy.record_trade(
-                    stock_code=stock_code,
-                    action='buy',
-                    quantity=quantity,
-                    price=current_price
-                )
+                if order_result:
+                    order_no = order_result.get('order_no', '')
+                    logger.info(f"✓ 매수 주문 성공: {quantity}주 @ {current_price:,}원 (주문번호: {order_no})")
+
+                    self.monitor.log_activity(
+                        'buy',
+                        f'✓ {stock_code} 매수 주문 성공: {quantity}주 @ {current_price:,}원',
+                        {
+                            'order_no': order_no,
+                            'quantity': quantity,
+                            'price': current_price,
+                            'total': total_amount
+                        },
+                        level='success'
+                    )
+
+                    # 전략에 포지션 추가
+                    self.strategy.add_position(
+                        stock_code=stock_code,
+                        quantity=quantity,
+                        purchase_price=current_price,
+                        order_id=order_no
+                    )
+
+                    # 거래 기록
+                    self.strategy.record_trade(
+                        stock_code=stock_code,
+                        action='buy',
+                        quantity=quantity,
+                        price=current_price
+                    )
+                else:
+                    logger.error("매수 주문 실패")
+                    self.monitor.log_activity(
+                        'error',
+                        f'{stock_code} 매수 주문 실패',
+                        level='error'
+                    )
 
         except Exception as e:
             logger.error(f"매수 실행 오류: {e}", exc_info=True)
@@ -626,10 +687,11 @@ class TradingBot:
         finally:
             self.monitor.update_screening_status(status='idle')
     
-    def _execute_sell(self, stock_code: str, position: dict):
+    def _execute_sell(self, stock_code: str, position: dict, is_test_mode=False):
         """매도 실행"""
         try:
-            logger.info(f"매도 실행: {stock_code}")
+            mode_str = "🧪 [테스트 모드] " if is_test_mode else ""
+            logger.info(f"{mode_str}매도 실행: {stock_code}")
 
             quantity = position.get('quantity', 0)
             current_price = int(position.get('current_price', 0))
@@ -646,9 +708,10 @@ class TradingBot:
             profit_loss = position.get('profit_loss', 0)
             profit_loss_rate = position.get('profit_loss_rate', 0)
 
+            mode_prefix = "🧪 [테스트] " if is_test_mode else ""
             self.monitor.log_activity(
                 'sell',
-                f'{stock_code} 매도 신호 발생: {quantity}주 @ {current_price:,}원 (손익: {profit_loss:+,}원)',
+                f'{mode_prefix}{stock_code} 매도 신호 발생: {quantity}주 @ {current_price:,}원 (손익: {profit_loss:+,}원)',
                 {
                     'quantity': quantity,
                     'price': current_price,
@@ -658,51 +721,84 @@ class TradingBot:
                 level='info'
             )
 
-            # 주문 실행
-            order_result = self.order_api.sell(
-                stock_code=stock_code,
-                quantity=quantity,
-                price=current_price,
-                order_type='00'  # 지정가
-            )
+            # 주문 실행 (테스트 모드에서는 실제 주문하지 않음)
+            if is_test_mode:
+                # 테스트 모드: 시뮬레이션만 진행
+                logger.warning(f"🧪 [테스트 모드] 매도 시뮬레이션: {quantity}주 @ {current_price:,}원 (손익: {profit_loss:+,}원)")
+                order_no = f"TEST_{stock_code}_{int(time.time())}"
 
-            if order_result:
-                order_no = order_result.get('order_no', '')
-
-                logger.info(
-                    f"✓ 매도 주문 성공: {quantity}주 @ {current_price:,}원 "
-                    f"(주문번호: {order_no}, 손익: {profit_loss:+,}원)"
-                )
-
-                log_level = 'success' if profit_loss >= 0 else 'warning'
+                log_level = 'warning'
                 self.monitor.log_activity(
                     'sell',
-                    f'✓ {stock_code} 매도 주문 성공: {quantity}주 @ {current_price:,}원 (손익: {profit_loss:+,}원, {profit_loss_rate:+.2f}%)',
+                    f'🧪 [테스트] {stock_code} 매도 시뮬레이션 완료: {quantity}주 @ {current_price:,}원 (손익: {profit_loss:+,}원, {profit_loss_rate:+.2f}%)',
                     {
                         'order_no': order_no,
                         'quantity': quantity,
                         'price': current_price,
                         'profit_loss': profit_loss,
-                        'profit_loss_rate': profit_loss_rate
+                        'profit_loss_rate': profit_loss_rate,
+                        'test_mode': True
                     },
                     level=log_level
                 )
 
-                # 전략에서 포지션 제거
-                self.strategy.remove_position(stock_code)
+                # 테스트 모드에서는 실제로 포지션 제거하지 않음
+                logger.warning("🧪 [테스트 모드] 실제 주문은 실행되지 않았습니다")
+                return
 
-                # 거래 기록
-                self.strategy.record_trade(
+            else:
+                # 실제 주문 실행
+                order_result = self.order_api.sell(
                     stock_code=stock_code,
-                    action='sell',
                     quantity=quantity,
                     price=current_price,
-                    profit_loss=profit_loss
+                    order_type='00'  # 지정가
                 )
 
-                # 리스크 관리자 업데이트
-                is_win = profit_loss > 0
-                self.risk_manager.update_profit_loss(profit_loss, is_win)
+                if order_result:
+                    order_no = order_result.get('order_no', '')
+
+                    logger.info(
+                        f"✓ 매도 주문 성공: {quantity}주 @ {current_price:,}원 "
+                        f"(주문번호: {order_no}, 손익: {profit_loss:+,}원)"
+                    )
+
+                    log_level = 'success' if profit_loss >= 0 else 'warning'
+                    self.monitor.log_activity(
+                        'sell',
+                        f'✓ {stock_code} 매도 주문 성공: {quantity}주 @ {current_price:,}원 (손익: {profit_loss:+,}원, {profit_loss_rate:+.2f}%)',
+                        {
+                            'order_no': order_no,
+                            'quantity': quantity,
+                            'price': current_price,
+                            'profit_loss': profit_loss,
+                            'profit_loss_rate': profit_loss_rate
+                        },
+                        level=log_level
+                    )
+
+                    # 전략에서 포지션 제거
+                    self.strategy.remove_position(stock_code)
+
+                    # 거래 기록
+                    self.strategy.record_trade(
+                        stock_code=stock_code,
+                        action='sell',
+                        quantity=quantity,
+                        price=current_price,
+                        profit_loss=profit_loss
+                    )
+
+                    # 리스크 관리자 업데이트
+                    is_win = profit_loss > 0
+                    self.risk_manager.update_profit_loss(profit_loss, is_win)
+                else:
+                    logger.error("매도 주문 실패")
+                    self.monitor.log_activity(
+                        'error',
+                        f'{stock_code} 매도 주문 실패',
+                        level='error'
+                    )
 
         except Exception as e:
             logger.error(f"매도 실행 오류: {e}", exc_info=True)

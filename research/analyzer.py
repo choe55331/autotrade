@@ -329,70 +329,114 @@ class Analyzer:
         return round(rsi, 2)
     
     # ==================== 시장 상태 분석 ====================
-    
+
     def is_market_open(self) -> bool:
         """
-        장 운영 시간 확인
-        
+        장 운영 시간 확인 (정규장 + 시간외 + NXT)
+
         Returns:
             장 개장 여부
         """
-        now = datetime.now()
-        current_time = now.time()
-        weekday = now.weekday()
-        
-        # 주말 체크 (토요일: 5, 일요일: 6)
-        if weekday >= 5:
-            logger.info("장 운영 상태: 폐장 (주말)")
-            return False
-        
-        # 장 운영 시간: 09:00 ~ 15:30
-        market_open = time(9, 0)
-        market_close = time(15, 30)
-        
-        is_open = market_open <= current_time <= market_close
-        status = '개장' if is_open else '폐장'
-        logger.info(f"장 운영 상태: {status} (현재 시각: {current_time.strftime('%H:%M')})")
+        market_info = self.get_market_status()
+        is_open = market_info['is_trading_hours']
+        market_type = market_info['market_type']
+
+        if is_open:
+            logger.info(f"장 운영 상태: {market_type} (현재 시각: {market_info['current_time']})")
+        else:
+            logger.info(f"장 운영 상태: 폐장 (현재 시각: {market_info['current_time']})")
+
         return is_open
     
     def get_market_status(self) -> Dict[str, Any]:
         """
-        시장 상태 정보
-        
+        시장 상태 정보 (정규장 + 시간외 + NXT)
+
         Returns:
             시장 상태 정보
             {
-                'is_open': True,
+                'is_trading_hours': True,
+                'is_test_mode': False,
+                'market_type': '정규장',
                 'current_time': '15:30:00',
-                'market_status': '장 마감',
+                'market_status': '장 운영 중',
                 'next_open': '2025-01-31 09:00:00'
             }
         """
         now = datetime.now()
         current_time = now.time()
         weekday = now.weekday()
-        
-        is_open = self.is_market_open()
-        
-        # 시장 상태 메시지
-        if weekday >= 5:
+
+        # 시장 유형 및 거래 가능 여부 판단
+        is_trading_hours = False
+        is_test_mode = False
+        market_type = '폐장'
+        market_status = '폐장'
+
+        # 주말 체크
+        if weekday >= 5:  # 토요일, 일요일
             market_status = '주말'
-        elif current_time < time(9, 0):
-            market_status = '장 시작 전'
-        elif time(9, 0) <= current_time <= time(15, 30):
-            market_status = '장 운영 중'
+            is_trading_hours = False
+
+        # 평일 거래 시간 체크
         else:
-            market_status = '장 마감'
-        
+            # 1. 정규장: 09:00 ~ 15:30
+            if time(9, 0) <= current_time < time(15, 30):
+                is_trading_hours = True
+                market_type = '정규장'
+                market_status = '정규장 운영 중'
+                is_test_mode = False
+
+            # 2. 시간외 종가: 15:30 ~ 18:00
+            elif time(15, 30) <= current_time < time(18, 0):
+                is_trading_hours = True
+                market_type = '시간외'
+                market_status = '시간외 거래 중'
+                is_test_mode = False
+
+            # 3. NXT 야간시장: 18:00 ~ 23:59
+            elif time(18, 0) <= current_time <= time(23, 59):
+                is_trading_hours = True
+                market_type = 'NXT (야간시장)'
+                market_status = 'NXT 거래 중 (테스트 모드)'
+                is_test_mode = True  # NXT는 테스트 모드
+
+            # 4. NXT 야간시장: 00:00 ~ 02:00 (다음날)
+            elif time(0, 0) <= current_time < time(2, 0):
+                is_trading_hours = True
+                market_type = 'NXT (야간시장)'
+                market_status = 'NXT 거래 중 (테스트 모드)'
+                is_test_mode = True  # NXT는 테스트 모드
+
+            # 5. 시간외 단일가: 08:30 ~ 09:00
+            elif time(8, 30) <= current_time < time(9, 0):
+                is_trading_hours = True
+                market_type = '시간외 (장 시작전)'
+                market_status = '시간외 단일가 거래 중'
+                is_test_mode = False
+
+            # 그 외 시간 (폐장)
+            else:
+                is_trading_hours = False
+                market_status = '폐장'
+                if current_time < time(8, 30):
+                    market_status = '장 시작 전'
+                elif time(2, 0) <= current_time < time(8, 30):
+                    market_status = '장 시작 전'
+
         # 다음 개장 시간 계산
         next_open = self._calculate_next_market_open(now)
-        
+
         return {
-            'is_open': is_open,
+            'is_trading_hours': is_trading_hours,
+            'is_test_mode': is_test_mode,
+            'market_type': market_type,
             'current_time': now.strftime('%H:%M:%S'),
             'weekday': ['월', '화', '수', '목', '금', '토', '일'][weekday],
             'market_status': market_status,
-            'next_open': next_open.strftime('%Y-%m-%d %H:%M:%S') if next_open else None
+            'next_open': next_open.strftime('%Y-%m-%d %H:%M:%S') if next_open else None,
+            # 호환성을 위한 필드
+            'is_open': is_trading_hours
         }
     
     def _calculate_next_market_open(self, now: datetime) -> Optional[datetime]:
