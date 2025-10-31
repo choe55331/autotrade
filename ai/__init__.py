@@ -26,6 +26,9 @@ v4.2 Modules:
 - High-Frequency Trading: Microsecond latency, arbitrage
 """
 
+# Legacy ensemble analyzer (for backward compatibility)
+from .ensemble_analyzer import EnsembleAnalyzer, get_analyzer
+
 # v4.0 modules
 from .ml_predictor import MLPricePredictor, PricePrediction, get_ml_predictor
 from .rl_agent import DQNAgent, RLState, RLAction, get_rl_agent
@@ -83,6 +86,10 @@ from .options_hft import (
 )
 
 __all__ = [
+    # Legacy
+    'EnsembleAnalyzer',
+    'get_analyzer',
+
     # v4.0 - ML Predictor
     'MLPricePredictor',
     'PricePrediction',
