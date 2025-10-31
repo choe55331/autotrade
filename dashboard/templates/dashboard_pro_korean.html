@@ -194,8 +194,9 @@
 
         /* Main Content */
         .main-content {
-            padding: 20px;
+            padding: 12px;
             overflow-y: auto;
+            max-height: calc(100vh - 60px);
         }
 
         .grid-2 {
@@ -207,8 +208,8 @@
 
         .card {
             background: var(--bg-card);
-            border-radius: 12px;
-            padding: 16px;
+            border-radius: 10px;
+            padding: 12px;
             border: 1px solid var(--border-color);
         }
 
@@ -233,31 +234,31 @@
 
         /* Chart Container */
         #main-chart {
-            height: 320px;
+            height: 280px;
             position: relative;
         }
 
         #analysis-chart {
-            height: 180px;
+            height: 150px;
         }
 
         /* Analysis Panel */
         .analysis-panel {
             background: var(--bg-card);
-            border-radius: 12px;
-            padding: 14px;
+            border-radius: 10px;
+            padding: 10px;
             border: 1px solid var(--border-color);
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
         .analysis-step {
             display: flex;
             align-items: flex-start;
-            gap: 10px;
-            padding: 8px 10px;
+            gap: 8px;
+            padding: 6px 8px;
             background: rgba(59, 130, 246, 0.05);
-            border-radius: 8px;
-            margin-bottom: 6px;
+            border-radius: 6px;
+            margin-bottom: 4px;
             border-left: 3px solid var(--color-primary);
         }
 
@@ -884,7 +885,7 @@
             const chartContainer = document.getElementById('main-chart');
             mainChart = LightweightCharts.createChart(chartContainer, {
                 width: chartContainer.clientWidth,
-                height: 320,
+                height: 280,
                 layout: {
                     background: { color: '#1e2139' },
                     textColor: '#9ca3af',
@@ -917,31 +918,29 @@
             const mockData = generateMockCandleData();
             candlestickSeries.setData(mockData);
 
-            // Add buy/sell signal markers
+            // Add buy/sell signal markers (크고 명확하게)
             const markers = [];
-            // Buy signals (매수 타점)
-            for (let i = 20; i < mockData.length; i += 15) {
-                if (Math.random() > 0.5) {
-                    markers.push({
-                        time: mockData[i].time,
-                        position: 'belowBar',
-                        color: '#10b981',
-                        shape: 'arrowUp',
-                        text: '매수 @ ' + mockData[i].close.toFixed(0)
-                    });
-                }
+            // Buy signals (매수 타점) - 초록색 화살표
+            for (let i = 20; i < mockData.length; i += 20) {
+                markers.push({
+                    time: mockData[i].time,
+                    position: 'belowBar',
+                    color: '#10b981',
+                    shape: 'arrowUp',
+                    text: '🟢 AI 매수 신호\n가격: ₩' + mockData[i].close.toFixed(0) + '\n신뢰도: 87%',
+                    size: 2  // Larger size
+                });
             }
-            // Sell signals (매도 타점)
-            for (let i = 30; i < mockData.length; i += 18) {
-                if (Math.random() > 0.6) {
-                    markers.push({
-                        time: mockData[i].time,
-                        position: 'aboveBar',
-                        color: '#ef4444',
-                        shape: 'arrowDown',
-                        text: '매도 @ ' + mockData[i].close.toFixed(0)
-                    });
-                }
+            // Sell signals (매도 타점) - 빨간색 화살표
+            for (let i = 35; i < mockData.length; i += 25) {
+                markers.push({
+                    time: mockData[i].time,
+                    position: 'aboveBar',
+                    color: '#ef4444',
+                    shape: 'arrowDown',
+                    text: '🔴 AI 매도 신호\n가격: ₩' + mockData[i].close.toFixed(0) + '\n신뢰도: 82%',
+                    size: 2  // Larger size
+                });
             }
             candlestickSeries.setMarkers(markers);
 
