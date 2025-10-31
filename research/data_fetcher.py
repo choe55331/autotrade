@@ -422,25 +422,8 @@ class DataFetcher:
         try:
             from api.market import MarketAPI
             market_api = MarketAPI(self.client)
-            # 거래대금은 거래량 API에서 sort 타입을 변경하여 조회
-            body = {
-                "market": market,
-                "limit": limit,
-                "sort": "trading_value"
-            }
-            response = market_api.client.request(
-                api_id="DOSK_0010",
-                body=body,
-                path="/api/dostk/inquire/rank"
-            )
-
-            if response and response.get('return_code') == 0:
-                rank_list = response.get('output', [])
-                logger.info(f"거래대금 순위 {len(rank_list)}개 조회 완료")
-                return rank_list
-            else:
-                logger.error(f"거래대금 순위 조회 실패: {response.get('return_msg')}")
-                return []
+            rank_list = market_api.get_trading_value_rank(market, limit)
+            return rank_list
         except Exception as e:
             logger.error(f"거래대금 순위 조회 실패: {e}")
             return []
