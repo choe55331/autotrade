@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoTrade Pro v2.0 - Premium Dashboard</title>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Socket.IO -->
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --dark: #0f172a;
+            --dark-card: #1e293b;
+            --dark-hover: #334155;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border: #334155;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            opacity: 0.1;
+        }
+
+        .bg-animation .circle {
+            position: absolute;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            animation: float 20s infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        /* Container */
+        .container {
+            max-width: 1920px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 25px 35px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .logo-text h1 {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo-text p {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success);
+            border-radius: 50px;
+            font-weight: 600;
+        }
+
+        .status-led {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        /* Main Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        /* Card */
+        .card {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+            border-color: var(--primary);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-icon {
+            width: 35px;
+            height: 35px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            grid-column: span 12;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 16px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            100% { transform: rotate(360deg); }
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin: 10px 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-muted);
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-change {
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-change.positive { color: var(--success); }
+        .stat-change.negative { color: var(--danger); }
+
+        /* Chart Cards */
+        .chart-card {
+            grid-column: span 8;
+        }
+
+        .sidebar-card {
+            grid-column: span 4;
+        }
+
+        /* Scanning Pipeline */
+        .pipeline {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .pipeline-stage {
+            background: rgba(51, 65, 85, 0.5);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .pipeline-stage:hover {
+            background: rgba(51, 65, 85, 0.8);
+            border-color: var(--primary);
+        }
+
+        .pipeline-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .pipeline-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* Risk Mode */
+        .risk-mode {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2));
+            border: 2px solid var(--primary);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .risk-mode-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .risk-mode-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        /* Positions Table */
+        .positions-table {
+            grid-column: span 12;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: rgba(51, 65, 85, 0.5);
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 15px 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tr:hover {
+            background: rgba(51, 65, 85, 0.3);
+        }
+
+        /* Candidates */
+        .candidate-item {
+            background: rgba(51, 65, 85, 0.5);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+        }
+
+        .candidate-item:hover {
+            background: rgba(51, 65, 85, 0.8);
+            border-color: var(--primary);
+        }
+
+        .candidate-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .candidate-name {
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .score-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .score-badge.high {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        .score-badge.medium {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+            border: 1px solid var(--warning);
+        }
+
+        /* Activities */
+        .activity-item {
+            padding: 12px;
+            border-left: 3px solid var(--primary);
+            background: rgba(51, 65, 85, 0.3);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .activity-time {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Control Panel */
+        .control-panel {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(99, 102, 241, 0.5);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .chart-card, .sidebar-card {
+                grid-column: span 12;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-animation">
+        <div class="circle" style="width: 300px; height: 300px; top: 10%; left: 10%;"></div>
+        <div class="circle" style="width: 200px; height: 200px; top: 60%; right: 15%;"></div>
+        <div class="circle" style="width: 150px; height: 150px; bottom: 10%; left: 50%;"></div>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>AutoTrade Pro v2.0</h1>
+                    <p>Premium AI Trading System</p>
+                </div>
+            </div>
+            <div class="status-badge">
+                <div class="status-led"></div>
+                <span id="system-status">System Running</span>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">💰 Total Assets</div>
+                <div class="stat-value" id="total-assets">₩0</div>
+                <div class="stat-change positive" id="assets-change">+0.00%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">💵 Cash</div>
+                <div class="stat-value" id="cash">₩0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">📈 Profit/Loss</div>
+                <div class="stat-value" id="profit-loss">₩0</div>
+                <div class="stat-change" id="profit-change">0.00%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">📦 Positions</div>
+                <div class="stat-value" id="positions">0</div>
+            </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="main-grid">
+            <!-- Chart -->
+            <div class="card chart-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-icon" style="background: linear-gradient(135deg, var(--info), var(--primary));">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        Portfolio Performance
+                    </div>
+                </div>
+                <canvas id="performance-chart" height="80"></canvas>
+            </div>
+
+            <!-- Scanning Pipeline -->
+            <div class="card sidebar-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-icon" style="background: linear-gradient(135deg, var(--success), var(--info));">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        3-Stage Scanning
+                    </div>
+                </div>
+                <div class="pipeline">
+                    <div class="pipeline-stage">
+                        <div class="pipeline-info">
+                            <div style="font-size: 24px;">⚡</div>
+                            <div>
+                                <div style="font-weight: 700;">Fast Scan</div>
+                                <div style="font-size: 12px; color: var(--text-muted);">10초 주기</div>
+                            </div>
+                        </div>
+                        <div class="pipeline-number" id="fast-scan-count">0</div>
+                    </div>
+                    <div style="text-align: center; color: var(--text-muted);">↓</div>
+                    <div class="pipeline-stage">
+                        <div class="pipeline-info">
+                            <div style="font-size: 24px;">🔬</div>
+                            <div>
+                                <div style="font-weight: 700;">Deep Scan</div>
+                                <div style="font-size: 12px; color: var(--text-muted);">1분 주기</div>
+                            </div>
+                        </div>
+                        <div class="pipeline-number" id="deep-scan-count">0</div>
+                    </div>
+                    <div style="text-align: center; color: var(--text-muted);">↓</div>
+                    <div class="pipeline-stage">
+                        <div class="pipeline-info">
+                            <div style="font-size: 24px;">🤖</div>
+                            <div>
+                                <div style="font-weight: 700;">AI Scan</div>
+                                <div style="font-size: 12px; color: var(--text-muted);">5분 주기</div>
+                            </div>
+                        </div>
+                        <div class="pipeline-number" id="ai-scan-count">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Risk Mode -->
+            <div class="card" style="grid-column: span 4;">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-icon" style="background: linear-gradient(135deg, var(--warning), var(--danger));">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        Risk Management
+                    </div>
+                </div>
+                <div class="risk-mode">
+                    <div class="risk-mode-icon" id="risk-icon">⚖️</div>
+                    <div class="risk-mode-title" id="risk-mode">Normal Mode</div>
+                    <div style="font-size: 14px; color: var(--text-muted);" id="risk-description">균형 잡힌 전략</div>
+                </div>
+            </div>
+
+            <!-- Control Panel -->
+            <div class="card" style="grid-column: span 4;">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-icon" style="background: linear-gradient(135deg, var(--secondary), var(--primary));">
+                            <i class="fas fa-cog"></i>
+                        </div>
+                        Control Panel
+                    </div>
+                </div>
+                <div class="control-panel">
+                    <button class="btn btn-primary" onclick="toggleBuy()">
+                        <i class="fas fa-pause"></i>
+                        <span id="buy-btn-text">Pause Buy</span>
+                    </button>
+                    <button class="btn btn-primary" onclick="toggleSell()">
+                        <i class="fas fa-pause"></i>
+                        <span id="sell-btn-text">Pause Sell</span>
+                    </button>
+                    <button class="btn btn-success" onclick="refreshData()">
+                        <i class="fas fa-sync"></i>
+                        Refresh
+                    </button>
+                </div>
+            </div>
+
+            <!-- Candidates -->
+            <div class="card" style="grid-column: span 4;">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-icon" style="background: linear-gradient(135deg, var(--success), var(--primary));">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        Top Candidates
+                    </div>
+                </div>
+                <div id="candidates-list" style="max-height: 400px; overflow-y: auto;">
+                    <!-- Candidates will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Positions Table -->
+            <div class="card positions-table">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-icon" style="background: linear-gradient(135deg, var(--info), var(--success));">
+                            <i class="fas fa-briefcase"></i>
+                        </div>
+                        Current Positions
+                    </div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Stock</th>
+                            <th>Code</th>
+                            <th>Quantity</th>
+                            <th>Buy Price</th>
+                            <th>Current</th>
+                            <th>P/L</th>
+                            <th>P/L %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="positions-tbody">
+                        <tr>
+                            <td colspan="7" style="text-align: center; color: var(--text-muted);">
+                                No positions
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Recent Activities -->
+            <div class="card" style="grid-column: span 12;">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-icon" style="background: linear-gradient(135deg, var(--secondary), var(--danger));">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        Recent Activities
+                    </div>
+                </div>
+                <div id="activities-list" style="max-height: 300px; overflow-y: auto;">
+                    <!-- Activities will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Socket.IO
+        const socket = io();
+
+        socket.on('connect', function() {
+            console.log('Connected to server');
+        });
+
+        socket.on('status_update', function(data) {
+            console.log('Status update:', data);
+        });
+
+        // Chart
+        const ctx = document.getElementById('performance-chart').getContext('2d');
+        const performanceChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Portfolio Value',
+                    data: [],
+                    borderColor: '#6366f1',
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#94a3b8'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        ticks: {
+                            color: '#94a3b8'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Format currency
+        function formatCurrency(value) {
+            return '₩' + Math.abs(value).toLocaleString();
+        }
+
+        // Format percentage
+        function formatPercent(value) {
+            return (value >= 0 ? '+' : '') + value.toFixed(2) + '%';
+        }
+
+        // Update data
+        async function updateData() {
+            try {
+                // Account
+                const account = await fetch('/api/account').then(r => r.json());
+                document.getElementById('total-assets').textContent = formatCurrency(account.total_assets || 0);
+                document.getElementById('cash').textContent = formatCurrency(account.cash || 0);
+                document.getElementById('profit-loss').textContent = formatCurrency(account.total_profit_loss || 0);
+                document.getElementById('positions').textContent = account.position_count || 0;
+
+                const profitRate = account.total_profit_loss_rate || 0;
+                const profitChangeEl = document.getElementById('profit-change');
+                profitChangeEl.textContent = formatPercent(profitRate);
+                profitChangeEl.className = 'stat-change ' + (profitRate >= 0 ? 'positive' : 'negative');
+
+                // Status
+                const status = await fetch('/api/status').then(r => r.json());
+                const scanSummary = status.scan_summary || {};
+                document.getElementById('fast-scan-count').textContent = scanSummary.fast_scan?.count || 0;
+                document.getElementById('deep-scan-count').textContent = scanSummary.deep_scan?.count || 0;
+                document.getElementById('ai-scan-count').textContent = scanSummary.ai_scan?.count || 0;
+                document.getElementById('risk-mode').textContent = status.risk_description || 'Normal Mode';
+
+                // Positions
+                const positions = await fetch('/api/positions').then(r => r.json());
+                const tbody = document.getElementById('positions-tbody');
+                if (positions.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">No positions</td></tr>';
+                } else {
+                    tbody.innerHTML = positions.map(p => `
+                        <tr>
+                            <td style="font-weight: 700;">${p.stock_name}</td>
+                            <td style="color: var(--text-muted);">${p.stock_code}</td>
+                            <td>${p.quantity.toLocaleString()}</td>
+                            <td>${formatCurrency(p.buy_price)}</td>
+                            <td>${formatCurrency(p.current_price)}</td>
+                            <td style="color: ${p.profit_loss >= 0 ? 'var(--success)' : 'var(--danger)'};">
+                                ${formatCurrency(p.profit_loss)}
+                            </td>
+                            <td style="color: ${p.profit_loss_rate >= 0 ? 'var(--success)' : 'var(--danger)'}; font-weight: 700;">
+                                ${formatPercent(p.profit_loss_rate)}
+                            </td>
+                        </tr>
+                    `).join('');
+                }
+
+                // Candidates
+                const candidates = await fetch('/api/candidates').then(r => r.json());
+                const candidatesList = document.getElementById('candidates-list');
+                if (candidates.length === 0) {
+                    candidatesList.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">No candidates</div>';
+                } else {
+                    candidatesList.innerHTML = candidates.slice(0, 5).map(c => `
+                        <div class="candidate-item">
+                            <div class="candidate-header">
+                                <div class="candidate-name">${c.stock_name}</div>
+                                <div class="score-badge ${c.ai_score >= 8 ? 'high' : 'medium'}">
+                                    ${c.ai_score.toFixed(1)} / 10
+                                </div>
+                            </div>
+                            <div style="font-size: 12px; color: var(--text-muted);">
+                                ${c.stock_code} • ${formatCurrency(c.price)} • ${c.ai_signal}
+                            </div>
+                        </div>
+                    `).join('');
+                }
+
+                // Activities
+                const activities = await fetch('/api/activities').then(r => r.json());
+                const activitiesList = document.getElementById('activities-list');
+                if (activities.length === 0) {
+                    activitiesList.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">No activities</div>';
+                } else {
+                    activitiesList.innerHTML = activities.slice(0, 10).map(a => `
+                        <div class="activity-item">
+                            <div>${a.message || a.activity}</div>
+                            <div class="activity-time">${new Date(a.timestamp).toLocaleString()}</div>
+                        </div>
+                    `).join('');
+                }
+
+                // Update chart
+                const now = new Date().toLocaleTimeString();
+                performanceChart.data.labels.push(now);
+                performanceChart.data.datasets[0].data.push(account.total_assets || 0);
+
+                if (performanceChart.data.labels.length > 20) {
+                    performanceChart.data.labels.shift();
+                    performanceChart.data.datasets[0].data.shift();
+                }
+
+                performanceChart.update();
+
+            } catch (error) {
+                console.error('Update error:', error);
+            }
+        }
+
+        // Control functions
+        async function toggleBuy() {
+            await fetch('/api/control', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({action: 'pause_buy'})
+            });
+            refreshData();
+        }
+
+        async function toggleSell() {
+            await fetch('/api/control', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({action: 'pause_sell'})
+            });
+            refreshData();
+        }
+
+        function refreshData() {
+            updateData();
+        }
+
+        // Auto update
+        updateData();
+        setInterval(updateData, 3000);
+    </script>
+</body>
+</html>
