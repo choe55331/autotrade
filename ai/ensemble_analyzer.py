@@ -57,7 +57,7 @@ class EnsembleAnalyzer(BaseAnalyzer):
             enable_gpt4: Enable GPT-4 integration
             enable_claude: Enable Claude integration
         """
-        super().__init__()
+        super().__init__(name="EnsembleAnalyzer", config={})
         self.voting_strategy = voting_strategy
 
         # Initialize available analyzers
@@ -105,6 +105,27 @@ class EnsembleAnalyzer(BaseAnalyzer):
 
         logger.info(f"Ensemble Analyzer initialized with {len(self.analyzers)} models")
         logger.info(f"Voting strategy: {voting_strategy.value}")
+
+    def initialize(self) -> bool:
+        """
+        Initialize ensemble analyzer
+
+        Returns:
+            True if initialization successful
+        """
+        try:
+            # Initialize all available analyzers
+            for model_type, analyzer in self.analyzers.items():
+                if hasattr(analyzer, 'initialize'):
+                    analyzer.initialize()
+
+            self.is_initialized = True
+            logger.info("Ensemble analyzer initialized successfully")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to initialize ensemble analyzer: {e}")
+            self.is_initialized = False
+            return False
 
     async def analyze_stock_async(self, stock_data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -466,6 +487,82 @@ class EnsembleAnalyzer(BaseAnalyzer):
             'score': round(avg_score, 2),
             'sentiment_votes': sentiment_votes,
             'conditions': self._combine_conditions(results),
+            'individual_results': results,
+            'timestamp': datetime.now().isoformat()
+        }
+
+    def analyze_portfolio(
+        self,
+        portfolio_data: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Analyze portfolio using ensemble
+
+        Args:
+            portfolio_data: Portfolio information
+
+        Returns:
+            Portfolio analysis results
+        """
+        if not self.analyzers:
+            return {
+                'score': 5,
+                'health': 'Unknown',
+                'recommendations': ['No AI models available'],
+                'risks': [],
+                'timestamp': datetime.now().isoformat()
+            }
+
+        # Synchronous portfolio analysis
+        results = []
+        for model_type, analyzer in self.analyzers.items():
+            try:
+                if hasattr(analyzer, 'analyze_portfolio'):
+                    result = analyzer.analyze_portfolio(portfolio_data)
+                    result['model'] = model_type.value
+                    results.append(result)
+            except Exception as e:
+                logger.error(f"{model_type.value} portfolio analysis failed: {e}")
+
+        if not results:
+            return {
+                'score': 5,
+                'health': 'Unknown',
+                'recommendations': ['Portfolio analysis unavailable'],
+                'risks': [],
+                'timestamp': datetime.now().isoformat()
+            }
+
+        # Aggregate scores
+        scores = [r.get('score', 5) for r in results]
+        avg_score = statistics.mean(scores)
+
+        # Determine health
+        if avg_score >= 7.5:
+            health = 'Excellent'
+        elif avg_score >= 6.0:
+            health = 'Good'
+        elif avg_score >= 4.5:
+            health = 'Fair'
+        else:
+            health = 'Poor'
+
+        # Combine recommendations and risks
+        all_recommendations = []
+        all_risks = []
+        for result in results:
+            all_recommendations.extend(result.get('recommendations', []))
+            all_risks.extend(result.get('risks', []))
+
+        # Remove duplicates
+        unique_recommendations = list(set(all_recommendations))[:10]
+        unique_risks = list(set(all_risks))[:10]
+
+        return {
+            'score': round(avg_score, 2),
+            'health': health,
+            'recommendations': unique_recommendations,
+            'risks': unique_risks,
             'individual_results': results,
             'timestamp': datetime.now().isoformat()
         }
