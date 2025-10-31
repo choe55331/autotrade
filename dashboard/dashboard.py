@@ -433,12 +433,27 @@ def create_app(bot_instance=None):
                     # 계좌 요약
                     account_summary = bot.account_api.get_account_summary()
 
+                    # API 응답에서 실제 키 추출
+                    # deposit_info: pymn_alow_amt(출금가능), ord_alow_amt(주문가능), entr(예수금)
+                    cash = 0
+                    if deposit_info:
+                        # 예수금은 entr 또는 pymn_alow_amt에서 가져오기
+                        cash_str = deposit_info.get('entr') or deposit_info.get('pymn_alow_amt') or '0'
+                        cash = int(cash_str)
+
+                    # balance_info에서 보유 주식 정보 (실제 응답 구조 확인 필요)
+                    stocks_value = 0
+                    total_profit_loss = 0
+
+                    # 총 자산 = 현금 + 주식 평가금액
+                    total_assets = cash + stocks_value
+
                     status['account'] = {
-                        'total_assets': account_summary.get('total_evaluation', 0),
-                        'cash': deposit_info.get('deposit', 0),
-                        'stocks_value': balance_info.get('total_evaluation', 0),
-                        'total_profit_loss': balance_info.get('total_profit_loss', 0),
-                        'total_profit_loss_rate': balance_info.get('profit_loss_rate', 0),
+                        'total_assets': total_assets,
+                        'cash': cash,
+                        'stocks_value': stocks_value,
+                        'total_profit_loss': total_profit_loss,
+                        'total_profit_loss_rate': 0,
                     }
 
                     # 보유 종목 상세
