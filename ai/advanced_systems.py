@@ -7,7 +7,7 @@ Version: 4.2
 """
 
 from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional, Tuple, Callable
 import numpy as np
 from datetime import datetime
 from collections import deque
