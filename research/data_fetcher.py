@@ -373,19 +373,24 @@ class DataFetcher:
             "limit": limit
         }
         
-        response = self.client.request(
-            api_id="DOSK_0010",
-            body=body,
-            path="/api/dostk/inquire/rank"
-        )
-        
-        if response and response.get('return_code') == 0:
-            rank_list = response.get('output', [])
-            logger.info(f"거래량 순위 {len(rank_list)}개 조회 완료")
-            return rank_list
-        else:
-            logger.error(f"거래량 순위 조회 실패: {response.get('return_msg')}")
-            return []
+        # NOTE: 시세 순위 API가 현재 구현되지 않음 (API ID DOSK_0010 미지원)
+        # TODO: 올바른 키움 REST API ID로 교체 필요
+        logger.debug(f"거래량 순위 API 미구현 - 빈 리스트 반환")
+        return []
+
+        # response = self.client.request(
+        #     api_id="DOSK_0010",  # 잘못된 API ID
+        #     body=body,
+        #     path="/api/dostk/inquire/rank"
+        # )
+        #
+        # if response and response.get('return_code') == 0:
+        #     rank_list = response.get('output', [])
+        #     logger.info(f"거래량 순위 {len(rank_list)}개 조회 완료")
+        #     return rank_list
+        # else:
+        #     logger.error(f"거래량 순위 조회 실패: {response.get('return_msg')}")
+        #     return []
     
     def get_price_change_rank(
         self,
@@ -395,35 +400,18 @@ class DataFetcher:
     ) -> List[Dict[str, Any]]:
         """
         등락률 순위 조회
-        
+
         Args:
             market: 시장구분 ('ALL', 'KOSPI', 'KOSDAQ')
             sort: 정렬 ('rise': 상승률, 'fall': 하락률)
             limit: 조회 건수
-        
+
         Returns:
             등락률 순위 리스트
         """
-        body = {
-            "market_code": self._get_market_code(market),
-            "sort_type": sort,
-            "limit": limit
-        }
-        
-        response = self.client.request(
-            api_id="DOSK_0011",
-            body=body,
-            path="/api/dostk/inquire/rank"
-        )
-        
-        if response and response.get('return_code') == 0:
-            rank_list = response.get('output', [])
-            sort_name = "상승률" if sort == 'rise' else "하락률"
-            logger.info(f"{sort_name} 순위 {len(rank_list)}개 조회 완료")
-            return rank_list
-        else:
-            logger.error(f"등락률 순위 조회 실패: {response.get('return_msg')}")
-            return []
+        # NOTE: 시세 순위 API가 현재 구현되지 않음
+        logger.debug(f"등락률 순위 API 미구현 - 빈 리스트 반환")
+        return []
     
     def get_trading_value_rank(
         self,
@@ -432,33 +420,17 @@ class DataFetcher:
     ) -> List[Dict[str, Any]]:
         """
         거래대금 순위 조회
-        
+
         Args:
             market: 시장구분
             limit: 조회 건수
-        
+
         Returns:
             거래대금 순위 리스트
         """
-        body = {
-            "market_code": self._get_market_code(market),
-            "sort_type": "trading_value",
-            "limit": limit
-        }
-        
-        response = self.client.request(
-            api_id="DOSK_0012",
-            body=body,
-            path="/api/dostk/inquire/rank"
-        )
-        
-        if response and response.get('return_code') == 0:
-            rank_list = response.get('output', [])
-            logger.info(f"거래대금 순위 {len(rank_list)}개 조회 완료")
-            return rank_list
-        else:
-            logger.error(f"거래대금 순위 조회 실패: {response.get('return_msg')}")
-            return []
+        # NOTE: 시세 순위 API가 현재 구현되지 않음
+        logger.debug(f"거래대금 순위 API 미구현 - 빈 리스트 반환")
+        return []
     
     # ==================== 투자자별 매매 동향 ====================
     
