@@ -1,6 +1,16 @@
 """
-AutoTrade Pro v3.0 - Apple-Style Dashboard
-Modern, elegant dashboard with comprehensive feature controls
+AutoTrade Pro v4.2 - Apple-Style Dashboard
+Modern, elegant dashboard with comprehensive AI-powered trading features
+
+v4.2 Features:
+- Real-time WebSocket streaming
+- Portfolio optimization (Markowitz, Black-Litterman, Risk Parity)
+- Sentiment analysis (News + Social media)
+- Multi-agent consensus system
+- Advanced risk management (VaR/CVaR)
+- Market regime detection
+- Options pricing (Black-Scholes)
+- High-frequency trading
 """
 import os
 import sys
@@ -90,6 +100,11 @@ def index():
 def classic():
     """Serve classic Apple-style dashboard"""
     return render_template('dashboard_apple.html')
+
+@app.route('/v42')
+def v42_features():
+    """Serve v4.2 AI Features dashboard"""
+    return render_template('dashboard_v42.html')
 
 
 # ============================================================================
@@ -414,11 +429,13 @@ def run_dashboard(bot=None, host: str = '0.0.0.0', port: int = 5000, debug: bool
     bot_instance = bot
 
     print("=" * 80)
-    print("🍎 AutoTrade Pro v3.0 - Apple Style Dashboard")
+    print("🚀 AutoTrade Pro v4.2 - AI-Powered Trading Dashboard")
     print("=" * 80)
     print(f"📱 Dashboard URL: http://localhost:{port}")
-    print(f"⚙️  Features: 40+ configurable trading features")
+    print(f"🤖 AI Systems: 18 integrated (v4.0 + v4.1 + v4.2)")
+    print(f"📊 API Endpoints: 38 total")
     print(f"🎨 Design: Apple-inspired minimalist UI")
+    print(f"⚡ New in v4.2: Real-time, Portfolio Optimization, Sentiment, Multi-Agent, HFT")
     print("=" * 80)
 
     socketio.run(app, host=host, port=port, debug=debug, allow_unsafe_werkzeug=True)
