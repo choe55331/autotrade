@@ -101,6 +101,11 @@ def classic():
     """Serve classic Apple-style dashboard"""
     return render_template('dashboard_apple.html')
 
+@app.route('/v42')
+def v42_features():
+    """Serve v4.2 AI Features dashboard"""
+    return render_template('dashboard_v42.html')
+
 
 # ============================================================================
 # API ENDPOINTS

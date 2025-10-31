@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoTrade Pro v4.2 - AI Features Dashboard</title>
+
+    <!-- Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0066CC;
+            --success: #34C759;
+            --warning: #FF9500;
+            --danger: #FF3B30;
+            --bg-main: #F5F5F7;
+            --bg-card: #FFFFFF;
+            --text-primary: #1D1D1F;
+            --text-secondary: #86868B;
+            --border: #D2D2D7;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .header {
+            background: var(--bg-card);
+            padding: 20px 40px;
+            box-shadow: 0 2px 10px var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary), #0077ED);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+
+        .logo-text h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .logo-text p {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0055B3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--bg-main);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: #E8E8ED;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 0 40px;
+        }
+
+        .page-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .page-subtitle {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 2px 10px var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px var(--shadow);
+        }
+
+        .feature-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: white;
+        }
+
+        .icon-blue { background: linear-gradient(135deg, #0066CC, #0077ED); }
+        .icon-green { background: linear-gradient(135deg, #34C759, #30D158); }
+        .icon-orange { background: linear-gradient(135deg, #FF9500, #FF9F0A); }
+        .icon-red { background: linear-gradient(135deg, #FF3B30, #FF453A); }
+        .icon-purple { background: linear-gradient(135deg, #AF52DE, #BF5AF2); }
+        .icon-teal { background: linear-gradient(135deg, #5AC8FA, #64D2FF); }
+
+        .feature-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .feature-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .feature-body {
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+        }
+
+        .input-group input,
+        .input-group select,
+        .input-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus,
+        .input-group select:focus,
+        .input-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .result-box {
+            background: var(--bg-main);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 16px;
+            display: none;
+        }
+
+        .result-box.show {
+            display: block;
+        }
+
+        .result-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-secondary);
+        }
+
+        .result-content {
+            font-size: 14px;
+            white-space: pre-wrap;
+            font-family: 'Monaco', 'Courier New', monospace;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-success { background: #D1F4E0; color: #0D894F; }
+        .badge-warning { background: #FFE5CC; color: #CC7000; }
+        .badge-info { background: #CCE5FF; color: #0055B3; }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .metric:last-child {
+            border-bottom: none;
+        }
+
+        .metric-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .metric-value {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .alert {
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+
+        .alert-info {
+            background: #E5F3FF;
+            color: #0066CC;
+            border-left: 4px solid var(--primary);
+        }
+
+        .alert-success {
+            background: #D1F4E0;
+            color: #0D894F;
+            border-left: 4px solid var(--success);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>AutoTrade Pro</h1>
+                    <p>v4.2 AI Features</p>
+                </div>
+            </div>
+            <div class="nav-buttons">
+                <a href="/" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Main Dashboard
+                </a>
+                <button class="btn btn-primary" onclick="refreshAllStatus()">
+                    <i class="fas fa-sync-alt"></i> Refresh All
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <h1 class="page-title">🚀 v4.2 AI Features</h1>
+        <p class="page-subtitle">
+            9가지 혁신적인 AI 시스템으로 트레이딩을 한 단계 업그레이드하세요
+        </p>
+
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            <strong>시작하기:</strong> 각 기능 카드에서 필요한 정보를 입력하고 버튼을 클릭하여 AI 기능을 테스트해보세요!
+        </div>
+
+        <!-- Features Grid -->
+        <div class="features-grid">
+
+            <!-- Portfolio Optimization -->
+            <div class="feature-card">
+                <div class="feature-header">
+                    <div class="feature-icon icon-blue">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <div>
+                        <div class="feature-title">Portfolio Optimization</div>
+                        <div class="feature-subtitle">Markowitz • Risk Parity • Black-Litterman</div>
+                    </div>
+                </div>
+                <div class="feature-body">
+                    <div class="input-group">
+                        <label>Stock Codes (comma separated)</label>
+                        <input type="text" id="portfolio-stocks" placeholder="005930,000660,035720" value="005930,000660,035720">
+                    </div>
+                    <div class="input-group">
+                        <label>Optimization Method</label>
+                        <select id="portfolio-method">
+                            <option value="markowitz">Markowitz (Max Sharpe)</option>
+                            <option value="risk_parity">Risk Parity</option>
+                            <option value="black_litterman">Black-Litterman</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="optimizePortfolio()" style="width: 100%;">
+                        <i class="fas fa-calculator"></i> Optimize Portfolio
+                    </button>
+                </div>
+                <div class="result-box" id="portfolio-result">
+                    <div class="result-title">Optimization Result:</div>
+                    <div class="result-content" id="portfolio-content"></div>
+                </div>
+            </div>
+
+            <!-- Sentiment Analysis -->
+            <div class="feature-card">
+                <div class="feature-header">
+                    <div class="feature-icon icon-green">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <div>
+                        <div class="feature-title">Sentiment Analysis</div>
+                        <div class="feature-subtitle">News + Social Media AI</div>
+                    </div>
+                </div>
+                <div class="feature-body">
+                    <div class="input-group">
+                        <label>Stock Code</label>
+                        <input type="text" id="sentiment-stock" placeholder="005930" value="005930">
+                    </div>
+                    <button class="btn btn-primary" onclick="analyzeSentiment()" style="width: 100%;">
+                        <i class="fas fa-brain"></i> Analyze Sentiment
+                    </button>
+                </div>
+                <div class="result-box" id="sentiment-result">
+                    <div class="result-title">Sentiment Analysis:</div>
+                    <div class="result-content" id="sentiment-content"></div>
+                </div>
+            </div>
+
+            <!-- Multi-Agent Consensus -->
+            <div class="feature-card">
+                <div class="feature-header">
+                    <div class="feature-icon icon-purple">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div>
+                        <div class="feature-title">Multi-Agent System</div>
+                        <div class="feature-subtitle">5 AI Agents Consensus</div>
+                    </div>
+                </div>
+                <div class="feature-body">
+                    <div class="input-group">
+                        <label>Stock Code</label>
+                        <input type="text" id="agent-stock" placeholder="005930" value="005930">
+                    </div>
+                    <button class="btn btn-primary" onclick="getConsensus()" style="width: 100%;">
+                        <i class="fas fa-handshake"></i> Get Consensus
+                    </button>
+                </div>
+                <div class="result-box" id="agent-result">
+                    <div class="result-title">Consensus Decision:</div>
+                    <div class="result-content" id="agent-content"></div>
+                </div>
+            </div>
+
+            <!-- Risk Assessment -->
+            <div class="feature-card">
+                <div class="feature-header">
+                    <div class="feature-icon icon-red">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div>
+                        <div class="feature-title">Risk Assessment</div>
+                        <div class="feature-subtitle">VaR • CVaR • Stress Testing</div>
+                    </div>
+                </div>
+                <div class="feature-body">
+                    <div class="input-group">
+                        <label>Portfolio Value (₩)</label>
+                        <input type="number" id="risk-value" placeholder="10000000" value="10000000">
+                    </div>
+                    <div class="input-group">
+                        <label>Confidence Level</label>
+                        <select id="risk-confidence">
+                            <option value="0.95">95%</option>
+                            <option value="0.99">99%</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="assessRisk()" style="width: 100%;">
+                        <i class="fas fa-exclamation-triangle"></i> Assess Risk
+                    </button>
+                </div>
+                <div class="result-box" id="risk-result">
+                    <div class="result-title">Risk Metrics:</div>
+                    <div class="result-content" id="risk-content"></div>
+                </div>
+            </div>
+
+            <!-- Market Regime Detection -->
+            <div class="feature-card">
+                <div class="feature-header">
+                    <div class="feature-icon icon-orange">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div>
+                        <div class="feature-title">Market Regime Detection</div>
+                        <div class="feature-subtitle">Bull • Bear • Sideways • Volatile</div>
+                    </div>
+                </div>
+                <div class="feature-body">
+                    <div class="input-group">
+                        <label>Market Index</label>
+                        <select id="regime-market">
+                            <option value="KOSPI">KOSPI</option>
+                            <option value="KOSDAQ">KOSDAQ</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="detectRegime()" style="width: 100%;">
+                        <i class="fas fa-radar"></i> Detect Regime
+                    </button>
+                </div>
+                <div class="result-box" id="regime-result">
+                    <div class="result-title">Market Regime:</div>
+                    <div class="result-content" id="regime-content"></div>
+                </div>
+            </div>
+
+            <!-- Options Pricing -->
+            <div class="feature-card">
+                <div class="feature-header">
+                    <div class="feature-icon icon-teal">
+                        <i class="fas fa-calculator"></i>
+                    </div>
+                    <div>
+                        <div class="feature-title">Options Pricing</div>
+                        <div class="feature-subtitle">Black-Scholes • Greeks</div>
+                    </div>
+                </div>
+                <div class="feature-body">
+                    <div class="input-group">
+                        <label>Spot Price</label>
+                        <input type="number" id="option-spot" placeholder="70000" value="70000">
+                    </div>
+                    <div class="input-group">
+                        <label>Strike Price</label>
+                        <input type="number" id="option-strike" placeholder="75000" value="75000">
+                    </div>
+                    <div class="input-group">
+                        <label>Days to Expiry</label>
+                        <input type="number" id="option-days" placeholder="30" value="30">
+                    </div>
+                    <button class="btn btn-primary" onclick="priceOption()" style="width: 100%;">
+                        <i class="fas fa-coins"></i> Price Option
+                    </button>
+                </div>
+                <div class="result-box" id="option-result">
+                    <div class="result-title">Option Pricing:</div>
+                    <div class="result-content" id="option-content"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- System Status Card -->
+        <div class="feature-card" style="grid-column: 1 / -1;">
+            <div class="feature-header">
+                <div class="feature-icon icon-blue">
+                    <i class="fas fa-server"></i>
+                </div>
+                <div>
+                    <div class="feature-title">v4.2 System Status</div>
+                    <div class="feature-subtitle">전체 시스템 상태 및 통계</div>
+                </div>
+            </div>
+            <div class="feature-body">
+                <button class="btn btn-primary" onclick="getSystemStatus()">
+                    <i class="fas fa-info-circle"></i> Get System Status
+                </button>
+            </div>
+            <div class="result-box" id="status-result">
+                <div class="result-title">System Status:</div>
+                <div class="result-content" id="status-content"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Portfolio Optimization
+        async function optimizePortfolio() {
+            const stocks = document.getElementById('portfolio-stocks').value.split(',').map(s => s.trim());
+            const method = document.getElementById('portfolio-method').value;
+            const resultBox = document.getElementById('portfolio-result');
+            const resultContent = document.getElementById('portfolio-content');
+
+            resultContent.innerHTML = '<div class="loading"></div> Optimizing...';
+            resultBox.classList.add('show');
+
+            try {
+                const response = await fetch('/api/v4.2/portfolio/optimize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ stock_codes: stocks, method: method })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    const result = data.result;
+                    resultContent.innerHTML = `
+<strong>✓ Optimization Complete</strong>
+
+Method: ${result.method}
+Expected Return: ${result.expected_return}%
+Risk (Volatility): ${result.risk}%
+Sharpe Ratio: ${result.sharpe_ratio}
+
+Weights:
+${result.weights.map((w, i) => `  ${stocks[i]}: ${(w*100).toFixed(2)}%`).join('\n')}
+
+Recommendation: ${result.recommendation}
+                    `.trim();
+                } else {
+                    resultContent.textContent = '⚠️ ' + data.error;
+                }
+            } catch (error) {
+                resultContent.textContent = '❌ Error: ' + error.message;
+            }
+        }
+
+        // Sentiment Analysis
+        async function analyzeSentiment() {
+            const stockCode = document.getElementById('sentiment-stock').value;
+            const resultBox = document.getElementById('sentiment-result');
+            const resultContent = document.getElementById('sentiment-content');
+
+            resultContent.innerHTML = '<div class="loading"></div> Analyzing...';
+            resultBox.classList.add('show');
+
+            try {
+                const response = await fetch(`/api/v4.2/sentiment/${stockCode}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const result = data.result;
+                    resultContent.innerHTML = `
+<strong>✓ Sentiment Analysis Complete</strong>
+
+Overall Score: ${result.overall_sentiment.toFixed(2)} / 10
+Sentiment: ${result.sentiment}
+Confidence: ${result.confidence}
+
+News Sentiment: ${result.news_sentiment.toFixed(2)}
+Social Media: ${result.social_sentiment.toFixed(2)}
+
+Trending Keywords:
+${result.trending_keywords.map(k => `  • ${k}`).join('\n')}
+
+Recommendation: ${result.recommendation}
+                    `.trim();
+                } else {
+                    resultContent.textContent = '⚠️ ' + data.error;
+                }
+            } catch (error) {
+                resultContent.textContent = '❌ Error: ' + error.message;
+            }
+        }
+
+        // Multi-Agent Consensus
+        async function getConsensus() {
+            const stockCode = document.getElementById('agent-stock').value;
+            const resultBox = document.getElementById('agent-result');
+            const resultContent = document.getElementById('agent-content');
+
+            resultContent.innerHTML = '<div class="loading"></div> Getting consensus...';
+            resultBox.classList.add('show');
+
+            try {
+                const response = await fetch('/api/v4.2/multi_agent/consensus', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ stock_code: stockCode })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    const result = data.result;
+                    resultContent.innerHTML = `
+<strong>✓ Consensus Decision</strong>
+
+Final Action: ${result.final_action.toUpperCase()}
+Consensus Level: ${(result.consensus_level * 100).toFixed(1)}%
+Confidence: ${(result.confidence * 100).toFixed(1)}%
+
+Agent Votes:
+  Buy: ${result.votes.buy}
+  Sell: ${result.votes.sell}
+  Hold: ${result.votes.hold}
+
+Reasoning:
+${result.reasoning}
+                    `.trim();
+                } else {
+                    resultContent.textContent = '⚠️ ' + data.error;
+                }
+            } catch (error) {
+                resultContent.textContent = '❌ Error: ' + error.message;
+            }
+        }
+
+        // Risk Assessment
+        async function assessRisk() {
+            const value = parseFloat(document.getElementById('risk-value').value);
+            const confidence = parseFloat(document.getElementById('risk-confidence').value);
+            const resultBox = document.getElementById('risk-result');
+            const resultContent = document.getElementById('risk-content');
+
+            resultContent.innerHTML = '<div class="loading"></div> Assessing risk...';
+            resultBox.classList.add('show');
+
+            try {
+                const response = await fetch('/api/v4.2/risk/assess', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ portfolio_value: value, confidence_level: confidence })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    const result = data.result;
+                    resultContent.innerHTML = `
+<strong>✓ Risk Assessment Complete</strong>
+
+VaR (${confidence*100}%): ₩${result.var.toLocaleString()}
+CVaR (Expected Shortfall): ₩${result.cvar.toLocaleString()}
+Maximum Loss (worst case): ${result.max_loss_pct}%
+
+Volatility: ${result.volatility}%
+Sharpe Ratio: ${result.sharpe_ratio}
+Risk Level: ${result.risk_level}
+
+Recommendation: ${result.recommendation}
+                    `.trim();
+                } else {
+                    resultContent.textContent = '⚠️ ' + data.error;
+                }
+            } catch (error) {
+                resultContent.textContent = '❌ Error: ' + error.message;
+            }
+        }
+
+        // Market Regime Detection
+        async function detectRegime() {
+            const market = document.getElementById('regime-market').value;
+            const resultBox = document.getElementById('regime-result');
+            const resultContent = document.getElementById('regime-content');
+
+            resultContent.innerHTML = '<div class="loading"></div> Detecting regime...';
+            resultBox.classList.add('show');
+
+            try {
+                const response = await fetch('/api/v4.2/regime/detect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ market: market })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    const result = data.result;
+                    const emoji = {
+                        'bull': '📈',
+                        'bear': '📉',
+                        'sideways': '➡️',
+                        'volatile': '⚡'
+                    }[result.regime_type] || '❓';
+
+                    resultContent.innerHTML = `
+<strong>✓ Market Regime Detected</strong>
+
+Current Regime: ${emoji} ${result.regime_type.toUpperCase()}
+Confidence: ${(result.confidence * 100).toFixed(1)}%
+
+Trend Strength: ${result.trend_strength.toFixed(2)}
+Volatility: ${result.volatility}%
+Momentum: ${result.momentum}
+
+Characteristics:
+${result.characteristics.map(c => `  • ${c}`).join('\n')}
+
+Trading Strategy: ${result.recommended_strategy}
+                    `.trim();
+                } else {
+                    resultContent.textContent = '⚠️ ' + data.error;
+                }
+            } catch (error) {
+                resultContent.textContent = '❌ Error: ' + error.message;
+            }
+        }
+
+        // Options Pricing
+        async function priceOption() {
+            const spot = parseFloat(document.getElementById('option-spot').value);
+            const strike = parseFloat(document.getElementById('option-strike').value);
+            const days = parseInt(document.getElementById('option-days').value);
+            const resultBox = document.getElementById('option-result');
+            const resultContent = document.getElementById('option-content');
+
+            resultContent.innerHTML = '<div class="loading"></div> Pricing option...';
+            resultBox.classList.add('show');
+
+            try {
+                const response = await fetch('/api/v4.2/options/price', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        spot_price: spot,
+                        strike_price: strike,
+                        time_to_expiry: days / 365,
+                        option_type: 'call'
+                    })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    const result = data.result;
+                    resultContent.innerHTML = `
+<strong>✓ Option Pricing Complete</strong>
+
+Call Price: ₩${result.call_price.toLocaleString()}
+Put Price: ₩${result.put_price.toLocaleString()}
+
+Greeks:
+  Delta: ${result.greeks.delta.toFixed(4)}
+  Gamma: ${result.greeks.gamma.toFixed(4)}
+  Theta: ${result.greeks.theta.toFixed(4)}
+  Vega: ${result.greeks.vega.toFixed(4)}
+  Rho: ${result.greeks.rho.toFixed(4)}
+
+Implied Volatility: ${(result.implied_volatility * 100).toFixed(2)}%
+                    `.trim();
+                } else {
+                    resultContent.textContent = '⚠️ ' + data.error;
+                }
+            } catch (error) {
+                resultContent.textContent = '❌ Error: ' + error.message;
+            }
+        }
+
+        // System Status
+        async function getSystemStatus() {
+            const resultBox = document.getElementById('status-result');
+            const resultContent = document.getElementById('status-content');
+
+            resultContent.innerHTML = '<div class="loading"></div> Loading...';
+            resultBox.classList.add('show');
+
+            try {
+                const response = await fetch('/api/v4.2/all/status');
+                const data = await response.json();
+
+                if (data.success) {
+                    const result = data.result;
+                    resultContent.innerHTML = `
+<strong>✓ System Status</strong>
+
+Version: v${result.version}
+AI Systems: ${result.ai_systems_count}
+Total API Endpoints: ${result.total_endpoints}
+Uptime: ${result.uptime}
+
+Active Modules:
+${result.active_modules.map(m => `  ✓ ${m}`).join('\n')}
+
+Performance:
+  Average Response Time: ${result.avg_response_time}ms
+  Total Requests: ${result.total_requests}
+  Success Rate: ${result.success_rate}%
+                    `.trim();
+                } else {
+                    resultContent.textContent = '⚠️ ' + data.error;
+                }
+            } catch (error) {
+                resultContent.textContent = '❌ Error: ' + error.message;
+            }
+        }
+
+        // Refresh all status
+        function refreshAllStatus() {
+            location.reload();
+        }
+
+        // Auto-load system status on page load
+        window.addEventListener('load', function() {
+            setTimeout(getSystemStatus, 500);
+        });
+    </script>
+</body>
+</html>
