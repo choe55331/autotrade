@@ -676,3 +676,231 @@ def get_risk_analysis():
 
 if __name__ == '__main__':
     run_dashboard(port=5000, debug=True)
+
+# ============================================================================
+# PAPER TRADING API (v3.7)
+# ============================================================================
+
+@app.route('/api/paper_trading/status')
+def get_paper_trading_status():
+    """Get paper trading engine status"""
+    try:
+        from features.paper_trading import get_paper_trading_engine
+        
+        engine = get_paper_trading_engine(
+            getattr(bot_instance, 'market_api', None),
+            None  # Will integrate with AI agent later
+        )
+        
+        data = engine.get_dashboard_data()
+        return jsonify(data)
+    except Exception as e:
+        print(f"Paper trading status API error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@app.route('/api/paper_trading/start', methods=['POST'])
+def start_paper_trading():
+    """Start paper trading engine"""
+    try:
+        from features.paper_trading import get_paper_trading_engine
+        from features.ai_mode import get_ai_agent
+        
+        engine = get_paper_trading_engine(
+            getattr(bot_instance, 'market_api', None),
+            get_ai_agent(bot_instance)
+        )
+        
+        engine.start()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Paper trading engine started',
+            'is_running': engine.is_running
+        })
+    except Exception as e:
+        print(f"Start paper trading API error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@app.route('/api/paper_trading/stop', methods=['POST'])
+def stop_paper_trading():
+    """Stop paper trading engine"""
+    try:
+        from features.paper_trading import get_paper_trading_engine
+        
+        engine = get_paper_trading_engine()
+        engine.stop()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Paper trading engine stopped',
+            'is_running': engine.is_running
+        })
+    except Exception as e:
+        print(f"Stop paper trading API error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@app.route('/api/paper_trading/account/<strategy_name>')
+def get_paper_trading_account(strategy_name: str):
+    """Get paper trading account for specific strategy"""
+    try:
+        from features.paper_trading import get_paper_trading_engine
+        from dataclasses import asdict
+        
+        engine = get_paper_trading_engine()
+        
+        if strategy_name in engine.accounts:
+            account = engine.accounts[strategy_name]
+            return jsonify({
+                'success': True,
+                'account': asdict(account)
+            })
+        else:
+            return jsonify({'success': False, 'message': 'Strategy not found'})
+    except Exception as e:
+        print(f"Paper trading account API error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+# ============================================================================
+# TRADING JOURNAL API (v3.7)
+# ============================================================================
+
+@app.route('/api/journal/entries')
+def get_journal_entries():
+    """Get journal entries"""
+    try:
+        from features.trading_journal import get_trading_journal
+        
+        journal = get_trading_journal()
+        data = journal.get_dashboard_data()
+        
+        return jsonify(data)
+    except Exception as e:
+        print(f"Journal entries API error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@app.route('/api/journal/statistics')
+def get_journal_statistics():
+    """Get journal statistics"""
+    try:
+        from features.trading_journal import get_trading_journal
+        
+        period = request.args.get('period', 'month')
+        journal = get_trading_journal()
+        stats = journal.get_statistics(period)
+        
+        return jsonify({
+            'success': True,
+            'statistics': stats
+        })
+    except Exception as e:
+        print(f"Journal statistics API error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@app.route('/api/journal/insights')
+def get_journal_insights():
+    """Get journal insights"""
+    try:
+        from features.trading_journal import get_trading_journal
+        from dataclasses import asdict
+        
+        journal = get_trading_journal()
+        insights = journal.generate_insights()
+        
+        return jsonify({
+            'success': True,
+            'insights': [asdict(i) for i in insights]
+        })
+    except Exception as e:
+        print(f"Journal insights API error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+# ============================================================================
+# NOTIFICATION API (v3.7)
+# ============================================================================
+
+@app.route('/api/notifications')
+def get_notifications():
+    """Get notifications"""
+    try:
+        from features.notification import get_notification_manager
+        
+        manager = get_notification_manager()
+        data = manager.get_dashboard_data()
+        
+        return jsonify(data)
+    except Exception as e:
+        print(f"Notifications API error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@app.route('/api/notifications/mark_read/<notification_id>', methods=['POST'])
+def mark_notification_read(notification_id: str):
+    """Mark notification as read"""
+    try:
+        from features.notification import get_notification_manager
+        
+        manager = get_notification_manager()
+        manager.mark_as_read(notification_id)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Notification marked as read'
+        })
+    except Exception as e:
+        print(f"Mark notification API error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@app.route('/api/notifications/configure/telegram', methods=['POST'])
+def configure_telegram():
+    """Configure Telegram notifications"""
+    try:
+        from features.notification import get_notification_manager
+        
+        data = request.json
+        bot_token = data.get('bot_token')
+        chat_id = data.get('chat_id')
+        
+        manager = get_notification_manager()
+        manager.configure_telegram(bot_token, chat_id)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Telegram configured successfully'
+        })
+    except Exception as e:
+        print(f"Configure Telegram API error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@app.route('/api/notifications/send', methods=['POST'])
+def send_notification():
+    """Send custom notification"""
+    try:
+        from features.notification import get_notification_manager
+        
+        data = request.json
+        manager = get_notification_manager()
+        
+        notification = manager.send(
+            title=data.get('title', 'Notification'),
+            message=data.get('message', ''),
+            priority=data.get('priority', 'medium'),
+            category=data.get('category', 'system'),
+            channels=data.get('channels')
+        )
+        
+        return jsonify({
+            'success': True,
+            'notification_id': notification.id if notification else None
+        })
+    except Exception as e:
+        print(f"Send notification API error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
