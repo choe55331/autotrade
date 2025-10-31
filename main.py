@@ -56,6 +56,7 @@ class TradingBotV2:
         # 상태
         self.is_running = False
         self.is_initialized = False
+        self.market_status = {}  # 시장 상태 정보 (NXT 포함)
 
         # 제어 파일 (data 폴더로 이동)
         self.control_file = Path('data/control.json')
@@ -296,16 +297,28 @@ class TradingBotV2:
             logger.warning(f"제어 파일 읽기 실패: {e}")
 
     def _check_trading_hours(self) -> bool:
-        """거래 시간 확인"""
+        """거래 시간 확인 (NXT 시장 포함)"""
         from research.analyzer import Analyzer
         analyzer = Analyzer(self.client)
         market_status = analyzer.get_market_status()
+
+        # 시장 상태 저장 (다른 메서드에서 사용)
+        self.market_status = market_status
 
         if not market_status['is_trading_hours']:
             logger.info(f"⏸️  장 운영 시간 아님: {market_status['market_status']}")
             return False
 
-        logger.info(f"✅ 시장 상태: {market_status['market_type']}")
+        # 시장 상태 로그
+        if market_status.get('is_test_mode'):
+            logger.info(f"🧪 테스트 모드: {market_status['market_status']}")
+        elif market_status.get('can_cancel_only'):
+            logger.info(f"⚠️  {market_status['market_type']}: {market_status['market_status']}")
+        elif market_status.get('order_type_limit') == 'limit_only':
+            logger.info(f"📊 {market_status['market_type']}: {market_status['market_status']}")
+        else:
+            logger.info(f"✅ {market_status['market_type']}: {market_status['market_status']}")
+
         return True
 
     def _update_account_info(self):
@@ -417,8 +430,13 @@ class TradingBotV2:
             logger.error(f"스캐닝 파이프라인 실패: {e}", exc_info=True)
 
     def _execute_buy(self, candidate, scoring_result):
-        """매수 실행"""
+        """매수 실행 (NXT 시장 규칙 적용)"""
         try:
+            # KRX 종가 결정 시간에는 신규 주문 불가
+            if self.market_status.get('can_cancel_only'):
+                logger.warning(f"⚠️  {self.market_status['market_type']}: 신규 매수 주문 불가")
+                return
+
             stock_code = candidate.code
             stock_name = candidate.name
             current_price = candidate.price
@@ -444,12 +462,22 @@ class TradingBotV2:
                 f"(총 {total_amount:,}원)"
             )
 
+            # 주문 유형 결정 (NXT 프리/애프터마켓에서는 지정가만 가능)
+            order_type = '00'  # 기본: 지정가
+            if self.market_status.get('order_type_limit') == 'all':
+                # 메인마켓에서는 시장가 주문도 가능 (필요시)
+                order_type = '00'  # 여전히 지정가 사용 (안전)
+
+            # 테스트 모드일 때 로그
+            if self.market_status.get('is_test_mode'):
+                logger.info(f"🧪 테스트 모드: 종가 기준 매수 시뮬레이션")
+
             # 주문 실행
             order_result = self.order_api.buy(
                 stock_code=stock_code,
                 quantity=quantity,
                 price=current_price,
-                order_type='00'
+                order_type=order_type
             )
 
             if order_result:
@@ -485,19 +513,31 @@ class TradingBotV2:
             logger.error(f"매수 실행 실패: {e}", exc_info=True)
 
     def _execute_sell(self, stock_code, stock_name, quantity, price, profit_loss, profit_loss_rate, reason):
-        """매도 실행"""
+        """매도 실행 (NXT 시장 규칙 적용)"""
         try:
+            # KRX 종가 결정 시간에는 신규 주문 불가
+            if self.market_status.get('can_cancel_only'):
+                logger.warning(f"⚠️  {self.market_status['market_type']}: 신규 매도 주문 불가")
+                return
+
             logger.info(
                 f"💸 {stock_name} 매도 실행: {quantity}주 @ {price:,}원 "
                 f"(손익: {profit_loss:+,}원, {profit_loss_rate:+.2f}%)"
             )
+
+            # 주문 유형 결정 (NXT 프리/애프터마켓에서는 지정가만 가능)
+            order_type = '00'  # 지정가
+
+            # 테스트 모드일 때 로그
+            if self.market_status.get('is_test_mode'):
+                logger.info(f"🧪 테스트 모드: 종가 기준 매도 시뮬레이션")
 
             # 주문 실행
             order_result = self.order_api.sell(
                 stock_code=stock_code,
                 quantity=quantity,
                 price=price,
-                order_type='00'
+                order_type=order_type
             )
 
             if order_result:
