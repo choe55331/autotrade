@@ -9,7 +9,7 @@ import json
 from datetime import datetime
 
 from .base_analyzer import BaseAnalyzer
-from ..utils.logger import setup_logger
+from utils.logger import setup_logger
 
 logger = setup_logger(__name__)
 
