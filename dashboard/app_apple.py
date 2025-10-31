@@ -429,8 +429,128 @@ def create_app():
     return app
 
 
-if __name__ == '__main__':
-    run_dashboard(port=5000, debug=True)
+# ============================================================================
+# AI MODE API (v3.6) - 진정한 AI 자율 트레이딩
+# ============================================================================
+
+@app.route('/api/ai/status')
+def get_ai_status():
+    """Get AI mode status"""
+    try:
+        from features.ai_mode import get_ai_agent
+        from dataclasses import asdict
+
+        agent = get_ai_agent(bot_instance)
+        data = agent.get_dashboard_data()
+        return jsonify(data)
+    except Exception as e:
+        print(f"AI status API error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@app.route('/api/ai/toggle', methods=['POST'])
+def toggle_ai_mode():
+    """Toggle AI mode on/off"""
+    try:
+        from features.ai_mode import get_ai_agent
+
+        data = request.json
+        enable = data.get('enable', False)
+
+        agent = get_ai_agent(bot_instance)
+
+        if enable:
+            agent.enable_ai_mode()
+            message = 'AI 모드 활성화됨 - 자율 트레이딩 시작'
+        else:
+            agent.disable_ai_mode()
+            message = 'AI 모드 비활성화됨 - 수동 제어로 전환'
+
+        return jsonify({
+            'success': True,
+            'enabled': agent.is_enabled(),
+            'message': message
+        })
+    except Exception as e:
+        print(f"AI toggle API error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@app.route('/api/ai/decision/<stock_code>')
+def get_ai_decision(stock_code: str):
+    """Get AI decision for a stock"""
+    try:
+        from features.ai_mode import get_ai_agent
+        from dataclasses import asdict
+
+        # Get stock data
+        stock_name = stock_code  # Fallback
+        stock_data = {
+            'current_price': 0,
+            'rsi': 50,
+            'volume_ratio': 1.0,
+            'total_score': 0
+        }
+
+        if bot_instance and hasattr(bot_instance, 'market_api'):
+            # Try to get real data
+            try:
+                price_info = bot_instance.market_api.get_current_price(stock_code)
+                if price_info:
+                    stock_data['current_price'] = int(price_info.get('prpr', 0))
+                    stock_name = price_info.get('prdt_name', stock_code)
+            except:
+                pass
+
+        agent = get_ai_agent(bot_instance)
+        decision = agent.make_trading_decision(stock_code, stock_name, stock_data)
+
+        return jsonify({
+            'success': True,
+            'decision': asdict(decision)
+        })
+    except Exception as e:
+        print(f"AI decision API error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@app.route('/api/ai/learning/summary')
+def get_ai_learning_summary():
+    """Get AI learning summary"""
+    try:
+        from features.ai_learning import AILearningEngine
+
+        engine = AILearningEngine()
+        summary = engine.get_learning_summary()
+
+        return jsonify({
+            'success': True,
+            'data': summary
+        })
+    except Exception as e:
+        print(f"AI learning API error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@app.route('/api/ai/optimize', methods=['POST'])
+def trigger_ai_optimization():
+    """Trigger AI self-optimization"""
+    try:
+        from features.ai_mode import get_ai_agent
+        from dataclasses import asdict
+
+        agent = get_ai_agent(bot_instance)
+        agent.optimize_parameters()
+
+        return jsonify({
+            'success': True,
+            'message': 'AI 자기 최적화 완료',
+            'performance': asdict(agent.performance)
+        })
+    except Exception as e:
+        print(f"AI optimization API error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
 
 # ============================================================================
 # NEW FEATURES API (v3.5)
@@ -552,3 +672,7 @@ def get_risk_analysis():
     except Exception as e:
         print(f"Risk analysis API error: {e}")
         return jsonify({'success': False, 'message': str(e)})
+
+
+if __name__ == '__main__':
+    run_dashboard(port=5000, debug=True)
