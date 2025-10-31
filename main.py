@@ -339,20 +339,21 @@ class TradingBot:
     def _check_buy_signals(self):
         """매수 신호 검토"""
         logger.info("매수 신호 검토 중...")
-        
+
         # 포지션 추가 가능 여부 확인
         if not self.portfolio_manager.can_add_position():
             logger.info("최대 포지션 수 도달")
             return
-        
+
         # 거래 가능 여부 확인
         can_trade, msg = self.risk_manager.can_trade()
         if not can_trade:
             logger.warning(f"거래 불가: {msg}")
             return
-        
+
         try:
             # 종목 스크리닝
+            # NOTE: 시세 API(순위 조회)가 아직 구현되지 않아 스크리닝이 작동하지 않음
             candidates = self.research.screen_stocks(
                 min_volume=100000,
                 min_price=1000,
@@ -360,26 +361,30 @@ class TradingBot:
                 min_rate=1.0,
                 max_rate=15.0
             )
-            
+
+            if not candidates:
+                logger.info("스크리닝 결과: 후보 종목 없음 (시세 API 미구현)")
+                return
+
             logger.info(f"후보 종목 {len(candidates)}개 발견")
-            
+
             # 상위 N개만 분석
             for candidate in candidates[:5]:
                 stock_code = candidate.get('stock_code')
-                
+
                 # 이미 보유 중인지 확인
                 if self.strategy.has_position(stock_code):
                     continue
-                
+
                 # 종목 분석
                 analysis = self._analyze_stock(stock_code)
-                
+
                 if analysis and self.strategy.should_buy(stock_code, analysis):
                     self._execute_buy(stock_code, analysis)
                     break  # 1회 사이클에 1개만 매수
-                    
+
         except Exception as e:
-            logger.error(f"매수 신호 검토 오류: {e}")
+            logger.warning(f"매수 신호 검토 건너뜀 (시세 API 미구현): {e}")
     
     def _analyze_stock(self, stock_code: str):
         """종목 분석"""
