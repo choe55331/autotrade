@@ -568,6 +568,9 @@
                 <button class="tab" onclick="switchTab(2)">
                     <i class="fas fa-chart-line"></i> 백테스팅
                 </button>
+                <button class="tab" onclick="switchTab(3)">
+                    <i class="fas fa-search-dollar"></i> 시장 탐색
+                </button>
             </div>
 
             <!-- Tab 1: Main Dashboard -->
@@ -757,6 +760,75 @@
                                 <div class="spinner"></div>
                                 <p>데이터 불러오는 중...</p>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 4: Market Exploration -->
+            <div class="tab-content" id="tab-market-explorer">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fas fa-search-dollar"></i>
+                            시장 탐색
+                        </div>
+                    </div>
+
+                    <!-- Filter Controls -->
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 15px; background: var(--card-bg); border-radius: 8px; margin-bottom: 15px;">
+                        <div>
+                            <label style="font-size: 11px; color: var(--text-secondary); margin-bottom: 5px; display: block;">탐색 기준</label>
+                            <select id="market-filter-type" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary); font-size: 12px;">
+                                <option value="volume">거래량</option>
+                                <option value="trading-value">거래대금</option>
+                                <option value="price-change">상승률</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size: 11px; color: var(--text-secondary); margin-bottom: 5px; display: block;">시장</label>
+                            <select id="market-filter-market" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary); font-size: 12px;">
+                                <option value="ALL">전체</option>
+                                <option value="KOSPI">코스피</option>
+                                <option value="KOSDAQ">코스닥</option>
+                            </select>
+                        </div>
+                        <div id="sort-option-container" style="display: none;">
+                            <label style="font-size: 11px; color: var(--text-secondary); margin-bottom: 5px; display: block;">정렬</label>
+                            <select id="market-filter-sort" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary); font-size: 12px;">
+                                <option value="rise">상승률 순</option>
+                                <option value="fall">하락률 순</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size: 11px; color: var(--text-secondary); margin-bottom: 5px; display: block;">조회 개수</label>
+                            <select id="market-filter-limit" style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary); font-size: 12px;">
+                                <option value="20">20개</option>
+                                <option value="50">50개</option>
+                                <option value="100">100개</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="padding: 0 15px 15px 15px;">
+                        <button onclick="loadMarketData()" style="width: 100%; padding: 10px; border-radius: 6px; border: none; background: var(--primary-color); color: white; font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity 0.2s;">
+                            <i class="fas fa-search"></i> 탐색하기
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Results Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fas fa-table"></i>
+                            <span id="market-results-title">탐색 결과</span>
+                        </div>
+                        <span id="market-results-count" style="font-size: 11px; color: var(--text-secondary);"></span>
+                    </div>
+                    <div id="market-results" style="overflow-x: auto;">
+                        <div class="loading" style="padding: 40px; text-align: center;">
+                            <p style="font-size: 12px; color: var(--text-secondary);">필터를 선택하고 탐색하기를 클릭하세요</p>
                         </div>
                     </div>
                 </div>
@@ -1280,6 +1352,104 @@
                 toast.style.opacity = '0';
                 setTimeout(() => toast.remove(), 300);
             }, 3000);
+        }
+
+        // Market Explorer Functions
+        document.getElementById('market-filter-type').addEventListener('change', function() {
+            const sortContainer = document.getElementById('sort-option-container');
+            if (this.value === 'price-change') {
+                sortContainer.style.display = 'block';
+            } else {
+                sortContainer.style.display = 'none';
+            }
+        });
+
+        async function loadMarketData() {
+            try {
+                const filterType = document.getElementById('market-filter-type').value;
+                const market = document.getElementById('market-filter-market').value;
+                const limit = document.getElementById('market-filter-limit').value;
+                const sort = document.getElementById('market-filter-sort').value;
+
+                const resultsDiv = document.getElementById('market-results');
+                resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>데이터 불러오는 중...</p></div>';
+
+                let apiUrl = '';
+                let params = `?market=${market}&limit=${limit}`;
+
+                if (filterType === 'volume') {
+                    apiUrl = '/api/market/volume-rank' + params;
+                    document.getElementById('market-results-title').textContent = '거래량 순위';
+                } else if (filterType === 'trading-value') {
+                    apiUrl = '/api/market/trading-value-rank' + params;
+                    document.getElementById('market-results-title').textContent = '거래대금 순위';
+                } else if (filterType === 'price-change') {
+                    apiUrl = '/api/market/price-change-rank' + params + `&sort=${sort}`;
+                    document.getElementById('market-results-title').textContent = sort === 'rise' ? '상승률 순위' : '하락률 순위';
+                }
+
+                const response = await fetch(apiUrl);
+                const result = await response.json();
+
+                if (result.success && result.data && result.data.length > 0) {
+                    displayMarketResults(result.data, filterType);
+                    document.getElementById('market-results-count').textContent = `${result.data.length}개 종목`;
+                } else {
+                    resultsDiv.innerHTML = '<div style="padding: 40px; text-align: center;"><p style="font-size: 12px; color: var(--text-secondary);">데이터가 없습니다</p></div>';
+                }
+            } catch (error) {
+                console.error('Market data error:', error);
+                document.getElementById('market-results').innerHTML = '<div style="padding: 40px; text-align: center;"><p style="font-size: 12px; color: var(--error-color);">데이터 로드 실패</p></div>';
+            }
+        }
+
+        function displayMarketResults(data, filterType) {
+            const resultsDiv = document.getElementById('market-results');
+
+            let tableHTML = `
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid var(--border-color); background: var(--bg-secondary);">
+                            <th style="padding: 10px; text-align: center; font-size: 11px; color: var(--text-secondary);">순위</th>
+                            <th style="padding: 10px; text-align: left; font-size: 11px; color: var(--text-secondary);">종목명</th>
+                            <th style="padding: 10px; text-align: left; font-size: 11px; color: var(--text-secondary);">종목코드</th>
+                            <th style="padding: 10px; text-align: right; font-size: 11px; color: var(--text-secondary);">현재가</th>
+                            <th style="padding: 10px; text-align: right; font-size: 11px; color: var(--text-secondary);">등락률</th>
+                            <th style="padding: 10px; text-align: right; font-size: 11px; color: var(--text-secondary);">거래량</th>
+                            <th style="padding: 10px; text-align: right; font-size: 11px; color: var(--text-secondary);">거래대금</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            data.forEach((item, index) => {
+                const changeRate = parseFloat(item.change_rate || item.rate || 0);
+                const changeClass = changeRate > 0 ? 'positive' : (changeRate < 0 ? 'negative' : '');
+                const changeSymbol = changeRate > 0 ? '+' : '';
+
+                const price = item.price || item.current_price || 0;
+                const volume = item.volume || item.trading_volume || 0;
+                const tradingValue = item.trading_value || item.trading_amount || 0;
+
+                tableHTML += `
+                    <tr style="border-bottom: 1px solid var(--border-color); transition: background 0.2s;" onmouseover="this.style.background='var(--bg-secondary)'" onmouseout="this.style.background='transparent'">
+                        <td style="padding: 10px; text-align: center; font-size: 12px;">${index + 1}</td>
+                        <td style="padding: 10px; text-align: left; font-size: 12px; font-weight: 600;">${item.name || item.stock_name || '-'}</td>
+                        <td style="padding: 10px; text-align: left; font-size: 11px; color: var(--text-secondary); font-family: monospace;">${item.code || item.stock_code || '-'}</td>
+                        <td style="padding: 10px; text-align: right; font-size: 12px; font-weight: 600;">₩${formatNumber(price)}</td>
+                        <td style="padding: 10px; text-align: right; font-size: 12px; font-weight: 600;" class="${changeClass}">${changeSymbol}${changeRate.toFixed(2)}%</td>
+                        <td style="padding: 10px; text-align: right; font-size: 11px; color: var(--text-secondary);">${formatNumber(volume)}</td>
+                        <td style="padding: 10px; text-align: right; font-size: 11px; color: var(--text-secondary);">${formatNumber(tradingValue)}</td>
+                    </tr>
+                `;
+            });
+
+            tableHTML += `
+                    </tbody>
+                </table>
+            `;
+
+            resultsDiv.innerHTML = tableHTML;
         }
     </script>
 </body>
