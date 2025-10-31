@@ -296,7 +296,7 @@ class TradingBot:
         try:
             # 예수금 조회
             deposit = self.research.get_deposit()
-            cash = deposit.get('deposit_available', 0) if deposit else 0
+            cash = int(deposit.get('ord_alow_amt', 0)) if deposit else 0
             
             # 보유 종목 조회
             holdings = self.research.get_holdings()

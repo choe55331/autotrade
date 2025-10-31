@@ -111,17 +111,17 @@ class Analyzer:
     def get_available_cash(self, account_number: str = None) -> int:
         """
         주문 가능 현금 조회
-        
+
         Args:
             account_number: 계좌번호
-        
+
         Returns:
             주문 가능 금액 (원)
         """
         deposit = self.fetcher.get_deposit(account_number)
-        
+
         if deposit:
-            available = int(deposit.get('deposit_available', 0))
+            available = int(deposit.get('ord_alow_amt', 0))
             logger.info(f"주문 가능 현금: {available:,}원")
             return available
         else:

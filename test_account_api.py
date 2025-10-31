@@ -54,8 +54,8 @@ def main():
 
         if deposit:
             print("✅ 예수금 조회 성공")
-            print(f"   주문가능금액: {deposit.get('ord_alow_amt', '0'):,}원")
-            print(f"   출금가능금액: {deposit.get('pymn_alow_amt', '0'):,}원")
+            print(f"   주문가능금액: {int(deposit.get('ord_alow_amt', 0)):,}원")
+            print(f"   출금가능금액: {int(deposit.get('pymn_alow_amt', 0)):,}원")
         else:
             print("❌ 예수금 조회 실패")
             print(f"   마지막 에러: {client.last_error_msg}")
@@ -81,8 +81,8 @@ def main():
                       f"{holding.get('rmnd_qty')}주 @ {holding.get('cur_prc'):,}원")
 
             # 계좌 요약
-            print(f"   총 평가금액: {balance.get('tot_evlt_amt', '0'):,}원")
-            print(f"   총 손익: {balance.get('tot_evlt_pl', '0'):+}원")
+            print(f"   총 평가금액: {int(balance.get('tot_evlt_amt', 0)):,}원")
+            print(f"   총 손익: {int(balance.get('tot_evlt_pl', 0)):+,}원")
         else:
             print("❌ 잔고 조회 실패")
             print(f"   마지막 에러: {client.last_error_msg}")

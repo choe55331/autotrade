@@ -34,97 +34,76 @@ class DataFetcher:
     
     def get_balance(self, account_number: str = None) -> Optional[Dict[str, Any]]:
         """
-        계좌 잔고 조회
-        
+        계좌 잔고 조회 (kt00018)
+
         Args:
             account_number: 계좌번호 (None이면 기본 계좌)
-        
+
         Returns:
             잔고 정보 딕셔너리
             {
-                'output1': [  # 보유 종목 리스트
+                'acnt_evlt_remn_indv_tot': [  # 보유 종목 리스트
                     {
-                        'stock_code': '005930',
-                        'stock_name': '삼성전자',
-                        'quantity': 10,
-                        'purchase_price': 70000,
-                        'current_price': 72000,
-                        'profit_loss': 20000,
-                        'profit_loss_rate': 2.86,
-                        'evaluation_amount': 720000
+                        'stk_cd': '005930',
+                        'stk_nm': '삼성전자',
+                        'rmnd_qty': '10',
+                        'pur_pric': '70000',
+                        'cur_prc': '72000',
+                        'evltv_prft': '20000',
+                        'prft_rt': '2.86',
+                        'evlt_amt': '720000'
                     }
                 ],
-                'output2': {  # 계좌 요약
-                    'total_evaluation': 720000,
-                    'total_profit_loss': 20000,
-                    'total_profit_loss_rate': 2.86
-                }
+                'tot_evlt_amt': '720000',      # 총 평가금액
+                'tot_evlt_pl': '20000',        # 총 평가손익
+                'tot_prft_rt': '2.86',         # 총 수익률
+                'prsm_dpst_aset_amt': '1000000'  # 추정예탁자산
             }
         """
-        if not account_number:
-            account_info = self.client.get_account_info()
-            account_number = account_info['account_number']
-        
-        parts = account_number.split('-')
-        account_code = parts[0]
-        account_suffix = parts[1] if len(parts) > 1 else '01'
-        
         body = {
-            "account_code": account_code,
-            "account_suffix": account_suffix
+            "qry_tp": "1",           # 합산
+            "dmst_stex_tp": "KRX"    # 한국거래소
         }
-        
+
         response = self.client.request(
-            api_id="DOSK_0059",
+            api_id="kt00018",
             body=body,
-            path="/api/dostk/inquire/balance"
+            path="/api/dostk/acnt"
         )
-        
+
         if response and response.get('return_code') == 0:
             logger.info("잔고 조회 성공")
-            return response.get('output', {})
+            return response  # Response is data directly, no 'output' wrapper
         else:
             logger.error(f"잔고 조회 실패: {response.get('return_msg')}")
             return None
     
     def get_deposit(self, account_number: str = None) -> Optional[Dict[str, Any]]:
         """
-        예수금 조회
-        
+        예수금 조회 (kt00001)
+
         Args:
-            account_number: 계좌번호
-        
+            account_number: 계좌번호 (무시됨, 토큰에서 자동 추출)
+
         Returns:
             예수금 정보
             {
-                'deposit_available': 1000000,  # 주문 가능 금액
-                'deposit_total': 1000000,      # 예수금 총액
-                'withdraw_available': 1000000   # 출금 가능 금액
+                'ord_alow_amt': '1000000',   # 주문 가능 금액
+                'pymn_alow_amt': '1000000'   # 출금 가능 금액
             }
         """
-        if not account_number:
-            account_info = self.client.get_account_info()
-            account_number = account_info['account_number']
-        
-        parts = account_number.split('-')
-        account_code = parts[0]
-        account_suffix = parts[1] if len(parts) > 1 else '01'
-        
-        body = {
-            "account_code": account_code,
-            "account_suffix": account_suffix
-        }
-        
+        body = {"qry_tp": "2"}  # 일반조회
+
         response = self.client.request(
-            api_id="DOSK_0085",
+            api_id="kt00001",
             body=body,
-            path="/api/dostk/inquire/deposit"
+            path="/api/dostk/acnt"
         )
-        
+
         if response and response.get('return_code') == 0:
-            output = response.get('output', {})
-            logger.info(f"예수금 조회 성공: {output.get('deposit_available', 0):,}원")
-            return output
+            ord_alow_amt = int(response.get('ord_alow_amt', 0))
+            logger.info(f"예수금 조회 성공: 주문가능금액 {ord_alow_amt:,}원")
+            return response  # Response is data directly, no 'output' wrapper
         else:
             logger.error(f"예수금 조회 실패: {response.get('return_msg')}")
             return None
@@ -132,34 +111,34 @@ class DataFetcher:
     def get_holdings(self, account_number: str = None) -> List[Dict[str, Any]]:
         """
         보유 종목 리스트 조회
-        
+
         Args:
             account_number: 계좌번호
-        
+
         Returns:
             보유 종목 리스트
         """
         balance = self.get_balance(account_number)
-        
+
         if not balance:
             return []
-        
+
         holdings = []
-        output_list = balance.get('output1', [])
-        
+        output_list = balance.get('acnt_evlt_remn_indv_tot', [])
+
         for item in output_list:
             holding = {
-                'stock_code': item.get('stock_code', ''),
-                'stock_name': item.get('stock_name', ''),
-                'quantity': int(item.get('quantity', 0)),
-                'purchase_price': float(item.get('purchase_price', 0)),
-                'current_price': float(item.get('current_price', 0)),
-                'profit_loss': float(item.get('profit_loss', 0)),
-                'profit_loss_rate': float(item.get('profit_loss_rate', 0)),
-                'evaluation_amount': float(item.get('evaluation_amount', 0)),
+                'stock_code': item.get('stk_cd', ''),
+                'stock_name': item.get('stk_nm', ''),
+                'quantity': int(item.get('rmnd_qty', 0)),
+                'purchase_price': float(item.get('pur_pric', 0)),
+                'current_price': float(item.get('cur_prc', 0)),
+                'profit_loss': float(item.get('evltv_prft', 0)),
+                'profit_loss_rate': float(item.get('prft_rt', 0)),
+                'evaluation_amount': float(item.get('evlt_amt', 0)),
             }
             holdings.append(holding)
-        
+
         logger.info(f"보유 종목 {len(holdings)}개 조회 완료")
         return holdings
     
