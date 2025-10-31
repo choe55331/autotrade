@@ -1,32 +1,34 @@
 """
-ai 패키지
-AI 분석 모듈
-"""
-from .base_analyzer import BaseAnalyzer
-from .gemini_analyzer import GeminiAnalyzer
-from .mock_analyzer import MockAnalyzer
+Advanced AI Package
+Next-generation AI trading system
 
-def get_analyzer(analyzer_type: str = 'gemini', **kwargs):
-    """
-    분석기 팩토리 함수
-    
-    Args:
-        analyzer_type: 'gemini' | 'mock'
-        **kwargs: 분석기 초기화 파라미터
-    
-    Returns:
-        분석기 인스턴스
-    """
-    if analyzer_type.lower() == 'gemini':
-        return GeminiAnalyzer(**kwargs)
-    elif analyzer_type.lower() == 'mock':
-        return MockAnalyzer(**kwargs)
-    else:
-        raise ValueError(f"Unknown analyzer type: {analyzer_type}")
+Modules:
+- ML Predictor: Machine learning price prediction
+- RL Agent: Reinforcement learning trading agent
+- Ensemble AI: Combined multi-model predictions
+- Meta Learning: Learning how to learn
+"""
+from .ml_predictor import MLPricePredictor, PricePrediction, get_ml_predictor
+from .rl_agent import DQNAgent, RLState, RLAction, get_rl_agent
+from .ensemble_ai import EnsembleAI, EnsemblePrediction, get_ensemble_ai
+from .meta_learning import MetaLearningEngine, MetaKnowledge, get_meta_learning_engine
 
 __all__ = [
-    'BaseAnalyzer',
-    'GeminiAnalyzer',
-    'MockAnalyzer',
-    'get_analyzer',
+    # ML Predictor
+    'MLPricePredictor',
+    'PricePrediction',
+    'get_ml_predictor',
+    # RL Agent
+    'DQNAgent',
+    'RLState',
+    'RLAction',
+    'get_rl_agent',
+    # Ensemble AI
+    'EnsembleAI',
+    'EnsemblePrediction',
+    'get_ensemble_ai',
+    # Meta Learning
+    'MetaLearningEngine',
+    'MetaKnowledge',
+    'get_meta_learning_engine',
 ]
