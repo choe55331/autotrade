@@ -1,130 +1,214 @@
-# 🤖 키움증권 자동매매 봇
+# AI 자동매매 시스템 🚀
 
-Python 기반 키움증권 REST API 자동매매 시스템
+**Kiwoom API + Gemini AI 기반 자동매매 봇**
 
-## 📋 목차
+---
 
-- [특징](#특징)
-- [시스템 구조](#시스템-구조)
-- [설치 방법](#설치-방법)
-- [사용 방법](#사용-방법)
-- [설정](#설정)
-- [주의사항](#주의사항)
+## ⚡ 빠른 시작
 
-## ✨ 특징
+### 실행 방법 (딱 하나!)
 
-- **자동 매매**: 모멘텀 기반 자동 매수/매도
-- **AI 분석**: Google Gemini API를 활용한 종목 분석
-- **리스크 관리**: 손절/익절, 포지션 관리, 일일 손실 제한
-- **웹 대시보드**: 실시간 계좌 및 포지션 모니터링
-- **REST API**: 키움증권 REST API 사용 (OpenAPI X)
-
-## 🏗️ 시스템 구조
-```
-trading-bot/
-├── config/              # 설정 파일
-├── core/                # REST API 클라이언트
-├── api/                 # API 래퍼
-├── research/            # 데이터 조회/분석
-├── strategy/            # 매매 전략
-├── ai/                  # AI 분석 모듈
-├── utils/               # 유틸리티
-├── dashboard/           # 웹 대시보드
-├── main.py              # 메인 실행 파일
-└── requirements.txt     # 의존성 패키지
-```
-
-## 📥 설치 방법
-
-### 1. 저장소 클론
-```bash
-git clone https://github.com/your-username/kiwoom-trading-bot.git
-cd kiwoom-trading-bot
-```
-
-### 2. 가상환경 생성 및 활성화
-```bash
-python -m venv venv
-
-# Windows
-venv\Scripts\activate
-
-# Linux/Mac
-source venv/bin/activate
-```
-
-### 3. 패키지 설치
-```bash
-pip install -r requirements.txt
-```
-
-### 4. 환경변수 설정
-
-`.env` 파일을 생성하고 API 키 입력:
-```bash
-KIWOOM_REST_APPKEY=your_app_key
-KIWOOM_REST_SECRETKEY=your_secret_key
-ACCOUNT_NUMBER=12345678-01
-GEMINI_API_KEY=your_gemini_api_key
-```
-
-## 🚀 사용 방법
-
-### Windows에서 실행
-```bash
-start_autotrade.bat
-```
-
-### 직접 실행
 ```bash
 python main.py
 ```
 
 ### 대시보드 접속
 
-브라우저에서 http://localhost:5000 접속
+```
+http://localhost:5000
+```
+
+**끝!** 이게 전부입니다.
+
+---
+
+## 📋 사전 준비
+
+### 1. Python 패키지 설치
+
+```bash
+pip install -r requirements.txt
+```
+
+### 2. API 키 설정
+
+`config/credentials.py` 파일 편집:
+
+```python
+# Kiwoom API (필수)
+KIWOOM_API_KEY = "your-kiwoom-api-key"
+KIWOOM_API_SECRET = "your-kiwoom-api-secret"
+KIWOOM_ACCOUNT_NO = "your-account-number"
+
+# Gemini API (AI 분석용)
+GEMINI_API_KEY = "your-gemini-api-key"
+```
+
+---
+
+## 🎯 주요 기능
+
+### 1. 자동 매매 🤖
+- Gemini AI 기반 종목 분석
+- 모멘텀 전략 자동 실행
+- 자동 매수/매도 신호
+
+### 2. 대시보드 📊
+- **계좌 정보**: 총 자산, 현금, 평가금액, 손익
+- **보유 종목**: 실시간 현황 및 수익률
+- **매매 통계**: 총 거래, 승률, AI 분석 수
+- **제어 패널**: 시작/정지/매수중지/매수재개
+
+### 3. 리스크 관리 🛡️
+- 손절/익절 자동 실행
+- 포지션 크기 관리
+- 일일 손실 제한
+- 연속 손실 모니터링
+
+---
+
+## 🖥️ 대시보드 화면
+
+### 표시 정보:
+- 💰 총 자산
+- 💵 보유 현금 (예수금)
+- 📊 평가 금액
+- 📈 총 손익 (금액 & %)
+- 🎯 보유 종목 수 / 최대 포지션
+- 📋 보유 종목 상세 (종목명, 수량, 매수가, 현재가, 손익)
+
+### 제어 버튼:
+- ▶️ **시작**: 봇 시작
+- ⏹️ **정지**: 봇 정지
+- ⏸️ **매수 중지**: 매수만 중지 (매도는 유지)
+- ▶️ **매수 재개**: 매수 재개
+- 🔄 **새로고침**: 수동 새로고침
+
+**자동 새로고침**: 10초마다 자동 업데이트
+
+---
 
 ## ⚙️ 설정
 
-### control.json
+### control.json (실시간 설정)
 
-봇 실행 중 동적으로 설정 변경 가능:
+봇 실행 중에도 `control.json` 파일을 수정하면 즉시 반영:
+
 ```json
 {
-  "run": true,                    // 봇 실행 여부
-  "pause_buy": false,             // 매수 중지
-  "pause_sell": false,            // 매도 중지
-  "MAX_OPEN_POSITIONS": 5,        // 최대 포지션 수
-  "TAKE_PROFIT_RATIO": 0.1,       // 목표 수익률 10%
-  "STOP_LOSS_RATIO": -0.05        // 손절 비율 -5%
+  "run": true,
+  "pause_buy": false,
+  "pause_sell": false,
+  "max_positions": 5,
+  "risk_per_trade": 0.20,
+  "take_profit": 0.10,
+  "stop_loss": -0.05
 }
 ```
 
 ### config/trading_params.py
 
-전략 파라미터 조정:
+전략 파라미터 설정:
 
-- 포지션 크기
-- 손익 비율
-- 필터링 조건
-- AI 분석 설정
+```python
+MAX_OPEN_POSITIONS = 5
+RISK_PER_TRADE_RATIO = 0.20
+TAKE_PROFIT_RATIO = 0.10
+STOP_LOSS_RATIO = -0.05
 
-## ⚠️ 주의사항
+FILTER_MIN_PRICE = 1000
+FILTER_MAX_PRICE = 100000
+FILTER_MIN_VOLUME = 100000
+```
 
-1. **모의투자 테스트 필수**: 실전 투자 전 충분한 테스트 필요
-2. **API 키 보안**: `.env` 파일을 Git에 커밋하지 마세요
-3. **리스크 관리**: 손실 제한을 반드시 설정하세요
-4. **시장 모니터링**: 자동매매 중에도 주기적인 확인 필요
-5. **법적 책임**: 모든 투자 손실은 사용자 책임입니다
+---
 
-## 📝 라이선스
+## 📂 프로젝트 구조
 
-MIT License
+```
+autotrade/
+├── main.py                  ← 메인 실행 파일
+├── control.json             ← 실시간 제어 설정
+│
+├── api/                     ← Kiwoom API
+│   ├── account.py           # 계좌 조회
+│   ├── market.py            # 시장 데이터
+│   └── order.py             # 주문 실행
+│
+├── strategy/                ← 매매 전략
+│   ├── momentum_strategy.py # 모멘텀 전략
+│   ├── risk_manager.py      # 리스크 관리
+│   └── portfolio_manager.py # 포트폴리오 관리
+│
+├── ai/                      ← AI 분석
+│   └── gemini_analyzer.py   # Gemini AI
+│
+├── dashboard/               ← 웹 대시보드
+│   └── dashboard.py         # Flask 대시보드
+│
+├── config/                  ← 설정
+│   ├── credentials.py       # API 키
+│   └── trading_params.py    # 매매 파라미터
+│
+└── logs/                    ← 로그
+    └── trading_bot.log
+```
 
-## 🤝 기여
+---
 
-이슈 및 PR 환영합니다!
+## ❓ 문제 해결
 
-## 📧 문의
+### Q: 계좌 정보가 0원으로 표시됨
+```
+✓ config/credentials.py에 API 키 확인
+✓ Kiwoom API 키 유효성 확인
+✓ 계좌번호 정확한지 확인
+```
 
-이슈 탭을 이용해주세요.
+### Q: AI 분석이 안 됨
+```
+✓ GEMINI_API_KEY 설정 확인
+✓ Gemini API 크레딧 확인
+```
+
+### Q: 대시보드가 안 열림
+```
+✓ 포트 5000 사용 중인지 확인
+✓ main.py 실행 확인
+```
+
+### Q: 주문이 안 나감
+```
+✓ api/order.py가 DRY RUN 모드인지 확인
+✓ 실제 거래를 원하면 order.py 수정 필요
+```
+
+---
+
+## ⚠️ 안전 수칙
+
+1. **소액 테스트**: 처음엔 소액으로 시작
+2. **DRY RUN**: 실제 거래 전에 시뮬레이션
+3. **손절 설정**: 반드시 손절매 설정
+4. **모니터링**: 대시보드로 실시간 확인
+5. **로그 확인**: 이상 징후 체크
+
+---
+
+## 🚀 시작하기
+
+```bash
+# 1. API 키 설정
+# config/credentials.py 편집
+
+# 2. 패키지 설치
+pip install -r requirements.txt
+
+# 3. 실행!
+python main.py
+
+# 4. 브라우저에서 접속
+# http://localhost:5000
+```
+
+**Happy Trading! 💰📈**

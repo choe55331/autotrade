@@ -403,13 +403,13 @@ def create_app(bot_instance=None):
     def api_status():
         """봇 상태 API"""
         bot = app.config.get('bot')
-        
+
         if bot is None:
             return jsonify({
                 'is_running': False,
                 'error': '봇 인스턴스가 없습니다'
             })
-        
+
         try:
             # 봇 상태 수집
             status = {
@@ -420,21 +420,67 @@ def create_app(bot_instance=None):
                 'max_positions': 5,
                 'stats': {},
             }
-            
-            # 계좌 정보 (있는 경우)
-            if hasattr(bot, 'portfolio_manager'):
-                summary = bot.portfolio_manager.get_portfolio_summary()
-                status['account'] = summary
-                status['holdings'] = bot.portfolio_manager.get_position_details()
-            
-            # 포지션 정보 (있는 경우)
+
+            # 계좌 정보 직접 가져오기
+            if hasattr(bot, 'account_api'):
+                try:
+                    # 예수금 조회
+                    deposit_info = bot.account_api.get_deposit()
+
+                    # 잔고 조회
+                    balance_info = bot.account_api.get_balance()
+
+                    # 계좌 요약
+                    account_summary = bot.account_api.get_account_summary()
+
+                    status['account'] = {
+                        'total_assets': account_summary.get('total_evaluation', 0),
+                        'cash': deposit_info.get('deposit', 0),
+                        'stocks_value': balance_info.get('total_evaluation', 0),
+                        'total_profit_loss': balance_info.get('total_profit_loss', 0),
+                        'total_profit_loss_rate': balance_info.get('profit_loss_rate', 0),
+                    }
+
+                    # 보유 종목 상세
+                    holdings = bot.account_api.get_holdings()
+                    if holdings:
+                        status['holdings'] = [
+                            {
+                                'stock_code': h.get('stock_code', ''),
+                                'stock_name': h.get('stock_name', ''),
+                                'quantity': h.get('quantity', 0),
+                                'purchase_price': h.get('avg_buy_price', 0),
+                                'current_price': h.get('current_price', 0),
+                                'profit_loss': h.get('profit_loss', 0),
+                                'profit_loss_rate': h.get('profit_loss_rate', 0),
+                            }
+                            for h in holdings
+                        ]
+
+                    logger.info(f"✓ 계좌 정보 조회 성공: 총 자산={status['account']['total_assets']:,}원")
+
+                except Exception as e:
+                    logger.error(f"계좌 정보 조회 실패: {e}")
+                    # 기본값 설정
+                    status['account'] = {
+                        'total_assets': 0,
+                        'cash': 0,
+                        'stocks_value': 0,
+                        'total_profit_loss': 0,
+                        'total_profit_loss_rate': 0,
+                    }
+
+            # 포지션 정보 (전략에서)
             if hasattr(bot, 'strategy'):
-                status['positions'] = list(bot.strategy.get_all_positions().values())
-                status['max_positions'] = bot.strategy.get_config('max_positions', 5)
-                status['stats'] = bot.strategy.get_statistics()
-            
+                try:
+                    status['positions'] = list(bot.strategy.get_all_positions().values())
+                    status['max_positions'] = bot.strategy.get_config('max_positions', 5)
+                    status['stats'] = bot.strategy.get_statistics()
+                except Exception as e:
+                    logger.error(f"전략 정보 조회 실패: {e}")
+
             return jsonify(status)
-            
+
         except Exception as e:
             logger.error(f"상태 조회 오류: {e}")
             return jsonify({'error': str(e)}), 500
