@@ -83,7 +83,12 @@ def set_control_status(enabled: bool) -> bool:
 
 @app.route('/')
 def index():
-    """Serve main Apple-style dashboard"""
+    """Serve main Professional Korean dashboard"""
+    return render_template('dashboard_pro_korean.html')
+
+@app.route('/classic')
+def classic():
+    """Serve classic Apple-style dashboard"""
     return render_template('dashboard_apple.html')
 
 
@@ -118,72 +123,119 @@ def get_status():
 
 @app.route('/api/account')
 def get_account():
-    """Get account information"""
-    # Mock data for now
-    return jsonify({
-        'total_assets': 52847500,
-        'cash': 15420000,
-        'stock_value': 37427500,
-        'profit_loss': 2847500,
-        'profit_loss_percent': 5.69,
-        'open_positions': 7
-    })
+    """Get account information from real API"""
+    try:
+        if bot_instance and hasattr(bot_instance, 'account_api'):
+            # 실제 API에서 데이터 가져오기
+            deposit = bot_instance.account_api.get_deposit()
+            holdings = bot_instance.account_api.get_holdings()
+
+            # 계좌 정보 계산
+            cash = int(deposit.get('ord_alow_amt', 0)) if deposit else 0
+            stock_value = sum(int(h.get('eval_amt', 0)) for h in holdings) if holdings else 0
+            total_assets = cash + stock_value
+
+            # 손익 계산
+            total_buy_amount = sum(int(h.get('pchs_amt', 0)) for h in holdings) if holdings else 0
+            profit_loss = stock_value - total_buy_amount
+            profit_loss_percent = (profit_loss / total_buy_amount * 100) if total_buy_amount > 0 else 0
+
+            return jsonify({
+                'total_assets': total_assets,
+                'cash': cash,
+                'stock_value': stock_value,
+                'profit_loss': profit_loss,
+                'profit_loss_percent': profit_loss_percent,
+                'open_positions': len(holdings) if holdings else 0
+            })
+        else:
+            # Bot이 없으면 mock data
+            return jsonify({
+                'total_assets': 0,
+                'cash': 0,
+                'stock_value': 0,
+                'profit_loss': 0,
+                'profit_loss_percent': 0,
+                'open_positions': 0
+            })
+    except Exception as e:
+        print(f"Error getting account info: {e}")
+        return jsonify({
+            'total_assets': 0,
+            'cash': 0,
+            'stock_value': 0,
+            'profit_loss': 0,
+            'profit_loss_percent': 0,
+            'open_positions': 0
+        })
 
 
 @app.route('/api/positions')
 def get_positions():
-    """Get current positions"""
-    # Mock data
-    positions = [
-        {
-            'code': '005930',
-            'name': '삼성전자',
-            'quantity': 150,
-            'avg_price': 71000,
-            'current_price': 73500,
-            'profit_loss': 375000,
-            'profit_loss_percent': 3.52,
-            'value': 11025000
-        },
-        {
-            'code': '000660',
-            'name': 'SK하이닉스',
-            'quantity': 80,
-            'avg_price': 125000,
-            'current_price': 130000,
-            'profit_loss': 400000,
-            'profit_loss_percent': 4.00,
-            'value': 10400000
-        }
-    ]
-    return jsonify(positions)
+    """Get current positions from real API"""
+    try:
+        if bot_instance and hasattr(bot_instance, 'account_api'):
+            holdings = bot_instance.account_api.get_holdings()
+
+            positions = []
+            for h in holdings:
+                code = h.get('pdno', '')
+                name = h.get('prdt_name', '')
+                quantity = int(h.get('hldg_qty', 0))
+                avg_price = int(h.get('pchs_avg_pric', 0))
+                current_price = int(h.get('prpr', 0))
+                value = int(h.get('eval_amt', 0))
+
+                profit_loss = value - (avg_price * quantity)
+                profit_loss_percent = ((current_price - avg_price) / avg_price * 100) if avg_price > 0 else 0
+
+                positions.append({
+                    'code': code,
+                    'name': name,
+                    'quantity': quantity,
+                    'avg_price': avg_price,
+                    'current_price': current_price,
+                    'profit_loss': profit_loss,
+                    'profit_loss_percent': profit_loss_percent,
+                    'value': value
+                })
+
+            return jsonify(positions)
+        else:
+            return jsonify([])
+    except Exception as e:
+        print(f"Error getting positions: {e}")
+        return jsonify([])
 
 
 @app.route('/api/candidates')
 def get_candidates():
-    """Get AI candidate stocks"""
-    # Mock data
-    candidates = [
-        {
-            'code': '035720',
-            'name': '카카오',
-            'price': 45500,
-            'ai_score': 87.5,
-            'confidence': 0.92,
-            'signal': 'BUY',
-            'reason': 'Strong momentum + positive sentiment'
-        },
-        {
-            'code': '035420',
-            'name': 'NAVER',
-            'price': 215000,
-            'ai_score': 82.3,
-            'confidence': 0.88,
-            'signal': 'BUY',
-            'reason': 'Institutional buying + technical breakout'
-        }
-    ]
-    return jsonify(candidates)
+    """Get AI candidate stocks from scanner pipeline"""
+    try:
+        if bot_instance and hasattr(bot_instance, 'scanner_pipeline'):
+            # 스캐너 파이프라인에서 후보 가져오기
+            scanner = bot_instance.scanner_pipeline
+
+            # AI 스캔 결과가 있으면 사용
+            if hasattr(scanner, 'final_candidates') and scanner.final_candidates:
+                candidates = []
+                for candidate in scanner.final_candidates[:10]:  # 상위 10개
+                    candidates.append({
+                        'code': candidate.code,
+                        'name': candidate.name,
+                        'price': candidate.price,
+                        'ai_score': candidate.final_score,
+                        'confidence': getattr(candidate, 'ai_confidence', 0.0),
+                        'signal': getattr(candidate, 'ai_signal', 'BUY'),
+                        'reason': getattr(candidate, 'ai_reason', '분석 중')
+                    })
+                return jsonify(candidates)
+
+        # 데이터가 없으면 빈 배열
+        return jsonify([])
+    except Exception as e:
+        print(f"Error getting candidates: {e}")
+        return jsonify([])
 
 
 @app.route('/api/activities')
