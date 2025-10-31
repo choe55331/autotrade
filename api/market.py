@@ -226,15 +226,16 @@ class MarketAPI:
             return self._generate_mock_stock_data(limit, "volume")
 
         # 날짜가 지정되지 않은 경우 가장 최근 거래일 사용
+        # 참고: 키움 API는 자동으로 최신 거래일 데이터를 반환합니다
         if not date:
             date = get_last_trading_day()
-            logger.info(f"📅 거래량 순위 조회 날짜: {date}")
+            logger.info(f"📅 거래량 순위 조회 - 주말/휴일은 자동으로 최근 거래일({date}) 데이터 반환")
 
         body = {
             "market": market,
             "limit": limit,
-            "sort": "volume",
-            "date": date
+            "sort": "volume"
+            # 참고: date 파라미터는 API에서 지원하지 않음. API가 자동으로 최신 데이터 반환
         }
 
         response = self.client.request(
@@ -277,16 +278,17 @@ class MarketAPI:
             return self._generate_mock_stock_data(limit, "price_change")
 
         # 날짜가 지정되지 않은 경우 가장 최근 거래일 사용
+        # 참고: 키움 API는 자동으로 최신 거래일 데이터를 반환합니다
         if not date:
             date = get_last_trading_day()
             sort_name = "상승률" if sort == 'rise' else "하락률"
-            logger.info(f"📅 {sort_name} 순위 조회 날짜: {date}")
+            logger.info(f"📅 {sort_name} 순위 조회 - 주말/휴일은 자동으로 최근 거래일({date}) 데이터 반환")
 
         body = {
             "market": market,
             "limit": limit,
-            "sort": sort,
-            "date": date
+            "sort": sort
+            # 참고: date 파라미터는 API에서 지원하지 않음. API가 자동으로 최신 데이터 반환
         }
 
         response = self.client.request(
@@ -327,15 +329,16 @@ class MarketAPI:
             return self._generate_mock_stock_data(limit, "trading_value")
 
         # 날짜가 지정되지 않은 경우 가장 최근 거래일 사용
+        # 참고: 키움 API는 자동으로 최신 거래일 데이터를 반환합니다
         if not date:
             date = get_last_trading_day()
-            logger.info(f"📅 거래대금 순위 조회 날짜: {date}")
+            logger.info(f"📅 거래대금 순위 조회 - 주말/휴일은 자동으로 최근 거래일({date}) 데이터 반환")
 
         body = {
             "market": market,
             "limit": limit,
-            "sort": "trading_value",
-            "date": date
+            "sort": "trading_value"
+            # 참고: date 파라미터는 API에서 지원하지 않음. API가 자동으로 최신 데이터 반환
         }
 
         response = self.client.request(
