@@ -306,6 +306,113 @@ DASHBOARD_HTML = """
             margin-left: 8px;
         }
 
+        /* Activity Panel */
+        .candidate-card {
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .candidate-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .candidate-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .candidate-code {
+            font-weight: bold;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .candidate-score {
+            background: var(--primary);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .candidate-name {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .candidate-reason {
+            font-size: 13px;
+            color: #888;
+            font-style: italic;
+        }
+
+        .candidate-badges {
+            display: flex;
+            gap: 4px;
+            margin-top: 8px;
+        }
+
+        .badge {
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .badge-ai {
+            background: #10b981;
+            color: white;
+        }
+
+        .badge-plan {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .activity-item {
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            border-left: 3px solid #ddd;
+        }
+
+        .activity-item.info {
+            border-left-color: var(--primary);
+        }
+
+        .activity-item.success {
+            border-left-color: var(--success);
+        }
+
+        .activity-item.warning {
+            border-left-color: var(--warning);
+        }
+
+        .activity-item.error {
+            border-left-color: var(--danger);
+        }
+
+        .activity-time {
+            font-size: 11px;
+            color: #999;
+            margin-bottom: 4px;
+        }
+
+        .activity-message {
+            font-size: 14px;
+            color: #333;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .grid {
@@ -448,6 +555,56 @@ DASHBOARD_HTML = """
             </table>
         </div>
 
+        <!-- Real-time Trading Activity Panel -->
+        <div class="activity-panel" style="background: white; padding: 24px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-top: 24px;">
+            <h2 style="color: #333; font-size: 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-chart-line" style="color: var(--primary);"></i>
+                실시간 매매 활동
+            </h2>
+
+            <!-- Current Screening Status -->
+            <div class="screening-status" id="screening-status" style="background: #f8f9fa; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee;">
+                    <span style="font-weight: 600; color: #666;">상태:</span>
+                    <span id="screen-status" style="color: #333;">대기 중</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee;">
+                    <span style="font-weight: 600; color: #666;">시장:</span>
+                    <span id="screen-market" style="color: #333;">-</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee;">
+                    <span style="font-weight: 600; color: #666;">검색 조건:</span>
+                    <span id="screen-conditions" style="color: #333;">-</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                    <span style="font-weight: 600; color: #666;">후보 종목:</span>
+                    <span id="screen-candidates" style="color: #333;">0개</span>
+                </div>
+            </div>
+
+            <!-- Candidate Stocks -->
+            <div class="candidates-section" id="candidates-section" style="margin-top: 20px;">
+                <h3 style="color: #333; font-size: 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-star" style="color: var(--warning);"></i>
+                    후보 종목
+                </h3>
+                <div class="candidates-grid" id="candidates-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; margin-top: 12px;">
+                    <p style="text-align: center; color: #999;">후보 종목이 없습니다</p>
+                </div>
+            </div>
+
+            <!-- Activity Feed -->
+            <div class="activity-feed" id="activity-feed" style="margin-top: 20px;">
+                <h3 style="color: #333; font-size: 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-stream" style="color: var(--primary);"></i>
+                    활동 로그
+                </h3>
+                <div class="feed-container" id="feed-container" style="max-height: 300px; overflow-y: auto; margin-top: 12px;">
+                    <p style="text-align: center; color: #999;">활동 기록이 없습니다</p>
+                </div>
+            </div>
+        </div>
+
         <!-- Footer -->
         <div class="footer">
             <i class="fas fa-clock"></i> 자동 새로고침: 10초마다
@@ -587,9 +744,118 @@ DASHBOARD_HTML = """
             return new Intl.NumberFormat('ko-KR').format(Math.round(num));
         }
 
+        // Activity panel refresh
+        async function refreshActivityData() {
+            try {
+                const response = await fetch('/api/activity');
+                const data = await response.json();
+                updateActivityPanel(data);
+            } catch (error) {
+                console.error('Activity data load failed:', error);
+            }
+        }
+
+        // Update activity panel
+        function updateActivityPanel(data) {
+            // Screening status
+            const screening = data.screening || {};
+            document.getElementById('screen-status').textContent =
+                getStatusText(screening.status);
+            document.getElementById('screen-market').textContent =
+                screening.market || '-';
+            document.getElementById('screen-conditions').textContent =
+                formatConditions(screening.conditions);
+            document.getElementById('screen-candidates').textContent =
+                (screening.candidates_found || 0) + '개';
+
+            // Candidates
+            updateCandidates(data.candidates || []);
+
+            // Activity feed
+            updateActivityFeed(data.activities || []);
+        }
+
+        // Update candidates
+        function updateCandidates(candidates) {
+            const grid = document.getElementById('candidates-grid');
+
+            if (!candidates || candidates.length === 0) {
+                grid.innerHTML = '<p style="text-align: center; color: #999;">후보 종목이 없습니다</p>';
+                return;
+            }
+
+            let html = '';
+            candidates.forEach(c => {
+                html += `
+                    <div class="candidate-card" onclick="showCandidateDetail('${c.stock_code}')">
+                        <div class="candidate-header">
+                            <span class="candidate-code">${c.stock_code}</span>
+                            <span class="candidate-score">${c.score.toFixed(1)}</span>
+                        </div>
+                        <div class="candidate-name">${c.stock_name}</div>
+                        <div class="candidate-reason">${c.reason}</div>
+                        <div class="candidate-badges">
+                            ${c.ai_analyzed ? '<span class="badge badge-ai">AI분석완료</span>' : ''}
+                            ${c.buy_plan_ready ? '<span class="badge badge-plan">매수계획</span>' : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            grid.innerHTML = html;
+        }
+
+        // Update activity feed
+        function updateActivityFeed(activities) {
+            const container = document.getElementById('feed-container');
+
+            if (!activities || activities.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #999;">활동 기록이 없습니다</p>';
+                return;
+            }
+
+            let html = '';
+            activities.slice().reverse().slice(0, 20).forEach(act => {
+                const time = new Date(act.timestamp).toLocaleTimeString();
+                html += `
+                    <div class="activity-item ${act.level}">
+                        <div class="activity-time">${time}</div>
+                        <div class="activity-message">${act.message}</div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        // Utility functions
+        function getStatusText(status) {
+            const statusMap = {
+                'idle': '대기 중',
+                'screening': '종목 스크리닝 중',
+                'analyzing': 'AI 분석 중',
+                'trading': '매매 진행 중'
+            };
+            return statusMap[status] || status;
+        }
+
+        function formatConditions(conditions) {
+            if (!conditions || Object.keys(conditions).length === 0) {
+                return '-';
+            }
+            return Object.entries(conditions)
+                .map(([k, v]) => `${k}: ${v}`)
+                .join(', ');
+        }
+
+        function showCandidateDetail(stockCode) {
+            // TODO: Show modal with detailed AI analysis and buy plan
+            alert(`종목 상세: ${stockCode}\n\n상세 패널을 곧 추가하겠습니다!`);
+        }
+
         // Initial load and auto-refresh
         refreshData();
+        refreshActivityData();
         setInterval(refreshData, 10000);  // 10 seconds
+        setInterval(refreshActivityData, 5000);  // 5 seconds
     </script>
 </body>
 </html>
@@ -729,6 +995,29 @@ def create_app(bot_instance=None):
         except Exception as e:
             logger.error(f"제어 오류: {e}")
             return jsonify({'error': str(e)}), 500
+
+    @app.route('/api/activity')
+    def api_activity():
+        """실시간 활동 데이터 API"""
+        try:
+            from utils.activity_monitor import get_monitor
+            monitor = get_monitor()
+            return jsonify(monitor.get_dashboard_data())
+        except Exception as e:
+            logger.error(f"활동 데이터 조회 오류: {e}")
+            return jsonify({
+                'screening': {
+                    'status': 'idle',
+                    'market': '',
+                    'conditions': {},
+                    'candidates_found': 0
+                },
+                'activities': [],
+                'candidates': [],
+                'ai_analyses': {},
+                'buy_plans': {},
+                'user_settings': {}
+            })
 
     return app
 
