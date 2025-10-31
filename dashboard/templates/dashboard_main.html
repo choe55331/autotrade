@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoTrade Pro v4.2 - AI 자동매매</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <!-- Lightweight Charts -->
+    <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Socket.IO -->
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-primary: #0a0e27;
+            --bg-secondary: #151932;
+            --bg-card: #1e2139;
+            --border-color: #2d3250;
+
+            --text-primary: #ffffff;
+            --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
+
+            --color-primary: #3b82f6;
+            --color-success: #10b981;
+            --color-danger: #ef4444;
+            --color-warning: #f59e0b;
+            --color-info: #06b6d4;
+
+            --chart-up: #10b981;
+            --chart-down: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow: hidden;
+        }
+
+        /* Layout - NO SCROLL */
+        .layout {
+            display: grid;
+            grid-template-columns: 260px 1fr 320px;
+            grid-template-rows: 60px 1fr;
+            height: 100vh;
+            width: 100vw;
+            gap: 0;
+        }
+
+        /* Header */
+        .header {
+            grid-column: 1 / -1;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .logo i {
+            color: var(--color-primary);
+        }
+
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-badge.live {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--color-success);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        .section-title {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            margin-top: 15px;
+        }
+
+        .section-title:first-child {
+            margin-top: 0;
+        }
+
+        .account-card {
+            background: var(--bg-card);
+            border-radius: 10px;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .account-value {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .account-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+        }
+
+        .account-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            margin-bottom: 6px;
+        }
+
+        .stat-list {
+            list-style: none;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 10px;
+            background: var(--bg-card);
+            border-radius: 6px;
+            margin-bottom: 6px;
+            font-size: 11px;
+        }
+
+        .stat-value {
+            font-weight: 600;
+            color: var(--color-primary);
+        }
+
+        /* Main Content */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            background: var(--bg-secondary);
+            padding: 10px 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab {
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 13px;
+            font-weight: 500;
+            background: transparent;
+            color: var(--text-secondary);
+            border: none;
+        }
+
+        .tab:hover {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--text-primary);
+        }
+
+        .tab.active {
+            background: var(--color-primary);
+            color: white;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            flex: 1;
+            padding: 12px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border-radius: 10px;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 10px;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title i {
+            color: var(--color-primary);
+        }
+
+        /* Chart Container */
+        #main-chart {
+            height: 400px;
+            margin-bottom: 10px;
+        }
+
+        /* Grid */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        /* AI Analysis Cards */
+        .ai-result-card {
+            background: var(--bg-card);
+            border-radius: 8px;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+        }
+
+        .ai-result-title {
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text-secondary);
+        }
+
+        .ai-result-value {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .ai-result-desc {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        /* Right Panel */
+        .right-panel {
+            background: var(--bg-secondary);
+            border-left: 1px solid var(--border-color);
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        .candidate-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .candidate-item:hover {
+            border-color: var(--color-primary);
+            transform: translateY(-2px);
+        }
+
+        .candidate-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .candidate-name {
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .candidate-score {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .candidate-info {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .candidate-signals {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .signal-badge {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .signal-badge.buy {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--color-success);
+        }
+
+        /* Trading Activity */
+        .activity-item {
+            padding: 8px;
+            border-left: 3px solid var(--color-primary);
+            background: rgba(59, 130, 246, 0.05);
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+
+        .activity-time {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .activity-text {
+            font-size: 12px;
+        }
+
+        .activity-item.buy {
+            border-left-color: var(--color-success);
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        .activity-item.sell {
+            border-left-color: var(--color-danger);
+            background: rgba(239, 68, 68, 0.05);
+        }
+
+        /* Performance Metrics */
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 12px;
+        }
+
+        .metric-row:last-child {
+            border-bottom: none;
+        }
+
+        .metric-label {
+            color: var(--text-secondary);
+        }
+
+        .metric-value {
+            font-weight: 600;
+        }
+
+        .metric-value.positive {
+            color: var(--color-success);
+        }
+
+        .metric-value.negative {
+            color: var(--color-danger);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 10000;
+            animation: slideIn 0.3s;
+            font-size: 13px;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            border: 3px solid var(--border-color);
+            border-top: 3px solid var(--color-primary);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Real-time indicator */
+        .realtime-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--color-success);
+            animation: pulse-dot 2s infinite;
+            display: inline-block;
+            margin-right: 4px;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-chart-line"></i>
+                <span>AutoTrade Pro v4.2 AI</span>
+            </div>
+            <div>
+                <div class="status-badge live" id="status-indicator">
+                    <span class="realtime-indicator"></span>
+                    <span id="status-text">AI 자동매매 실행 중</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="section-title">계좌 정보</div>
+            <div class="account-card">
+                <div class="account-value" id="total-assets">₩0</div>
+                <div class="account-label">총 자산</div>
+
+                <div class="account-row">
+                    <span>보유 현금</span>
+                    <span id="cash">₩0</span>
+                </div>
+                <div class="account-row">
+                    <span>주식 평가액</span>
+                    <span id="stock-value">₩0</span>
+                </div>
+                <div class="account-row">
+                    <span>손익</span>
+                    <span id="profit-loss" style="color: var(--color-success);">+₩0</span>
+                </div>
+            </div>
+
+            <div class="section-title">AI 시스템</div>
+            <ul class="stat-list">
+                <li class="stat-item">
+                    <span class="stat-label">스캐닝 종목</span>
+                    <span class="stat-value" id="scanning-count">0</span>
+                </li>
+                <li class="stat-item">
+                    <span class="stat-label">AI 분석 완료</span>
+                    <span class="stat-value" id="analyzed-count">0</span>
+                </li>
+                <li class="stat-item">
+                    <span class="stat-label">매수 대기</span>
+                    <span class="stat-value" id="buy-queue">0</span>
+                </li>
+            </ul>
+
+            <div class="section-title">가상 매매 성과</div>
+            <ul class="stat-list">
+                <li class="stat-item">
+                    <span class="stat-label">총 수익률</span>
+                    <span class="stat-value" id="paper-return">0%</span>
+                </li>
+                <li class="stat-item">
+                    <span class="stat-label">승률</span>
+                    <span class="stat-value" id="win-rate">0%</span>
+                </li>
+                <li class="stat-item">
+                    <span class="stat-label">매매 횟수</span>
+                    <span class="stat-value" id="trade-count">0</span>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Content with Tabs -->
+        <main class="main-content">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab(0)">
+                    <i class="fas fa-home"></i> 메인
+                </button>
+                <button class="tab" onclick="switchTab(1)">
+                    <i class="fas fa-robot"></i> AI 분석
+                </button>
+                <button class="tab" onclick="switchTab(2)">
+                    <i class="fas fa-chart-line"></i> 백테스팅
+                </button>
+            </div>
+
+            <!-- Tab 1: Main Dashboard -->
+            <div class="tab-content active" id="tab-main">
+                <!-- Real-time Chart -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fas fa-chart-candlestick"></i>
+                            <span id="chart-stock-name">실시간 차트</span>
+                        </div>
+                        <span style="font-size: 12px; color: var(--text-secondary);" id="chart-price">₩0</span>
+                    </div>
+                    <div id="main-chart"></div>
+                </div>
+
+                <!-- Holdings & Candidates -->
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="fas fa-briefcase"></i>
+                                보유 종목
+                            </div>
+                        </div>
+                        <div id="holdings-list">
+                            <div class="loading">
+                                <div class="spinner"></div>
+                                <p>데이터 로딩 중...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="fas fa-clock"></i>
+                                실시간 매매 활동
+                            </div>
+                        </div>
+                        <div id="trading-activity">
+                            <div class="loading">
+                                <div class="spinner"></div>
+                                <p>활동 내역 불러오는 중...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: AI Analysis -->
+            <div class="tab-content" id="tab-ai">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fas fa-brain"></i>
+                            AI 자동 분석 결과 (실시간 업데이트)
+                        </div>
+                        <span style="font-size: 11px; color: var(--text-secondary);">
+                            <span class="realtime-indicator"></span>매 30초 갱신
+                        </span>
+                    </div>
+                    <div class="grid-3">
+                        <div class="ai-result-card">
+                            <div class="ai-result-title">포트폴리오 점수</div>
+                            <div class="ai-result-value" id="ai-portfolio-score">-</div>
+                            <div class="ai-result-desc" id="ai-portfolio-desc">분석 대기 중</div>
+                        </div>
+                        <div class="ai-result-card">
+                            <div class="ai-result-title">시장 감정</div>
+                            <div class="ai-result-value" id="ai-sentiment">-</div>
+                            <div class="ai-result-desc" id="ai-sentiment-desc">분석 대기 중</div>
+                        </div>
+                        <div class="ai-result-card">
+                            <div class="ai-result-title">리스크 레벨</div>
+                            <div class="ai-result-value" id="ai-risk">-</div>
+                            <div class="ai-result-desc" id="ai-risk-desc">분석 대기 중</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="fas fa-chart-pie"></i>
+                                포트폴리오 최적화
+                            </div>
+                        </div>
+                        <div id="portfolio-analysis">
+                            <div class="loading">
+                                <div class="spinner"></div>
+                                <p>분석 중...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="fas fa-shield-alt"></i>
+                                리스크 분석
+                            </div>
+                        </div>
+                        <div id="risk-analysis">
+                            <div class="loading">
+                                <div class="spinner"></div>
+                                <p>분석 중...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fas fa-users"></i>
+                            다중 AI 에이전트 합의
+                        </div>
+                    </div>
+                    <div id="multiagent-consensus">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <p>합의 중...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Paper Trading -->
+            <div class="tab-content" id="tab-backtest">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fas fa-chart-area"></i>
+                            가상 매매 손익 곡선
+                        </div>
+                    </div>
+                    <canvas id="paper-equity-chart" height="80"></canvas>
+                </div>
+
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="fas fa-chart-bar"></i>
+                                성과 지표
+                            </div>
+                        </div>
+                        <div id="paper-metrics">
+                            <div class="metric-row">
+                                <span class="metric-label">총 수익률</span>
+                                <span class="metric-value positive" id="pm-total-return">+0.00%</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">최대 낙폭 (MDD)</span>
+                                <span class="metric-value" id="pm-mdd">0.00%</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">샤프 비율</span>
+                                <span class="metric-value" id="pm-sharpe">0.00</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">승률</span>
+                                <span class="metric-value" id="pm-winrate">0.00%</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">평균 수익</span>
+                                <span class="metric-value positive" id="pm-avg-win">+0.00%</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">평균 손실</span>
+                                <span class="metric-value negative" id="pm-avg-loss">-0.00%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="fas fa-list"></i>
+                                최근 매매 기록
+                            </div>
+                        </div>
+                        <div id="paper-trades" style="max-height: 300px; overflow-y: auto;">
+                            <div class="loading">
+                                <div class="spinner"></div>
+                                <p>데이터 불러오는 중...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Right Panel: Candidates -->
+        <aside class="right-panel">
+            <div class="section-title">AI 매수 후보 종목</div>
+            <div id="candidates-list">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p style="margin-top: 10px; font-size: 12px;">후보 종목 분석 중...</p>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        let socket;
+        let mainChart;
+        let candlestickSeries;
+        let paperEquityChart;
+        let currentTab = 0;
+
+        // Tab Switching
+        function switchTab(index) {
+            const tabs = document.querySelectorAll('.tab');
+            const contents = document.querySelectorAll('.tab-content');
+
+            tabs.forEach((tab, i) => {
+                if (i === index) {
+                    tab.classList.add('active');
+                    contents[i].classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                    contents[i].classList.remove('active');
+                }
+            });
+
+            currentTab = index;
+
+            // Load tab-specific data
+            if (index === 1) {
+                loadAIAnalysis();
+            } else if (index === 2) {
+                loadPaperTradingData();
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeSocket();
+            initializeChart();
+            loadAllData();
+            initializePaperEquityChart();
+
+            // Auto-refresh every 3 seconds
+            setInterval(loadAllData, 3000);
+
+            // AI analysis every 30 seconds
+            setInterval(loadAIAnalysis, 30000);
+
+            // Paper trading update every 5 seconds
+            setInterval(loadPaperTradingData, 5000);
+        });
+
+        // WebSocket
+        function initializeSocket() {
+            socket = io();
+
+            socket.on('connect', function() {
+                console.log('Connected to server');
+                showToast('✅ 서버 연결 완료', 'success');
+            });
+
+            socket.on('status_update', function(data) {
+                console.log('Status update:', data);
+            });
+
+            socket.on('price_update', function(data) {
+                if (candlestickSeries && data.price) {
+                    updateChartPrice(data);
+                }
+            });
+
+            socket.on('trade_executed', function(data) {
+                showToast(`🔔 ${data.action} 주문 체결: ${data.stock_name}`, 'info');
+                loadAllData();
+            });
+        }
+
+        // Initialize Chart
+        function initializeChart() {
+            const chartContainer = document.getElementById('main-chart');
+            mainChart = LightweightCharts.createChart(chartContainer, {
+                width: chartContainer.clientWidth,
+                height: 400,
+                layout: {
+                    background: { color: '#1e2139' },
+                    textColor: '#9ca3af',
+                },
+                grid: {
+                    vertLines: { color: '#2d3250' },
+                    horzLines: { color: '#2d3250' },
+                },
+                crosshair: {
+                    mode: LightweightCharts.CrosshairMode.Normal,
+                },
+                rightPriceScale: {
+                    borderColor: '#2d3250',
+                },
+                timeScale: {
+                    borderColor: '#2d3250',
+                    timeVisible: true,
+                },
+            });
+
+            candlestickSeries = mainChart.addCandlestickSeries({
+                upColor: '#10b981',
+                downColor: '#ef4444',
+                borderVisible: false,
+                wickUpColor: '#10b981',
+                wickDownColor: '#ef4444',
+            });
+
+            window.addEventListener('resize', () => {
+                mainChart.applyOptions({ width: chartContainer.clientWidth });
+            });
+
+            // Load initial chart data
+            loadChartData('005930'); // Default: Samsung
+        }
+
+        // Load Chart Data from Kiwoom API
+        async function loadChartData(stockCode) {
+            try {
+                const response = await fetch(`/api/chart/${stockCode}`);
+                const data = await response.json();
+
+                if (data.success && data.data) {
+                    candlestickSeries.setData(data.data);
+
+                    // Add trading signals
+                    if (data.signals) {
+                        candlestickSeries.setMarkers(data.signals);
+                    }
+
+                    document.getElementById('chart-stock-name').textContent = data.name || stockCode;
+                    if (data.current_price) {
+                        document.getElementById('chart-price').textContent = '₩' + formatNumber(data.current_price);
+                    }
+                }
+            } catch (error) {
+                console.error('Chart data error:', error);
+            }
+        }
+
+        // Update chart with real-time price
+        function updateChartPrice(data) {
+            const update = {
+                time: Math.floor(Date.now() / 1000),
+                open: data.price,
+                high: data.price,
+                low: data.price,
+                close: data.price
+            };
+            candlestickSeries.update(update);
+            document.getElementById('chart-price').textContent = '₩' + formatNumber(data.price);
+        }
+
+        // Load All Data
+        async function loadAllData() {
+            try {
+                const [account, positions, candidates, status, activity] = await Promise.all([
+                    fetch('/api/account').then(r => r.json()),
+                    fetch('/api/positions').then(r => r.json()),
+                    fetch('/api/candidates').then(r => r.json()),
+                    fetch('/api/status').then(r => r.json()),
+                    fetch('/api/trading-activity').then(r => r.json())
+                ]);
+
+                updateAccount(account);
+                updatePositions(positions);
+                updateCandidates(candidates);
+                updateStatus(status);
+                updateTradingActivity(activity);
+            } catch (error) {
+                console.error('Error loading data:', error);
+            }
+        }
+
+        function updateAccount(data) {
+            document.getElementById('total-assets').textContent = '₩' + formatNumber(data.total_assets || 0);
+            document.getElementById('cash').textContent = '₩' + formatNumber(data.cash || 0);
+            document.getElementById('stock-value').textContent = '₩' + formatNumber(data.stock_value || 0);
+
+            const pl = data.profit_loss || 0;
+            const plElement = document.getElementById('profit-loss');
+            plElement.textContent = (pl >= 0 ? '+' : '') + '₩' + formatNumber(Math.abs(pl));
+            plElement.style.color = pl >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
+        }
+
+        function updatePositions(positions) {
+            const container = document.getElementById('holdings-list');
+
+            if (!positions || positions.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 15px; color: var(--text-secondary); font-size: 12px;">보유 종목 없음</div>';
+                return;
+            }
+
+            let html = '';
+            positions.forEach(p => {
+                const plColor = p.profit_loss >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
+                html += `
+                    <div style="padding: 8px; border-bottom: 1px solid var(--border-color); cursor: pointer;" onclick="loadChartData('${p.code}')">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                            <strong style="font-size: 12px;">${p.name}</strong>
+                            <span style="color: ${plColor}; font-weight: 600; font-size: 12px;">
+                                ${p.profit_loss >= 0 ? '+' : ''}${p.profit_loss_percent.toFixed(2)}%
+                            </span>
+                        </div>
+                        <div style="font-size: 11px; color: var(--text-secondary);">
+                            ${p.quantity}주 × ₩${formatNumber(p.current_price)}
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function updateCandidates(candidates) {
+            const container = document.getElementById('candidates-list');
+
+            if (!candidates || candidates.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 15px; color: var(--text-secondary); font-size: 12px;">후보 종목 없음</div>';
+                return;
+            }
+
+            let html = '';
+            candidates.forEach(c => {
+                html += `
+                    <div class="candidate-item" onclick="loadChartData('${c.code}')">
+                        <div class="candidate-header">
+                            <div class="candidate-name">${c.name}</div>
+                            <div class="candidate-score">${c.ai_score.toFixed(1)}</div>
+                        </div>
+                        <div class="candidate-info">
+                            ${c.code} · ₩${formatNumber(c.price)}
+                        </div>
+                        <div class="candidate-signals">
+                            <span class="signal-badge buy">${c.signal || 'BUY'}</span>
+                            <span class="signal-badge" style="background: rgba(59, 130, 246, 0.1); color: var(--color-primary);">
+                                신뢰도 ${Math.round((c.confidence || 0.85) * 100)}%
+                            </span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function updateStatus(data) {
+            if (data && data.scanning) {
+                document.getElementById('scanning-count').textContent = data.scanning.fast_scan?.count || 0;
+                document.getElementById('analyzed-count').textContent = data.scanning.ai_scan?.count || 0;
+            }
+        }
+
+        function updateTradingActivity(data) {
+            const container = document.getElementById('trading-activity');
+
+            if (!data || !data.activities || data.activities.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 15px; color: var(--text-secondary); font-size: 12px;">매매 활동 없음</div>';
+                return;
+            }
+
+            let html = '';
+            data.activities.slice(0, 5).forEach(act => {
+                const typeClass = act.type === 'BUY' ? 'buy' : 'sell';
+                html += `
+                    <div class="activity-item ${typeClass}">
+                        <div class="activity-time">${act.time}</div>
+                        <div class="activity-text">${act.message}</div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Load AI Analysis
+        async function loadAIAnalysis() {
+            try {
+                const response = await fetch('/api/ai/auto-analysis');
+                const data = await response.json();
+
+                if (data.success) {
+                    // Update quick metrics
+                    if (data.portfolio) {
+                        document.getElementById('ai-portfolio-score').textContent = data.portfolio.score.toFixed(1) + '/10';
+                        document.getElementById('ai-portfolio-desc').textContent = data.portfolio.health || '양호';
+                    }
+
+                    if (data.sentiment) {
+                        document.getElementById('ai-sentiment').textContent = data.sentiment.sentiment || '-';
+                        document.getElementById('ai-sentiment-desc').textContent = `점수: ${data.sentiment.overall_sentiment}/10`;
+                    }
+
+                    if (data.risk) {
+                        document.getElementById('ai-risk').textContent = data.risk.risk_level || '-';
+                        document.getElementById('ai-risk-desc').textContent = `VaR: ${formatNumber(data.risk.var)}원`;
+                    }
+
+                    // Update detailed analysis
+                    updatePortfolioAnalysis(data.portfolio);
+                    updateRiskAnalysis(data.risk);
+                    updateMultiAgentConsensus(data.consensus);
+                }
+            } catch (error) {
+                console.error('AI analysis error:', error);
+            }
+        }
+
+        function updatePortfolioAnalysis(data) {
+            const container = document.getElementById('portfolio-analysis');
+            if (!data) {
+                container.innerHTML = '<div class="loading"><p style="font-size: 12px;">데이터 없음</p></div>';
+                return;
+            }
+
+            let html = '';
+            (data.recommendations || []).slice(0, 5).forEach(rec => {
+                html += `<div class="metric-row"><span class="metric-label">${rec}</span></div>`;
+            });
+
+            container.innerHTML = html || '<div style="font-size: 12px; color: var(--text-secondary);">권장사항 없음</div>';
+        }
+
+        function updateRiskAnalysis(data) {
+            const container = document.getElementById('risk-analysis');
+            if (!data) {
+                container.innerHTML = '<div class="loading"><p style="font-size: 12px;">데이터 없음</p></div>';
+                return;
+            }
+
+            let html = `
+                <div class="metric-row">
+                    <span class="metric-label">VaR (95%)</span>
+                    <span class="metric-value">${formatNumber(data.var || 0)}원</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">CVaR</span>
+                    <span class="metric-value">${formatNumber(data.cvar || 0)}원</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">변동성</span>
+                    <span class="metric-value">${(data.volatility || 0).toFixed(1)}%</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">샤프 비율</span>
+                    <span class="metric-value">${(data.sharpe_ratio || 0).toFixed(2)}</span>
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        function updateMultiAgentConsensus(data) {
+            const container = document.getElementById('multiagent-consensus');
+            if (!data) {
+                container.innerHTML = '<div class="loading"><p style="font-size: 12px;">데이터 없음</p></div>';
+                return;
+            }
+
+            let html = `
+                <div class="metric-row">
+                    <span class="metric-label">최종 결정</span>
+                    <span class="metric-value">${(data.final_action || 'HOLD').toUpperCase()}</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">합의도</span>
+                    <span class="metric-value">${((data.consensus_level || 0) * 100).toFixed(0)}%</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">신뢰도</span>
+                    <span class="metric-value">${((data.confidence || 0) * 100).toFixed(0)}%</span>
+                </div>
+            `;
+
+            if (data.votes) {
+                html += '<div style="margin-top: 10px; font-size: 11px; color: var(--text-secondary);">투표 결과:</div>';
+                for (const [action, count] of Object.entries(data.votes)) {
+                    html += `<div class="metric-row"><span class="metric-label">${action.toUpperCase()}</span><span>${count}표</span></div>`;
+                }
+            }
+
+            container.innerHTML = html;
+        }
+
+        // Initialize Paper Equity Chart
+        function initializePaperEquityChart() {
+            const ctx = document.getElementById('paper-equity-chart');
+            paperEquityChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: '손익',
+                        data: [],
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: { display: true, grid: { color: '#2d3250' } },
+                        y: { display: true, grid: { color: '#2d3250' } }
+                    }
+                }
+            });
+        }
+
+        // Load Paper Trading Data
+        async function loadPaperTradingData() {
+            try {
+                const response = await fetch('/api/paper_trading/status');
+                const data = await response.json();
+
+                if (data.success && data.data) {
+                    updatePaperMetrics(data.data);
+                    updatePaperTrades(data.data.recent_trades);
+                    updatePaperEquityChart(data.data.equity_curve);
+                }
+            } catch (error) {
+                console.error('Paper trading data error:', error);
+            }
+        }
+
+        function updatePaperMetrics(data) {
+            document.getElementById('paper-return').textContent = (data.total_return || 0).toFixed(2) + '%';
+            document.getElementById('win-rate').textContent = (data.win_rate || 0).toFixed(1) + '%';
+            document.getElementById('trade-count').textContent = data.total_trades || 0;
+
+            // Detailed metrics
+            document.getElementById('pm-total-return').textContent = (data.total_return >= 0 ? '+' : '') + (data.total_return || 0).toFixed(2) + '%';
+            document.getElementById('pm-mdd').textContent = (data.max_drawdown || 0).toFixed(2) + '%';
+            document.getElementById('pm-sharpe').textContent = (data.sharpe_ratio || 0).toFixed(2);
+            document.getElementById('pm-winrate').textContent = (data.win_rate || 0).toFixed(2) + '%';
+            document.getElementById('pm-avg-win').textContent = '+' + (data.avg_win || 0).toFixed(2) + '%';
+            document.getElementById('pm-avg-loss').textContent = '-' + (data.avg_loss || 0).toFixed(2) + '%';
+
+            // Update sidebar
+            if (data.buy_queue !== undefined) {
+                document.getElementById('buy-queue').textContent = data.buy_queue;
+            }
+        }
+
+        function updatePaperTrades(trades) {
+            const container = document.getElementById('paper-trades');
+
+            if (!trades || trades.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 15px; color: var(--text-secondary); font-size: 12px;">매매 기록 없음</div>';
+                return;
+            }
+
+            let html = '';
+            trades.forEach(trade => {
+                const typeClass = trade.action === 'BUY' ? 'buy' : 'sell';
+                const plClass = trade.profit_loss >= 0 ? 'positive' : 'negative';
+                html += `
+                    <div class="activity-item ${typeClass}">
+                        <div class="activity-time">${trade.time || trade.date}</div>
+                        <div class="activity-text">
+                            <strong>${trade.action}</strong> ${trade.stock_name} (${trade.stock_code})
+                            <br/>
+                            <span style="font-size: 11px;">
+                                ${trade.quantity}주 @ ₩${formatNumber(trade.price)}
+                                ${trade.profit_loss !== undefined ? `<span class="metric-value ${plClass}"> · ${trade.profit_loss >= 0 ? '+' : ''}${trade.profit_loss.toFixed(2)}%</span>` : ''}
+                            </span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function updatePaperEquityChart(equityCurve) {
+            if (!equityCurve || equityCurve.length === 0) return;
+
+            const labels = equityCurve.map(e => e.date || e.time);
+            const data = equityCurve.map(e => e.value || e.equity);
+
+            paperEquityChart.data.labels = labels;
+            paperEquityChart.data.datasets[0].data = data;
+            paperEquityChart.update();
+        }
+
+        // Utility Functions
+        function formatNumber(num) {
+            return Math.abs(num).toLocaleString('ko-KR');
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
