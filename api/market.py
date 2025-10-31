@@ -5,8 +5,48 @@ api/market.py
 import logging
 import random
 from typing import Dict, Any, Optional, List
+from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
+
+
+def get_last_trading_day(target_date: datetime = None) -> str:
+    """
+    가장 최근 거래일을 반환합니다.
+    주말(토요일, 일요일)을 자동으로 피하고 가장 최근 평일을 반환합니다.
+
+    Args:
+        target_date: 기준 날짜 (None이면 오늘)
+
+    Returns:
+        YYYYMMDD 형식의 거래일 문자열
+
+    Examples:
+        - 금요일: 금요일 반환
+        - 토요일: 지난 금요일 반환
+        - 일요일: 지난 금요일 반환
+        - 월요일: 월요일 반환
+    """
+    if target_date is None:
+        target_date = datetime.now()
+
+    # 주말인 경우 가장 최근 평일로 이동
+    # 토요일(5) -> 하루 전 금요일
+    # 일요일(6) -> 이틀 전 금요일
+    weekday = target_date.weekday()
+
+    if weekday == 5:  # 토요일
+        target_date = target_date - timedelta(days=1)
+        logger.info(f"토요일이므로 전날 금요일로 조정: {target_date.strftime('%Y%m%d')}")
+    elif weekday == 6:  # 일요일
+        target_date = target_date - timedelta(days=2)
+        logger.info(f"일요일이므로 지난 금요일로 조정: {target_date.strftime('%Y%m%d')}")
+
+    # TODO: 추후 공휴일 처리 추가 가능
+    # - 한국 증시 공휴일 목록을 관리
+    # - 공휴일인 경우 이전 거래일로 이동
+
+    return target_date.strftime('%Y%m%d')
 
 
 class MarketAPI:
@@ -166,7 +206,8 @@ class MarketAPI:
     def get_volume_rank(
         self,
         market: str = 'ALL',
-        limit: int = 20
+        limit: int = 20,
+        date: str = None
     ) -> List[Dict[str, Any]]:
         """
         거래량 순위 조회
@@ -174,6 +215,7 @@ class MarketAPI:
         Args:
             market: 시장구분 ('ALL', 'KOSPI', 'KOSDAQ')
             limit: 조회 건수
+            date: 조회 날짜 (YYYYMMDD, None이면 가장 최근 거래일)
 
         Returns:
             거래량 순위 리스트
@@ -183,10 +225,17 @@ class MarketAPI:
             logger.info(f"🧪 테스트 모드: Mock 거래량 순위 데이터 생성 (limit={limit})")
             return self._generate_mock_stock_data(limit, "volume")
 
+        # 날짜가 지정되지 않은 경우 가장 최근 거래일 사용
+        # 참고: 키움 API는 자동으로 최신 거래일 데이터를 반환합니다
+        if not date:
+            date = get_last_trading_day()
+            logger.info(f"📅 거래량 순위 조회 - 주말/휴일은 자동으로 최근 거래일({date}) 데이터 반환")
+
         body = {
             "market": market,
             "limit": limit,
             "sort": "volume"
+            # 참고: date 파라미터는 API에서 지원하지 않음. API가 자동으로 최신 데이터 반환
         }
 
         response = self.client.request(
@@ -197,7 +246,7 @@ class MarketAPI:
 
         if response and response.get('return_code') == 0:
             rank_list = response.get('output', [])
-            logger.info(f"거래량 순위 {len(rank_list)}개 조회 완료")
+            logger.info(f"거래량 순위 {len(rank_list)}개 조회 완료 (날짜: {date})")
             return rank_list
         else:
             logger.error(f"거래량 순위 조회 실패: {response.get('return_msg')}")
@@ -207,7 +256,8 @@ class MarketAPI:
         self,
         market: str = 'ALL',
         sort: str = 'rise',
-        limit: int = 20
+        limit: int = 20,
+        date: str = None
     ) -> List[Dict[str, Any]]:
         """
         등락률 순위 조회
@@ -216,6 +266,7 @@ class MarketAPI:
             market: 시장구분 ('ALL', 'KOSPI', 'KOSDAQ')
             sort: 정렬 ('rise': 상승률, 'fall': 하락률)
             limit: 조회 건수
+            date: 조회 날짜 (YYYYMMDD, None이면 가장 최근 거래일)
 
         Returns:
             등락률 순위 리스트
@@ -226,10 +277,18 @@ class MarketAPI:
             logger.info(f"🧪 테스트 모드: Mock {sort_name} 순위 데이터 생성 (limit={limit})")
             return self._generate_mock_stock_data(limit, "price_change")
 
+        # 날짜가 지정되지 않은 경우 가장 최근 거래일 사용
+        # 참고: 키움 API는 자동으로 최신 거래일 데이터를 반환합니다
+        if not date:
+            date = get_last_trading_day()
+            sort_name = "상승률" if sort == 'rise' else "하락률"
+            logger.info(f"📅 {sort_name} 순위 조회 - 주말/휴일은 자동으로 최근 거래일({date}) 데이터 반환")
+
         body = {
             "market": market,
             "limit": limit,
             "sort": sort
+            # 참고: date 파라미터는 API에서 지원하지 않음. API가 자동으로 최신 데이터 반환
         }
 
         response = self.client.request(
@@ -241,7 +300,7 @@ class MarketAPI:
         if response and response.get('return_code') == 0:
             rank_list = response.get('output', [])
             sort_name = "상승률" if sort == 'rise' else "하락률"
-            logger.info(f"{sort_name} 순위 {len(rank_list)}개 조회 완료")
+            logger.info(f"{sort_name} 순위 {len(rank_list)}개 조회 완료 (날짜: {date})")
             return rank_list
         else:
             logger.error(f"등락률 순위 조회 실패: {response.get('return_msg')}")
@@ -250,7 +309,8 @@ class MarketAPI:
     def get_trading_value_rank(
         self,
         market: str = 'ALL',
-        limit: int = 20
+        limit: int = 20,
+        date: str = None
     ) -> List[Dict[str, Any]]:
         """
         거래대금 순위 조회
@@ -258,6 +318,7 @@ class MarketAPI:
         Args:
             market: 시장구분 ('ALL', 'KOSPI', 'KOSDAQ')
             limit: 조회 건수
+            date: 조회 날짜 (YYYYMMDD, None이면 가장 최근 거래일)
 
         Returns:
             거래대금 순위 리스트
@@ -267,10 +328,17 @@ class MarketAPI:
             logger.info(f"🧪 테스트 모드: Mock 거래대금 순위 데이터 생성 (limit={limit})")
             return self._generate_mock_stock_data(limit, "trading_value")
 
+        # 날짜가 지정되지 않은 경우 가장 최근 거래일 사용
+        # 참고: 키움 API는 자동으로 최신 거래일 데이터를 반환합니다
+        if not date:
+            date = get_last_trading_day()
+            logger.info(f"📅 거래대금 순위 조회 - 주말/휴일은 자동으로 최근 거래일({date}) 데이터 반환")
+
         body = {
             "market": market,
             "limit": limit,
             "sort": "trading_value"
+            # 참고: date 파라미터는 API에서 지원하지 않음. API가 자동으로 최신 데이터 반환
         }
 
         response = self.client.request(
@@ -281,7 +349,7 @@ class MarketAPI:
 
         if response and response.get('return_code') == 0:
             rank_list = response.get('output', [])
-            logger.info(f"거래대금 순위 {len(rank_list)}개 조회 완료")
+            logger.info(f"거래대금 순위 {len(rank_list)}개 조회 완료 (날짜: {date})")
             return rank_list
         else:
             logger.error(f"거래대금 순위 조회 실패: {response.get('return_msg')}")
