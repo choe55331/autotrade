@@ -8,6 +8,8 @@ import datetime
 import time
 import threading
 import logging
+import os
+from pathlib import Path
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from typing import Dict, Any, Optional
@@ -21,6 +23,9 @@ from .exceptions import (
 )
 
 logger = logging.getLogger(__name__)
+
+# 토큰 캐시 파일 경로
+TOKEN_CACHE_FILE = Path(__file__).parent.parent / 'data' / 'token_cache.json'
 
 
 class KiwoomRESTClient:
@@ -144,14 +149,81 @@ class KiwoomRESTClient:
         return session
     
     def _initialize_token(self):
-        """초기 토큰 발급"""
+        """초기 토큰 발급 (캐시 우선 사용)"""
         try:
+            # 1. 캐시된 토큰 먼저 시도
+            if self._load_token_from_cache():
+                logger.info("✅ 캐시된 토큰 로드 성공 - 발급 횟수 절약!")
+                return
+
+            # 2. 캐시 없으면 새로 발급
             if not self._get_token():
                 logger.warning(f"초기 API 토큰 발급 실패: {self.last_error_msg}")
             else:
                 logger.info("초기 토큰 발급 성공")
+                # 발급받은 토큰 저장
+                self._save_token_to_cache()
         except Exception as e:
             logger.error(f"토큰 초기화 실패: {e}")
+
+    def _save_token_to_cache(self):
+        """토큰을 파일에 저장"""
+        try:
+            # data 디렉토리 생성
+            TOKEN_CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
+
+            cache_data = {
+                'token': self.token,
+                'expiry': self.token_expiry.strftime('%Y%m%d%H%M%S') if self.token_expiry else None,
+                'saved_at': datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+            }
+
+            with open(TOKEN_CACHE_FILE, 'w', encoding='utf-8') as f:
+                json.dump(cache_data, f, indent=2)
+
+            logger.debug(f"토큰 캐시 저장: {TOKEN_CACHE_FILE}")
+        except Exception as e:
+            logger.warning(f"토큰 캐시 저장 실패 (무시): {e}")
+
+    def _load_token_from_cache(self) -> bool:
+        """캐시된 토큰 로드"""
+        try:
+            if not TOKEN_CACHE_FILE.exists():
+                logger.debug("토큰 캐시 파일 없음")
+                return False
+
+            with open(TOKEN_CACHE_FILE, 'r', encoding='utf-8') as f:
+                cache_data = json.load(f)
+
+            token = cache_data.get('token')
+            expiry_str = cache_data.get('expiry')
+
+            if not token or not expiry_str:
+                logger.debug("캐시 데이터 불완전")
+                return False
+
+            # 만료 시간 파싱
+            try:
+                expiry = datetime.datetime.strptime(expiry_str, '%Y%m%d%H%M%S')
+            except ValueError:
+                logger.warning("캐시 만료 시간 파싱 실패")
+                return False
+
+            # 토큰 유효성 확인 (5분 버퍼)
+            buffer_time = datetime.timedelta(minutes=5)
+            if datetime.datetime.now() >= (expiry - buffer_time):
+                logger.info("캐시된 토큰 만료됨")
+                return False
+
+            # 유효한 토큰 로드
+            self.token = token
+            self.token_expiry = expiry
+            logger.info(f"캐시된 토큰 사용 (만료: {expiry.strftime('%Y-%m-%d %H:%M:%S')})")
+            return True
+
+        except Exception as e:
+            logger.warning(f"토큰 캐시 로드 실패 (무시): {e}")
+            return False
     
     def _is_token_valid(self) -> bool:
         """토큰 유효성 확인"""
@@ -272,21 +344,25 @@ class KiwoomRESTClient:
         # 한국투자증권은 'token' 필드 사용 (access_token 아님)
         access_token = token_data.get('access_token') or token_data.get('token')
         expires_dt_str = token_data.get('access_token_token_expired') or token_data.get('expires_dt')
-        
+
         if not access_token or not expires_dt_str:
             error_msg = token_data.get('return_msg', '알 수 없는 토큰 응답')
             error_code = token_data.get('return_code', 'N/A')
             self._set_error(f"토큰 발급 실패 ({error_code}): {error_msg}")
             return False
-        
+
         try:
             self.token = access_token
             self.token_expiry = datetime.datetime.strptime(expires_dt_str, '%Y%m%d%H%M%S')
-            
+
             logger.info(f"토큰 발급 성공 (만료: {self.token_expiry.strftime('%Y-%m-%d %H:%M:%S')})")
             self.last_error_msg = None
+
+            # 새로 발급받은 토큰 저장
+            self._save_token_to_cache()
+
             return True
-        
+
         except ValueError as e:
             self._set_error(f"토큰 만료 시간 파싱 실패: {expires_dt_str}")
             self.token = None
