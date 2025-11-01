@@ -17,12 +17,32 @@ import json
 import time
 from pathlib import Path
 from typing import Dict, Any, List, Optional
+from datetime import datetime
 
 # 프로젝트 루트 추가
 sys.path.insert(0, str(Path(__file__).parent))
 
 from core.rest_client import KiwoomRESTClient
 from config import get_credentials
+
+
+class TeeOutput:
+    """화면과 파일에 동시 출력하는 클래스"""
+    def __init__(self, filename):
+        self.terminal = sys.stdout
+        self.log = open(filename, 'w', encoding='utf-8')
+
+    def write(self, message):
+        self.terminal.write(message)
+        self.log.write(message)
+
+    def flush(self):
+        self.terminal.flush()
+        self.log.flush()
+
+    def close(self):
+        self.log.close()
+        sys.stdout = self.terminal
 
 class APIResponseKeyDiscovery:
     """API 응답 키 자동 탐색"""
@@ -280,19 +300,50 @@ class APIResponseKeyDiscovery:
 
 def main():
     """메인 함수"""
-    discoverer = APIResponseKeyDiscovery()
+    # 결과 파일 경로 설정
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_file = Path(__file__).parent / f"api_discovery_{timestamp}.txt"
 
-    if not discoverer.init_client():
-        print("클라이언트 초기화 실패. 종료합니다.")
-        return 1
+    # 화면과 파일에 동시 출력
+    tee = TeeOutput(log_file)
+    sys.stdout = tee
 
-    # 모든 API 탐색 (또는 limit=10 으로 테스트)
-    discoverer.run_discovery(limit=None)  # None = 전체, 숫자 = 제한
+    try:
+        print(f"탐색 시작: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"결과 저장: {log_file}\n")
 
-    # 결과 저장
-    discoverer.save_results()
+        discoverer = APIResponseKeyDiscovery()
 
-    return 0
+        if not discoverer.init_client():
+            print("클라이언트 초기화 실패. 종료합니다.")
+            return 1
+
+        # 모든 API 탐색 (또는 limit=10 으로 테스트)
+        try:
+            discoverer.run_discovery(limit=None)  # None = 전체, 숫자 = 제한
+        except Exception as e:
+            print(f"\n❌ 탐색 중 에러 발생: {e}")
+            import traceback
+            print(traceback.format_exc())
+            return 1
+
+        # 결과 저장
+        try:
+            discoverer.save_results()
+        except Exception as e:
+            print(f"\n❌ 결과 저장 중 에러 발생: {e}")
+            import traceback
+            print(traceback.format_exc())
+            return 1
+
+        print(f"\n탐색 종료: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"결과 파일: {log_file}")
+
+        return 0
+
+    finally:
+        # 파일 닫기
+        tee.close()
 
 
 if __name__ == '__main__':
