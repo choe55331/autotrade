@@ -2132,7 +2132,12 @@ def get_system_connections():
         if bot_instance and hasattr(bot_instance, 'analyzer'):
             try:
                 analyzer = bot_instance.analyzer
-                connections['gemini'] = analyzer is not None
+                # Gemini가 실제로 초기화되었는지 확인 (Mock analyzer가 아닌지)
+                if analyzer is not None:
+                    analyzer_type = type(analyzer).__name__
+                    connections['gemini'] = 'Gemini' in analyzer_type or 'gemini' in analyzer_type.lower()
+                else:
+                    connections['gemini'] = False
             except:
                 pass
 
