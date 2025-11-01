@@ -85,6 +85,12 @@ from .options_hft import (
     get_bs_model, get_options_analyzer, get_hft_trader
 )
 
+# v4.0 Advanced Features
+from .backtest_report_generator import BacktestReportGenerator, BacktestReport
+from .strategy_optimizer import StrategyOptimizer, OptimizationResult
+from .market_regime_classifier import MarketRegimeClassifier, RegimeType, VolatilityLevel
+from .anomaly_detector import AnomalyDetector, AnomalyEvent, AnomalyType
+
 __all__ = [
     # Legacy
     'EnsembleAnalyzer',
@@ -195,4 +201,16 @@ __all__ = [
     'get_bs_model',
     'get_options_analyzer',
     'get_hft_trader',
+
+    # v4.0 - Advanced Features
+    'BacktestReportGenerator',
+    'BacktestReport',
+    'StrategyOptimizer',
+    'OptimizationResult',
+    'MarketRegimeClassifier',
+    'RegimeType',
+    'VolatilityLevel',
+    'AnomalyDetector',
+    'AnomalyEvent',
+    'AnomalyType',
 ]
