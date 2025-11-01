@@ -286,12 +286,229 @@ def close_database():
     _database.close()
 
 
+class BacktestResult(Base):
+    """백테스팅 결과"""
+
+    __tablename__ = 'backtest_results'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    created_at = Column(DateTime, default=datetime.now, nullable=False, index=True)
+
+    # 백테스트 정보
+    backtest_id = Column(String(50), unique=True, nullable=False, index=True)
+    strategy_name = Column(String(50), nullable=False)
+    start_date = Column(String(10), nullable=False)
+    end_date = Column(String(10), nullable=False)
+
+    # 자본금
+    initial_capital = Column(Float, nullable=False)
+    final_capital = Column(Float, nullable=False)
+
+    # 수익률
+    total_return = Column(Float, nullable=False)
+    total_return_pct = Column(Float, nullable=False)
+
+    # 성과 지표
+    sharpe_ratio = Column(Float, nullable=True)
+    sortino_ratio = Column(Float, nullable=True)
+    max_drawdown = Column(Float, nullable=True)
+    max_drawdown_pct = Column(Float, nullable=True)
+    calmar_ratio = Column(Float, nullable=True)
+
+    # 거래 통계
+    total_trades = Column(Integer, default=0)
+    winning_trades = Column(Integer, default=0)
+    losing_trades = Column(Integer, default=0)
+    win_rate = Column(Float, default=0.0)
+
+    # 평균 손익
+    avg_win = Column(Float, nullable=True)
+    avg_loss = Column(Float, nullable=True)
+    profit_factor = Column(Float, nullable=True)
+
+    # 리포트 파일 경로
+    report_html_path = Column(String(200), nullable=True)
+    report_pdf_path = Column(String(200), nullable=True)
+
+    # 파라미터 (JSON)
+    parameters = Column(Text, nullable=True)
+
+    def __repr__(self):
+        return f"<BacktestResult({self.strategy_name}: {self.total_return_pct:.2f}%)>"
+
+
+class OptimizationResult(Base):
+    """파라미터 최적화 결과"""
+
+    __tablename__ = 'optimization_results'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    created_at = Column(DateTime, default=datetime.now, nullable=False, index=True)
+
+    # 최적화 정보
+    optimization_id = Column(String(50), unique=True, nullable=False, index=True)
+    strategy_name = Column(String(50), nullable=False)
+    method = Column(String(20), nullable=False)  # grid, random, bayesian
+
+    # 최적 파라미터
+    best_params = Column(Text, nullable=False)  # JSON
+    best_score = Column(Float, nullable=False)
+
+    # 최적화 통계
+    n_trials = Column(Integer, nullable=False)
+    n_completed = Column(Integer, nullable=False)
+    duration_seconds = Column(Float, nullable=False)
+
+    # 결과 상세 (JSON)
+    trials_data = Column(Text, nullable=True)
+
+    def __repr__(self):
+        return f"<OptimizationResult({self.strategy_name}: score={self.best_score:.4f})>"
+
+
+class Alert(Base):
+    """알림 기록"""
+
+    __tablename__ = 'alerts'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    created_at = Column(DateTime, default=datetime.now, nullable=False, index=True)
+
+    # 알림 유형
+    alert_type = Column(String(50), nullable=False, index=True)  # order_executed, ai_signal, stop_loss, etc.
+    severity = Column(String(20), default='info')  # info, warning, error, critical
+
+    # 알림 내용
+    title = Column(String(100), nullable=False)
+    message = Column(Text, nullable=False)
+
+    # 관련 종목 (선택)
+    stock_code = Column(String(10), nullable=True, index=True)
+    stock_name = Column(String(50), nullable=True)
+
+    # 전송 채널
+    sent_email = Column(Boolean, default=False)
+    sent_sms = Column(Boolean, default=False)
+    sent_telegram = Column(Boolean, default=False)
+    sent_web_push = Column(Boolean, default=False)
+
+    # 읽음 여부
+    is_read = Column(Boolean, default=False, index=True)
+    read_at = Column(DateTime, nullable=True)
+
+    # 추가 데이터 (JSON)
+    extra_data = Column(Text, nullable=True)
+
+    def __repr__(self):
+        return f"<Alert({self.alert_type}: {self.title})>"
+
+
+class StrategyPerformance(Base):
+    """전략 성과 기록"""
+
+    __tablename__ = 'strategy_performances'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    created_at = Column(DateTime, default=datetime.now, nullable=False, index=True)
+
+    # 전략 정보
+    strategy_name = Column(String(50), nullable=False, index=True)
+
+    # 기간
+    period_start = Column(DateTime, nullable=False)
+    period_end = Column(DateTime, nullable=False)
+
+    # 성과
+    total_trades = Column(Integer, default=0)
+    winning_trades = Column(Integer, default=0)
+    losing_trades = Column(Integer, default=0)
+    win_rate = Column(Float, default=0.0)
+
+    # 수익
+    total_profit = Column(Float, default=0.0)
+    total_profit_pct = Column(Float, default=0.0)
+    avg_profit_per_trade = Column(Float, default=0.0)
+
+    # 파라미터 (JSON)
+    parameters = Column(Text, nullable=True)
+
+    def __repr__(self):
+        return f"<StrategyPerformance({self.strategy_name}: {self.win_rate:.2f}% win rate)>"
+
+
+class AnomalyLog(Base):
+    """시스템 이상 감지 로그"""
+
+    __tablename__ = 'anomaly_logs'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    detected_at = Column(DateTime, default=datetime.now, nullable=False, index=True)
+
+    # 이상 유형
+    anomaly_type = Column(String(50), nullable=False, index=True)  # api_slow, order_failure, balance_drop, etc.
+    severity = Column(String(20), default='medium')  # low, medium, high, critical
+
+    # 이상 값
+    expected_value = Column(Float, nullable=True)
+    actual_value = Column(Float, nullable=True)
+    anomaly_score = Column(Float, nullable=True)  # 0.0 ~ 1.0
+
+    # 설명
+    description = Column(Text, nullable=False)
+
+    # 조치 여부
+    action_taken = Column(Boolean, default=False)
+    action_description = Column(Text, nullable=True)
+
+    # 추가 데이터 (JSON)
+    extra_data = Column(Text, nullable=True)
+
+    def __repr__(self):
+        return f"<AnomalyLog({self.anomaly_type}: score={self.anomaly_score:.2f})>"
+
+
+class MarketRegime(Base):
+    """시장 레짐 분류 기록"""
+
+    __tablename__ = 'market_regimes'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    classified_at = Column(DateTime, default=datetime.now, nullable=False, index=True)
+
+    # 시장 레짐
+    regime_type = Column(String(20), nullable=False)  # bull, bear, sideways
+    volatility_level = Column(String(20), nullable=False)  # low, medium, high
+
+    # 신뢰도
+    confidence = Column(Float, nullable=False)  # 0.0 ~ 1.0
+
+    # 지표 값
+    vix_level = Column(Float, nullable=True)
+    trend_strength = Column(Float, nullable=True)
+    market_momentum = Column(Float, nullable=True)
+
+    # 추천 전략
+    recommended_strategy = Column(String(50), nullable=True)
+
+    # 추가 데이터 (JSON)
+    indicators = Column(Text, nullable=True)
+
+    def __repr__(self):
+        return f"<MarketRegime({self.regime_type}, {self.volatility_level})>"
+
+
 __all__ = [
     'Trade',
     'Position',
     'PortfolioSnapshot',
     'ScanResult',
     'SystemLog',
+    'BacktestResult',
+    'OptimizationResult',
+    'Alert',
+    'StrategyPerformance',
+    'AnomalyLog',
+    'MarketRegime',
     'Database',
     'get_db_session',
     'close_database',

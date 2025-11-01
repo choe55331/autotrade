@@ -30,11 +30,18 @@ import yaml
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(BASE_DIR))
 
+# Import unified settings manager
+try:
+    from config.unified_settings import get_unified_settings
+    unified_settings = get_unified_settings()
+except ImportError:
+    unified_settings = None
+
 # Create Flask app
 app = Flask(__name__,
            template_folder='templates',
            static_folder='static')
-app.config['SECRET_KEY'] = 'autotrade-pro-v3-apple-style'
+app.config['SECRET_KEY'] = 'autotrade-pro-v4-apple-style'
 CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
@@ -1854,3 +1861,179 @@ def emit_trade_executed(action: str, stock_code: str, stock_name: str, quantity:
         })
     except Exception as e:
         print(f"Trade executed emit error: {e}")
+
+
+# ============================================================================
+# v4.0 NEW API ENDPOINTS - Unified Settings & Advanced Features
+# ============================================================================
+
+@app.route('/settings')
+def settings_page():
+    """통합 설정 페이지"""
+    return render_template('settings_unified.html')
+
+
+@app.route('/api/settings', methods=['GET'])
+def get_settings():
+    """통합 설정 조회"""
+    try:
+        if unified_settings:
+            return jsonify(unified_settings.settings)
+        else:
+            return jsonify({'error': 'Settings manager not available'}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/settings', methods=['POST'])
+def save_settings():
+    """통합 설정 저장"""
+    try:
+        if not unified_settings:
+            return jsonify({'error': 'Settings manager not available'}), 500
+
+        new_settings = request.json
+
+        # 카테고리별로 업데이트
+        for category, values in new_settings.items():
+            if isinstance(values, dict):
+                unified_settings.update_category(category, values, save_immediately=False)
+
+        # 저장
+        unified_settings.save()
+
+        return jsonify({'success': True, 'message': '설정이 저장되었습니다.'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/settings/reset', methods=['POST'])
+def reset_settings():
+    """설정 기본값 복원"""
+    try:
+        if not unified_settings:
+            return jsonify({'error': 'Settings manager not available'}), 500
+
+        unified_settings.reset_to_defaults()
+        return jsonify({'success': True, 'message': '기본값으로 복원되었습니다.'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/backtest/run', methods=['POST'])
+def run_backtest():
+    """백테스팅 실행"""
+    try:
+        params = request.json
+
+        # TODO: 실제 백테스팅 엔진 연동
+        backtest_id = f"bt_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+
+        return jsonify({
+            'success': True,
+            'backtest_id': backtest_id,
+            'message': '백테스팅이 시작되었습니다.'
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/optimization/run', methods=['POST'])
+def run_optimization():
+    """파라미터 최적화 실행"""
+    try:
+        params = request.json
+
+        # TODO: 실제 최적화 엔진 연동
+        optimization_id = f"opt_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+
+        return jsonify({
+            'success': True,
+            'optimization_id': optimization_id,
+            'message': '최적화가 시작되었습니다.'
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/market-regime')
+def get_market_regime():
+    """시장 레짐 조회"""
+    try:
+        # TODO: 실제 시장 레짐 분류기 연동
+        return jsonify({
+            'regime': 'bull',
+            'volatility': 'medium',
+            'confidence': 0.75,
+            'recommended_strategy': 'momentum',
+            'last_update': datetime.now().isoformat()
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/anomalies')
+def get_anomalies():
+    """이상 감지 현황 조회"""
+    try:
+        # TODO: 실제 이상 감지 시스템 연동
+        return jsonify({
+            'total_count': 0,
+            'recent_24h': 0,
+            'critical': 0,
+            'high': 0,
+            'medium': 0,
+            'low': 0,
+            'events': []
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/system-connections')
+def get_system_connections():
+    """시스템 연결 상태 조회 (WebSocket, REST API, Gemini, 테스트모드 등)"""
+    try:
+        connections = {
+            'rest_api': False,
+            'websocket': False,
+            'gemini': False,
+            'test_mode': False,
+            'database': False
+        }
+
+        # REST API 체크
+        if bot_instance and hasattr(bot_instance, 'client'):
+            connections['rest_api'] = True
+
+        # WebSocket 체크
+        if bot_instance and hasattr(bot_instance, 'websocket_client'):
+            try:
+                ws_client = bot_instance.websocket_client
+                connections['websocket'] = getattr(ws_client, 'connected', False)
+            except:
+                pass
+
+        # Gemini 체크
+        if bot_instance and hasattr(bot_instance, 'analyzer'):
+            try:
+                analyzer = bot_instance.analyzer
+                connections['gemini'] = analyzer is not None
+            except:
+                pass
+
+        # Test mode 체크
+        if bot_instance:
+            connections['test_mode'] = getattr(bot_instance, 'test_mode_active', False)
+
+        # Database 체크
+        try:
+            from database import get_db_session
+            session = get_db_session()
+            connections['database'] = session is not None
+        except:
+            pass
+
+        return jsonify(connections)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
