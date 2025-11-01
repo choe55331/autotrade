@@ -467,5 +467,90 @@ class MarketAPI:
         """
         return self.get_orderbook(stock_code)
 
+    def get_daily_chart(
+        self,
+        stock_code: str,
+        period: int = 20,
+        date: str = None
+    ) -> List[Dict[str, Any]]:
+        """
+        일봉 차트 데이터 조회
 
-__all__ = ['MarketAPI']
+        Args:
+            stock_code: 종목코드
+            period: 조회 기간 (일수)
+            date: 기준일 (YYYYMMDD, None이면 최근 거래일)
+
+        Returns:
+            일봉 데이터 리스트
+            [
+                {
+                    'date': '20231201',
+                    'open': 70000,
+                    'high': 71000,
+                    'low': 69500,
+                    'close': 70500,
+                    'volume': 1000000
+                },
+                ...
+            ]
+        """
+        # 날짜 자동 계산
+        if not date:
+            date = get_last_trading_date()
+
+        body = {
+            "stock_code": stock_code,
+            "period": str(period),
+            "date": date
+        }
+
+        response = self.client.request(
+            api_id="ka10006",
+            body=body,
+            path="chart"
+        )
+
+        if response and response.get('return_code') == 0:
+            # 응답 구조 확인
+            output = response.get('output', {})
+
+            # output이 dict이면 리스트로 변환
+            if isinstance(output, dict):
+                chart_data = output.get('list', [])
+            else:
+                chart_data = output if isinstance(output, list) else []
+
+            logger.info(f"{stock_code} 일봉 차트 {len(chart_data)}개 조회 완료")
+            return chart_data
+        else:
+            logger.error(f"일봉 차트 조회 실패: {response.get('return_msg')}")
+            return []
+
+
+# Standalone function for backward compatibility
+def get_daily_chart(stock_code: str, period: int = 20, date: str = None) -> List[Dict[str, Any]]:
+    """
+    일봉 차트 데이터 조회 (standalone function)
+
+    Args:
+        stock_code: 종목코드
+        period: 조회 기간 (일수)
+        date: 기준일 (YYYYMMDD, None이면 최근 거래일)
+
+    Returns:
+        일봉 데이터 리스트
+    """
+    from core.rest_client import KiwoomRESTClient
+
+    # Get client instance
+    client = KiwoomRESTClient.get_instance()
+
+    # Create MarketAPI instance
+    market_api = MarketAPI(client)
+
+    # Call method
+    return market_api.get_daily_chart(stock_code, period, date)
+
+
+__all__ = ['MarketAPI', 'get_daily_chart']

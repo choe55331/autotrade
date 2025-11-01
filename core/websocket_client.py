@@ -64,7 +64,10 @@ class WebSocketClient:
                 on_message=self._on_message,
                 on_error=self._on_error,
                 on_close=self._on_close,
-                header=[f"authorization: Bearer {self.token}"]
+                header=[f"authorization: Bearer {self.token}"],
+                # Heartbeat to detect silent disconnections
+                ping_interval=30,  # Send ping every 30 seconds
+                ping_timeout=10    # Timeout after 10 seconds
             )
             
             # 별도 스레드에서 실행
