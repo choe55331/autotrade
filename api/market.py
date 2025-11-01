@@ -200,8 +200,8 @@ class MarketAPI:
         body = {
             "mrkt_tp": mrkt_tp,          # 시장구분 (000:전체, 001:KOSPI, 101:KOSDAQ)
             "sort_tp": sort_tp,           # 정렬구분 (1:상승률, 2:하락률)
-            "trde_qty_cnd": "0",          # 거래량 조건 (0: 전체)
-            "stk_cnd": "0",               # 종목 조건 (0: 전체)
+            "trde_qty_cnd": "0100",       # 거래량 조건 (검증된 값)
+            "stk_cnd": "1",               # 종목 조건 (검증된 값)
             "crd_cnd": "0",               # 신용 조건 (0: 전체)
             "updown_incls": "1",          # 상한하한 포함 (0: 제외, 1: 포함)
             "pric_cnd": "0",              # 가격 조건 (0: 전체)
