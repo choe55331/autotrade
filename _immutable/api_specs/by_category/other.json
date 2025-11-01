@@ -1,0 +1,1755 @@
+{
+  "category": "other",
+  "apis": [
+    {
+      "api_id": "kt00015",
+      "api_name": "위탁종합거래내역요청",
+      "category": "other",
+      "total_variants": 4,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "acnt",
+          "body": {
+            "strt_dt": "20251101",
+            "end_dt": "20251101",
+            "tp": "0",
+            "gds_tp": "0",
+            "dmst_stex_tp": "%"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "acnt",
+          "body": {
+            "strt_dt": "20251025",
+            "end_dt": "20251101",
+            "tp": "3",
+            "gds_tp": "1",
+            "dmst_stex_tp": "%"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "acnt",
+          "body": {
+            "strt_dt": "20251002",
+            "end_dt": "20251101",
+            "tp": "6",
+            "gds_tp": "0",
+            "dmst_stex_tp": "%"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 4,
+          "path": "acnt",
+          "body": {
+            "strt_dt": "20251002",
+            "end_dt": "20251101",
+            "tp": "7",
+            "gds_tp": "0",
+            "dmst_stex_tp": "%"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "kt00002",
+      "api_name": "일별추정예탁자산현황요청",
+      "category": "other",
+      "total_variants": 3,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "acnt",
+          "body": {
+            "start_dt": "20251031",
+            "end_dt": "20251031"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "acnt",
+          "body": {
+            "start_dt": "20251025",
+            "end_dt": "20251101"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "acnt",
+          "body": {
+            "start_dt": "20251002",
+            "end_dt": "20251101"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "kt00003",
+      "api_name": "추정자산조회요청",
+      "category": "other",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "acnt",
+          "body": {
+            "qry_tp": "0"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "acnt",
+          "body": {
+            "qry_tp": "1"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10170",
+      "api_name": "당일매매일지요청",
+      "category": "other",
+      "total_variants": 3,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "acnt",
+          "body": {
+            "base_dt": "20251101",
+            "ottks_tp": "1",
+            "ch_crd_tp": "0"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "acnt",
+          "body": {
+            "base_dt": "20251101",
+            "ottks_tp": "2",
+            "ch_crd_tp": "0"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "acnt",
+          "body": {
+            "base_dt": "20251031",
+            "ottks_tp": "1",
+            "ch_crd_tp": "0"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10087",
+      "api_name": "시간외단일가요청",
+      "category": "other",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "mrkcond",
+          "body": {
+            "stk_cd": "000660"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "mrkcond",
+          "body": {
+            "stk_cd": "066970"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10006",
+      "api_name": "주식시분요청",
+      "category": "other",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "mrkcond",
+          "body": {
+            "stk_cd": "000660"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "mrkcond",
+          "body": {
+            "stk_cd": "066970"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10005",
+      "api_name": "주식일주월시분요청",
+      "category": "other",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "mrkcond",
+          "body": {
+            "stk_cd": "000660"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "mrkcond",
+          "body": {
+            "stk_cd": "066970"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10015",
+      "api_name": "일별거래상세요청",
+      "category": "other",
+      "total_variants": 3,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "stkinfo",
+          "body": {
+            "stk_cd": "000660",
+            "strt_dt": "20251101"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "stkinfo",
+          "body": {
+            "stk_cd": "000660",
+            "strt_dt": "20251031"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "stkinfo",
+          "body": {
+            "stk_cd": "066970",
+            "strt_dt": "20251101"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10043",
+      "api_name": "거래원매물대분석요청",
+      "category": "other",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "stkinfo",
+          "body": {
+            "stk_cd": "000660",
+            "strt_dt": "20251025",
+            "end_dt": "20251101",
+            "qry_dt_tp": "1",
+            "pot_tp": "0",
+            "dt": "5",
+            "sort_base": "1",
+            "mmcm_cd": "050",
+            "stex_tp": "1"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "stkinfo",
+          "body": {
+            "stk_cd": "000660",
+            "strt_dt": "20251002",
+            "end_dt": "20251101",
+            "qry_dt_tp": "1",
+            "pot_tp": "0",
+            "dt": "20",
+            "sort_base": "2",
+            "mmcm_cd": "003",
+            "stex_tp": "1"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10002",
+      "api_name": "주식거래원요청",
+      "category": "other",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "stkinfo",
+          "body": {
+            "stk_cd": "000660"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "stkinfo",
+          "body": {
+            "stk_cd": "066970"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10013",
+      "api_name": "신용매매동향요청",
+      "category": "other",
+      "total_variants": 3,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "stkinfo",
+          "body": {
+            "stk_cd": "000660",
+            "dt": "20251101",
+            "qry_tp": "1"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "stkinfo",
+          "body": {
+            "stk_cd": "000660",
+            "dt": "20251101",
+            "qry_tp": "2"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "stkinfo",
+          "body": {
+            "stk_cd": "000660",
+            "dt": "20251031",
+            "qry_tp": "1"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10025",
+      "api_name": "매물대집중요청",
+      "category": "other",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "stkinfo",
+          "body": {
+            "mrkt_tp": "000",
+            "prps_cnctr_rt": "50",
+            "cur_prc_entry": "0",
+            "prpscnt": "10",
+            "cycle_tp": "50",
+            "stex_tp": "3"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "stkinfo",
+          "body": {
+            "mrkt_tp": "001",
+            "prps_cnctr_rt": "70",
+            "cur_prc_entry": "1",
+            "prpscnt": "5",
+            "cycle_tp": "100",
+            "stex_tp": "3"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10026",
+      "api_name": "고저PER요청",
+      "category": "other",
+      "total_variants": 6,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "stkinfo",
+          "body": {
+            "pertp": "1",
+            "stex_tp": "3"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "stkinfo",
+          "body": {
+            "pertp": "2",
+            "stex_tp": "3"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "stkinfo",
+          "body": {
+            "pertp": "3",
+            "stex_tp": "3"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 4,
+          "path": "stkinfo",
+          "body": {
+            "pertp": "4",
+            "stex_tp": "3"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 5,
+          "path": "stkinfo",
+          "body": {
+            "pertp": "5",
+            "stex_tp": "3"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 6,
+          "path": "stkinfo",
+          "body": {
+            "pertp": "6",
+            "stex_tp": "3"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10054",
+      "api_name": "변동성완화장치",
+      "category": "other",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "stkinfo",
+          "body": {
+            "mrkt_tp": "000",
+            "bf_mkrt_tp": "0",
+            "motn_tp": "0",
+            "skip_stk": "000000000",
+            "trde_qty_tp": "0",
+            "min_trde_qty": "0",
+            "max_trde_qty": "999999999999",
+            "trde_prica_tp": "0",
+            "min_trde_prica": "0",
+            "max_trde_prica": "9999999999",
+            "motn_drc": "0",
+            "stex_tp": "3"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "stkinfo",
+          "body": {
+            "mrkt_tp": "001",
+            "bf_mkrt_tp": "1",
+            "motn_tp": "1",
+            "skip_stk": "111111111",
+            "trde_qty_tp": "0",
+            "min_trde_qty": "0",
+            "max_trde_qty": "999999999999",
+            "trde_prica_tp": "0",
+            "min_trde_prica": "0",
+            "max_trde_prica": "9999999999",
+            "motn_drc": "1",
+            "stex_tp": "3"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10063",
+      "api_name": "장중투자자별매매요청",
+      "category": "other",
+      "total_variants": 4,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "mrkcond",
+          "body": {
+            "mrkt_tp": "001",
+            "amt_qty_tp": "1",
+            "invsr": "6",
+            "frgn_all": "0",
+            "smtm_netprps_tp": "0",
+            "stex_tp": "3"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "mrkcond",
+          "body": {
+            "mrkt_tp": "101",
+            "amt_qty_tp": "1",
+            "invsr": "7",
+            "frgn_all": "0",
+            "smtm_netprps_tp": "0",
+            "stex_tp": "3"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "mrkcond",
+          "body": {
+            "mrkt_tp": "001",
+            "amt_qty_tp": "1",
+            "invsr": "1",
+            "frgn_all": "0",
+            "smtm_netprps_tp": "0",
+            "stex_tp": "3"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 4,
+          "path": "mrkcond",
+          "body": {
+            "mrkt_tp": "001",
+            "amt_qty_tp": "1",
+            "invsr": "3",
+            "frgn_all": "1",
+            "smtm_netprps_tp": "1",
+            "stex_tp": "3"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10066",
+      "api_name": "장마감후투자자별매매요청",
+      "category": "other",
+      "total_variants": 4,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "mrkcond",
+          "body": {
+            "mrkt_tp": "001",
+            "amt_qty_tp": "1",
+            "trde_tp": "0",
+            "stex_tp": "3"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "mrkcond",
+          "body": {
+            "mrkt_tp": "101",
+            "amt_qty_tp": "2",
+            "trde_tp": "0",
+            "stex_tp": "3"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "mrkcond",
+          "body": {
+            "mrkt_tp": "000",
+            "amt_qty_tp": "1",
+            "trde_tp": "1",
+            "stex_tp": "3"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 4,
+          "path": "mrkcond",
+          "body": {
+            "mrkt_tp": "000",
+            "amt_qty_tp": "1",
+            "trde_tp": "2",
+            "stex_tp": "3"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10086",
+      "api_name": "일별주가요청",
+      "category": "other",
+      "total_variants": 3,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "mrkcond",
+          "body": {
+            "stk_cd": "000660",
+            "qry_dt": "20251101",
+            "indc_tp": "0"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "mrkcond",
+          "body": {
+            "stk_cd": "000660",
+            "qry_dt": "20251101",
+            "indc_tp": "1"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "mrkcond",
+          "body": {
+            "stk_cd": "000660",
+            "qry_dt": "20251031",
+            "indc_tp": "0"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10102",
+      "api_name": "회원사 리스트",
+      "category": "other",
+      "total_variants": 1,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "stkinfo",
+          "body": {},
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10094",
+      "api_name": "주식년봉차트조회요청",
+      "category": "other",
+      "total_variants": 3,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "chart",
+          "body": {
+            "stk_cd": "000660",
+            "base_dt": "20251101",
+            "upd_stkpc_tp": "1"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "chart",
+          "body": {
+            "stk_cd": "066970",
+            "base_dt": "20251101",
+            "upd_stkpc_tp": "0"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "chart",
+          "body": {
+            "stk_cd": "000660",
+            "base_dt": "20241101",
+            "upd_stkpc_tp": "1"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10064",
+      "api_name": "장중투자자별매매차트요청",
+      "category": "other",
+      "total_variants": 1,
+      "calls": [
+        {
+          "variant_idx": 2,
+          "path": "chart",
+          "body": {
+            "mrkt_tp": "101",
+            "amt_qty_tp": "2",
+            "trde_tp": "0",
+            "stk_cd": "086520"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10017",
+      "api_name": "상하한가요청",
+      "category": "other",
+      "total_variants": 3,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "stkinfo",
+          "body": {
+            "mrkt_tp": "000",
+            "updown_tp": "1",
+            "sort_tp": "1",
+            "stk_cnd": "0",
+            "trde_qty_tp": "00000",
+            "crd_cnd": "0",
+            "trde_gold_tp": "0",
+            "stex_tp": "1"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "stkinfo",
+          "body": {
+            "mrkt_tp": "001",
+            "updown_tp": "2",
+            "sort_tp": "3",
+            "stk_cnd": "1",
+            "trde_qty_tp": "00000",
+            "crd_cnd": "0",
+            "trde_gold_tp": "0",
+            "stex_tp": "1"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "stkinfo",
+          "body": {
+            "mrkt_tp": "101",
+            "updown_tp": "2",
+            "sort_tp": "1",
+            "stk_cnd": "0",
+            "trde_qty_tp": "00100",
+            "crd_cnd": "0",
+            "trde_gold_tp": "8",
+            "stex_tp": "1"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10016",
+      "api_name": "신고저가요청",
+      "category": "other",
+      "total_variants": 3,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "stkinfo",
+          "body": {
+            "mrkt_tp": "001",
+            "ntl_tp": "1",
+            "high_low_close_tp": "2",
+            "stk_cnd": "0",
+            "trde_qty_tp": "00000",
+            "crd_cnd": "0",
+            "updown_incls": "0",
+            "dt": "5",
+            "stex_tp": "1"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "stkinfo",
+          "body": {
+            "mrkt_tp": "101",
+            "ntl_tp": "2",
+            "high_low_close_tp": "1",
+            "stk_cnd": "0",
+            "trde_qty_tp": "00100",
+            "crd_cnd": "0",
+            "updown_incls": "0",
+            "dt": "20",
+            "stex_tp": "1"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "stkinfo",
+          "body": {
+            "mrkt_tp": "000",
+            "ntl_tp": "1",
+            "high_low_close_tp": "1",
+            "stk_cnd": "1",
+            "trde_qty_tp": "00000",
+            "crd_cnd": "0",
+            "updown_incls": "1",
+            "dt": "60",
+            "stex_tp": "3"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10022",
+      "api_name": "잔량율급증요청",
+      "category": "other",
+      "total_variants": 4,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "rkinfo",
+          "body": {
+            "mrkt_tp": "001",
+            "rt_tp": "1",
+            "tm_tp": "5",
+            "trde_qty_tp": "10",
+            "stk_cnd": "0",
+            "stex_tp": "3"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "rkinfo",
+          "body": {
+            "mrkt_tp": "101",
+            "rt_tp": "2",
+            "tm_tp": "10",
+            "trde_qty_tp": "50",
+            "stk_cnd": "0",
+            "stex_tp": "3"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "rkinfo",
+          "body": {
+            "mrkt_tp": "001",
+            "rt_tp": "1",
+            "tm_tp": "30",
+            "trde_qty_tp": "100",
+            "stk_cnd": "1",
+            "stex_tp": "3"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 4,
+          "path": "rkinfo",
+          "body": {
+            "mrkt_tp": "101",
+            "rt_tp": "2",
+            "tm_tp": "1",
+            "trde_qty_tp": "5",
+            "stk_cnd": "0",
+            "stex_tp": "3"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10019",
+      "api_name": "가격급등락요청",
+      "category": "other",
+      "total_variants": 3,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "stkinfo",
+          "body": {
+            "mrkt_tp": "000",
+            "flu_tp": "1",
+            "tm_tp": "1",
+            "tm": "5",
+            "trde_qty_tp": "00000",
+            "stk_cnd": "0",
+            "crd_cnd": "0",
+            "pric_cnd": "0",
+            "updown_incls": "1",
+            "stex_tp": "1"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "stkinfo",
+          "body": {
+            "mrkt_tp": "001",
+            "flu_tp": "2",
+            "tm_tp": "1",
+            "tm": "10",
+            "trde_qty_tp": "00000",
+            "stk_cnd": "0",
+            "crd_cnd": "0",
+            "pric_cnd": "0",
+            "updown_incls": "1",
+            "stex_tp": "1"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "stkinfo",
+          "body": {
+            "mrkt_tp": "101",
+            "flu_tp": "1",
+            "tm_tp": "2",
+            "tm": "1",
+            "trde_qty_tp": "00100",
+            "stk_cnd": "1",
+            "crd_cnd": "0",
+            "pric_cnd": "8",
+            "updown_incls": "1",
+            "stex_tp": "1"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10018",
+      "api_name": "고저가근접요청",
+      "category": "other",
+      "total_variants": 3,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "stkinfo",
+          "body": {
+            "high_low_tp": "1",
+            "alacc_rt": "05",
+            "mrkt_tp": "000",
+            "trde_qty_tp": "00000",
+            "stk_cnd": "0",
+            "crd_cnd": "0",
+            "stex_tp": "1"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "stkinfo",
+          "body": {
+            "high_low_tp": "2",
+            "alacc_rt": "10",
+            "mrkt_tp": "001",
+            "trde_qty_tp": "00000",
+            "stk_cnd": "0",
+            "crd_cnd": "0",
+            "stex_tp": "1"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "stkinfo",
+          "body": {
+            "high_low_tp": "1",
+            "alacc_rt": "20",
+            "mrkt_tp": "101",
+            "trde_qty_tp": "00010",
+            "stk_cnd": "1",
+            "crd_cnd": "0",
+            "stex_tp": "1"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka90001",
+      "api_name": "테마그룹별요청",
+      "category": "other",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "thme",
+          "body": {
+            "qry_tp": "0",
+            "date_tp": "10",
+            "flu_pl_amt_tp": "1",
+            "stex_tp": "1"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "thme",
+          "body": {
+            "qry_tp": "0",
+            "date_tp": "5",
+            "flu_pl_amt_tp": "3",
+            "stex_tp": "1"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10009",
+      "api_name": "주식기관요청",
+      "category": "other",
+      "total_variants": 1,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "frgnistt",
+          "body": {
+            "stk_cd": "000660"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10131",
+      "api_name": "기관외국인연속매매현황요청",
+      "category": "other",
+      "total_variants": 3,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "frgnistt",
+          "body": {
+            "dt": "5",
+            "mrkt_tp": "001",
+            "netslmt_tp": "2",
+            "stk_inds_tp": "0",
+            "amt_qty_tp": "0",
+            "stex_tp": "1"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "frgnistt",
+          "body": {
+            "dt": "10",
+            "mrkt_tp": "101",
+            "netslmt_tp": "2",
+            "stk_inds_tp": "0",
+            "amt_qty_tp": "1",
+            "stex_tp": "1"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "frgnistt",
+          "body": {
+            "dt": "0",
+            "strt_dt": "20251025",
+            "end_dt": "20251101",
+            "mrkt_tp": "001",
+            "netslmt_tp": "2",
+            "stk_inds_tp": "0",
+            "amt_qty_tp": "0",
+            "stex_tp": "1"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10040",
+      "api_name": "당일주요거래원요청",
+      "category": "other",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "rkinfo",
+          "body": {
+            "stk_cd": "000660"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "rkinfo",
+          "body": {
+            "stk_cd": "066970"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka90005",
+      "api_name": "프로그램매매추이요청 시간대별",
+      "category": "other",
+      "total_variants": 3,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "mrkcond",
+          "body": {
+            "date": "20251101",
+            "amt_qty_tp": "1",
+            "mrkt_tp": "P00101",
+            "min_tic_tp": "1",
+            "stex_tp": "1"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "mrkcond",
+          "body": {
+            "date": "20251101",
+            "amt_qty_tp": "2",
+            "mrkt_tp": "P10102",
+            "min_tic_tp": "1",
+            "stex_tp": "1"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "mrkcond",
+          "body": {
+            "date": "20251101",
+            "amt_qty_tp": "1",
+            "mrkt_tp": "P00101",
+            "min_tic_tp": "0",
+            "stex_tp": "1"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka90007",
+      "api_name": "프로그램매매누적추이요청",
+      "category": "other",
+      "total_variants": 3,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "mrkcond",
+          "body": {
+            "date": "20251101",
+            "amt_qty_tp": "1",
+            "mrkt_tp": "0",
+            "stex_tp": "3"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "mrkcond",
+          "body": {
+            "date": "20251101",
+            "amt_qty_tp": "1",
+            "mrkt_tp": "1",
+            "stex_tp": "3"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "mrkcond",
+          "body": {
+            "date": "20251031",
+            "amt_qty_tp": "2",
+            "mrkt_tp": "0",
+            "stex_tp": "3"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10014",
+      "api_name": "공매도추이요청",
+      "category": "other",
+      "total_variants": 3,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "shsa",
+          "body": {
+            "stk_cd": "000660",
+            "tm_tp": "1",
+            "strt_dt": "20251002",
+            "end_dt": "20251101"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "shsa",
+          "body": {
+            "stk_cd": "000660",
+            "tm_tp": "1",
+            "strt_dt": "20241101",
+            "end_dt": "20251101"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "shsa",
+          "body": {
+            "stk_cd": "066970",
+            "tm_tp": "1",
+            "strt_dt": "20251018",
+            "end_dt": "20251101"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10068",
+      "api_name": "대차거래추이요청",
+      "category": "other",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "slb",
+          "body": {
+            "strt_dt": "20251002",
+            "end_dt": "20251101",
+            "all_tp": "1"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "slb",
+          "body": {
+            "strt_dt": "20241101",
+            "end_dt": "20251101",
+            "all_tp": "1"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka20068",
+      "api_name": "대차거래추이요청",
+      "category": "other",
+      "total_variants": 3,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "slb",
+          "body": {
+            "strt_dt": "20251002",
+            "end_dt": "20251101",
+            "all_tp": "0",
+            "stk_cd": "000660"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "slb",
+          "body": {
+            "strt_dt": "20241101",
+            "end_dt": "20251101",
+            "all_tp": "0",
+            "stk_cd": "000660"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "slb",
+          "body": {
+            "strt_dt": "20251025",
+            "end_dt": "20251101",
+            "all_tp": "0",
+            "stk_cd": "066970"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka90012",
+      "api_name": "대차거래내역요청",
+      "category": "other",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "slb",
+          "body": {
+            "dt": "20251031",
+            "mrkt_tp": "001"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "slb",
+          "body": {
+            "dt": "20251031",
+            "mrkt_tp": "101"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka40001",
+      "api_name": "ETF수익율요청",
+      "category": "other",
+      "total_variants": 3,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "etf",
+          "body": {
+            "stk_cd": "069500",
+            "etfobjt_idex_cd": "207",
+            "dt": "1"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "etf",
+          "body": {
+            "stk_cd": "069500",
+            "etfobjt_idex_cd": "207",
+            "dt": "3"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "etf",
+          "body": {
+            "stk_cd": "114800",
+            "etfobjt_idex_cd": "207",
+            "dt": "0"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka40003",
+      "api_name": "ETF일별추이요청",
+      "category": "other",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "etf",
+          "body": {
+            "stk_cd": "069500"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "etf",
+          "body": {
+            "stk_cd": "114800"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka40006",
+      "api_name": "ETF시간대별추이요청",
+      "category": "other",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "etf",
+          "body": {
+            "stk_cd": "069500"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "etf",
+          "body": {
+            "stk_cd": "114800"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka40009",
+      "api_name": "ETF NAV 요청",
+      "category": "other",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "etf",
+          "body": {
+            "stk_cd": "069500"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "etf",
+          "body": {
+            "stk_cd": "114800"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka40010",
+      "api_name": "ETF 시간대별 추이",
+      "category": "other",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "etf",
+          "body": {
+            "stk_cd": "069500"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "etf",
+          "body": {
+            "stk_cd": "114800"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka50012",
+      "api_name": "금현물일별추이",
+      "category": "other",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "mrkcond",
+          "body": {
+            "stk_cd": "M04020000",
+            "base_dt": "20251101"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "mrkcond",
+          "body": {
+            "stk_cd": "M04020100",
+            "base_dt": "20251031"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka52301",
+      "api_name": "금현물투자자현황",
+      "category": "other",
+      "total_variants": 1,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "frgnistt",
+          "body": {},
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10064",
+      "api_name": "장중투자자별매매차트요청",
+      "category": "other",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "chart",
+          "body": {
+            "mrkt_tp": "001",
+            "amt_qty_tp": "1",
+            "trde_tp": "0",
+            "stk_cd": "005930"
+          },
+          "status": "corrected",
+          "fix_reason": "종목코드 000660 → 005930 (삼성전자)"
+        },
+        {
+          "variant_idx": 3,
+          "path": "chart",
+          "body": {
+            "mrkt_tp": "001",
+            "amt_qty_tp": "1",
+            "trde_tp": "2",
+            "stk_cd": "005930"
+          },
+          "status": "corrected",
+          "fix_reason": "종목코드 000660 → 005930 (삼성전자)"
+        }
+      ],
+      "source": "corrected",
+      "tested": true,
+      "original_status": "partial_fail",
+      "corrections_applied": true
+    },
+    {
+      "api_id": "ka90001",
+      "api_name": "테마그룹별요청",
+      "category": "other",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 3,
+          "path": "thme",
+          "body": {
+            "qry_tp": "0",
+            "thema_nm": "2차전지",
+            "date_tp": "10",
+            "flu_pl_amt_tp": "1",
+            "stex_tp": "1"
+          },
+          "status": "corrected",
+          "fix_reason": "qry_tp를 0 (전체조회)로 변경"
+        },
+        {
+          "variant_idx": 4,
+          "path": "thme",
+          "body": {
+            "qry_tp": "2",
+            "stk_cd": "005930",
+            "date_tp": "10",
+            "flu_pl_amt_tp": "1",
+            "stex_tp": "1"
+          },
+          "status": "corrected",
+          "fix_reason": "종목코드 000660 → 005930 (삼성전자)"
+        }
+      ],
+      "source": "corrected",
+      "tested": true,
+      "original_status": "partial_fail",
+      "corrections_applied": true
+    },
+    {
+      "api_id": "ka10054",
+      "api_name": "변동성완화장치",
+      "category": "other",
+      "total_variants": 1,
+      "calls": [
+        {
+          "variant_idx": 3,
+          "path": "stkinfo",
+          "body": {
+            "mrkt_tp": "101",
+            "bf_mkrt_tp": "0",
+            "motn_tp": "0",
+            "skip_stk": "000000000",
+            "trde_qty_tp": "1",
+            "min_trde_qty": "1",
+            "max_trde_qty": "999999999999",
+            "trde_prica_tp": "0",
+            "min_trde_prica": "0",
+            "max_trde_prica": "9999999999",
+            "motn_drc": "0",
+            "stex_tp": "3"
+          },
+          "status": "corrected",
+          "fix_reason": "파라미터 최적화"
+        }
+      ],
+      "source": "corrected",
+      "tested": true,
+      "original_status": "partial_fail",
+      "corrections_applied": true
+    }
+  ],
+  "count": 45
+}

@@ -1,0 +1,49 @@
+{
+  "category": "info",
+  "apis": [
+    {
+      "api_id": "ka10001",
+      "api_name": "주식기본정보요청",
+      "category": "info",
+      "total_variants": 4,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "stkinfo",
+          "body": {
+            "stk_cd": "000660"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "stkinfo",
+          "body": {
+            "stk_cd": "066970"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "stkinfo",
+          "body": {
+            "stk_cd": "069500"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 4,
+          "path": "stkinfo",
+          "body": {
+            "stk_cd": "J0669721F"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    }
+  ],
+  "count": 1
+}

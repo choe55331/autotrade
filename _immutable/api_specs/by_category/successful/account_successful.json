@@ -1,0 +1,930 @@
+{
+  "category": "account",
+  "apis": {
+    "kt00005": {
+      "api_id": "kt00005",
+      "api_name": "체결잔고요청",
+      "category": "account",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "acnt",
+          "body": {
+            "dmst_stex_tp": "KRX",
+            "stk_cd": "005930"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "acnt",
+          "body": {
+            "dmst_stex_tp": "NXT",
+            "stk_cd": "005930"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0,
+      "note": "체결잔고가 있어야 데이터 반환"
+    },
+    "kt00018": {
+      "api_id": "kt00018",
+      "api_name": "계좌평가잔고내역요청",
+      "category": "account",
+      "total_variants": 4,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "acnt",
+          "body": {
+            "qry_tp": "2",
+            "dmst_stex_tp": "KRX",
+            "stk_cd": "005930",
+            "qry_dt": "20251101"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "acnt",
+          "body": {
+            "qry_tp": "1",
+            "dmst_stex_tp": "KRX",
+            "stk_cd": "005930",
+            "qry_dt": "20251101"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "acnt",
+          "body": {
+            "qry_tp": "2",
+            "dmst_stex_tp": "NXT",
+            "stk_cd": "005930",
+            "qry_dt": "20251101"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 4,
+          "path": "acnt",
+          "body": {
+            "qry_tp": "1",
+            "dmst_stex_tp": "NXT",
+            "stk_cd": "005930",
+            "qry_dt": "20251101"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0,
+      "note": "계좌 평가 잔고가 있어야 데이터 반환"
+    },
+    "ka10085": {
+      "api_id": "ka10085",
+      "api_name": "계좌수익률요청",
+      "category": "account",
+      "total_variants": 3,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "acnt",
+          "body": {
+            "stex_tp": "0",
+            "period": "1M",
+            "strt_dt": "20251001",
+            "end_dt": "20251101"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "acnt",
+          "body": {
+            "stex_tp": "1",
+            "period": "1M",
+            "strt_dt": "20251001",
+            "end_dt": "20251101"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "acnt",
+          "body": {
+            "stex_tp": "2",
+            "period": "1M",
+            "strt_dt": "20251001",
+            "end_dt": "20251101"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0,
+      "note": "계좌 거래 내역이 있어야 데이터 반환"
+    },
+    "kt00001": {
+      "api_id": "kt00001",
+      "api_name": "예수금상세현황요청",
+      "category": "account",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "acnt",
+          "body": {
+            "qry_tp": "01",
+            "incl_tp": "00"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "acnt",
+          "body": {
+            "qry_tp": "01",
+            "incl_tp": "00"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0,
+      "note": "예수금이 있어야 데이터 반환"
+    },
+    "kt00004": {
+      "api_id": "kt00004",
+      "api_name": "계좌평가현황요청",
+      "category": "account",
+      "total_variants": 3,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "acnt",
+          "body": {
+            "dmst_stex_tp": "KRX",
+            "qry_tp": "01"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "acnt",
+          "body": {
+            "dmst_stex_tp": "NXT",
+            "qry_tp": "01"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "acnt",
+          "body": {
+            "dmst_stex_tp": "%",
+            "qry_tp": "01"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0,
+      "note": "계좌 평가 데이터가 있어야 반환"
+    },
+    "kt00010": {
+      "api_id": "kt00010",
+      "api_name": "주문인출가능금액요청",
+      "category": "account",
+      "total_variants": 1,
+      "calls": [
+        {
+          "variant_idx": 2,
+          "path": "acnt",
+          "body": {
+            "stk_cd": "005930",
+            "trde_tp": "2",
+            "uv": "480000",
+            "ord_tp": "01"
+          },
+          "status": "corrected",
+          "fix_reason": "종목코드 000660 → 005930 (삼성전자)"
+        }
+      ],
+      "source": "corrected",
+      "tested": true,
+      "original_status": "partial_fail",
+      "corrections_applied": true
+    },
+    "kt00011": {
+      "api_id": "kt00011",
+      "api_name": "증거금율별주문가능수량조회요청",
+      "category": "account",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "acnt",
+          "body": {
+            "stk_cd": "005930",
+            "uv": "0",
+            "ord_tp": "2"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "acnt",
+          "body": {
+            "stk_cd": "005930",
+            "uv": "0",
+            "ord_tp": "2"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0,
+      "note": "주문 가능 내역이 있어야 데이터 반환"
+    },
+    "kt00013": {
+      "api_id": "kt00013",
+      "api_name": "증거금세부내역조회요청",
+      "category": "account",
+      "total_variants": 1,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "acnt",
+          "body": {
+            "qry_tp": "01",
+            "incl_tp": "00"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    "ka10077": {
+      "api_id": "ka10077",
+      "api_name": "당일실현손익상세요청",
+      "category": "account",
+      "total_variants": 1,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "acnt",
+          "body": {
+            "stk_cd": "000660"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    "ka10074": {
+      "api_id": "ka10074",
+      "api_name": "일자별실현손익요청",
+      "category": "account",
+      "total_variants": 3,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "acnt",
+          "body": {
+            "strt_dt": "20251101",
+            "end_dt": "20251101"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "acnt",
+          "body": {
+            "strt_dt": "20251025",
+            "end_dt": "20251101"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "acnt",
+          "body": {
+            "strt_dt": "20251002",
+            "end_dt": "20251101"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    "ka10073": {
+      "api_id": "ka10073",
+      "api_name": "일자별종목별실현손익요청_기간",
+      "category": "account",
+      "total_variants": 1,
+      "calls": [
+        {
+          "variant_idx": 3,
+          "path": "acnt",
+          "body": {
+            "stk_cd": "005930",
+            "strt_dt": "20251002",
+            "end_dt": "20251101"
+          },
+          "status": "corrected",
+          "fix_reason": "종목코드 000660 → 005930 (삼성전자); 시작일자를 일주일 전으로 변경; 종료일자를 어제로 변경"
+        }
+      ],
+      "source": "corrected",
+      "tested": true,
+      "original_status": "partial_fail",
+      "corrections_applied": true
+    },
+    "ka10072": {
+      "api_id": "ka10072",
+      "api_name": "일자별종목별실현손익요청_일자",
+      "category": "account",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 2,
+          "path": "acnt",
+          "body": {
+            "stk_cd": "005930",
+            "strt_dt": "20251031",
+            "trad_dt": "20251101",
+            "start_dt": "20251018",
+            "end_dt": "20251101",
+            "qry_dt": "20251101"
+          },
+          "status": "corrected",
+          "fix_reason": "종목코드 071050 → 005930 (삼성전자); 시작일자를 일주일 전으로 변경"
+        },
+        {
+          "variant_idx": 3,
+          "path": "acnt",
+          "body": {
+            "stk_cd": "005930",
+            "strt_dt": "20251031",
+            "trad_dt": "20251101",
+            "start_dt": "20251018",
+            "end_dt": "20251101",
+            "qry_dt": "20251101"
+          },
+          "status": "corrected",
+          "fix_reason": "종목코드 000660 → 005930 (삼성전자); 시작일자를 일주일 전으로 변경"
+        }
+      ],
+      "source": "corrected",
+      "tested": true,
+      "original_status": "partial_fail",
+      "corrections_applied": true
+    },
+    "ka01690": {
+      "api_id": "ka01690",
+      "api_name": "일별잔고수익률",
+      "category": "account",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "acnt",
+          "body": {
+            "qry_dt": "20251031"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "acnt",
+          "body": {
+            "qry_dt": "20251029"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    "kt00007": {
+      "api_id": "kt00007",
+      "api_name": "계좌별주문체결내역상세요청",
+      "category": "account",
+      "total_variants": 3,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "acnt",
+          "body": {
+            "ord_dt": "20251018",
+            "qry_tp": "1",
+            "stk_bond_tp": "0",
+            "sell_tp": "0",
+            "stk_cd": "",
+            "fr_ord_no": "",
+            "dmst_stex_tp": "%",
+            "start_dt": "20251018",
+            "end_dt": "20251101",
+            "qry_dt": "20251101",
+            "trad_dt": "20251101"
+          },
+          "status": "corrected",
+          "fix_reason": "주문일자를 어제로 변경"
+        },
+        {
+          "variant_idx": 2,
+          "path": "acnt",
+          "body": {
+            "ord_dt": "20251018",
+            "qry_tp": "1",
+            "stk_bond_tp": "0",
+            "sell_tp": "0",
+            "stk_cd": "",
+            "fr_ord_no": "",
+            "dmst_stex_tp": "%",
+            "start_dt": "20251018",
+            "end_dt": "20251101",
+            "qry_dt": "20251101",
+            "trad_dt": "20251101"
+          },
+          "status": "corrected",
+          "fix_reason": "주문일자를 어제로 변경"
+        },
+        {
+          "variant_idx": 3,
+          "path": "acnt",
+          "body": {
+            "ord_dt": "20251018",
+            "qry_tp": "1",
+            "stk_bond_tp": "0",
+            "sell_tp": "0",
+            "stk_cd": "",
+            "fr_ord_no": "",
+            "dmst_stex_tp": "%",
+            "start_dt": "20251018",
+            "end_dt": "20251101",
+            "qry_dt": "20251101",
+            "trad_dt": "20251101"
+          },
+          "status": "corrected",
+          "fix_reason": "주문일자를 어제로 변경"
+        }
+      ],
+      "source": "corrected",
+      "tested": true,
+      "original_status": "partial_fail",
+      "corrections_applied": true,
+      "note": "주문 체결 내역이 있어야 데이터 반환"
+    },
+    "kt00017": {
+      "api_id": "kt00017",
+      "api_name": "계좌별당일현황요청",
+      "category": "account",
+      "total_variants": 1,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "acnt",
+          "body": {
+            "qry_tp": "01",
+            "incl_tp": "00",
+            "strt_dt": "20251018",
+            "end_dt": "20251101"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    "kt00008": {
+      "api_id": "kt00008",
+      "api_name": "계좌별익일결제예정내역요청",
+      "category": "account",
+      "total_variants": 1,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "acnt",
+          "body": {
+            "qry_dt": "20251101"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0,
+      "note": "익일 결제 예정이 있어야 데이터 반환"
+    },
+    "kt00016": {
+      "api_id": "kt00016",
+      "api_name": "일별계좌수익률상세현황요청",
+      "category": "account",
+      "total_variants": 3,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "acnt",
+          "body": {
+            "strt_dt": "20251018",
+            "end_dt": "20251101",
+            "inqr_tp": "1"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "acnt",
+          "body": {
+            "strt_dt": "20251018",
+            "end_dt": "20251101",
+            "inqr_tp": "2"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "acnt",
+          "body": {
+            "strt_dt": "20251002",
+            "end_dt": "20251101",
+            "inqr_tp": "3"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0,
+      "note": "일별 수익률 데이터가 있어야 반환"
+    },
+    "ka10003": {
+      "api_id": "ka10003",
+      "api_name": "체결정보요청",
+      "category": "account",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "stkinfo",
+          "body": {
+            "stk_cd": "000660"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "stkinfo",
+          "body": {
+            "stk_cd": "066970"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    "ka10046": {
+      "api_id": "ka10046",
+      "api_name": "체결강도추이시간별요청",
+      "category": "account",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "mrkcond",
+          "body": {
+            "stk_cd": "000660"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "mrkcond",
+          "body": {
+            "stk_cd": "066970"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    "ka10047": {
+      "api_id": "ka10047",
+      "api_name": "체결강도추이일별요청",
+      "category": "account",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "mrkcond",
+          "body": {
+            "stk_cd": "000660"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "mrkcond",
+          "body": {
+            "stk_cd": "066970"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    "ka10055": {
+      "api_id": "ka10055",
+      "api_name": "당일전일체결량요청",
+      "category": "account",
+      "total_variants": 3,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "stkinfo",
+          "body": {
+            "stk_cd": "000660",
+            "tdy_pred": "1"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "stkinfo",
+          "body": {
+            "stk_cd": "000660",
+            "tdy_pred": "2"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "stkinfo",
+          "body": {
+            "stk_cd": "066970",
+            "tdy_pred": "1"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    "ka10084": {
+      "api_id": "ka10084",
+      "api_name": "당일전일체결요청",
+      "category": "account",
+      "total_variants": 4,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "stkinfo",
+          "body": {
+            "stk_cd": "000660",
+            "tdy_pred": "1",
+            "tic_min": "0"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "stkinfo",
+          "body": {
+            "stk_cd": "000660",
+            "tdy_pred": "1",
+            "tic_min": "1",
+            "tm": "0900"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "stkinfo",
+          "body": {
+            "stk_cd": "000660",
+            "tdy_pred": "2",
+            "tic_min": "0"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 4,
+          "path": "stkinfo",
+          "body": {
+            "stk_cd": "000660",
+            "tdy_pred": "2",
+            "tic_min": "1",
+            "tm": "1530"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    "ka10029": {
+      "api_id": "ka10029",
+      "api_name": "예상체결등락률상위요청",
+      "category": "account",
+      "total_variants": 4,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "rkinfo",
+          "body": {
+            "mrkt_tp": "000",
+            "sort_tp": "1",
+            "trde_qty_cnd": "0",
+            "stk_cnd": "0",
+            "crd_cnd": "0",
+            "pric_cnd": "0",
+            "stex_tp": "3"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "rkinfo",
+          "body": {
+            "mrkt_tp": "001",
+            "sort_tp": "4",
+            "trde_qty_cnd": "10",
+            "stk_cnd": "0",
+            "crd_cnd": "0",
+            "pric_cnd": "0",
+            "stex_tp": "3"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "rkinfo",
+          "body": {
+            "mrkt_tp": "101",
+            "sort_tp": "6",
+            "trde_qty_cnd": "50",
+            "stk_cnd": "1",
+            "crd_cnd": "0",
+            "pric_cnd": "0",
+            "stex_tp": "3"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 4,
+          "path": "rkinfo",
+          "body": {
+            "mrkt_tp": "000",
+            "sort_tp": "2",
+            "trde_qty_cnd": "0",
+            "stk_cnd": "0",
+            "crd_cnd": "0",
+            "pric_cnd": "0",
+            "stex_tp": "3"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    "ka40007": {
+      "api_id": "ka40007",
+      "api_name": "ETF시간대별체결요청",
+      "category": "account",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "etf",
+          "body": {
+            "stk_cd": "069500"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "etf",
+          "body": {
+            "stk_cd": "114800"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    "ka40008": {
+      "api_id": "ka40008",
+      "api_name": "ETF일자별체결요청",
+      "category": "account",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "etf",
+          "body": {
+            "stk_cd": "069500"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "etf",
+          "body": {
+            "stk_cd": "114800"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    "ka50010": {
+      "api_id": "ka50010",
+      "api_name": "금현물체결추이",
+      "category": "account",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "mrkcond",
+          "body": {
+            "stk_cd": "M04020000"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "mrkcond",
+          "body": {
+            "stk_cd": "M04020100"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    "ka50087": {
+      "api_id": "ka50087",
+      "api_name": "금현물예상체결",
+      "category": "account",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "mrkcond",
+          "body": {
+            "stk_cd": "M04020000"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "mrkcond",
+          "body": {
+            "stk_cd": "M04020100"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    }
+  },
+  "count": 27
+}

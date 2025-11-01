@@ -1,0 +1,938 @@
+{
+  "category": "search",
+  "apis": [
+    {
+      "api_id": "ka10059",
+      "api_name": "종목별투자자기관별요청",
+      "category": "search",
+      "total_variants": 4,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "stkinfo",
+          "body": {
+            "stk_cd": "000660",
+            "dt": "20251101",
+            "amt_qty_tp": "1",
+            "trde_tp": "0",
+            "unit_tp": "1000"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "stkinfo",
+          "body": {
+            "stk_cd": "000660",
+            "dt": "20251031",
+            "amt_qty_tp": "2",
+            "trde_tp": "0",
+            "unit_tp": "1"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "stkinfo",
+          "body": {
+            "stk_cd": "000660",
+            "dt": "20251101",
+            "amt_qty_tp": "1",
+            "trde_tp": "1",
+            "unit_tp": "1000"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 4,
+          "path": "stkinfo",
+          "body": {
+            "stk_cd": "000660",
+            "dt": "20251101",
+            "amt_qty_tp": "1",
+            "trde_tp": "2",
+            "unit_tp": "1000"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10061",
+      "api_name": "종목별투자자기관별합계요청",
+      "category": "search",
+      "total_variants": 3,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "stkinfo",
+          "body": {
+            "stk_cd": "000660",
+            "strt_dt": "20251101",
+            "end_dt": "20251101",
+            "amt_qty_tp": "1",
+            "trde_tp": "0",
+            "unit_tp": "1000"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "stkinfo",
+          "body": {
+            "stk_cd": "000660",
+            "strt_dt": "20251025",
+            "end_dt": "20251101",
+            "amt_qty_tp": "1",
+            "trde_tp": "0",
+            "unit_tp": "1000"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "stkinfo",
+          "body": {
+            "stk_cd": "000660",
+            "strt_dt": "20251002",
+            "end_dt": "20251101",
+            "amt_qty_tp": "2",
+            "trde_tp": "0",
+            "unit_tp": "1"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10045",
+      "api_name": "종목별기관매매추이요청",
+      "category": "search",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "mrkcond",
+          "body": {
+            "stk_cd": "000660",
+            "strt_dt": "20251025",
+            "end_dt": "20251101",
+            "orgn_prsm_unp_tp": "1",
+            "for_prsm_unp_tp": "1"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "mrkcond",
+          "body": {
+            "stk_cd": "000660",
+            "strt_dt": "20251002",
+            "end_dt": "20251101",
+            "orgn_prsm_unp_tp": "2",
+            "for_prsm_unp_tp": "2"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10078",
+      "api_name": "증권사별종목매매동향요청",
+      "category": "search",
+      "total_variants": 3,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "mrkcond",
+          "body": {
+            "mmcm_cd": "050",
+            "stk_cd": "000660",
+            "strt_dt": "20251101",
+            "end_dt": "20251101"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "mrkcond",
+          "body": {
+            "mmcm_cd": "003",
+            "stk_cd": "000660",
+            "strt_dt": "20251025",
+            "end_dt": "20251101"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "mrkcond",
+          "body": {
+            "mmcm_cd": "005",
+            "stk_cd": "066970",
+            "strt_dt": "20251002",
+            "end_dt": "20251101"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10095",
+      "api_name": "관심종목정보요청",
+      "category": "search",
+      "total_variants": 3,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "stkinfo",
+          "body": {
+            "stk_cd": "000660"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "stkinfo",
+          "body": {
+            "stk_cd": "066970"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "stkinfo",
+          "body": {
+            "stk_cd": "000660|000660|066970"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10099",
+      "api_name": "종목정보 리스트",
+      "category": "search",
+      "total_variants": 3,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "stkinfo",
+          "body": {
+            "mrkt_tp": "0"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "stkinfo",
+          "body": {
+            "mrkt_tp": "10"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "stkinfo",
+          "body": {
+            "mrkt_tp": "8"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10100",
+      "api_name": "종목정보 조회",
+      "category": "search",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "stkinfo",
+          "body": {
+            "stk_cd": "000660"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "stkinfo",
+          "body": {
+            "stk_cd": "066970"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10101",
+      "api_name": "업종코드 리스트",
+      "category": "search",
+      "total_variants": 3,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "stkinfo",
+          "body": {
+            "mrkt_tp": "0"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "stkinfo",
+          "body": {
+            "mrkt_tp": "1"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "stkinfo",
+          "body": {
+            "mrkt_tp": "2"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10060",
+      "api_name": "종목별투자자기관별차트요청",
+      "category": "search",
+      "total_variants": 3,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "chart",
+          "body": {
+            "dt": "20251101",
+            "stk_cd": "000660",
+            "amt_qty_tp": "1",
+            "trde_tp": "0",
+            "unit_tp": "1000"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "chart",
+          "body": {
+            "dt": "20251101",
+            "stk_cd": "000660",
+            "amt_qty_tp": "2",
+            "trde_tp": "0",
+            "unit_tp": "1000"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "chart",
+          "body": {
+            "dt": "20251031",
+            "stk_cd": "000660",
+            "amt_qty_tp": "1",
+            "trde_tp": "1",
+            "unit_tp": "1"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka20001",
+      "api_name": "업종현재가요청",
+      "category": "search",
+      "total_variants": 3,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "sect",
+          "body": {
+            "mrkt_tp": "0",
+            "inds_cd": "001"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "sect",
+          "body": {
+            "mrkt_tp": "1",
+            "inds_cd": "101"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "sect",
+          "body": {
+            "mrkt_tp": "2",
+            "inds_cd": "201"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka20002",
+      "api_name": "업종별주가요청",
+      "category": "search",
+      "total_variants": 3,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "sect",
+          "body": {
+            "mrkt_tp": "0",
+            "inds_cd": "001",
+            "stex_tp": "1"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "sect",
+          "body": {
+            "mrkt_tp": "1",
+            "inds_cd": "101",
+            "stex_tp": "1"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "sect",
+          "body": {
+            "mrkt_tp": "2",
+            "inds_cd": "201",
+            "stex_tp": "1"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka20003",
+      "api_name": "전업종지수요청",
+      "category": "search",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "sect",
+          "body": {
+            "inds_cd": "001"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "sect",
+          "body": {
+            "inds_cd": "101"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka20009",
+      "api_name": "업종현재가일별요청",
+      "category": "search",
+      "total_variants": 3,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "sect",
+          "body": {
+            "mrkt_tp": "0",
+            "inds_cd": "001"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "sect",
+          "body": {
+            "mrkt_tp": "1",
+            "inds_cd": "101"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "sect",
+          "body": {
+            "mrkt_tp": "2",
+            "inds_cd": "201"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10051",
+      "api_name": "업종별투자자순매수요청",
+      "category": "search",
+      "total_variants": 3,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "sect",
+          "body": {
+            "mrkt_tp": "0",
+            "amt_qty_tp": "0",
+            "base_dt": "20251101",
+            "stex_tp": "3"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "sect",
+          "body": {
+            "mrkt_tp": "1",
+            "amt_qty_tp": "1",
+            "base_dt": "20251031",
+            "stex_tp": "3"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "sect",
+          "body": {
+            "mrkt_tp": "0",
+            "amt_qty_tp": "1",
+            "base_dt": "20251101",
+            "stex_tp": "3"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka90002",
+      "api_name": "테마구성종목요청",
+      "category": "search",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "thme",
+          "body": {
+            "date_tp": "2",
+            "thema_grp_cd": "100",
+            "stex_tp": "1"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "thme",
+          "body": {
+            "date_tp": "10",
+            "thema_grp_cd": "452",
+            "stex_tp": "1"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10008",
+      "api_name": "주식외국인종목별매매동향",
+      "category": "search",
+      "total_variants": 1,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "frgnistt",
+          "body": {
+            "stk_cd": "000660"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10058",
+      "api_name": "투자자별일별매매종목요청",
+      "category": "search",
+      "total_variants": 3,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "stkinfo",
+          "body": {
+            "strt_dt": "20251101",
+            "end_dt": "20251101",
+            "trde_tp": "2",
+            "mrkt_tp": "001",
+            "invsr_tp": "9000",
+            "stex_tp": "1"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "stkinfo",
+          "body": {
+            "strt_dt": "20251101",
+            "end_dt": "20251101",
+            "trde_tp": "1",
+            "mrkt_tp": "101",
+            "invsr_tp": "9999",
+            "stex_tp": "1"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "stkinfo",
+          "body": {
+            "strt_dt": "20251025",
+            "end_dt": "20251101",
+            "trde_tp": "2",
+            "mrkt_tp": "001",
+            "invsr_tp": "6000",
+            "stex_tp": "1"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka90004",
+      "api_name": "종목별프로그램매매현황요청",
+      "category": "search",
+      "total_variants": 3,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "stkinfo",
+          "body": {
+            "dt": "20251101",
+            "mrkt_tp": "P00101",
+            "stex_tp": "1"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "stkinfo",
+          "body": {
+            "dt": "20251101",
+            "mrkt_tp": "P10102",
+            "stex_tp": "1"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "stkinfo",
+          "body": {
+            "dt": "20251031",
+            "mrkt_tp": "P00101",
+            "stex_tp": "1"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka90008",
+      "api_name": "종목시간별프로그램매매추이요청",
+      "category": "search",
+      "total_variants": 3,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "mrkcond",
+          "body": {
+            "amt_qty_tp": "1",
+            "stk_cd": "000660",
+            "date": "20251101"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "mrkcond",
+          "body": {
+            "amt_qty_tp": "2",
+            "stk_cd": "000660",
+            "date": "20251101"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "mrkcond",
+          "body": {
+            "amt_qty_tp": "1",
+            "stk_cd": "000660",
+            "date": "20251031"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka90013",
+      "api_name": "종목일별프로그램매매추이요청",
+      "category": "search",
+      "total_variants": 3,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "mrkcond",
+          "body": {
+            "stk_cd": "000660",
+            "date": "20251101",
+            "amt_qty_tp": "1"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "mrkcond",
+          "body": {
+            "stk_cd": "000660",
+            "date": "20251101",
+            "amt_qty_tp": "2"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 3,
+          "path": "mrkcond",
+          "body": {
+            "stk_cd": "066970",
+            "date": "20251031",
+            "amt_qty_tp": "1"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka30005",
+      "api_name": "ELW조건검색요청",
+      "category": "search",
+      "total_variants": 1,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "elw",
+          "body": {
+            "isscomp_cd": "000000000000",
+            "bsis_aset_cd": "201",
+            "rght_tp": "1",
+            "lpcd": "000000000000",
+            "sort_tp": "0"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka30012",
+      "api_name": "ELW종목상세정보요청",
+      "category": "search",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "elw",
+          "body": {
+            "stk_cd": "J0669721F"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "elw",
+          "body": {
+            "stk_cd": "J0036221D"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka40002",
+      "api_name": "ETF종목정보요청",
+      "category": "search",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "etf",
+          "body": {
+            "stk_cd": "069500"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "etf",
+          "body": {
+            "stk_cd": "114800"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    {
+      "api_id": "ka10010",
+      "api_name": "업종프로그램요청",
+      "category": "search",
+      "total_variants": 3,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "sect",
+          "body": {
+            "stk_cd": "005930"
+          },
+          "status": "pending",
+          "fix_reason": "업종코드 \"001\"을 삼성전자 종목코드로 변경"
+        },
+        {
+          "variant_idx": 2,
+          "path": "sect",
+          "body": {
+            "stk_cd": "000660"
+          },
+          "status": "pending",
+          "fix_reason": "업종코드 \"201\"을 SK하이닉스 종목코드로 변경"
+        },
+        {
+          "variant_idx": 3,
+          "path": "sect",
+          "body": {
+            "stk_cd": "035420"
+          },
+          "status": "pending",
+          "fix_reason": "업종코드 \"101\"을 NAVER 종목코드로 변경"
+        }
+      ],
+      "source": "corrected",
+      "tested": true,
+      "original_status": "total_fail",
+      "corrections_applied": true
+    },
+    {
+      "api_id": "ka30005",
+      "api_name": "ELW조건검색요청",
+      "category": "search",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 2,
+          "path": "elw",
+          "body": {
+            "isscomp_cd": "000000000000",
+            "bsis_aset_cd": "201",
+            "rght_tp": "2",
+            "lpcd": "000000000000",
+            "sort_tp": "5"
+          },
+          "status": "corrected",
+          "fix_reason": "기초자산코드 066970 → 201 (KOSPI200)"
+        },
+        {
+          "variant_idx": 3,
+          "path": "elw",
+          "body": {
+            "isscomp_cd": "000000000000",
+            "bsis_aset_cd": "201",
+            "rght_tp": "1",
+            "lpcd": "000000000000",
+            "sort_tp": "6"
+          },
+          "status": "corrected",
+          "fix_reason": "기초자산코드 000660 → 201 (KOSPI200)"
+        }
+      ],
+      "source": "corrected",
+      "tested": true,
+      "original_status": "partial_fail",
+      "corrections_applied": true
+    }
+  ],
+  "count": 25
+}
