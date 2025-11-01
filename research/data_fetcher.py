@@ -5,6 +5,7 @@ research/data_fetcher.py
 import logging
 from typing import Dict, Any, Optional, List
 from datetime import datetime
+from utils.trading_date import get_last_trading_date
 
 logger = logging.getLogger(__name__)
 
@@ -454,11 +455,11 @@ class DataFetcher:
     ) -> Optional[Dict[str, Any]]:
         """
         투자자별 매매 동향 조회 (외국인, 기관)
-        
+
         Args:
             stock_code: 종목코드
-            date: 조회일 (YYYYMMDD, None이면 오늘)
-        
+            date: 조회일 (YYYYMMDD, None이면 최근 거래일 자동 계산)
+
         Returns:
             투자자별 매매 동향
             {
@@ -468,23 +469,24 @@ class DataFetcher:
                 'foreign_hold_rate': 52.5  # 외국인 보유 비율
             }
         """
+        # 날짜 자동 계산
         if not date:
-            date = datetime.now().strftime('%Y%m%d')
-        
+            date = get_last_trading_date()
+
         body = {
             "stock_code": stock_code,
             "date": date
         }
-        
+
         response = self.client.request(
             api_id="DOSK_0040",
             body=body,
             path="/api/dostk/inquire/investor"
         )
-        
+
         if response and response.get('return_code') == 0:
             investor_info = response.get('output', {})
-            logger.info(f"{stock_code} 투자자별 매매 동향 조회 완료")
+            logger.info(f"{stock_code} 투자자별 매매 동향 조회 완료 (날짜: {date})")
             return investor_info
         else:
             logger.error(f"투자자별 매매 동향 조회 실패: {response.get('return_msg')}")

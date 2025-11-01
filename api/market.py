@@ -4,6 +4,7 @@ api/market.py
 """
 import logging
 from typing import Dict, Any, Optional, List
+from utils.trading_date import get_last_trading_date
 
 logger = logging.getLogger(__name__)
 
@@ -119,33 +120,41 @@ class MarketAPI:
     def get_volume_rank(
         self,
         market: str = 'ALL',
-        limit: int = 20
+        limit: int = 20,
+        date: str = None
     ) -> List[Dict[str, Any]]:
         """
         거래량 순위 조회
-        
+
         Args:
             market: 시장구분 ('ALL', 'KOSPI', 'KOSDAQ')
             limit: 조회 건수
-        
+            date: 조회일 (YYYYMMDD, None이면 최근 거래일 자동 계산)
+
         Returns:
             거래량 순위 리스트
         """
+        # 날짜 자동 계산
+        if not date:
+            date = get_last_trading_date()
+            logger.info(f"거래량 순위 조회 날짜: {date}")
+
         body = {
             "market": market,
             "limit": limit,
-            "sort": "volume"
+            "sort": "volume",
+            "date": date
         }
-        
+
         response = self.client.request(
             api_id="DOSK_0010",
             body=body,
             path="/api/dostk/inquire/rank"
         )
-        
+
         if response and response.get('return_code') == 0:
             rank_list = response.get('output', [])
-            logger.info(f"거래량 순위 {len(rank_list)}개 조회 완료")
+            logger.info(f"거래량 순위 {len(rank_list)}개 조회 완료 (날짜: {date})")
             return rank_list
         else:
             logger.error(f"거래량 순위 조회 실패: {response.get('return_msg')}")
@@ -155,35 +164,43 @@ class MarketAPI:
         self,
         market: str = 'ALL',
         sort: str = 'rise',
-        limit: int = 20
+        limit: int = 20,
+        date: str = None
     ) -> List[Dict[str, Any]]:
         """
         등락률 순위 조회
-        
+
         Args:
             market: 시장구분 ('ALL', 'KOSPI', 'KOSDAQ')
             sort: 정렬 ('rise': 상승률, 'fall': 하락률)
             limit: 조회 건수
-        
+            date: 조회일 (YYYYMMDD, None이면 최근 거래일 자동 계산)
+
         Returns:
             등락률 순위 리스트
         """
+        # 날짜 자동 계산
+        if not date:
+            date = get_last_trading_date()
+            logger.info(f"등락률 순위 조회 날짜: {date}")
+
         body = {
             "market": market,
             "limit": limit,
-            "sort": sort
+            "sort": sort,
+            "date": date
         }
-        
+
         response = self.client.request(
             api_id="DOSK_0011",
             body=body,
             path="/api/dostk/inquire/rank"
         )
-        
+
         if response and response.get('return_code') == 0:
             rank_list = response.get('output', [])
             sort_name = "상승률" if sort == 'rise' else "하락률"
-            logger.info(f"{sort_name} 순위 {len(rank_list)}개 조회 완료")
+            logger.info(f"{sort_name} 순위 {len(rank_list)}개 조회 완료 (날짜: {date})")
             return rank_list
         else:
             logger.error(f"등락률 순위 조회 실패: {response.get('return_msg')}")
@@ -350,37 +367,75 @@ class MarketAPI:
     ) -> Optional[Dict[str, Any]]:
         """
         투자자별 매매 동향 조회
-        
+
         Args:
             stock_code: 종목코드
-            date: 조회일 (YYYYMMDD, None이면 오늘)
-        
+            date: 조회일 (YYYYMMDD, None이면 최근 거래일 자동 계산)
+
         Returns:
             투자자별 매매 동향
         """
-        from datetime import datetime
-        
+        # 날짜 자동 계산
         if not date:
-            date = datetime.now().strftime('%Y%m%d')
-        
+            date = get_last_trading_date()
+
         body = {
             "stock_code": stock_code,
             "date": date
         }
-        
+
         response = self.client.request(
             api_id="DOSK_0040",
             body=body,
             path="/api/dostk/inquire/investor"
         )
-        
+
         if response and response.get('return_code') == 0:
             investor_info = response.get('output', {})
-            logger.info(f"{stock_code} 투자자별 매매 동향 조회 완료")
+            logger.info(f"{stock_code} 투자자별 매매 동향 조회 완료 (날짜: {date})")
             return investor_info
         else:
             logger.error(f"투자자별 매매 동향 조회 실패: {response.get('return_msg')}")
             return None
+
+    def get_investor_data(
+        self,
+        stock_code: str,
+        date: str = None
+    ) -> Optional[Dict[str, Any]]:
+        """
+        투자자 매매 데이터 조회 (get_investor_trading의 별칭)
+
+        Args:
+            stock_code: 종목코드
+            date: 조회일 (YYYYMMDD, None이면 최근 거래일 자동 계산)
+
+        Returns:
+            투자자별 매매 동향
+            {
+                '기관_순매수': 10000,
+                '외국인_순매수': 5000,
+                ...
+            }
+        """
+        return self.get_investor_trading(stock_code, date)
+
+    def get_bid_ask(self, stock_code: str) -> Optional[Dict[str, Any]]:
+        """
+        호가 데이터 조회 (get_orderbook의 별칭)
+
+        Args:
+            stock_code: 종목코드
+
+        Returns:
+            호가 정보
+            {
+                '매수_총잔량': 10000,
+                '매도_총잔량': 8000,
+                ...
+            }
+        """
+        return self.get_orderbook(stock_code)
 
 
 __all__ = ['MarketAPI']

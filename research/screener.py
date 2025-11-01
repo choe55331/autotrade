@@ -154,7 +154,44 @@ class Screener:
         return filtered
     
     # ==================== 복합 조건 스크리닝 ====================
-    
+
+    def screen_stocks(
+        self,
+        min_volume: int = 100000,
+        min_price: int = 1000,
+        max_price: int = 1000000,
+        min_rate: float = 1.0,
+        max_rate: float = 15.0,
+        min_market_cap: int = 0,
+        market: str = 'ALL',
+        limit: int = 100
+    ) -> List[Dict[str, Any]]:
+        """
+        종목 스크리닝 (screen_combined의 별칭)
+
+        Args:
+            min_volume: 최소 거래량
+            min_price: 최소 가격
+            max_price: 최대 가격
+            min_rate: 최소 등락률
+            max_rate: 최대 등락률
+            min_market_cap: 최소 시가총액 (현재 미사용)
+            market: 시장구분
+            limit: 초기 조회 건수
+
+        Returns:
+            필터링된 종목 리스트
+        """
+        return self.screen_combined(
+            min_volume=min_volume,
+            min_price=min_price,
+            max_price=max_price,
+            min_rate=min_rate,
+            max_rate=max_rate,
+            market=market,
+            limit=limit
+        )
+
     def screen_combined(
         self,
         min_volume: int = 100000,
