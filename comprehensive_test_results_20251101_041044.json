@@ -1,0 +1,5864 @@
+{
+  "test_time": "2025-11-01 04:10:44",
+  "success_api_results": [
+    {
+      "api_id": "ka10035",
+      "api_name": "외인연속순매매상위요청",
+      "variant_idx": 1,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "001",
+        "trde_tp": "2",
+        "base_dt_tp": "0",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10035",
+      "api_name": "외인연속순매매상위요청",
+      "variant_idx": 2,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "101",
+        "trde_tp": "1",
+        "base_dt_tp": "1",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10035",
+      "api_name": "외인연속순매매상위요청",
+      "variant_idx": 3,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "000",
+        "trde_tp": "2",
+        "base_dt_tp": "1",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10095",
+      "api_name": "관심종목정보요청",
+      "variant_idx": 1,
+      "path": "stkinfo",
+      "body": {
+        "stk_cd": "000660"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10095",
+      "api_name": "관심종목정보요청",
+      "variant_idx": 2,
+      "path": "stkinfo",
+      "body": {
+        "stk_cd": "066970"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10095",
+      "api_name": "관심종목정보요청",
+      "variant_idx": 3,
+      "path": "stkinfo",
+      "body": {
+        "stk_cd": "000660|000660|066970"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10028",
+      "api_name": "시가대비등락률요청",
+      "variant_idx": 1,
+      "path": "stkinfo",
+      "body": {
+        "sort_tp": "1",
+        "trde_qty_cnd": "0000",
+        "mrkt_tp": "000",
+        "updown_incls": "1",
+        "stk_cnd": "0",
+        "crd_cnd": "0",
+        "trde_prica_cnd": "0",
+        "flu_cnd": "1",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10028",
+      "api_name": "시가대비등락률요청",
+      "variant_idx": 2,
+      "path": "stkinfo",
+      "body": {
+        "sort_tp": "1",
+        "trde_qty_cnd": "0000",
+        "mrkt_tp": "001",
+        "updown_incls": "1",
+        "stk_cnd": "0",
+        "crd_cnd": "0",
+        "trde_prica_cnd": "0",
+        "flu_cnd": "2",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10028",
+      "api_name": "시가대비등락률요청",
+      "variant_idx": 3,
+      "path": "stkinfo",
+      "body": {
+        "sort_tp": "2",
+        "trde_qty_cnd": "0100",
+        "mrkt_tp": "101",
+        "updown_incls": "1",
+        "stk_cnd": "1",
+        "crd_cnd": "0",
+        "trde_prica_cnd": "10",
+        "flu_cnd": "1",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka90012",
+      "api_name": "대차거래내역요청",
+      "variant_idx": 1,
+      "path": "slb",
+      "body": {
+        "dt": "20251031",
+        "mrkt_tp": "001"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka90012",
+      "api_name": "대차거래내역요청",
+      "variant_idx": 2,
+      "path": "slb",
+      "body": {
+        "dt": "20251031",
+        "mrkt_tp": "101"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10058",
+      "api_name": "투자자별일별매매종목요청",
+      "variant_idx": 1,
+      "path": "stkinfo",
+      "body": {
+        "strt_dt": "20251101",
+        "end_dt": "20251101",
+        "trde_tp": "2",
+        "mrkt_tp": "001",
+        "invsr_tp": "9000",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10058",
+      "api_name": "투자자별일별매매종목요청",
+      "variant_idx": 2,
+      "path": "stkinfo",
+      "body": {
+        "strt_dt": "20251101",
+        "end_dt": "20251101",
+        "trde_tp": "1",
+        "mrkt_tp": "101",
+        "invsr_tp": "9999",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10058",
+      "api_name": "투자자별일별매매종목요청",
+      "variant_idx": 3,
+      "path": "stkinfo",
+      "body": {
+        "strt_dt": "20251025",
+        "end_dt": "20251101",
+        "trde_tp": "2",
+        "mrkt_tp": "001",
+        "invsr_tp": "6000",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt00018",
+      "api_name": "계좌평가잔고내역요청",
+      "variant_idx": 1,
+      "path": "acnt",
+      "body": {
+        "qry_tp": "2",
+        "dmst_stex_tp": "KRX"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt00018",
+      "api_name": "계좌평가잔고내역요청",
+      "variant_idx": 2,
+      "path": "acnt",
+      "body": {
+        "qry_tp": "1",
+        "dmst_stex_tp": "KRX"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt00018",
+      "api_name": "계좌평가잔고내역요청",
+      "variant_idx": 3,
+      "path": "acnt",
+      "body": {
+        "qry_tp": "2",
+        "dmst_stex_tp": "NXT"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt00018",
+      "api_name": "계좌평가잔고내역요청",
+      "variant_idx": 4,
+      "path": "acnt",
+      "body": {
+        "qry_tp": "1",
+        "dmst_stex_tp": "NXT"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka90013",
+      "api_name": "종목일별프로그램매매추이요청",
+      "variant_idx": 1,
+      "path": "mrkcond",
+      "body": {
+        "stk_cd": "000660",
+        "date": "20251101",
+        "amt_qty_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka90013",
+      "api_name": "종목일별프로그램매매추이요청",
+      "variant_idx": 2,
+      "path": "mrkcond",
+      "body": {
+        "stk_cd": "000660",
+        "date": "20251101",
+        "amt_qty_tp": "2"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka90013",
+      "api_name": "종목일별프로그램매매추이요청",
+      "variant_idx": 3,
+      "path": "mrkcond",
+      "body": {
+        "stk_cd": "066970",
+        "date": "20251031",
+        "amt_qty_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10047",
+      "api_name": "체결강도추이일별요청",
+      "variant_idx": 1,
+      "path": "mrkcond",
+      "body": {
+        "stk_cd": "000660"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10047",
+      "api_name": "체결강도추이일별요청",
+      "variant_idx": 2,
+      "path": "mrkcond",
+      "body": {
+        "stk_cd": "066970"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10034",
+      "api_name": "외인기간별매매상위요청",
+      "variant_idx": 1,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "001",
+        "trde_tp": "2",
+        "dt": "5",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10034",
+      "api_name": "외인기간별매매상위요청",
+      "variant_idx": 2,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "101",
+        "trde_tp": "1",
+        "dt": "10",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10034",
+      "api_name": "외인기간별매매상위요청",
+      "variant_idx": 3,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "000",
+        "trde_tp": "3",
+        "dt": "20",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10034",
+      "api_name": "외인기간별매매상위요청",
+      "variant_idx": 4,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "001",
+        "trde_tp": "2",
+        "dt": "0",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka90002",
+      "api_name": "테마구성종목요청",
+      "variant_idx": 1,
+      "path": "thme",
+      "body": {
+        "date_tp": "2",
+        "thema_grp_cd": "100",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka90002",
+      "api_name": "테마구성종목요청",
+      "variant_idx": 2,
+      "path": "thme",
+      "body": {
+        "date_tp": "10",
+        "thema_grp_cd": "452",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10068",
+      "api_name": "대차거래추이요청",
+      "variant_idx": 1,
+      "path": "slb",
+      "body": {
+        "strt_dt": "20251002",
+        "end_dt": "20251101",
+        "all_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10068",
+      "api_name": "대차거래추이요청",
+      "variant_idx": 2,
+      "path": "slb",
+      "body": {
+        "strt_dt": "20241101",
+        "end_dt": "20251101",
+        "all_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10078",
+      "api_name": "증권사별종목매매동향요청",
+      "variant_idx": 1,
+      "path": "mrkcond",
+      "body": {
+        "mmcm_cd": "050",
+        "stk_cd": "000660",
+        "strt_dt": "20251101",
+        "end_dt": "20251101"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10078",
+      "api_name": "증권사별종목매매동향요청",
+      "variant_idx": 2,
+      "path": "mrkcond",
+      "body": {
+        "mmcm_cd": "003",
+        "stk_cd": "000660",
+        "strt_dt": "20251025",
+        "end_dt": "20251101"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10078",
+      "api_name": "증권사별종목매매동향요청",
+      "variant_idx": 3,
+      "path": "mrkcond",
+      "body": {
+        "mmcm_cd": "005",
+        "stk_cd": "066970",
+        "strt_dt": "20251002",
+        "end_dt": "20251101"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka30003",
+      "api_name": "ELWLP보유일별추이요청",
+      "variant_idx": 1,
+      "path": "elw",
+      "body": {
+        "bsis_aset_cd": "J0669721F",
+        "base_dt": "20251101"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt00005",
+      "api_name": "체결잔고요청",
+      "variant_idx": 1,
+      "path": "acnt",
+      "body": {
+        "dmst_stex_tp": "KRX"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt00005",
+      "api_name": "체결잔고요청",
+      "variant_idx": 2,
+      "path": "acnt",
+      "body": {
+        "dmst_stex_tp": "NXT"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10066",
+      "api_name": "장마감후투자자별매매요청",
+      "variant_idx": 1,
+      "path": "mrkcond",
+      "body": {
+        "mrkt_tp": "001",
+        "amt_qty_tp": "1",
+        "trde_tp": "0",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10066",
+      "api_name": "장마감후투자자별매매요청",
+      "variant_idx": 2,
+      "path": "mrkcond",
+      "body": {
+        "mrkt_tp": "101",
+        "amt_qty_tp": "2",
+        "trde_tp": "0",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10066",
+      "api_name": "장마감후투자자별매매요청",
+      "variant_idx": 3,
+      "path": "mrkcond",
+      "body": {
+        "mrkt_tp": "000",
+        "amt_qty_tp": "1",
+        "trde_tp": "1",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10066",
+      "api_name": "장마감후투자자별매매요청",
+      "variant_idx": 4,
+      "path": "mrkcond",
+      "body": {
+        "mrkt_tp": "000",
+        "amt_qty_tp": "1",
+        "trde_tp": "2",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10086",
+      "api_name": "일별주가요청",
+      "variant_idx": 1,
+      "path": "mrkcond",
+      "body": {
+        "stk_cd": "000660",
+        "qry_dt": "20251101",
+        "indc_tp": "0"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10086",
+      "api_name": "일별주가요청",
+      "variant_idx": 2,
+      "path": "mrkcond",
+      "body": {
+        "stk_cd": "000660",
+        "qry_dt": "20251101",
+        "indc_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10086",
+      "api_name": "일별주가요청",
+      "variant_idx": 3,
+      "path": "mrkcond",
+      "body": {
+        "stk_cd": "000660",
+        "qry_dt": "20251031",
+        "indc_tp": "0"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt00003",
+      "api_name": "추정자산조회요청",
+      "variant_idx": 1,
+      "path": "acnt",
+      "body": {
+        "qry_tp": "0"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt00003",
+      "api_name": "추정자산조회요청",
+      "variant_idx": 2,
+      "path": "acnt",
+      "body": {
+        "qry_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka90001",
+      "api_name": "테마그룹별요청",
+      "variant_idx": 1,
+      "path": "thme",
+      "body": {
+        "qry_tp": "0",
+        "date_tp": "10",
+        "flu_pl_amt_tp": "1",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka90001",
+      "api_name": "테마그룹별요청",
+      "variant_idx": 2,
+      "path": "thme",
+      "body": {
+        "qry_tp": "0",
+        "date_tp": "5",
+        "flu_pl_amt_tp": "3",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka20002",
+      "api_name": "업종별주가요청",
+      "variant_idx": 1,
+      "path": "sect",
+      "body": {
+        "mrkt_tp": "0",
+        "inds_cd": "001",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka20002",
+      "api_name": "업종별주가요청",
+      "variant_idx": 2,
+      "path": "sect",
+      "body": {
+        "mrkt_tp": "1",
+        "inds_cd": "101",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka20002",
+      "api_name": "업종별주가요청",
+      "variant_idx": 3,
+      "path": "sect",
+      "body": {
+        "mrkt_tp": "2",
+        "inds_cd": "201",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka20001",
+      "api_name": "업종현재가요청",
+      "variant_idx": 1,
+      "path": "sect",
+      "body": {
+        "mrkt_tp": "0",
+        "inds_cd": "001"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka20001",
+      "api_name": "업종현재가요청",
+      "variant_idx": 2,
+      "path": "sect",
+      "body": {
+        "mrkt_tp": "1",
+        "inds_cd": "101"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka20001",
+      "api_name": "업종현재가요청",
+      "variant_idx": 3,
+      "path": "sect",
+      "body": {
+        "mrkt_tp": "2",
+        "inds_cd": "201"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10100",
+      "api_name": "종목정보 조회",
+      "variant_idx": 1,
+      "path": "stkinfo",
+      "body": {
+        "stk_cd": "000660"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10100",
+      "api_name": "종목정보 조회",
+      "variant_idx": 2,
+      "path": "stkinfo",
+      "body": {
+        "stk_cd": "066970"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10018",
+      "api_name": "고저가근접요청",
+      "variant_idx": 1,
+      "path": "stkinfo",
+      "body": {
+        "high_low_tp": "1",
+        "alacc_rt": "05",
+        "mrkt_tp": "000",
+        "trde_qty_tp": "00000",
+        "stk_cnd": "0",
+        "crd_cnd": "0",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10018",
+      "api_name": "고저가근접요청",
+      "variant_idx": 2,
+      "path": "stkinfo",
+      "body": {
+        "high_low_tp": "2",
+        "alacc_rt": "10",
+        "mrkt_tp": "001",
+        "trde_qty_tp": "00000",
+        "stk_cnd": "0",
+        "crd_cnd": "0",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10018",
+      "api_name": "고저가근접요청",
+      "variant_idx": 3,
+      "path": "stkinfo",
+      "body": {
+        "high_low_tp": "1",
+        "alacc_rt": "20",
+        "mrkt_tp": "101",
+        "trde_qty_tp": "00010",
+        "stk_cnd": "1",
+        "crd_cnd": "0",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10016",
+      "api_name": "신고저가요청",
+      "variant_idx": 1,
+      "path": "stkinfo",
+      "body": {
+        "mrkt_tp": "001",
+        "ntl_tp": "1",
+        "high_low_close_tp": "2",
+        "stk_cnd": "0",
+        "trde_qty_tp": "00000",
+        "crd_cnd": "0",
+        "updown_incls": "0",
+        "dt": "5",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10016",
+      "api_name": "신고저가요청",
+      "variant_idx": 2,
+      "path": "stkinfo",
+      "body": {
+        "mrkt_tp": "101",
+        "ntl_tp": "2",
+        "high_low_close_tp": "1",
+        "stk_cnd": "0",
+        "trde_qty_tp": "00100",
+        "crd_cnd": "0",
+        "updown_incls": "0",
+        "dt": "20",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10016",
+      "api_name": "신고저가요청",
+      "variant_idx": 3,
+      "path": "stkinfo",
+      "body": {
+        "mrkt_tp": "000",
+        "ntl_tp": "1",
+        "high_low_close_tp": "1",
+        "stk_cnd": "1",
+        "trde_qty_tp": "00000",
+        "crd_cnd": "0",
+        "updown_incls": "1",
+        "dt": "60",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka40001",
+      "api_name": "ETF수익율요청",
+      "variant_idx": 1,
+      "path": "etf",
+      "body": {
+        "stk_cd": "069500",
+        "etfobjt_idex_cd": "207",
+        "dt": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka40001",
+      "api_name": "ETF수익율요청",
+      "variant_idx": 2,
+      "path": "etf",
+      "body": {
+        "stk_cd": "069500",
+        "etfobjt_idex_cd": "207",
+        "dt": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka40001",
+      "api_name": "ETF수익율요청",
+      "variant_idx": 3,
+      "path": "etf",
+      "body": {
+        "stk_cd": "114800",
+        "etfobjt_idex_cd": "207",
+        "dt": "0"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10029",
+      "api_name": "예상체결등락률상위요청",
+      "variant_idx": 1,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "000",
+        "sort_tp": "1",
+        "trde_qty_cnd": "0",
+        "stk_cnd": "0",
+        "crd_cnd": "0",
+        "pric_cnd": "0",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10029",
+      "api_name": "예상체결등락률상위요청",
+      "variant_idx": 2,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "001",
+        "sort_tp": "4",
+        "trde_qty_cnd": "10",
+        "stk_cnd": "0",
+        "crd_cnd": "0",
+        "pric_cnd": "0",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10029",
+      "api_name": "예상체결등락률상위요청",
+      "variant_idx": 3,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "101",
+        "sort_tp": "6",
+        "trde_qty_cnd": "50",
+        "stk_cnd": "1",
+        "crd_cnd": "0",
+        "pric_cnd": "0",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10029",
+      "api_name": "예상체결등락률상위요청",
+      "variant_idx": 4,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "000",
+        "sort_tp": "2",
+        "trde_qty_cnd": "0",
+        "stk_cnd": "0",
+        "crd_cnd": "0",
+        "pric_cnd": "0",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10084",
+      "api_name": "당일전일체결요청",
+      "variant_idx": 1,
+      "path": "stkinfo",
+      "body": {
+        "stk_cd": "000660",
+        "tdy_pred": "1",
+        "tic_min": "0"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10084",
+      "api_name": "당일전일체결요청",
+      "variant_idx": 2,
+      "path": "stkinfo",
+      "body": {
+        "stk_cd": "000660",
+        "tdy_pred": "1",
+        "tic_min": "1",
+        "tm": "0900"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10084",
+      "api_name": "당일전일체결요청",
+      "variant_idx": 3,
+      "path": "stkinfo",
+      "body": {
+        "stk_cd": "000660",
+        "tdy_pred": "2",
+        "tic_min": "0"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10084",
+      "api_name": "당일전일체결요청",
+      "variant_idx": 4,
+      "path": "stkinfo",
+      "body": {
+        "stk_cd": "000660",
+        "tdy_pred": "2",
+        "tic_min": "1",
+        "tm": "1530"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10005",
+      "api_name": "주식일주월시분요청",
+      "variant_idx": 1,
+      "path": "mrkcond",
+      "body": {
+        "stk_cd": "000660"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10005",
+      "api_name": "주식일주월시분요청",
+      "variant_idx": 2,
+      "path": "mrkcond",
+      "body": {
+        "stk_cd": "066970"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10102",
+      "api_name": "회원사 리스트",
+      "variant_idx": 1,
+      "path": "stkinfo",
+      "body": {},
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt00007",
+      "api_name": "계좌별주문체결내역상세요청",
+      "variant_idx": 4,
+      "path": "acnt",
+      "body": {
+        "ord_dt": "20251031",
+        "qry_tp": "4",
+        "stk_bond_tp": "1",
+        "sell_tp": "0",
+        "dmst_stex_tp": "%"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt00007",
+      "api_name": "계좌별주문체결내역상세요청",
+      "variant_idx": 5,
+      "path": "acnt",
+      "body": {
+        "ord_dt": "20251031",
+        "qry_tp": "1",
+        "stk_bond_tp": "1",
+        "sell_tp": "2",
+        "dmst_stex_tp": "%"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt00016",
+      "api_name": "일별계좌수익률상세현황요청",
+      "variant_idx": 1,
+      "path": "acnt",
+      "body": {
+        "fr_dt": "20251031",
+        "to_dt": "20251031"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt00016",
+      "api_name": "일별계좌수익률상세현황요청",
+      "variant_idx": 2,
+      "path": "acnt",
+      "body": {
+        "fr_dt": "20251025",
+        "to_dt": "20251101"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt00016",
+      "api_name": "일별계좌수익률상세현황요청",
+      "variant_idx": 3,
+      "path": "acnt",
+      "body": {
+        "fr_dt": "20251002",
+        "to_dt": "20251101"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka40009",
+      "api_name": "ETF NAV 요청",
+      "variant_idx": 1,
+      "path": "etf",
+      "body": {
+        "stk_cd": "069500"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka40009",
+      "api_name": "ETF NAV 요청",
+      "variant_idx": 2,
+      "path": "etf",
+      "body": {
+        "stk_cd": "114800"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10026",
+      "api_name": "고저PER요청",
+      "variant_idx": 1,
+      "path": "stkinfo",
+      "body": {
+        "pertp": "1",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10026",
+      "api_name": "고저PER요청",
+      "variant_idx": 2,
+      "path": "stkinfo",
+      "body": {
+        "pertp": "2",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10026",
+      "api_name": "고저PER요청",
+      "variant_idx": 3,
+      "path": "stkinfo",
+      "body": {
+        "pertp": "3",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10026",
+      "api_name": "고저PER요청",
+      "variant_idx": 4,
+      "path": "stkinfo",
+      "body": {
+        "pertp": "4",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10026",
+      "api_name": "고저PER요청",
+      "variant_idx": 5,
+      "path": "stkinfo",
+      "body": {
+        "pertp": "5",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10026",
+      "api_name": "고저PER요청",
+      "variant_idx": 6,
+      "path": "stkinfo",
+      "body": {
+        "pertp": "6",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka40003",
+      "api_name": "ETF일별추이요청",
+      "variant_idx": 1,
+      "path": "etf",
+      "body": {
+        "stk_cd": "069500"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka40003",
+      "api_name": "ETF일별추이요청",
+      "variant_idx": 2,
+      "path": "etf",
+      "body": {
+        "stk_cd": "114800"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt00002",
+      "api_name": "일별추정예탁자산현황요청",
+      "variant_idx": 1,
+      "path": "acnt",
+      "body": {
+        "start_dt": "20251031",
+        "end_dt": "20251031"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt00002",
+      "api_name": "일별추정예탁자산현황요청",
+      "variant_idx": 2,
+      "path": "acnt",
+      "body": {
+        "start_dt": "20251025",
+        "end_dt": "20251101"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt00002",
+      "api_name": "일별추정예탁자산현황요청",
+      "variant_idx": 3,
+      "path": "acnt",
+      "body": {
+        "start_dt": "20251002",
+        "end_dt": "20251101"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10094",
+      "api_name": "주식년봉차트조회요청",
+      "variant_idx": 1,
+      "path": "chart",
+      "body": {
+        "stk_cd": "000660",
+        "base_dt": "20251101",
+        "upd_stkpc_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10094",
+      "api_name": "주식년봉차트조회요청",
+      "variant_idx": 2,
+      "path": "chart",
+      "body": {
+        "stk_cd": "066970",
+        "base_dt": "20251101",
+        "upd_stkpc_tp": "0"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10094",
+      "api_name": "주식년봉차트조회요청",
+      "variant_idx": 3,
+      "path": "chart",
+      "body": {
+        "stk_cd": "000660",
+        "base_dt": "20241101",
+        "upd_stkpc_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10014",
+      "api_name": "공매도추이요청",
+      "variant_idx": 1,
+      "path": "shsa",
+      "body": {
+        "stk_cd": "000660",
+        "tm_tp": "1",
+        "strt_dt": "20251002",
+        "end_dt": "20251101"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10014",
+      "api_name": "공매도추이요청",
+      "variant_idx": 2,
+      "path": "shsa",
+      "body": {
+        "stk_cd": "000660",
+        "tm_tp": "1",
+        "strt_dt": "20241101",
+        "end_dt": "20251101"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10014",
+      "api_name": "공매도추이요청",
+      "variant_idx": 3,
+      "path": "shsa",
+      "body": {
+        "stk_cd": "066970",
+        "tm_tp": "1",
+        "strt_dt": "20251018",
+        "end_dt": "20251101"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10052",
+      "api_name": "거래원순간거래량요청",
+      "variant_idx": 1,
+      "path": "stkinfo",
+      "body": {
+        "mmcm_cd": "888",
+        "mrkt_tp": "0",
+        "qty_tp": "0",
+        "pric_tp": "0",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10052",
+      "api_name": "거래원순간거래량요청",
+      "variant_idx": 2,
+      "path": "stkinfo",
+      "body": {
+        "mmcm_cd": "036",
+        "mrkt_tp": "1",
+        "qty_tp": "10",
+        "pric_tp": "8",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10052",
+      "api_name": "거래원순간거래량요청",
+      "variant_idx": 3,
+      "path": "stkinfo",
+      "body": {
+        "mmcm_cd": "050",
+        "mrkt_tp": "2",
+        "qty_tp": "50",
+        "pric_tp": "0",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10008",
+      "api_name": "주식외국인종목별매매동향",
+      "variant_idx": 1,
+      "path": "frgnistt",
+      "body": {
+        "stk_cd": "000660"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10037",
+      "api_name": "외국계창구매매상위요청",
+      "variant_idx": 1,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "000",
+        "dt": "0",
+        "trde_tp": "1",
+        "sort_tp": "1",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10037",
+      "api_name": "외국계창구매매상위요청",
+      "variant_idx": 2,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "001",
+        "dt": "5",
+        "trde_tp": "2",
+        "sort_tp": "2",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10037",
+      "api_name": "외국계창구매매상위요청",
+      "variant_idx": 3,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "101",
+        "dt": "10",
+        "trde_tp": "3",
+        "sort_tp": "1",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10037",
+      "api_name": "외국계창구매매상위요청",
+      "variant_idx": 4,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "000",
+        "dt": "20",
+        "trde_tp": "4",
+        "sort_tp": "2",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka30001",
+      "api_name": "ELW가격급등락요청",
+      "variant_idx": 1,
+      "path": "elw",
+      "body": {
+        "flu_tp": "1",
+        "tm_tp": "1",
+        "tm": "5",
+        "trde_qty_tp": "0",
+        "isscomp_cd": "000000000000",
+        "bsis_aset_cd": "000000000000",
+        "rght_tp": "000",
+        "lpcd": "000000000000",
+        "trde_end_elwskip": "0"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka30001",
+      "api_name": "ELW가격급등락요청",
+      "variant_idx": 2,
+      "path": "elw",
+      "body": {
+        "flu_tp": "2",
+        "tm_tp": "2",
+        "tm": "1",
+        "trde_qty_tp": "10",
+        "isscomp_cd": "000000000003",
+        "bsis_aset_cd": "201",
+        "rght_tp": "002",
+        "lpcd": "000000000000",
+        "trde_end_elwskip": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10027",
+      "api_name": "전일대비등락률상위요청",
+      "variant_idx": 1,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "001",
+        "sort_tp": "1",
+        "trde_qty_cnd": "0100",
+        "stk_cnd": "1",
+        "crd_cnd": "0",
+        "updown_incls": "1",
+        "pric_cnd": "0",
+        "trde_prica_cnd": "0",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10027",
+      "api_name": "전일대비등락률상위요청",
+      "variant_idx": 2,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "101",
+        "sort_tp": "3",
+        "trde_qty_cnd": "0000",
+        "stk_cnd": "0",
+        "crd_cnd": "0",
+        "updown_incls": "1",
+        "pric_cnd": "8",
+        "trde_prica_cnd": "0",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10027",
+      "api_name": "전일대비등락률상위요청",
+      "variant_idx": 3,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "000",
+        "sort_tp": "2",
+        "trde_qty_cnd": "0500",
+        "stk_cnd": "0",
+        "crd_cnd": "0",
+        "updown_incls": "1",
+        "pric_cnd": "0",
+        "trde_prica_cnd": "10",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10027",
+      "api_name": "전일대비등락률상위요청",
+      "variant_idx": 4,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "000",
+        "sort_tp": "4",
+        "trde_qty_cnd": "0000",
+        "stk_cnd": "11",
+        "crd_cnd": "0",
+        "updown_incls": "0",
+        "pric_cnd": "0",
+        "trde_prica_cnd": "0",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10004",
+      "api_name": "주식호가요청",
+      "variant_idx": 1,
+      "path": "mrkcond",
+      "body": {
+        "stk_cd": "000660"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10004",
+      "api_name": "주식호가요청",
+      "variant_idx": 2,
+      "path": "mrkcond",
+      "body": {
+        "stk_cd": "066970"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt00001",
+      "api_name": "예수금상세현황요청",
+      "variant_idx": 1,
+      "path": "acnt",
+      "body": {
+        "qry_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt00001",
+      "api_name": "예수금상세현황요청",
+      "variant_idx": 2,
+      "path": "acnt",
+      "body": {
+        "qry_tp": "2"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10040",
+      "api_name": "당일주요거래원요청",
+      "variant_idx": 1,
+      "path": "rkinfo",
+      "body": {
+        "stk_cd": "000660"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10040",
+      "api_name": "당일주요거래원요청",
+      "variant_idx": 2,
+      "path": "rkinfo",
+      "body": {
+        "stk_cd": "066970"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka20068",
+      "api_name": "대차거래추이요청",
+      "variant_idx": 1,
+      "path": "slb",
+      "body": {
+        "strt_dt": "20251002",
+        "end_dt": "20251101",
+        "all_tp": "0",
+        "stk_cd": "000660"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka20068",
+      "api_name": "대차거래추이요청",
+      "variant_idx": 2,
+      "path": "slb",
+      "body": {
+        "strt_dt": "20241101",
+        "end_dt": "20251101",
+        "all_tp": "0",
+        "stk_cd": "000660"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka20068",
+      "api_name": "대차거래추이요청",
+      "variant_idx": 3,
+      "path": "slb",
+      "body": {
+        "strt_dt": "20251025",
+        "end_dt": "20251101",
+        "all_tp": "0",
+        "stk_cd": "066970"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka30009",
+      "api_name": "ELW등락율순위요청",
+      "variant_idx": 1,
+      "path": "elw",
+      "body": {
+        "sort_tp": "1",
+        "rght_tp": "001",
+        "trde_end_skip": "0"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka30009",
+      "api_name": "ELW등락율순위요청",
+      "variant_idx": 2,
+      "path": "elw",
+      "body": {
+        "sort_tp": "3",
+        "rght_tp": "002",
+        "trde_end_skip": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka30009",
+      "api_name": "ELW등락율순위요청",
+      "variant_idx": 3,
+      "path": "elw",
+      "body": {
+        "sort_tp": "5",
+        "rght_tp": "000",
+        "trde_end_skip": "0"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10073",
+      "api_name": "일자별종목별실현손익요청_기간",
+      "variant_idx": 1,
+      "path": "acnt",
+      "body": {
+        "stk_cd": "005930",
+        "strt_dt": "20251031",
+        "end_dt": "20251031"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10073",
+      "api_name": "일자별종목별실현손익요청_기간",
+      "variant_idx": 2,
+      "path": "acnt",
+      "body": {
+        "stk_cd": "071050",
+        "strt_dt": "20251025",
+        "end_dt": "20251031"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka50012",
+      "api_name": "금현물일별추이",
+      "variant_idx": 1,
+      "path": "mrkcond",
+      "body": {
+        "stk_cd": "M04020000",
+        "base_dt": "20251101"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka50012",
+      "api_name": "금현물일별추이",
+      "variant_idx": 2,
+      "path": "mrkcond",
+      "body": {
+        "stk_cd": "M04020100",
+        "base_dt": "20251031"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt00010",
+      "api_name": "주문인출가능금액요청",
+      "variant_idx": 1,
+      "path": "acnt",
+      "body": {
+        "stk_cd": "000660",
+        "trde_tp": "2",
+        "uv": "0"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt00010",
+      "api_name": "주문인출가능금액요청",
+      "variant_idx": 3,
+      "path": "acnt",
+      "body": {
+        "stk_cd": "J2251901F",
+        "trde_tp": "1",
+        "trde_qty": "1",
+        "uv": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt00011",
+      "api_name": "증거금율별주문가능수량조회요청",
+      "variant_idx": 1,
+      "path": "acnt",
+      "body": {
+        "stk_cd": "000660",
+        "uv": "0"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt00011",
+      "api_name": "증거금율별주문가능수량조회요청",
+      "variant_idx": 2,
+      "path": "acnt",
+      "body": {
+        "stk_cd": "066970",
+        "uv": "110000"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10055",
+      "api_name": "당일전일체결량요청",
+      "variant_idx": 1,
+      "path": "stkinfo",
+      "body": {
+        "stk_cd": "000660",
+        "tdy_pred": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10055",
+      "api_name": "당일전일체결량요청",
+      "variant_idx": 2,
+      "path": "stkinfo",
+      "body": {
+        "stk_cd": "000660",
+        "tdy_pred": "2"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10055",
+      "api_name": "당일전일체결량요청",
+      "variant_idx": 3,
+      "path": "stkinfo",
+      "body": {
+        "stk_cd": "066970",
+        "tdy_pred": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10036",
+      "api_name": "외인한도소진율증가상위",
+      "variant_idx": 1,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "001",
+        "dt": "5",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10036",
+      "api_name": "외인한도소진율증가상위",
+      "variant_idx": 2,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "101",
+        "dt": "20",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10036",
+      "api_name": "외인한도소진율증가상위",
+      "variant_idx": 3,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "000",
+        "dt": "60",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10098",
+      "api_name": "시간외단일가등락율순위요청",
+      "variant_idx": 1,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "000",
+        "sort_base": "1",
+        "stk_cnd": "0",
+        "trde_qty_cnd": "0",
+        "crd_cnd": "0",
+        "trde_prica": "0"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10098",
+      "api_name": "시간외단일가등락율순위요청",
+      "variant_idx": 2,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "001",
+        "sort_base": "3",
+        "stk_cnd": "1",
+        "trde_qty_cnd": "100",
+        "crd_cnd": "0",
+        "trde_prica": "10"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10098",
+      "api_name": "시간외단일가등락율순위요청",
+      "variant_idx": 3,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "101",
+        "sort_base": "5",
+        "stk_cnd": "0",
+        "trde_qty_cnd": "500",
+        "crd_cnd": "0",
+        "trde_prica": "50"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10033",
+      "api_name": "신용비율상위요청",
+      "variant_idx": 1,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "001",
+        "trde_qty_tp": "100",
+        "stk_cnd": "0",
+        "updown_incls": "1",
+        "crd_cnd": "0",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10033",
+      "api_name": "신용비율상위요청",
+      "variant_idx": 2,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "101",
+        "trde_qty_tp": "0",
+        "stk_cnd": "1",
+        "updown_incls": "1",
+        "crd_cnd": "0",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10033",
+      "api_name": "신용비율상위요청",
+      "variant_idx": 3,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "000",
+        "trde_qty_tp": "500",
+        "stk_cnd": "5",
+        "updown_incls": "0",
+        "crd_cnd": "1",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10080",
+      "api_name": "주식분봉차트조회요청",
+      "variant_idx": 1,
+      "path": "chart",
+      "body": {
+        "stk_cd": "000660",
+        "tic_scope": "1",
+        "upd_stkpc_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10080",
+      "api_name": "주식분봉차트조회요청",
+      "variant_idx": 2,
+      "path": "chart",
+      "body": {
+        "stk_cd": "000660",
+        "tic_scope": "5",
+        "upd_stkpc_tp": "0"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10080",
+      "api_name": "주식분봉차트조회요청",
+      "variant_idx": 3,
+      "path": "chart",
+      "body": {
+        "stk_cd": "000660",
+        "tic_scope": "15",
+        "upd_stkpc_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10080",
+      "api_name": "주식분봉차트조회요청",
+      "variant_idx": 4,
+      "path": "chart",
+      "body": {
+        "stk_cd": "066970",
+        "tic_scope": "30",
+        "upd_stkpc_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10080",
+      "api_name": "주식분봉차트조회요청",
+      "variant_idx": 5,
+      "path": "chart",
+      "body": {
+        "stk_cd": "000660",
+        "tic_scope": "60",
+        "upd_stkpc_tp": "0"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10064",
+      "api_name": "장중투자자별매매차트요청",
+      "variant_idx": 2,
+      "path": "chart",
+      "body": {
+        "mrkt_tp": "101",
+        "amt_qty_tp": "2",
+        "trde_tp": "0",
+        "stk_cd": "086520"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka90008",
+      "api_name": "종목시간별프로그램매매추이요청",
+      "variant_idx": 1,
+      "path": "mrkcond",
+      "body": {
+        "amt_qty_tp": "1",
+        "stk_cd": "000660",
+        "date": "20251101"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka90008",
+      "api_name": "종목시간별프로그램매매추이요청",
+      "variant_idx": 2,
+      "path": "mrkcond",
+      "body": {
+        "amt_qty_tp": "2",
+        "stk_cd": "000660",
+        "date": "20251101"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka90008",
+      "api_name": "종목시간별프로그램매매추이요청",
+      "variant_idx": 3,
+      "path": "mrkcond",
+      "body": {
+        "amt_qty_tp": "1",
+        "stk_cd": "000660",
+        "date": "20251031"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10015",
+      "api_name": "일별거래상세요청",
+      "variant_idx": 1,
+      "path": "stkinfo",
+      "body": {
+        "stk_cd": "000660",
+        "strt_dt": "20251101"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10015",
+      "api_name": "일별거래상세요청",
+      "variant_idx": 2,
+      "path": "stkinfo",
+      "body": {
+        "stk_cd": "000660",
+        "strt_dt": "20251031"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10015",
+      "api_name": "일별거래상세요청",
+      "variant_idx": 3,
+      "path": "stkinfo",
+      "body": {
+        "stk_cd": "066970",
+        "strt_dt": "20251101"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10083",
+      "api_name": "주식월봉차트조회요청",
+      "variant_idx": 1,
+      "path": "chart",
+      "body": {
+        "stk_cd": "000660",
+        "base_dt": "20251101",
+        "upd_stkpc_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10083",
+      "api_name": "주식월봉차트조회요청",
+      "variant_idx": 2,
+      "path": "chart",
+      "body": {
+        "stk_cd": "066970",
+        "base_dt": "20251101",
+        "upd_stkpc_tp": "0"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10083",
+      "api_name": "주식월봉차트조회요청",
+      "variant_idx": 3,
+      "path": "chart",
+      "body": {
+        "stk_cd": "000660",
+        "base_dt": "20241101",
+        "upd_stkpc_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka50087",
+      "api_name": "금현물예상체결",
+      "variant_idx": 1,
+      "path": "mrkcond",
+      "body": {
+        "stk_cd": "M04020000"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka50087",
+      "api_name": "금현물예상체결",
+      "variant_idx": 2,
+      "path": "mrkcond",
+      "body": {
+        "stk_cd": "M04020100"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka30010",
+      "api_name": "ELW잔량순위요청",
+      "variant_idx": 1,
+      "path": "elw",
+      "body": {
+        "sort_tp": "1",
+        "rght_tp": "001",
+        "trde_end_skip": "0"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka30010",
+      "api_name": "ELW잔량순위요청",
+      "variant_idx": 2,
+      "path": "elw",
+      "body": {
+        "sort_tp": "2",
+        "rght_tp": "002",
+        "trde_end_skip": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka40006",
+      "api_name": "ETF시간대별추이요청",
+      "variant_idx": 1,
+      "path": "etf",
+      "body": {
+        "stk_cd": "069500"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka40006",
+      "api_name": "ETF시간대별추이요청",
+      "variant_idx": 2,
+      "path": "etf",
+      "body": {
+        "stk_cd": "114800"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10006",
+      "api_name": "주식시분요청",
+      "variant_idx": 1,
+      "path": "mrkcond",
+      "body": {
+        "stk_cd": "000660"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10006",
+      "api_name": "주식시분요청",
+      "variant_idx": 2,
+      "path": "mrkcond",
+      "body": {
+        "stk_cd": "066970"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka40010",
+      "api_name": "ETF 시간대별 추이",
+      "variant_idx": 1,
+      "path": "etf",
+      "body": {
+        "stk_cd": "069500"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka40010",
+      "api_name": "ETF 시간대별 추이",
+      "variant_idx": 2,
+      "path": "etf",
+      "body": {
+        "stk_cd": "114800"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10009",
+      "api_name": "주식기관요청",
+      "variant_idx": 1,
+      "path": "frgnistt",
+      "body": {
+        "stk_cd": "000660"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10038",
+      "api_name": "종목별증권사순위요청",
+      "variant_idx": 1,
+      "path": "rkinfo",
+      "body": {
+        "stk_cd": "000660",
+        "strt_dt": "20251101",
+        "end_dt": "20251101",
+        "qry_tp": "1",
+        "dt": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10038",
+      "api_name": "종목별증권사순위요청",
+      "variant_idx": 2,
+      "path": "rkinfo",
+      "body": {
+        "stk_cd": "000660",
+        "strt_dt": "20251101",
+        "end_dt": "20251101",
+        "qry_tp": "2",
+        "dt": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10038",
+      "api_name": "종목별증권사순위요청",
+      "variant_idx": 3,
+      "path": "rkinfo",
+      "body": {
+        "stk_cd": "000660",
+        "strt_dt": "20251025",
+        "end_dt": "20251101",
+        "qry_tp": "2",
+        "dt": "5"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka01690",
+      "api_name": "일별잔고수익률",
+      "variant_idx": 1,
+      "path": "acnt",
+      "body": {
+        "qry_dt": "20251031"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka01690",
+      "api_name": "일별잔고수익률",
+      "variant_idx": 2,
+      "path": "acnt",
+      "body": {
+        "qry_dt": "20251029"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10072",
+      "api_name": "일자별종목별실현손익요청_일자",
+      "variant_idx": 1,
+      "path": "acnt",
+      "body": {
+        "stk_cd": "005930",
+        "strt_dt": "20251031"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt00008",
+      "api_name": "계좌별익일결제예정내역요청",
+      "variant_idx": 1,
+      "path": "acnt",
+      "body": {
+        "strt_dcd_seq": ""
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka90007",
+      "api_name": "프로그램매매누적추이요청",
+      "variant_idx": 1,
+      "path": "mrkcond",
+      "body": {
+        "date": "20251101",
+        "amt_qty_tp": "1",
+        "mrkt_tp": "0",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka90007",
+      "api_name": "프로그램매매누적추이요청",
+      "variant_idx": 2,
+      "path": "mrkcond",
+      "body": {
+        "date": "20251101",
+        "amt_qty_tp": "1",
+        "mrkt_tp": "1",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka90007",
+      "api_name": "프로그램매매누적추이요청",
+      "variant_idx": 3,
+      "path": "mrkcond",
+      "body": {
+        "date": "20251031",
+        "amt_qty_tp": "2",
+        "mrkt_tp": "0",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka50010",
+      "api_name": "금현물체결추이",
+      "variant_idx": 1,
+      "path": "mrkcond",
+      "body": {
+        "stk_cd": "M04020000"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka50010",
+      "api_name": "금현물체결추이",
+      "variant_idx": 2,
+      "path": "mrkcond",
+      "body": {
+        "stk_cd": "M04020100"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10042",
+      "api_name": "순매수거래원순위요청",
+      "variant_idx": 1,
+      "path": "rkinfo",
+      "body": {
+        "stk_cd": "000660",
+        "qry_dt_tp": "0",
+        "pot_tp": "0",
+        "sort_base": "1",
+        "dt": "5"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10042",
+      "api_name": "순매수거래원순위요청",
+      "variant_idx": 2,
+      "path": "rkinfo",
+      "body": {
+        "stk_cd": "000660",
+        "qry_dt_tp": "0",
+        "pot_tp": "0",
+        "sort_base": "2",
+        "dt": "10"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10042",
+      "api_name": "순매수거래원순위요청",
+      "variant_idx": 3,
+      "path": "rkinfo",
+      "body": {
+        "stk_cd": "000660",
+        "qry_dt_tp": "1",
+        "strt_dt": "20251002",
+        "end_dt": "20251101",
+        "pot_tp": "0",
+        "sort_base": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10046",
+      "api_name": "체결강도추이시간별요청",
+      "variant_idx": 1,
+      "path": "mrkcond",
+      "body": {
+        "stk_cd": "000660"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10046",
+      "api_name": "체결강도추이시간별요청",
+      "variant_idx": 2,
+      "path": "mrkcond",
+      "body": {
+        "stk_cd": "066970"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10013",
+      "api_name": "신용매매동향요청",
+      "variant_idx": 1,
+      "path": "stkinfo",
+      "body": {
+        "stk_cd": "000660",
+        "dt": "20251101",
+        "qry_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10013",
+      "api_name": "신용매매동향요청",
+      "variant_idx": 2,
+      "path": "stkinfo",
+      "body": {
+        "stk_cd": "000660",
+        "dt": "20251101",
+        "qry_tp": "2"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10013",
+      "api_name": "신용매매동향요청",
+      "variant_idx": 3,
+      "path": "stkinfo",
+      "body": {
+        "stk_cd": "000660",
+        "dt": "20251031",
+        "qry_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10059",
+      "api_name": "종목별투자자기관별요청",
+      "variant_idx": 1,
+      "path": "stkinfo",
+      "body": {
+        "stk_cd": "000660",
+        "dt": "20251101",
+        "amt_qty_tp": "1",
+        "trde_tp": "0",
+        "unit_tp": "1000"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10059",
+      "api_name": "종목별투자자기관별요청",
+      "variant_idx": 2,
+      "path": "stkinfo",
+      "body": {
+        "stk_cd": "000660",
+        "dt": "20251031",
+        "amt_qty_tp": "2",
+        "trde_tp": "0",
+        "unit_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10059",
+      "api_name": "종목별투자자기관별요청",
+      "variant_idx": 3,
+      "path": "stkinfo",
+      "body": {
+        "stk_cd": "000660",
+        "dt": "20251101",
+        "amt_qty_tp": "1",
+        "trde_tp": "1",
+        "unit_tp": "1000"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10059",
+      "api_name": "종목별투자자기관별요청",
+      "variant_idx": 4,
+      "path": "stkinfo",
+      "body": {
+        "stk_cd": "000660",
+        "dt": "20251101",
+        "amt_qty_tp": "1",
+        "trde_tp": "2",
+        "unit_tp": "1000"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka50101",
+      "api_name": "금현물 호가",
+      "variant_idx": 1,
+      "path": "mrkcond",
+      "body": {
+        "stk_cd": "M04020000",
+        "tic_scope": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka50101",
+      "api_name": "금현물 호가",
+      "variant_idx": 2,
+      "path": "mrkcond",
+      "body": {
+        "stk_cd": "M04020100",
+        "tic_scope": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10081",
+      "api_name": "주식일봉차트조회요청",
+      "variant_idx": 1,
+      "path": "chart",
+      "body": {
+        "stk_cd": "000660",
+        "base_dt": "20251101",
+        "upd_stkpc_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10081",
+      "api_name": "주식일봉차트조회요청",
+      "variant_idx": 2,
+      "path": "chart",
+      "body": {
+        "stk_cd": "066970",
+        "base_dt": "20251101",
+        "upd_stkpc_tp": "0"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10081",
+      "api_name": "주식일봉차트조회요청",
+      "variant_idx": 3,
+      "path": "chart",
+      "body": {
+        "stk_cd": "000660",
+        "base_dt": "20251002",
+        "upd_stkpc_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10099",
+      "api_name": "종목정보 리스트",
+      "variant_idx": 1,
+      "path": "stkinfo",
+      "body": {
+        "mrkt_tp": "0"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10099",
+      "api_name": "종목정보 리스트",
+      "variant_idx": 2,
+      "path": "stkinfo",
+      "body": {
+        "mrkt_tp": "10"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10099",
+      "api_name": "종목정보 리스트",
+      "variant_idx": 3,
+      "path": "stkinfo",
+      "body": {
+        "mrkt_tp": "8"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10069",
+      "api_name": "대차거래상위10종목요청",
+      "variant_idx": 1,
+      "path": "slb",
+      "body": {
+        "strt_dt": "20251101",
+        "end_dt": "20251101",
+        "mrkt_tp": "001"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10069",
+      "api_name": "대차거래상위10종목요청",
+      "variant_idx": 2,
+      "path": "slb",
+      "body": {
+        "strt_dt": "20251025",
+        "end_dt": "20251101",
+        "mrkt_tp": "101"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka30005",
+      "api_name": "ELW조건검색요청",
+      "variant_idx": 1,
+      "path": "elw",
+      "body": {
+        "isscomp_cd": "000000000000",
+        "bsis_aset_cd": "201",
+        "rght_tp": "1",
+        "lpcd": "000000000000",
+        "sort_tp": "0"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10003",
+      "api_name": "체결정보요청",
+      "variant_idx": 1,
+      "path": "stkinfo",
+      "body": {
+        "stk_cd": "000660"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10003",
+      "api_name": "체결정보요청",
+      "variant_idx": 2,
+      "path": "stkinfo",
+      "body": {
+        "stk_cd": "066970"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10045",
+      "api_name": "종목별기관매매추이요청",
+      "variant_idx": 1,
+      "path": "mrkcond",
+      "body": {
+        "stk_cd": "000660",
+        "strt_dt": "20251025",
+        "end_dt": "20251101",
+        "orgn_prsm_unp_tp": "1",
+        "for_prsm_unp_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10045",
+      "api_name": "종목별기관매매추이요청",
+      "variant_idx": 2,
+      "path": "mrkcond",
+      "body": {
+        "stk_cd": "000660",
+        "strt_dt": "20251002",
+        "end_dt": "20251101",
+        "orgn_prsm_unp_tp": "2",
+        "for_prsm_unp_tp": "2"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10017",
+      "api_name": "상하한가요청",
+      "variant_idx": 1,
+      "path": "stkinfo",
+      "body": {
+        "mrkt_tp": "000",
+        "updown_tp": "1",
+        "sort_tp": "1",
+        "stk_cnd": "0",
+        "trde_qty_tp": "00000",
+        "crd_cnd": "0",
+        "trde_gold_tp": "0",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10017",
+      "api_name": "상하한가요청",
+      "variant_idx": 2,
+      "path": "stkinfo",
+      "body": {
+        "mrkt_tp": "001",
+        "updown_tp": "2",
+        "sort_tp": "3",
+        "stk_cnd": "1",
+        "trde_qty_tp": "00000",
+        "crd_cnd": "0",
+        "trde_gold_tp": "0",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10017",
+      "api_name": "상하한가요청",
+      "variant_idx": 3,
+      "path": "stkinfo",
+      "body": {
+        "mrkt_tp": "101",
+        "updown_tp": "2",
+        "sort_tp": "1",
+        "stk_cnd": "0",
+        "trde_qty_tp": "00100",
+        "crd_cnd": "0",
+        "trde_gold_tp": "8",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka30012",
+      "api_name": "ELW종목상세정보요청",
+      "variant_idx": 1,
+      "path": "elw",
+      "body": {
+        "stk_cd": "J0669721F"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka30012",
+      "api_name": "ELW종목상세정보요청",
+      "variant_idx": 2,
+      "path": "elw",
+      "body": {
+        "stk_cd": "J0036221D"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10170",
+      "api_name": "당일매매일지요청",
+      "variant_idx": 1,
+      "path": "acnt",
+      "body": {
+        "base_dt": "20251101",
+        "ottks_tp": "1",
+        "ch_crd_tp": "0"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10170",
+      "api_name": "당일매매일지요청",
+      "variant_idx": 2,
+      "path": "acnt",
+      "body": {
+        "base_dt": "20251101",
+        "ottks_tp": "2",
+        "ch_crd_tp": "0"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10170",
+      "api_name": "당일매매일지요청",
+      "variant_idx": 3,
+      "path": "acnt",
+      "body": {
+        "base_dt": "20251031",
+        "ottks_tp": "1",
+        "ch_crd_tp": "0"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10087",
+      "api_name": "시간외단일가요청",
+      "variant_idx": 1,
+      "path": "mrkcond",
+      "body": {
+        "stk_cd": "000660"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10087",
+      "api_name": "시간외단일가요청",
+      "variant_idx": 2,
+      "path": "mrkcond",
+      "body": {
+        "stk_cd": "066970"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10039",
+      "api_name": "증권사별매매상위요청",
+      "variant_idx": 1,
+      "path": "rkinfo",
+      "body": {
+        "mmcm_cd": "050",
+        "trde_qty_tp": "0",
+        "trde_tp": "1",
+        "dt": "1",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10039",
+      "api_name": "증권사별매매상위요청",
+      "variant_idx": 2,
+      "path": "rkinfo",
+      "body": {
+        "mmcm_cd": "003",
+        "trde_qty_tp": "10",
+        "trde_tp": "2",
+        "dt": "5",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10039",
+      "api_name": "증권사별매매상위요청",
+      "variant_idx": 3,
+      "path": "rkinfo",
+      "body": {
+        "mmcm_cd": "005",
+        "trde_qty_tp": "0",
+        "trde_tp": "1",
+        "dt": "10",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka90004",
+      "api_name": "종목별프로그램매매현황요청",
+      "variant_idx": 1,
+      "path": "stkinfo",
+      "body": {
+        "dt": "20251101",
+        "mrkt_tp": "P00101",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka90004",
+      "api_name": "종목별프로그램매매현황요청",
+      "variant_idx": 2,
+      "path": "stkinfo",
+      "body": {
+        "dt": "20251101",
+        "mrkt_tp": "P10102",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka90004",
+      "api_name": "종목별프로그램매매현황요청",
+      "variant_idx": 3,
+      "path": "stkinfo",
+      "body": {
+        "dt": "20251031",
+        "mrkt_tp": "P00101",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka40004",
+      "api_name": "ETF전체시세요청",
+      "variant_idx": 1,
+      "path": "etf",
+      "body": {
+        "txon_type": "0",
+        "navpre": "0",
+        "mngmcomp": "3020",
+        "txon_yn": "0",
+        "trace_idex": "0",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka40004",
+      "api_name": "ETF전체시세요청",
+      "variant_idx": 2,
+      "path": "etf",
+      "body": {
+        "txon_type": "0",
+        "navpre": "0",
+        "mngmcomp": "3191",
+        "txon_yn": "0",
+        "trace_idex": "0",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka40004",
+      "api_name": "ETF전체시세요청",
+      "variant_idx": 3,
+      "path": "etf",
+      "body": {
+        "txon_type": "2",
+        "navpre": "1",
+        "mngmcomp": "0000",
+        "txon_yn": "1",
+        "trace_idex": "0",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10023",
+      "api_name": "거래량급증요청",
+      "variant_idx": 1,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "000",
+        "trde_qty_tp": "100",
+        "sort_tp": "2",
+        "tm_tp": "1",
+        "tm": "5",
+        "stk_cnd": "0",
+        "pric_tp": "0",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10023",
+      "api_name": "거래량급증요청",
+      "variant_idx": 2,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "001",
+        "trde_qty_tp": "50",
+        "sort_tp": "1",
+        "tm_tp": "2",
+        "stk_cnd": "0",
+        "pric_tp": "0",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10023",
+      "api_name": "거래량급증요청",
+      "variant_idx": 3,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "101",
+        "trde_qty_tp": "500",
+        "sort_tp": "3",
+        "tm_tp": "1",
+        "tm": "30",
+        "stk_cnd": "1",
+        "pric_tp": "8",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10023",
+      "api_name": "거래량급증요청",
+      "variant_idx": 4,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "000",
+        "trde_qty_tp": "1000",
+        "sort_tp": "4",
+        "tm_tp": "2",
+        "stk_cnd": "0",
+        "pric_tp": "0",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10019",
+      "api_name": "가격급등락요청",
+      "variant_idx": 1,
+      "path": "stkinfo",
+      "body": {
+        "mrkt_tp": "000",
+        "flu_tp": "1",
+        "tm_tp": "1",
+        "tm": "5",
+        "trde_qty_tp": "00000",
+        "stk_cnd": "0",
+        "crd_cnd": "0",
+        "pric_cnd": "0",
+        "updown_incls": "1",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10019",
+      "api_name": "가격급등락요청",
+      "variant_idx": 2,
+      "path": "stkinfo",
+      "body": {
+        "mrkt_tp": "001",
+        "flu_tp": "2",
+        "tm_tp": "1",
+        "tm": "10",
+        "trde_qty_tp": "00000",
+        "stk_cnd": "0",
+        "crd_cnd": "0",
+        "pric_cnd": "0",
+        "updown_incls": "1",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10019",
+      "api_name": "가격급등락요청",
+      "variant_idx": 3,
+      "path": "stkinfo",
+      "body": {
+        "mrkt_tp": "101",
+        "flu_tp": "1",
+        "tm_tp": "2",
+        "tm": "1",
+        "trde_qty_tp": "00100",
+        "stk_cnd": "1",
+        "crd_cnd": "0",
+        "pric_cnd": "8",
+        "updown_incls": "1",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka52301",
+      "api_name": "금현물투자자현황",
+      "variant_idx": 1,
+      "path": "frgnistt",
+      "body": {},
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10131",
+      "api_name": "기관외국인연속매매현황요청",
+      "variant_idx": 1,
+      "path": "frgnistt",
+      "body": {
+        "dt": "5",
+        "mrkt_tp": "001",
+        "netslmt_tp": "2",
+        "stk_inds_tp": "0",
+        "amt_qty_tp": "0",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10131",
+      "api_name": "기관외국인연속매매현황요청",
+      "variant_idx": 2,
+      "path": "frgnistt",
+      "body": {
+        "dt": "10",
+        "mrkt_tp": "101",
+        "netslmt_tp": "2",
+        "stk_inds_tp": "0",
+        "amt_qty_tp": "1",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10131",
+      "api_name": "기관외국인연속매매현황요청",
+      "variant_idx": 3,
+      "path": "frgnistt",
+      "body": {
+        "dt": "0",
+        "strt_dt": "20251025",
+        "end_dt": "20251101",
+        "mrkt_tp": "001",
+        "netslmt_tp": "2",
+        "stk_inds_tp": "0",
+        "amt_qty_tp": "0",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka90005",
+      "api_name": "프로그램매매추이요청 시간대별",
+      "variant_idx": 1,
+      "path": "mrkcond",
+      "body": {
+        "date": "20251101",
+        "amt_qty_tp": "1",
+        "mrkt_tp": "P00101",
+        "min_tic_tp": "1",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka90005",
+      "api_name": "프로그램매매추이요청 시간대별",
+      "variant_idx": 2,
+      "path": "mrkcond",
+      "body": {
+        "date": "20251101",
+        "amt_qty_tp": "2",
+        "mrkt_tp": "P10102",
+        "min_tic_tp": "1",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka90005",
+      "api_name": "프로그램매매추이요청 시간대별",
+      "variant_idx": 3,
+      "path": "mrkcond",
+      "body": {
+        "date": "20251101",
+        "amt_qty_tp": "1",
+        "mrkt_tp": "P00101",
+        "min_tic_tp": "0",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka20003",
+      "api_name": "전업종지수요청",
+      "variant_idx": 1,
+      "path": "sect",
+      "body": {
+        "inds_cd": "001"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka20003",
+      "api_name": "전업종지수요청",
+      "variant_idx": 2,
+      "path": "sect",
+      "body": {
+        "inds_cd": "101"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka90009",
+      "api_name": "외국인기관매매상위요청",
+      "variant_idx": 1,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "001",
+        "amt_qty_tp": "1",
+        "qry_dt_tp": "1",
+        "date": "20251101",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka90009",
+      "api_name": "외국인기관매매상위요청",
+      "variant_idx": 2,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "101",
+        "amt_qty_tp": "2",
+        "qry_dt_tp": "1",
+        "date": "20251031",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka90009",
+      "api_name": "외국인기관매매상위요청",
+      "variant_idx": 3,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "000",
+        "amt_qty_tp": "1",
+        "qry_dt_tp": "0",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka40008",
+      "api_name": "ETF일자별체결요청",
+      "variant_idx": 1,
+      "path": "etf",
+      "body": {
+        "stk_cd": "069500"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka40008",
+      "api_name": "ETF일자별체결요청",
+      "variant_idx": 2,
+      "path": "etf",
+      "body": {
+        "stk_cd": "114800"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt00017",
+      "api_name": "계좌별당일현황요청",
+      "variant_idx": 1,
+      "path": "acnt",
+      "body": {},
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt00015",
+      "api_name": "위탁종합거래내역요청",
+      "variant_idx": 1,
+      "path": "acnt",
+      "body": {
+        "strt_dt": "20251101",
+        "end_dt": "20251101",
+        "tp": "0",
+        "gds_tp": "0",
+        "dmst_stex_tp": "%"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt00015",
+      "api_name": "위탁종합거래내역요청",
+      "variant_idx": 2,
+      "path": "acnt",
+      "body": {
+        "strt_dt": "20251025",
+        "end_dt": "20251101",
+        "tp": "3",
+        "gds_tp": "1",
+        "dmst_stex_tp": "%"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt00015",
+      "api_name": "위탁종합거래내역요청",
+      "variant_idx": 3,
+      "path": "acnt",
+      "body": {
+        "strt_dt": "20251002",
+        "end_dt": "20251101",
+        "tp": "6",
+        "gds_tp": "0",
+        "dmst_stex_tp": "%"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt00015",
+      "api_name": "위탁종합거래내역요청",
+      "variant_idx": 4,
+      "path": "acnt",
+      "body": {
+        "strt_dt": "20251002",
+        "end_dt": "20251101",
+        "tp": "7",
+        "gds_tp": "0",
+        "dmst_stex_tp": "%"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10032",
+      "api_name": "거래대금상위요청",
+      "variant_idx": 1,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "001",
+        "mang_stk_incls": "0",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10032",
+      "api_name": "거래대금상위요청",
+      "variant_idx": 2,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "101",
+        "mang_stk_incls": "1",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10032",
+      "api_name": "거래대금상위요청",
+      "variant_idx": 3,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "000",
+        "mang_stk_incls": "0",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka30004",
+      "api_name": "ELW괴리율요청",
+      "variant_idx": 1,
+      "path": "elw",
+      "body": {
+        "isscomp_cd": "000000000000",
+        "bsis_aset_cd": "201",
+        "rght_tp": "001",
+        "lpcd": "000000000000",
+        "trde_end_elwskip": "0"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10001",
+      "api_name": "주식기본정보요청",
+      "variant_idx": 1,
+      "path": "stkinfo",
+      "body": {
+        "stk_cd": "000660"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10001",
+      "api_name": "주식기본정보요청",
+      "variant_idx": 2,
+      "path": "stkinfo",
+      "body": {
+        "stk_cd": "066970"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10001",
+      "api_name": "주식기본정보요청",
+      "variant_idx": 3,
+      "path": "stkinfo",
+      "body": {
+        "stk_cd": "069500"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10001",
+      "api_name": "주식기본정보요청",
+      "variant_idx": 4,
+      "path": "stkinfo",
+      "body": {
+        "stk_cd": "J0669721F"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10043",
+      "api_name": "거래원매물대분석요청",
+      "variant_idx": 1,
+      "path": "stkinfo",
+      "body": {
+        "stk_cd": "000660",
+        "strt_dt": "20251025",
+        "end_dt": "20251101",
+        "qry_dt_tp": "1",
+        "pot_tp": "0",
+        "dt": "5",
+        "sort_base": "1",
+        "mmcm_cd": "050",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10043",
+      "api_name": "거래원매물대분석요청",
+      "variant_idx": 2,
+      "path": "stkinfo",
+      "body": {
+        "stk_cd": "000660",
+        "strt_dt": "20251002",
+        "end_dt": "20251101",
+        "qry_dt_tp": "1",
+        "pot_tp": "0",
+        "dt": "20",
+        "sort_base": "2",
+        "mmcm_cd": "003",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka40002",
+      "api_name": "ETF종목정보요청",
+      "variant_idx": 1,
+      "path": "etf",
+      "body": {
+        "stk_cd": "069500"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka40002",
+      "api_name": "ETF종목정보요청",
+      "variant_idx": 2,
+      "path": "etf",
+      "body": {
+        "stk_cd": "114800"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka30002",
+      "api_name": "거래원별ELW순매매상위요청",
+      "variant_idx": 1,
+      "path": "elw",
+      "body": {
+        "isscomp_cd": "003",
+        "trde_qty_tp": "0",
+        "trde_tp": "1",
+        "dt": "5",
+        "trde_end_elwskip": "0"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka30002",
+      "api_name": "거래원별ELW순매매상위요청",
+      "variant_idx": 2,
+      "path": "elw",
+      "body": {
+        "isscomp_cd": "005",
+        "trde_qty_tp": "50",
+        "trde_tp": "2",
+        "dt": "10",
+        "trde_end_elwskip": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka30002",
+      "api_name": "거래원별ELW순매매상위요청",
+      "variant_idx": 3,
+      "path": "elw",
+      "body": {
+        "isscomp_cd": "017",
+        "trde_qty_tp": "0",
+        "trde_tp": "1",
+        "dt": "60",
+        "trde_end_elwskip": "0"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10077",
+      "api_name": "당일실현손익상세요청",
+      "variant_idx": 1,
+      "path": "acnt",
+      "body": {
+        "stk_cd": "000660"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10065",
+      "api_name": "장중투자자별매매상위요청",
+      "variant_idx": 1,
+      "path": "rkinfo",
+      "body": {
+        "trde_tp": "1",
+        "mrkt_tp": "001",
+        "orgn_tp": "9000"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10065",
+      "api_name": "장중투자자별매매상위요청",
+      "variant_idx": 2,
+      "path": "rkinfo",
+      "body": {
+        "trde_tp": "2",
+        "mrkt_tp": "101",
+        "orgn_tp": "9999"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10065",
+      "api_name": "장중투자자별매매상위요청",
+      "variant_idx": 3,
+      "path": "rkinfo",
+      "body": {
+        "trde_tp": "1",
+        "mrkt_tp": "000",
+        "orgn_tp": "6000"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka20009",
+      "api_name": "업종현재가일별요청",
+      "variant_idx": 1,
+      "path": "sect",
+      "body": {
+        "mrkt_tp": "0",
+        "inds_cd": "001"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka20009",
+      "api_name": "업종현재가일별요청",
+      "variant_idx": 2,
+      "path": "sect",
+      "body": {
+        "mrkt_tp": "1",
+        "inds_cd": "101"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka20009",
+      "api_name": "업종현재가일별요청",
+      "variant_idx": 3,
+      "path": "sect",
+      "body": {
+        "mrkt_tp": "2",
+        "inds_cd": "201"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10054",
+      "api_name": "변동성완화장치",
+      "variant_idx": 1,
+      "path": "stkinfo",
+      "body": {
+        "mrkt_tp": "000",
+        "bf_mkrt_tp": "0",
+        "motn_tp": "0",
+        "skip_stk": "000000000",
+        "trde_qty_tp": "0",
+        "min_trde_qty": "0",
+        "max_trde_qty": "999999999999",
+        "trde_prica_tp": "0",
+        "min_trde_prica": "0",
+        "max_trde_prica": "9999999999",
+        "motn_drc": "0",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10054",
+      "api_name": "변동성완화장치",
+      "variant_idx": 2,
+      "path": "stkinfo",
+      "body": {
+        "mrkt_tp": "001",
+        "bf_mkrt_tp": "1",
+        "motn_tp": "1",
+        "skip_stk": "111111111",
+        "trde_qty_tp": "0",
+        "min_trde_qty": "0",
+        "max_trde_qty": "999999999999",
+        "trde_prica_tp": "0",
+        "min_trde_prica": "0",
+        "max_trde_prica": "9999999999",
+        "motn_drc": "1",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10007",
+      "api_name": "시세표성정보요청",
+      "variant_idx": 1,
+      "path": "mrkcond",
+      "body": {
+        "stk_cd": "000660"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10007",
+      "api_name": "시세표성정보요청",
+      "variant_idx": 2,
+      "path": "mrkcond",
+      "body": {
+        "stk_cd": "066970"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt00004",
+      "api_name": "계좌평가현황요청",
+      "variant_idx": 1,
+      "path": "acnt",
+      "body": {
+        "qry_tp": "0",
+        "dmst_stex_tp": "KRX"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt00004",
+      "api_name": "계좌평가현황요청",
+      "variant_idx": 2,
+      "path": "acnt",
+      "body": {
+        "qry_tp": "1",
+        "dmst_stex_tp": "KRX"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt00004",
+      "api_name": "계좌평가현황요청",
+      "variant_idx": 3,
+      "path": "acnt",
+      "body": {
+        "qry_tp": "0",
+        "dmst_stex_tp": "NXT"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10085",
+      "api_name": "계좌수익률요청",
+      "variant_idx": 1,
+      "path": "acnt",
+      "body": {
+        "stex_tp": "0"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10085",
+      "api_name": "계좌수익률요청",
+      "variant_idx": 2,
+      "path": "acnt",
+      "body": {
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10085",
+      "api_name": "계좌수익률요청",
+      "variant_idx": 3,
+      "path": "acnt",
+      "body": {
+        "stex_tp": "2"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10022",
+      "api_name": "잔량율급증요청",
+      "variant_idx": 1,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "001",
+        "rt_tp": "1",
+        "tm_tp": "5",
+        "trde_qty_tp": "10",
+        "stk_cnd": "0",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10022",
+      "api_name": "잔량율급증요청",
+      "variant_idx": 2,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "101",
+        "rt_tp": "2",
+        "tm_tp": "10",
+        "trde_qty_tp": "50",
+        "stk_cnd": "0",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10022",
+      "api_name": "잔량율급증요청",
+      "variant_idx": 3,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "001",
+        "rt_tp": "1",
+        "tm_tp": "30",
+        "trde_qty_tp": "100",
+        "stk_cnd": "1",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10022",
+      "api_name": "잔량율급증요청",
+      "variant_idx": 4,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "101",
+        "rt_tp": "2",
+        "tm_tp": "1",
+        "trde_qty_tp": "5",
+        "stk_cnd": "0",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10051",
+      "api_name": "업종별투자자순매수요청",
+      "variant_idx": 1,
+      "path": "sect",
+      "body": {
+        "mrkt_tp": "0",
+        "amt_qty_tp": "0",
+        "base_dt": "20251101",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10051",
+      "api_name": "업종별투자자순매수요청",
+      "variant_idx": 2,
+      "path": "sect",
+      "body": {
+        "mrkt_tp": "1",
+        "amt_qty_tp": "1",
+        "base_dt": "20251031",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10051",
+      "api_name": "업종별투자자순매수요청",
+      "variant_idx": 3,
+      "path": "sect",
+      "body": {
+        "mrkt_tp": "0",
+        "amt_qty_tp": "1",
+        "base_dt": "20251101",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10101",
+      "api_name": "업종코드 리스트",
+      "variant_idx": 1,
+      "path": "stkinfo",
+      "body": {
+        "mrkt_tp": "0"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10101",
+      "api_name": "업종코드 리스트",
+      "variant_idx": 2,
+      "path": "stkinfo",
+      "body": {
+        "mrkt_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10101",
+      "api_name": "업종코드 리스트",
+      "variant_idx": 3,
+      "path": "stkinfo",
+      "body": {
+        "mrkt_tp": "2"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka40007",
+      "api_name": "ETF시간대별체결요청",
+      "variant_idx": 1,
+      "path": "etf",
+      "body": {
+        "stk_cd": "069500"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka40007",
+      "api_name": "ETF시간대별체결요청",
+      "variant_idx": 2,
+      "path": "etf",
+      "body": {
+        "stk_cd": "114800"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10021",
+      "api_name": "호가잔량급증요청",
+      "variant_idx": 1,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "001",
+        "trde_tp": "1",
+        "sort_tp": "1",
+        "trde_qty_tp": "10",
+        "stk_cnd": "0",
+        "tm_tp": "5",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10021",
+      "api_name": "호가잔량급증요청",
+      "variant_idx": 2,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "101",
+        "trde_tp": "2",
+        "sort_tp": "2",
+        "trde_qty_tp": "1",
+        "stk_cnd": "0",
+        "tm_tp": "1",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10021",
+      "api_name": "호가잔량급증요청",
+      "variant_idx": 4,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "101",
+        "trde_tp": "2",
+        "sort_tp": "1",
+        "trde_qty_tp": "1",
+        "stk_cnd": "0",
+        "tm_tp": "1",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt00013",
+      "api_name": "증거금세부내역조회요청",
+      "variant_idx": 1,
+      "path": "acnt",
+      "body": {},
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10079",
+      "api_name": "주식틱차트조회요청",
+      "variant_idx": 1,
+      "path": "chart",
+      "body": {
+        "stk_cd": "000660",
+        "tic_scope": "1",
+        "upd_stkpc_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10079",
+      "api_name": "주식틱차트조회요청",
+      "variant_idx": 2,
+      "path": "chart",
+      "body": {
+        "stk_cd": "000660",
+        "tic_scope": "5",
+        "upd_stkpc_tp": "0"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10079",
+      "api_name": "주식틱차트조회요청",
+      "variant_idx": 3,
+      "path": "chart",
+      "body": {
+        "stk_cd": "000660",
+        "tic_scope": "10",
+        "upd_stkpc_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10079",
+      "api_name": "주식틱차트조회요청",
+      "variant_idx": 4,
+      "path": "chart",
+      "body": {
+        "stk_cd": "066970",
+        "tic_scope": "30",
+        "upd_stkpc_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10002",
+      "api_name": "주식거래원요청",
+      "variant_idx": 1,
+      "path": "stkinfo",
+      "body": {
+        "stk_cd": "000660"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10002",
+      "api_name": "주식거래원요청",
+      "variant_idx": 2,
+      "path": "stkinfo",
+      "body": {
+        "stk_cd": "066970"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10063",
+      "api_name": "장중투자자별매매요청",
+      "variant_idx": 1,
+      "path": "mrkcond",
+      "body": {
+        "mrkt_tp": "001",
+        "amt_qty_tp": "1",
+        "invsr": "6",
+        "frgn_all": "0",
+        "smtm_netprps_tp": "0",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10063",
+      "api_name": "장중투자자별매매요청",
+      "variant_idx": 2,
+      "path": "mrkcond",
+      "body": {
+        "mrkt_tp": "101",
+        "amt_qty_tp": "1",
+        "invsr": "7",
+        "frgn_all": "0",
+        "smtm_netprps_tp": "0",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10063",
+      "api_name": "장중투자자별매매요청",
+      "variant_idx": 3,
+      "path": "mrkcond",
+      "body": {
+        "mrkt_tp": "001",
+        "amt_qty_tp": "1",
+        "invsr": "1",
+        "frgn_all": "0",
+        "smtm_netprps_tp": "0",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10063",
+      "api_name": "장중투자자별매매요청",
+      "variant_idx": 4,
+      "path": "mrkcond",
+      "body": {
+        "mrkt_tp": "001",
+        "amt_qty_tp": "1",
+        "invsr": "3",
+        "frgn_all": "1",
+        "smtm_netprps_tp": "1",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10060",
+      "api_name": "종목별투자자기관별차트요청",
+      "variant_idx": 1,
+      "path": "chart",
+      "body": {
+        "dt": "20251101",
+        "stk_cd": "000660",
+        "amt_qty_tp": "1",
+        "trde_tp": "0",
+        "unit_tp": "1000"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10060",
+      "api_name": "종목별투자자기관별차트요청",
+      "variant_idx": 2,
+      "path": "chart",
+      "body": {
+        "dt": "20251101",
+        "stk_cd": "000660",
+        "amt_qty_tp": "2",
+        "trde_tp": "0",
+        "unit_tp": "1000"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10060",
+      "api_name": "종목별투자자기관별차트요청",
+      "variant_idx": 3,
+      "path": "chart",
+      "body": {
+        "dt": "20251031",
+        "stk_cd": "000660",
+        "amt_qty_tp": "1",
+        "trde_tp": "1",
+        "unit_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10061",
+      "api_name": "종목별투자자기관별합계요청",
+      "variant_idx": 1,
+      "path": "stkinfo",
+      "body": {
+        "stk_cd": "000660",
+        "strt_dt": "20251101",
+        "end_dt": "20251101",
+        "amt_qty_tp": "1",
+        "trde_tp": "0",
+        "unit_tp": "1000"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10061",
+      "api_name": "종목별투자자기관별합계요청",
+      "variant_idx": 2,
+      "path": "stkinfo",
+      "body": {
+        "stk_cd": "000660",
+        "strt_dt": "20251025",
+        "end_dt": "20251101",
+        "amt_qty_tp": "1",
+        "trde_tp": "0",
+        "unit_tp": "1000"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10061",
+      "api_name": "종목별투자자기관별합계요청",
+      "variant_idx": 3,
+      "path": "stkinfo",
+      "body": {
+        "stk_cd": "000660",
+        "strt_dt": "20251002",
+        "end_dt": "20251101",
+        "amt_qty_tp": "2",
+        "trde_tp": "0",
+        "unit_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10025",
+      "api_name": "매물대집중요청",
+      "variant_idx": 1,
+      "path": "stkinfo",
+      "body": {
+        "mrkt_tp": "000",
+        "prps_cnctr_rt": "50",
+        "cur_prc_entry": "0",
+        "prpscnt": "10",
+        "cycle_tp": "50",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10025",
+      "api_name": "매물대집중요청",
+      "variant_idx": 2,
+      "path": "stkinfo",
+      "body": {
+        "mrkt_tp": "001",
+        "prps_cnctr_rt": "70",
+        "cur_prc_entry": "1",
+        "prpscnt": "5",
+        "cycle_tp": "100",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10020",
+      "api_name": "호가잔량상위요청",
+      "variant_idx": 1,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "001",
+        "sort_tp": "1",
+        "trde_qty_tp": "00000",
+        "stk_cnd": "0",
+        "crd_cnd": "0",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10020",
+      "api_name": "호가잔량상위요청",
+      "variant_idx": 2,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "101",
+        "sort_tp": "3",
+        "trde_qty_tp": "00000",
+        "stk_cnd": "0",
+        "crd_cnd": "0",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10020",
+      "api_name": "호가잔량상위요청",
+      "variant_idx": 3,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "001",
+        "sort_tp": "2",
+        "trde_qty_tp": "00010",
+        "stk_cnd": "1",
+        "crd_cnd": "0",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10020",
+      "api_name": "호가잔량상위요청",
+      "variant_idx": 4,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "101",
+        "sort_tp": "4",
+        "trde_qty_tp": "00050",
+        "stk_cnd": "0",
+        "crd_cnd": "9",
+        "stex_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10074",
+      "api_name": "일자별실현손익요청",
+      "variant_idx": 1,
+      "path": "acnt",
+      "body": {
+        "strt_dt": "20251101",
+        "end_dt": "20251101"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10074",
+      "api_name": "일자별실현손익요청",
+      "variant_idx": 2,
+      "path": "acnt",
+      "body": {
+        "strt_dt": "20251025",
+        "end_dt": "20251101"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10074",
+      "api_name": "일자별실현손익요청",
+      "variant_idx": 3,
+      "path": "acnt",
+      "body": {
+        "strt_dt": "20251002",
+        "end_dt": "20251101"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10031",
+      "api_name": "전일거래량상위요청",
+      "variant_idx": 1,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "001",
+        "qry_tp": "1",
+        "rank_strt": "1",
+        "rank_end": "50",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10031",
+      "api_name": "전일거래량상위요청",
+      "variant_idx": 2,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "101",
+        "qry_tp": "2",
+        "rank_strt": "1",
+        "rank_end": "100",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10031",
+      "api_name": "전일거래량상위요청",
+      "variant_idx": 3,
+      "path": "rkinfo",
+      "body": {
+        "mrkt_tp": "000",
+        "qry_tp": "1",
+        "rank_strt": "51",
+        "rank_end": "100",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka00198",
+      "api_name": "실시간종목조회순위",
+      "variant_idx": 1,
+      "path": "stkinfo",
+      "body": {
+        "qry_tp": "4"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka00198",
+      "api_name": "실시간종목조회순위",
+      "variant_idx": 2,
+      "path": "stkinfo",
+      "body": {
+        "qry_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka00198",
+      "api_name": "실시간종목조회순위",
+      "variant_idx": 3,
+      "path": "stkinfo",
+      "body": {
+        "qry_tp": "2"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka00198",
+      "api_name": "실시간종목조회순위",
+      "variant_idx": 4,
+      "path": "stkinfo",
+      "body": {
+        "qry_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka00198",
+      "api_name": "실시간종목조회순위",
+      "variant_idx": 5,
+      "path": "stkinfo",
+      "body": {
+        "qry_tp": "5"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10082",
+      "api_name": "주식주봉차트조회요청",
+      "variant_idx": 1,
+      "path": "chart",
+      "body": {
+        "stk_cd": "000660",
+        "base_dt": "20251101",
+        "upd_stkpc_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10082",
+      "api_name": "주식주봉차트조회요청",
+      "variant_idx": 2,
+      "path": "chart",
+      "body": {
+        "stk_cd": "066970",
+        "base_dt": "20251018",
+        "upd_stkpc_tp": "0"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10082",
+      "api_name": "주식주봉차트조회요청",
+      "variant_idx": 3,
+      "path": "chart",
+      "body": {
+        "stk_cd": "000660",
+        "base_dt": "20250505",
+        "upd_stkpc_tp": "1"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10062",
+      "api_name": "동일순매매순위요청",
+      "variant_idx": 1,
+      "path": "rkinfo",
+      "body": {
+        "strt_dt": "20251101",
+        "end_dt": "20251101",
+        "mrkt_tp": "001",
+        "trde_tp": "1",
+        "sort_cnd": "1",
+        "unit_tp": "1",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10062",
+      "api_name": "동일순매매순위요청",
+      "variant_idx": 2,
+      "path": "rkinfo",
+      "body": {
+        "strt_dt": "20251025",
+        "end_dt": "20251101",
+        "mrkt_tp": "101",
+        "trde_tp": "2",
+        "sort_cnd": "2",
+        "unit_tp": "1",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10062",
+      "api_name": "동일순매매순위요청",
+      "variant_idx": 3,
+      "path": "rkinfo",
+      "body": {
+        "strt_dt": "20251002",
+        "end_dt": "20251101",
+        "mrkt_tp": "000",
+        "trde_tp": "1",
+        "sort_cnd": "1",
+        "unit_tp": "1000",
+        "stex_tp": "3"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka50100",
+      "api_name": "금현물 시세정보",
+      "variant_idx": 1,
+      "path": "mrkcond",
+      "body": {
+        "stk_cd": "M04020000"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka50100",
+      "api_name": "금현물 시세정보",
+      "variant_idx": 2,
+      "path": "mrkcond",
+      "body": {
+        "stk_cd": "M04020100"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10053",
+      "api_name": "당일상위이탈원요청",
+      "variant_idx": 1,
+      "path": "rkinfo",
+      "body": {
+        "stk_cd": "000660"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10053",
+      "api_name": "당일상위이탈원요청",
+      "variant_idx": 2,
+      "path": "rkinfo",
+      "body": {
+        "stk_cd": "066970"
+      },
+      "original_status": "success",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    }
+  ],
+  "failed_api_results": [
+    {
+      "api_id": "kt50020",
+      "api_name": "금현물 잔고확인",
+      "variant_idx": 1,
+      "path": "acnt",
+      "body": {},
+      "original_status": "no_data",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10010",
+      "api_name": "업종프로그램요청",
+      "variant_idx": 1,
+      "path": "sect",
+      "body": {
+        "stk_cd": "001"
+      },
+      "original_status": "api_error",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10010",
+      "api_name": "업종프로그램요청",
+      "variant_idx": 2,
+      "path": "sect",
+      "body": {
+        "stk_cd": "201"
+      },
+      "original_status": "api_error",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10010",
+      "api_name": "업종프로그램요청",
+      "variant_idx": 3,
+      "path": "sect",
+      "body": {
+        "stk_cd": "101"
+      },
+      "original_status": "api_error",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10088",
+      "api_name": "미체결 분할주문 상세",
+      "variant_idx": 1,
+      "path": "acnt",
+      "body": {
+        "ord_no": "0000050"
+      },
+      "original_status": "api_error",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt50021",
+      "api_name": "금현물 예수금",
+      "variant_idx": 1,
+      "path": "acnt",
+      "body": {},
+      "original_status": "no_data",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt00012",
+      "api_name": "신용보증금율별주문가능수량조회요청",
+      "variant_idx": 1,
+      "path": "acnt",
+      "body": {
+        "stk_cd": "000660",
+        "uv": "0"
+      },
+      "original_status": "no_data",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt00012",
+      "api_name": "신용보증금율별주문가능수량조회요청",
+      "variant_idx": 2,
+      "path": "acnt",
+      "body": {
+        "stk_cd": "066970",
+        "uv": "1000"
+      },
+      "original_status": "no_data",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10076",
+      "api_name": "체결요청",
+      "variant_idx": 1,
+      "path": "acnt",
+      "body": {
+        "qry_tp": "0",
+        "sell_tp": "0",
+        "stex_tp": "0",
+        "stk_cd": ""
+      },
+      "original_status": "api_error",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10076",
+      "api_name": "체결요청",
+      "variant_idx": 2,
+      "path": "acnt",
+      "body": {
+        "qry_tp": "1",
+        "sell_tp": "0",
+        "stex_tp": "1",
+        "stk_cd": "000660"
+      },
+      "original_status": "api_error",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10076",
+      "api_name": "체결요청",
+      "variant_idx": 3,
+      "path": "acnt",
+      "body": {
+        "qry_tp": "0",
+        "sell_tp": "0",
+        "stex_tp": "0",
+        "stk_cd": "",
+        "ord_dt": "20251031"
+      },
+      "original_status": "api_error",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10076",
+      "api_name": "체결요청",
+      "variant_idx": 4,
+      "path": "acnt",
+      "body": {
+        "qry_tp": "1",
+        "sell_tp": "1",
+        "stex_tp": "0",
+        "stk_cd": "005930",
+        "ord_dt": "20251031"
+      },
+      "original_status": "api_error",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10076",
+      "api_name": "체결요청",
+      "variant_idx": 5,
+      "path": "acnt",
+      "body": {
+        "qry_tp": "1",
+        "sell_tp": "2",
+        "stex_tp": "0",
+        "stk_cd": "005930",
+        "ord_dt": "20251031"
+      },
+      "original_status": "api_error",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt00009",
+      "api_name": "계좌별주문체결현황요청",
+      "variant_idx": 1,
+      "path": "acnt",
+      "body": {
+        "ord_dt": "20251101",
+        "stk_bond_tp": "0",
+        "mrkt_tp": "0",
+        "sell_tp": "0",
+        "qry_tp": "0",
+        "dmst_stex_tp": "KRX"
+      },
+      "original_status": "no_data",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt00009",
+      "api_name": "계좌별주문체결현황요청",
+      "variant_idx": 2,
+      "path": "acnt",
+      "body": {
+        "ord_dt": "20251101",
+        "stk_bond_tp": "1",
+        "mrkt_tp": "1",
+        "sell_tp": "0",
+        "qry_tp": "1",
+        "dmst_stex_tp": "KRX"
+      },
+      "original_status": "no_data",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt00009",
+      "api_name": "계좌별주문체결현황요청",
+      "variant_idx": 3,
+      "path": "acnt",
+      "body": {
+        "ord_dt": "20251101",
+        "stk_bond_tp": "1",
+        "mrkt_tp": "2",
+        "sell_tp": "0",
+        "qry_tp": "0",
+        "dmst_stex_tp": "%"
+      },
+      "original_status": "no_data",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt50031",
+      "api_name": "금현물 주문체결조회",
+      "variant_idx": 1,
+      "path": "acnt",
+      "body": {
+        "ord_dt": "20251101",
+        "qry_tp": "1",
+        "stk_bond_tp": "0",
+        "sell_tp": "0",
+        "stk_cd": "M04020000",
+        "fr_ord_no": "",
+        "dmst_stex_tp": "%"
+      },
+      "original_status": "api_error",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt50031",
+      "api_name": "금현물 주문체결조회",
+      "variant_idx": 2,
+      "path": "acnt",
+      "body": {
+        "ord_dt": "20251031",
+        "qry_tp": "1",
+        "stk_bond_tp": "0",
+        "sell_tp": "0",
+        "stk_cd": "M04020000",
+        "fr_ord_no": "",
+        "dmst_stex_tp": "%"
+      },
+      "original_status": "api_error",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt50032",
+      "api_name": "금현물 거래내역조회",
+      "variant_idx": 1,
+      "path": "acnt",
+      "body": {
+        "strt_dt": "20251025",
+        "end_dt": "20251101",
+        "tp": "0",
+        "stk_cd": ""
+      },
+      "original_status": "no_data",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt50032",
+      "api_name": "금현물 거래내역조회",
+      "variant_idx": 2,
+      "path": "acnt",
+      "body": {
+        "strt_dt": "20251101",
+        "end_dt": "20251101",
+        "tp": "4",
+        "stk_cd": "M04020000"
+      },
+      "original_status": "no_data",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt50030",
+      "api_name": "금현물 주문체결전체조회",
+      "variant_idx": 1,
+      "path": "acnt",
+      "body": {
+        "ord_dt": "20251101",
+        "qry_tp": "1",
+        "mrkt_deal_tp": "1",
+        "stk_bond_tp": "0",
+        "slby_tp": "0",
+        "stk_cd": "",
+        "fr_ord_no": "",
+        "dmst_stex_tp": "KRX"
+      },
+      "original_status": "api_error",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt50030",
+      "api_name": "금현물 주문체결전체조회",
+      "variant_idx": 2,
+      "path": "acnt",
+      "body": {
+        "ord_dt": "20251031",
+        "qry_tp": "2",
+        "mrkt_deal_tp": "1",
+        "stk_bond_tp": "0",
+        "slby_tp": "2",
+        "stk_cd": "M04020000",
+        "fr_ord_no": "",
+        "dmst_stex_tp": "KRX"
+      },
+      "original_status": "api_error",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt50075",
+      "api_name": "금현물 미체결조회",
+      "variant_idx": 1,
+      "path": "acnt",
+      "body": {
+        "ord_dt": "20251101",
+        "mrkt_deal_tp": "1",
+        "stk_bond_tp": "0",
+        "sell_tp": "0",
+        "stk_cd": ""
+      },
+      "original_status": "api_error",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "kt50075",
+      "api_name": "금현물 미체결조회",
+      "variant_idx": 2,
+      "path": "acnt",
+      "body": {
+        "ord_dt": "20251031",
+        "mrkt_deal_tp": "1",
+        "stk_bond_tp": "0",
+        "sell_tp": "2",
+        "stk_cd": "M04020000"
+      },
+      "original_status": "api_error",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10075",
+      "api_name": "미체결요청",
+      "variant_idx": 1,
+      "path": "acnt",
+      "body": {
+        "all_stk_tp": "0",
+        "trde_tp": "0",
+        "stk_cd": "",
+        "stex_tp": "0"
+      },
+      "original_status": "api_error",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10075",
+      "api_name": "미체결요청",
+      "variant_idx": 2,
+      "path": "acnt",
+      "body": {
+        "all_stk_tp": "1",
+        "trde_tp": "0",
+        "stk_cd": "000660",
+        "stex_tp": "0"
+      },
+      "original_status": "api_error",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    },
+    {
+      "api_id": "ka10075",
+      "api_name": "미체결요청",
+      "variant_idx": 3,
+      "path": "acnt",
+      "body": {
+        "all_stk_tp": "0",
+        "trde_tp": "0",
+        "stk_cd": "",
+        "stex_tp": "0",
+        "ord_dt": "20251031"
+      },
+      "original_status": "api_error",
+      "status": "exception",
+      "error": "'KiwoomRESTClient' object has no attribute 'call_api'",
+      "error_type": "AttributeError"
+    }
+  ],
+  "statistics": {
+    "success_apis": {
+      "still_success": 0,
+      "changed_to_no_data": 0,
+      "changed_to_error": 347,
+      "total_variants": 347
+    },
+    "failed_apis": {
+      "still_failed": 27,
+      "now_success": 0,
+      "now_no_data": 0,
+      "total_variants": 27
+    }
+  }
+}
