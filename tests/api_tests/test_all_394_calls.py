@@ -16,15 +16,21 @@ from datetime import datetime, time
 from pathlib import Path
 import time as time_module
 
-# API 키 설정
-API_KEY = os.environ.get('KIWOOM_REST_APPKEY', 'TjgoRS0k_U-EcnCBxwn23EM6wbTxHiFmuMHGpIYObRU')
-SECRET_KEY = os.environ.get('KIWOOM_REST_SECRETKEY', 'LAcgLwxqlOduBocdLIDO57t4kHHjoyxVonSe2ghnt3U')
+# 프로젝트 루트 경로 추가
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
+# credentials.py에서 API 키 로드
+from config import get_credentials
 
 class All394APITester:
     def __init__(self):
-        self.base_url = "https://api.kiwoom.com"
-        self.appkey = API_KEY
-        self.secretkey = SECRET_KEY
+        # secrets.json에서 설정 로드
+        credentials = get_credentials()
+        kiwoom_config = credentials.get_kiwoom_config()
+
+        self.base_url = kiwoom_config['base_url']
+        self.appkey = kiwoom_config['appkey']
+        self.secretkey = kiwoom_config['secretkey']
         self.token = None
         self.results = []
 

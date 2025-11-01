@@ -3,13 +3,12 @@
 """
 import sys
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent))
 
-# dotenv 없이 직접 credentials 클래스 사용
-import os
-os.environ['KIWOOM_REST_APPKEY'] = 'TjgoRS0k_U-EcnCBxwn23EM6wbTxHiFmuMHGpIYObRU'
-os.environ['KIWOOM_REST_SECRETKEY'] = 'LAcgLwxqlOduBocdLIDO57t4kHHjoyxVonSe2ghnt3U'
-os.environ['ACCOUNT_NUMBER'] = '64523232-10'
+# 프로젝트 루트 경로 추가
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
+# credentials.py에서 API 키 로드 (이제 secrets.json에서 가져옴)
+from config import get_credentials
 
 from core import KiwoomRESTClient
 from api import MarketAPI

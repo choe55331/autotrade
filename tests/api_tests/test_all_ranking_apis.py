@@ -8,16 +8,23 @@ import sys
 import requests
 import json
 from datetime import datetime, timedelta
+from pathlib import Path
 
-# API 키 설정
-os.environ['KIWOOM_REST_APPKEY'] = 'TjgoRS0k_U-EcnCBxwn23EM6wbTxHiFmuMHGpIYObRU'
-os.environ['KIWOOM_REST_SECRETKEY'] = 'LAcgLwxqlOduBocdLIDO57t4kHHjoyxVonSe2ghnt3U'
+# 프로젝트 루트 경로 추가
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
+# credentials.py에서 API 키 로드
+from config import get_credentials
 
 class KiwoomAPITester:
     def __init__(self):
-        self.base_url = "https://api.kiwoom.com"
-        self.appkey = os.environ['KIWOOM_REST_APPKEY']
-        self.secretkey = os.environ['KIWOOM_REST_SECRETKEY']
+        # secrets.json에서 설정 로드
+        credentials = get_credentials()
+        kiwoom_config = credentials.get_kiwoom_config()
+
+        self.base_url = kiwoom_config['base_url']
+        self.appkey = kiwoom_config['appkey']
+        self.secretkey = kiwoom_config['secretkey']
         self.token = None
         self.results = {}
 
