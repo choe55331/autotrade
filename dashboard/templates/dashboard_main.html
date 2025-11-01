@@ -190,6 +190,37 @@
             color: var(--color-primary);
         }
 
+        /* Connection Status */
+        .connection-status {
+            font-size: 11px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .connection-status i {
+            font-size: 8px;
+        }
+
+        .connection-status.connected i {
+            color: var(--color-success);
+            animation: none;
+        }
+
+        .connection-status.disconnected i {
+            color: var(--color-danger);
+        }
+
+        .connection-status.checking i {
+            color: var(--color-warning);
+            animation: pulse-dot 1.5s ease-in-out infinite;
+        }
+
+        .connection-status.active i {
+            color: var(--color-info);
+        }
+
         /* Main Content */
         .main-content {
             display: flex;
@@ -575,6 +606,34 @@
                 <li class="stat-item">
                     <span class="stat-label">매매 횟수</span>
                     <span class="stat-value" id="trade-count">0</span>
+                </li>
+            </ul>
+
+            <div class="section-title">시스템 연결 상태</div>
+            <ul class="stat-list">
+                <li class="stat-item">
+                    <span class="stat-label">REST API</span>
+                    <span class="connection-status" id="conn-rest-api">
+                        <i class="fas fa-circle"></i> <span>확인중</span>
+                    </span>
+                </li>
+                <li class="stat-item">
+                    <span class="stat-label">WebSocket</span>
+                    <span class="connection-status" id="conn-websocket">
+                        <i class="fas fa-circle"></i> <span>확인중</span>
+                    </span>
+                </li>
+                <li class="stat-item">
+                    <span class="stat-label">Gemini AI</span>
+                    <span class="connection-status" id="conn-gemini">
+                        <i class="fas fa-circle"></i> <span>확인중</span>
+                    </span>
+                </li>
+                <li class="stat-item">
+                    <span class="stat-label">테스트 모드</span>
+                    <span class="connection-status" id="conn-testmode">
+                        <i class="fas fa-circle"></i> <span>확인중</span>
+                    </span>
                 </li>
             </ul>
         </aside>
@@ -1219,12 +1278,13 @@
         // Load All Data
         async function loadAllData() {
             try {
-                const [account, positions, candidates, status, activity] = await Promise.all([
+                const [account, positions, candidates, status, activity, connections] = await Promise.all([
                     fetch('/api/account').then(r => r.json()),
                     fetch('/api/positions').then(r => r.json()),
                     fetch('/api/candidates').then(r => r.json()),
                     fetch('/api/status').then(r => r.json()),
-                    fetch('/api/trading-activity').then(r => r.json())
+                    fetch('/api/trading-activity').then(r => r.json()),
+                    fetch('/api/system-connections').then(r => r.json())
                 ]);
 
                 updateAccount(account);
@@ -1232,8 +1292,41 @@
                 updateCandidates(candidates);
                 updateStatus(status);
                 updateTradingActivity(activity);
+                updateConnectionStatus(connections);
             } catch (error) {
                 console.error('Error loading data:', error);
+            }
+        }
+
+        // Update Connection Status
+        function updateConnectionStatus(data) {
+            // REST API
+            updateSingleConnection('conn-rest-api', data.rest_api, 'REST API');
+
+            // WebSocket
+            updateSingleConnection('conn-websocket', data.websocket, 'WebSocket');
+
+            // Gemini AI
+            updateSingleConnection('conn-gemini', data.gemini, 'Gemini AI');
+
+            // Test Mode (다른 상태 표시 - 활성/비활성)
+            const testModeEl = document.getElementById('conn-testmode');
+            if (testModeEl) {
+                testModeEl.className = 'connection-status ' + (data.test_mode ? 'active' : 'connected');
+                testModeEl.querySelector('span').textContent = data.test_mode ? '활성' : '비활성';
+            }
+        }
+
+        function updateSingleConnection(elementId, isConnected, label) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+
+            if (isConnected) {
+                el.className = 'connection-status connected';
+                el.querySelector('span').textContent = '연결됨';
+            } else {
+                el.className = 'connection-status disconnected';
+                el.querySelector('span').textContent = '끊김';
             }
         }
 
