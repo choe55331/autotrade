@@ -335,7 +335,7 @@ def get_candidates():
 
 @app.route('/api/activities')
 def get_activities():
-    """Get recent activities from activity monitor"""
+    """Get recent activities from activity monitor (real-time, no hardcoding)"""
     activities = []
 
     try:
@@ -343,7 +343,7 @@ def get_activities():
             # Get activities from activity monitor
             from utils.activity_monitor import get_monitor
             monitor = get_monitor()
-            recent_activities = monitor.get_recent_activities(limit=20)
+            recent_activities = monitor.get_recent_activities(limit=50)
 
             for activity in recent_activities:
                 # timestamp를 ISO format에서 시간만 추출
@@ -361,22 +361,16 @@ def get_activities():
                     'level': activity.get('level', 'info')
                 })
 
-        # If no activities or bot not available, return empty list
-        if not activities:
-            # 최소한 시스템 시작 메시지라도 표시
-            activities = [{
-                'time': datetime.now().strftime('%H:%M:%S'),
-                'type': 'SYSTEM',
-                'message': '시스템 대기 중...',
-                'level': 'info'
-            }]
+        # 활동이 없으면 빈 배열 반환 (하드코딩 제거)
+        # 실제 활동만 표시하여 사용자에게 정확한 상태 전달
 
     except Exception as e:
         print(f"Error getting activities: {e}")
+        # 에러 발생 시에만 에러 메시지 표시
         activities = [{
             'time': datetime.now().strftime('%H:%M:%S'),
             'type': 'ERROR',
-            'message': f'활동 로그 조회 실패: {str(e)}',
+            'message': f'활동 로그 조회 오류: {str(e)}',
             'level': 'error'
         }]
 
@@ -1669,6 +1663,76 @@ def get_v42_all_status():
 # ============================================================================
 # NEW REAL-TIME APIS (v4.2 Final)
 # ============================================================================
+
+@app.route('/api/search/stocks')
+def search_stocks():
+    """Search stocks by code or name"""
+    try:
+        query = request.args.get('q', '').strip()
+        limit = int(request.args.get('limit', 20))
+
+        if not query:
+            return jsonify({'success': False, 'message': 'Query required', 'results': []})
+
+        # 종목 검색 (종목코드 또는 종목명)
+        results = []
+
+        if bot_instance and hasattr(bot_instance, 'market_api'):
+            try:
+                # 간단한 종목 검색 - 실제로는 종목 마스터 DB를 검색해야 함
+                # 여기서는 상위 거래량 종목에서 검색
+                from research import DataFetcher
+                data_fetcher = DataFetcher(bot_instance.client)
+
+                # 거래량 상위 종목 가져오기
+                volume_rank = data_fetcher.get_volume_rank('ALL', 100)
+
+                # 검색어로 필터링
+                query_lower = query.lower()
+                for stock in volume_rank:
+                    code = stock.get('code', '')
+                    name = stock.get('name', '')
+
+                    # 종목코드 또는 종목명에 검색어 포함 여부 확인
+                    if (query_lower in code.lower() or
+                        query_lower in name.lower() or
+                        query in code or
+                        query in name):
+                        results.append({
+                            'code': code,
+                            'name': name,
+                            'price': stock.get('price', 0),
+                            'change_rate': stock.get('change_rate', 0)
+                        })
+
+                    if len(results) >= limit:
+                        break
+
+                return jsonify({
+                    'success': True,
+                    'query': query,
+                    'count': len(results),
+                    'results': results
+                })
+
+            except Exception as e:
+                print(f"Stock search error: {e}")
+                return jsonify({
+                    'success': False,
+                    'message': str(e),
+                    'results': []
+                })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Bot not initialized',
+                'results': []
+            })
+
+    except Exception as e:
+        print(f"Search API error: {e}")
+        return jsonify({'success': False, 'message': str(e), 'results': []})
+
 
 @app.route('/api/chart/<stock_code>')
 def get_chart_data(stock_code: str):

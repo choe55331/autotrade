@@ -75,11 +75,11 @@ class GeminiAnalyzer(BaseAnalyzer):
     ) -> Dict[str, Any]:
         """
         종목 분석
-        
+
         Args:
             stock_data: 종목 데이터
             analysis_type: 분석 유형
-        
+
         Returns:
             분석 결과
         """
@@ -87,40 +87,67 @@ class GeminiAnalyzer(BaseAnalyzer):
         if not self.is_initialized:
             if not self.initialize():
                 return self._get_error_result("분석기 초기화 실패")
-        
+
         # 데이터 검증
         is_valid, msg = self.validate_stock_data(stock_data)
         if not is_valid:
             return self._get_error_result(msg)
-        
+
         # 분석 시작
         start_time = time.time()
-        
-        try:
-            # 프롬프트 생성
-            prompt = self._create_stock_analysis_prompt(stock_data, analysis_type)
-            
-            # Gemini API 호출
-            response = self.model.generate_content(prompt)
-            
-            # 응답 파싱
-            result = self._parse_stock_analysis_response(response.text, stock_data)
-            
-            # 통계 업데이트
-            elapsed_time = time.time() - start_time
-            self.update_statistics(True, elapsed_time)
-            
-            logger.info(
-                f"종목 분석 완료: {stock_data.get('stock_code')} "
-                f"(점수: {result['score']}, 신호: {result['signal']})"
-            )
-            
-            return result
-            
-        except Exception as e:
-            logger.error(f"종목 분석 중 오류: {e}")
-            self.update_statistics(False)
-            return self._get_error_result(str(e))
+
+        # 재시도 로직 (최대 3회)
+        max_retries = 3
+        retry_delay = 2  # 초
+
+        for attempt in range(max_retries):
+            try:
+                # 프롬프트 생성
+                prompt = self._create_stock_analysis_prompt(stock_data, analysis_type)
+
+                # Gemini API 호출 (타임아웃 30초)
+                import google.generativeai as genai
+
+                # 생성 설정 (타임아웃 및 안정성 설정)
+                generation_config = genai.types.GenerationConfig(
+                    temperature=0.7,
+                    max_output_tokens=2048,
+                )
+
+                response = self.model.generate_content(
+                    prompt,
+                    generation_config=generation_config,
+                    request_options={'timeout': 30}  # 30초 타임아웃
+                )
+
+                # 응답 파싱
+                result = self._parse_stock_analysis_response(response.text, stock_data)
+
+                # 통계 업데이트
+                elapsed_time = time.time() - start_time
+                self.update_statistics(True, elapsed_time)
+
+                logger.info(
+                    f"종목 분석 완료: {stock_data.get('stock_code')} "
+                    f"(점수: {result['score']}, 신호: {result['signal']})"
+                )
+
+                return result
+
+            except Exception as e:
+                error_msg = str(e)
+                logger.warning(f"종목 분석 시도 {attempt + 1}/{max_retries} 실패: {error_msg}")
+
+                # 마지막 시도가 아니면 재시도
+                if attempt < max_retries - 1:
+                    logger.info(f"{retry_delay}초 후 재시도...")
+                    time.sleep(retry_delay)
+                    retry_delay *= 2  # 지수 백오프
+                else:
+                    # 모든 시도 실패
+                    logger.error(f"종목 분석 최종 실패: {error_msg}")
+                    self.update_statistics(False)
+                    return self._get_error_result(f"최대 재시도 초과: {error_msg}")
     
     def analyze_market(self, market_data: Dict[str, Any]) -> Dict[str, Any]:
         """
