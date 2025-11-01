@@ -1,6 +1,10 @@
 """
 config 패키지
 설정 관리 모듈
+
+v4.2 Changes:
+- New unified config system with Pydantic (schemas.py + manager.py)
+- Backward compatible with all existing config systems
 """
 from .settings import (
     LOG_CONFIG,
@@ -51,6 +55,41 @@ from .parameter_standards import (
     migrate_parameters,
     LEGACY_PARAMETER_MAPPING
 )
+
+# v4.2: Unified Config System (Pydantic-based, type-safe)
+try:
+    from .manager import (
+        ConfigManager,
+        get_config,
+        get_setting,
+        set_setting,
+        save_config,
+        reload_config,
+        reset_config,
+    )
+    from .schemas import (
+        AutoTradeConfig,
+        RiskManagementConfig,
+        TradingConfig,
+        AIConfig,
+        LoggingConfig,
+        NotificationConfig,
+    )
+except ImportError:
+    # Fallback if pydantic not installed
+    ConfigManager = None
+    get_config = None
+    get_setting = None
+    set_setting = None
+    save_config = None
+    reload_config = None
+    reset_config = None
+    AutoTradeConfig = None
+    RiskManagementConfig = None
+    TradingConfig = None
+    AIConfig = None
+    LoggingConfig = None
+    NotificationConfig = None
 
 # 하위 호환성을 위한 변수
 LOG_FILE_PATH = LOG_CONFIG['LOG_FILE_PATH']
@@ -156,6 +195,21 @@ __all__ = [
     'ParameterConverter',
     'migrate_parameters',
     'LEGACY_PARAMETER_MAPPING',
+
+    # v4.2: Unified Config System (recommended for new code)
+    'ConfigManager',
+    'get_config',
+    'get_setting',
+    'set_setting',
+    'save_config',
+    'reload_config',
+    'reset_config',
+    'AutoTradeConfig',
+    'RiskManagementConfig',
+    'TradingConfig',
+    'AIConfig',
+    'LoggingConfig',
+    'NotificationConfig',
 
     # Legacy compatibility
     'LOG_FILE_PATH',

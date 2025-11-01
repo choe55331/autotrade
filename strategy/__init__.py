@@ -1,6 +1,10 @@
 """
 strategy 패키지
 매매 전략 모듈
+
+v4.2 Changes:
+- Position now imported from core (standardized)
+- PositionManager still available for backward compatibility
 """
 from .base_strategy import BaseStrategy
 from .momentum_strategy import MomentumStrategy
@@ -22,8 +26,9 @@ except ImportError:
     KellyCriterion = KellyParameters = None
     InstitutionalFollowingStrategy = InstitutionalData = None
 
-# v4.0 Utilities
-from .position_manager import PositionManager, Position, get_position_manager
+# v4.2: Position from core (standardized), PositionManager from local
+from core import Position  # v4.2: Use standard Position
+from .position_manager import PositionManager, get_position_manager
 from .signal_checker import SignalChecker, SignalType, TradingSignalValidator
 
 # v4.1 Advanced Risk & Orchestration

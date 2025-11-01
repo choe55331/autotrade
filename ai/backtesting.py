@@ -466,7 +466,7 @@ class BacktestEngine:
             daily_returns=self.daily_returns
         )
 
-    def _is_winning_trade(self, trade: Trade) -> bool:
+    def _is_winning_trade(self, trade: BacktestTrade) -> bool:
         """Check if trade was profitable"""
         # Find corresponding buy trade
         for t in reversed(self.trades):
@@ -476,7 +476,7 @@ class BacktestEngine:
                 return trade.price > t.price
         return False
 
-    def _get_trade_pnl(self, sell_trade: Trade) -> float:
+    def _get_trade_pnl(self, sell_trade: BacktestTrade) -> float:
         """Get P&L for a sell trade"""
         # Find corresponding buy trade
         for buy_trade in reversed(self.trades):
