@@ -141,24 +141,65 @@ def get_status():
         except:
             test_mode_info = {'active': False}
 
-    # Mock data for now - will be replaced with real data
+    # 실제 시스템 상태 가져오기
+    system_status = {
+        'running': True,
+        'trading_enabled': control.get('trading_enabled', False),
+        'uptime': 'N/A',
+        'last_update': datetime.now().isoformat()
+    }
+
+    # Uptime 계산 (bot_instance에 start_time이 있다면)
+    if bot_instance and hasattr(bot_instance, 'start_time'):
+        uptime_seconds = (datetime.now() - bot_instance.start_time).total_seconds()
+        hours = int(uptime_seconds // 3600)
+        minutes = int((uptime_seconds % 3600) // 60)
+        system_status['uptime'] = f"{hours}h {minutes}m"
+
+    # 실제 risk 정보 가져오기
+    risk_info = {
+        'mode': 'NORMAL',
+        'description': 'Normal trading conditions'
+    }
+    if bot_instance and hasattr(bot_instance, 'dynamic_risk_manager'):
+        try:
+            risk_manager = bot_instance.dynamic_risk_manager
+            risk_info['mode'] = risk_manager.current_mode.value if hasattr(risk_manager.current_mode, 'value') else str(risk_manager.current_mode)
+            risk_info['description'] = risk_manager.get_mode_description()
+        except Exception as e:
+            print(f"Error getting risk info: {e}")
+
+    # 실제 scanning 정보 가져오기
+    scanning_info = {
+        'fast_scan': {'count': 0, 'last_run': 'N/A'},
+        'deep_scan': {'count': 0, 'last_run': 'N/A'},
+        'ai_scan': {'count': 0, 'last_run': 'N/A'}
+    }
+    if bot_instance and hasattr(bot_instance, 'scanner_pipeline'):
+        try:
+            scan_summary = bot_instance.scanner_pipeline.get_scan_summary()
+            scanning_info = {
+                'fast_scan': {
+                    'count': scan_summary['fast_scan']['count'],
+                    'last_run': scan_summary['fast_scan'].get('last_run', 'N/A')
+                },
+                'deep_scan': {
+                    'count': scan_summary['deep_scan']['count'],
+                    'last_run': scan_summary['deep_scan'].get('last_run', 'N/A')
+                },
+                'ai_scan': {
+                    'count': scan_summary['ai_scan']['count'],
+                    'last_run': scan_summary['ai_scan'].get('last_run', 'N/A')
+                }
+            }
+        except Exception as e:
+            print(f"Error getting scanning info: {e}")
+
     return jsonify({
-        'system': {
-            'running': True,
-            'trading_enabled': control.get('trading_enabled', False),
-            'uptime': '2h 34m',
-            'last_update': datetime.now().isoformat()
-        },
+        'system': system_status,
         'test_mode': test_mode_info,
-        'risk': {
-            'mode': 'NORMAL',
-            'description': 'Normal trading conditions'
-        },
-        'scanning': {
-            'fast_scan': {'count': 47, 'last_run': '10s ago'},
-            'deep_scan': {'count': 18, 'last_run': '45s ago'},
-            'ai_scan': {'count': 3, 'last_run': '2m ago'}
-        }
+        'risk': risk_info,
+        'scanning': scanning_info
     })
 
 
@@ -294,40 +335,113 @@ def get_candidates():
 
 @app.route('/api/activities')
 def get_activities():
-    """Get recent activities"""
-    # Mock data
-    activities = [
-        {
-            'time': '14:32:15',
-            'type': 'BUY',
-            'message': 'Bought 카카오 (035720) 50 shares @ 45,500',
-            'level': 'success'
-        },
-        {
-            'time': '14:15:32',
-            'type': 'SCAN',
-            'message': 'AI Scan completed: 3 high-score candidates found',
-            'level': 'info'
-        }
-    ]
+    """Get recent activities from activity monitor"""
+    activities = []
+
+    try:
+        if bot_instance and hasattr(bot_instance, 'monitor'):
+            # Get activities from activity monitor
+            from utils.activity_monitor import get_monitor
+            monitor = get_monitor()
+            recent_activities = monitor.get_recent_activities(limit=20)
+
+            for activity in recent_activities:
+                # timestamp를 ISO format에서 시간만 추출
+                timestamp_str = activity.get('timestamp', datetime.now().isoformat())
+                try:
+                    timestamp = datetime.fromisoformat(timestamp_str)
+                    time_str = timestamp.strftime('%H:%M:%S')
+                except:
+                    time_str = datetime.now().strftime('%H:%M:%S')
+
+                activities.append({
+                    'time': time_str,
+                    'type': activity.get('type', 'SYSTEM').upper(),
+                    'message': activity.get('message', ''),
+                    'level': activity.get('level', 'info')
+                })
+
+        # If no activities or bot not available, return empty list
+        if not activities:
+            # 최소한 시스템 시작 메시지라도 표시
+            activities = [{
+                'time': datetime.now().strftime('%H:%M:%S'),
+                'type': 'SYSTEM',
+                'message': '시스템 대기 중...',
+                'level': 'info'
+            }]
+
+    except Exception as e:
+        print(f"Error getting activities: {e}")
+        activities = [{
+            'time': datetime.now().strftime('%H:%M:%S'),
+            'type': 'ERROR',
+            'message': f'활동 로그 조회 실패: {str(e)}',
+            'level': 'error'
+        }]
+
     return jsonify(activities)
 
 
 @app.route('/api/performance')
 def get_performance():
-    """Get performance history for chart"""
-    # Mock data - 24 hours of data
-    now = datetime.now()
+    """Get performance history for chart from database"""
     data = []
-    base_value = 50000000
 
-    for i in range(24):
-        timestamp = (now.timestamp() - (24 - i) * 3600) * 1000
-        value = base_value + (i * 100000) + ((i % 3) * 50000)
-        data.append({
-            'timestamp': int(timestamp),
-            'value': value
-        })
+    try:
+        # 데이터베이스에서 포트폴리오 스냅샷 조회
+        from database import get_db_session, PortfolioSnapshot
+        from sqlalchemy import desc
+
+        session = get_db_session()
+        if session:
+            # 최근 100개 스냅샷 조회 (최근 24시간 또는 그 이상)
+            snapshots = session.query(PortfolioSnapshot)\
+                .order_by(desc(PortfolioSnapshot.timestamp))\
+                .limit(100)\
+                .all()
+
+            # 시간 순서로 정렬 (오래된 것부터)
+            snapshots.reverse()
+
+            for snapshot in snapshots:
+                data.append({
+                    'timestamp': int(snapshot.timestamp.timestamp() * 1000),
+                    'value': snapshot.total_capital
+                })
+
+        # 데이터가 없으면 현재 계좌 정보로 단일 포인트 생성
+        if not data:
+            if bot_instance and hasattr(bot_instance, 'account_api'):
+                try:
+                    deposit = bot_instance.account_api.get_deposit()
+                    holdings = bot_instance.account_api.get_holdings()
+
+                    cash = int(deposit.get('ord_alow_amt', 0)) if deposit else 0
+                    stock_value = sum(int(h.get('eval_amt', 0)) for h in holdings) if holdings else 0
+                    total_assets = cash + stock_value
+
+                    data.append({
+                        'timestamp': int(datetime.now().timestamp() * 1000),
+                        'value': total_assets
+                    })
+                except Exception as e:
+                    print(f"Error getting current account for performance: {e}")
+
+        # 여전히 데이터가 없으면 기본값
+        if not data:
+            data.append({
+                'timestamp': int(datetime.now().timestamp() * 1000),
+                'value': 0
+            })
+
+    except Exception as e:
+        print(f"Error getting performance data: {e}")
+        # 에러 발생시 현재 시간에 0 값
+        data = [{
+            'timestamp': int(datetime.now().timestamp() * 1000),
+            'value': 0
+        }]
 
     return jsonify(data)
 
