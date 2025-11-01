@@ -1,5 +1,21 @@
 # ====================================
-# 자동 트레이딩 시스템 통합 설정
+# 자동 트레이딩 시스템 통합 설정 (예시 파일)
+# ====================================
+#
+# 사용법:
+# 1. 이 파일을 config.yaml로 복사하세요
+#    cp config.example.yaml config.yaml
+#
+# 2. config.yaml에서 아래 항목들을 실제 값으로 수정하세요:
+#    - ${KIWOOM_APPKEY}
+#    - ${KIWOOM_APPSECRET}
+#    - ${KIWOOM_ACCOUNT_NUMBER}
+#    - ${GEMINI_API_KEY}
+#    - ${TELEGRAM_BOT_TOKEN}
+#    - ${TELEGRAM_CHAT_ID}
+#
+# 3. config.yaml은 절대 git에 커밋하지 마세요!
+#
 # ====================================
 
 # 시스템 정보
@@ -24,20 +40,20 @@ logging:
 database:
   type: "sqlite"  # sqlite, postgresql
   path: "data/autotrade.db"
-  # PostgreSQL 설정 (향후 확장용)
-  # host: "localhost"
-  # port: 5432
-  # name: "autotrade"
-  # user: "autotrade_user"
-  # password: "${DB_PASSWORD}"
   pool_size: 5
   max_overflow: 10
   echo: false
 
 # API 설정
+# ⚠️ 주의: base_url과 websocket 주소는 고정값입니다. 변경하지 마세요!
 api:
   kiwoom:
+    # 키움증권 OpenAPI URL (고정 - 변경 금지)
     base_url: "https://openapi.koreainvestment.com:9443"
+
+    # WebSocket URL (고정 - 변경 금지)
+    websocket_url: "wss://openapi.koreainvestment.com:9443/ws"
+
     rest_call_interval: 0.3  # 초
     max_retries: 3
     retry_backoff: 1.0
@@ -231,14 +247,16 @@ risk_management:
 # ====================================
 # AI 분석 설정
 # ====================================
+# ⚠️ 주의: model 값은 고정입니다. 변경하지 마세요!
 
 ai:
   enabled: true
 
   # Primary AI: Google Gemini
+  # ⚠️ model: "gemini-2.0-flash-exp" 는 고정값입니다. 변경 금지!
   gemini:
     enabled: true
-    model: "gemini-2.0-flash-exp"
+    model: "gemini-2.0-flash-exp"  # 고정 - 변경 금지
     temperature: 0.7
     max_tokens: 2000
     timeout: 30
@@ -312,8 +330,8 @@ dashboard:
 notification:
   telegram:
     enabled: false
-    bot_token: "${TELEGRAM_BOT_TOKEN}"
-    chat_id: "${TELEGRAM_CHAT_ID}"
+    bot_token: "${TELEGRAM_BOT_TOKEN}"  # 여기에 실제 봇 토큰 입력
+    chat_id: "${TELEGRAM_CHAT_ID}"      # 여기에 실제 채팅 ID 입력
     events:
       - "trade_executed"
       - "stop_loss_triggered"
