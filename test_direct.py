@@ -1,5 +1,5 @@
 """
-시장탐색 직접 테스트 (최소 의존성)
+시장탐색 직접 테스트 (최소 의존성) - 전체 응답 출력 버전
 """
 import sys
 import os
@@ -74,7 +74,7 @@ class SimpleClient:
             return None
 
 print("="*70)
-print("시장탐색 직접 테스트")
+print("시장탐색 직접 테스트 (전체 응답 출력)")
 print("="*70)
 
 # 클라이언트 생성
@@ -102,25 +102,26 @@ print(f"요청: {body}")
 response = client.request("ka10031", body, "/api/dostk/rkinfo")
 
 if response:
-    print(f"응답 키: {list(response.keys())}")
     print(f"return_code: {response.get('return_code')}")
     print(f"return_msg: {response.get('return_msg')}")
 
+    print(f"\n📋 전체 응답 구조:")
+    print(json.dumps(response, indent=2, ensure_ascii=False))
+
     if response.get('return_code') == 0:
-        output = response.get('output', {})
-        if isinstance(output, dict):
-            data_list = output.get('list', [])
-            print(f"\n✅ 성공: {len(data_list)}개 데이터")
-            if len(data_list) > 0:
-                print(f"\n첫 번째 종목:")
-                print(json.dumps(data_list[0], indent=2, ensure_ascii=False))
-        else:
-            print(f"\n✅ 성공: {len(output)}개 데이터")
-            if len(output) > 0:
-                print(f"\n첫 번째 종목:")
-                print(json.dumps(output[0], indent=2, ensure_ascii=False))
-    else:
-        print(f"\n❌ 실패")
+        # 모든 키를 순회하면서 리스트 형태의 데이터 찾기
+        found_data = False
+        for key, value in response.items():
+            if isinstance(value, list) and len(value) > 0:
+                print(f"\n✅ '{key}' 키에서 {len(value)}개 데이터 발견!")
+                print(f"첫 번째 항목:")
+                print(json.dumps(value[0], indent=2, ensure_ascii=False))
+                found_data = True
+                break
+
+        if not found_data:
+            print(f"\n⚠️ 리스트 형태의 데이터를 찾을 수 없습니다")
+            print(f"응답 키: {list(response.keys())}")
 else:
     print("\n❌ 응답 없음")
 
@@ -144,30 +145,32 @@ print(f"요청: {body}")
 response = client.request("ka10027", body, "/api/dostk/rkinfo")
 
 if response:
-    print(f"응답 키: {list(response.keys())}")
     print(f"return_code: {response.get('return_code')}")
     print(f"return_msg: {response.get('return_msg')}")
 
+    print(f"\n📋 전체 응답 구조:")
+    print(json.dumps(response, indent=2, ensure_ascii=False))
+
     if response.get('return_code') == 0:
-        output = response.get('output', {})
-        if isinstance(output, dict):
-            data_list = output.get('list', [])
-            print(f"\n✅ 성공: {len(data_list)}개 데이터")
-            if len(data_list) > 0:
-                print(f"\n첫 번째 종목:")
-                print(json.dumps(data_list[0], indent=2, ensure_ascii=False))
-        else:
-            print(f"\n✅ 성공: {len(output)}개 데이터")
-            if len(output) > 0:
-                print(f"\n첫 번째 종목:")
-                print(json.dumps(output[0], indent=2, ensure_ascii=False))
-    else:
-        print(f"\n❌ 실패")
+        # 모든 키를 순회하면서 리스트 형태의 데이터 찾기
+        found_data = False
+        for key, value in response.items():
+            if isinstance(value, list) and len(value) > 0:
+                print(f"\n✅ '{key}' 키에서 {len(value)}개 데이터 발견!")
+                print(f"첫 번째 항목:")
+                print(json.dumps(value[0], indent=2, ensure_ascii=False))
+                found_data = True
+                break
+
+        if not found_data:
+            print(f"\n⚠️ 리스트 형태의 데이터를 찾을 수 없습니다")
+            print(f"응답 키: {list(response.keys())}")
 else:
     print("\n❌ 응답 없음")
 
 print("\n" + "="*70)
 print("테스트 완료")
 print("="*70)
-print("\n참고: 실제 API 키가 필요합니다.")
-print("config/credentials.py 또는 .env 파일에서 API 키를 설정하세요.")
+print("\n💡 힌트:")
+print("- 주말이나 장마감 후에는 데이터가 없을 수 있습니다")
+print("- 응답 구조를 확인하고 올바른 키로 데이터를 추출해야 합니다")
