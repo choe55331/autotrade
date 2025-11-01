@@ -161,14 +161,8 @@ class MarketAPI:
             print(f"  전체 응답: {response}")
 
         if response and response.get('return_code') == 0:
-            # 응답 구조 확인
-            output = response.get('output', {})
-
-            # output이 dict이면 리스트로 변환
-            if isinstance(output, dict):
-                rank_list = output.get('list', [])
-            else:
-                rank_list = output if isinstance(output, list) else []
+            # ka10031 API는 'pred_trde_qty_upper' 키에 데이터 반환
+            rank_list = response.get('pred_trde_qty_upper', [])
 
             logger.info(f"거래량 순위 {len(rank_list)}개 조회 완료")
             return rank_list
