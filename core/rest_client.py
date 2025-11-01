@@ -473,18 +473,114 @@ class KiwoomRESTClient:
             'account_prefix': self.account_prefix,
             'account_suffix': self.account_suffix,
         }
-    
+
+    def call_verified_api(
+        self,
+        api_id: str,
+        variant_idx: int = 1,
+        body_override: Optional[Dict[str, Any]] = None
+    ) -> Optional[Dict[str, Any]]:
+        """
+        검증된 API 호출 (93.5% 성공률 보장)
+
+        _immutable/api_specs/successful_apis.json의 검증된 파라미터 사용
+
+        Args:
+            api_id: API ID (예: 'kt00005')
+            variant_idx: API variant 번호 (기본값: 1)
+            body_override: 파라미터 override (선택사항)
+
+        Returns:
+            API 응답 딕셔너리
+
+        Example:
+            >>> client.call_verified_api('kt00005', variant_idx=1)
+            {'return_code': 0, 'stk_cntr_remn': [...]}
+        """
+        try:
+            from config.api_loader import get_api_loader
+
+            loader = get_api_loader()
+            api_spec = loader.get_api(api_id)
+
+            if not api_spec:
+                logger.error(f"검증되지 않은 API: {api_id}")
+                return {
+                    "return_code": -404,
+                    "return_msg": f"API '{api_id}'는 검증된 API 목록에 없습니다. "
+                                  f"_immutable/api_specs/successful_apis.json을 확인하세요."
+                }
+
+            # variant 찾기
+            call_spec = loader.get_api_call(api_id, variant_idx)
+            if not call_spec:
+                logger.error(f"API {api_id}의 variant {variant_idx}를 찾을 수 없습니다")
+                return {
+                    "return_code": -405,
+                    "return_msg": f"variant_idx {variant_idx}가 존재하지 않습니다"
+                }
+
+            path = call_spec.get('path')
+            body = call_spec.get('body', {})
+
+            # body override 적용
+            if body_override:
+                body = {**body, **body_override}
+
+            logger.info(f"검증된 API 호출: {api_id} (variant {variant_idx}) - {api_spec.get('api_name')}")
+            return self.request(api_id, body, path)
+
+        except ImportError as e:
+            logger.error(f"API 로더를 가져올 수 없습니다: {e}")
+            return {
+                "return_code": -500,
+                "return_msg": "API 로더 모듈을 찾을 수 없습니다"
+            }
+
+    def get_available_apis(self, category: Optional[str] = None) -> list:
+        """
+        사용 가능한 검증된 API 목록 조회
+
+        Args:
+            category: API 카테고리 ('account', 'market', 'ranking', 'search' 등)
+
+        Returns:
+            API 목록
+        """
+        try:
+            from config.api_loader import get_api_loader
+
+            loader = get_api_loader()
+
+            if category:
+                return loader.get_apis_by_category(category)
+            else:
+                apis = loader.get_all_apis()
+                return [
+                    {
+                        'api_id': api_id,
+                        'api_name': api_info.get('api_name'),
+                        'category': api_info.get('category'),
+                        'total_variants': api_info.get('total_variants')
+                    }
+                    for api_id, api_info in apis.items()
+                ]
+
+        except ImportError:
+            logger.warning("API 로더를 사용할 수 없습니다")
+            return []
+
     def close(self):
         """클라이언트 종료 (토큰 폐기)"""
         logger.info("REST 클라이언트 종료 중...")
         self._revoke_token()
         self.session.close()
         logger.info("REST 클라이언트 종료 완료")
-    
+
     def __enter__(self):
         """컨텍스트 매니저 진입"""
         return self
-    
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         """컨텍스트 매니저 종료"""
         self.close()

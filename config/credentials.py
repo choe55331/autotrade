@@ -1,39 +1,71 @@
 """
 config/credentials.py
 API 키 및 민감정보 관리
+
+로딩 우선순위:
+1. _immutable/credentials/secrets.json (최우선)
+2. 환경변수 (.env)
+3. 기본값
 """
 import os
+import json
+from pathlib import Path
 from dotenv import load_dotenv
 from typing import Dict, Optional
 
 # 환경변수 로드
 load_dotenv()
 
+# 경로 설정
+PROJECT_ROOT = Path(__file__).parent.parent
+SECRETS_FILE = PROJECT_ROOT / '_immutable' / 'credentials' / 'secrets.json'
+
+
 class Credentials:
     """API 자격증명 관리 클래스"""
-    
+
     def __init__(self):
-        # Kiwoom API 설정
-        self.KIWOOM_REST_BASE_URL = os.getenv('KIWOOM_REST_BASE_URL', 'https://api.kiwoom.com')
-        self.KIWOOM_REST_APPKEY = os.getenv('KIWOOM_REST_APPKEY', 'TjgoRS0k_U-EcnCBxwn23EM6wbTxHiFmuMHGpIYObRU')
-        self.KIWOOM_REST_SECRETKEY = os.getenv('KIWOOM_REST_SECRETKEY', 'LAcgLwxqlOduBocdLIDO57t4kHHjoyxVonSe2ghnt3U')
-        self.ACCOUNT_NUMBER = os.getenv('ACCOUNT_NUMBER', '64523232-10')
-        self.KIWOOM_WEBSOCKET_URL = os.getenv('KIWOOM_WEBSOCKET_URL', 'wss://api.kiwoom.com:10000/api/dostk/websocket')
-        
+        # secrets.json 로드 시도
+        secrets = self._load_secrets()
+
+        # Kiwoom API 설정 (secrets.json 우선, 환경변수 fallback)
+        kiwoom = secrets.get('kiwoom_rest', {})
+        self.KIWOOM_REST_BASE_URL = kiwoom.get('base_url') or os.getenv('KIWOOM_REST_BASE_URL', 'https://api.kiwoom.com')
+        self.KIWOOM_REST_APPKEY = kiwoom.get('appkey') or os.getenv('KIWOOM_REST_APPKEY', 'TjgoRS0k_U-EcnCBxwn23EM6wbTxHiFmuMHGpIYObRU')
+        self.KIWOOM_REST_SECRETKEY = kiwoom.get('secretkey') or os.getenv('KIWOOM_REST_SECRETKEY', 'LAcgLwxqlOduBocdLIDO57t4kHHjoyxVonSe2ghnt3U')
+        self.ACCOUNT_NUMBER = kiwoom.get('account_number') or os.getenv('ACCOUNT_NUMBER', '64523232-10')
+
+        # Websocket 설정
+        kiwoom_ws = secrets.get('kiwoom_websocket', {})
+        self.KIWOOM_WEBSOCKET_URL = kiwoom_ws.get('url') or os.getenv('KIWOOM_WEBSOCKET_URL', 'wss://api.kiwoom.com:10000/api/dostk/websocket')
+
         # Gemini API 설정
-        self.GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', 'AIzaSyB1xDbzci0UpmcqG-2DJHH6EWv4QYBZUzQ')
-        self.GEMINI_MODEL_NAME = os.getenv('GEMINI_MODEL_NAME', 'gemini-2.5-flash')
-        
-        # Telegram 설정
+        gemini = secrets.get('gemini', {})
+        self.GEMINI_API_KEY = gemini.get('api_key') or os.getenv('GEMINI_API_KEY', 'AIzaSyB1xDbzci0UpmcqG-2DJHH6EWv4QYBZUzQ')
+        self.GEMINI_MODEL_NAME = gemini.get('model_name') or os.getenv('GEMINI_MODEL_NAME', 'gemini-2.5-flash')
+
+        # Telegram 설정 (환경변수만)
         self.TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '')
         self.TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID', '')
-        
-        # Naver API 설정
+
+        # Naver API 설정 (환경변수만)
         self.NAVER_CLIENT_ID = os.getenv('NAVER_CLIENT_ID', '_coT1S_U5iEz4WWlf_yp')
         self.NAVER_CLIENT_SECRET = os.getenv('NAVER_CLIENT_SECRET', 'PwkQiWJ_o0')
-        
+
         # 계좌번호 파싱
         self._parse_account_number()
+
+    def _load_secrets(self) -> Dict:
+        """secrets.json 파일 로드"""
+        if not SECRETS_FILE.exists():
+            return {}
+
+        try:
+            with open(SECRETS_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except (json.JSONDecodeError, IOError) as e:
+            print(f"⚠️ secrets.json 로드 실패, 환경변수 사용: {e}")
+            return {}
     
     def _parse_account_number(self):
         """계좌번호 파싱"""
