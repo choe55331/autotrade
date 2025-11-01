@@ -4,7 +4,7 @@ setup_secrets.py
 API 키 및 민감정보 안전 설정 스크립트
 
 이 스크립트는:
-1. 사용자로부터 API 키를 안전하게 입력받습니다
+1. 사용자로부터 API 키를 안전하게 입력받습니다 (복사 붙여넣기 가능)
 2. _immutable/credentials/secrets.json 파일을 생성합니다
 3. 파일을 읽기 전용(400)으로 설정하여 실수로 수정되지 않도록 보호합니다
 """
@@ -13,7 +13,6 @@ import json
 import os
 import sys
 from pathlib import Path
-from getpass import getpass
 
 # 색상 코드
 GREEN = '\033[92m'
@@ -62,11 +61,12 @@ def input_with_default(prompt, default="", required=True, mask=False):
     default_display = f" [{default}]" if default else ""
     required_mark = " (필수)" if required else " (선택)"
 
+    # mask는 표시만 하지 않고, 복사 붙여넣기는 허용
+    if mask:
+        print(f"{YELLOW}💡 보안 정보입니다. 복사 붙여넣기를 사용하세요.{RESET}")
+
     while True:
-        if mask:
-            value = getpass(f"{prompt}{default_display}{required_mark}: ")
-        else:
-            value = input(f"{prompt}{default_display}{required_mark}: ").strip()
+        value = input(f"{prompt}{default_display}{required_mark}: ").strip()
 
         if not value:
             value = default
@@ -81,7 +81,7 @@ def input_with_default(prompt, default="", required=True, mask=False):
 def collect_credentials():
     """사용자로부터 자격증명 수집"""
     print(f"{BOLD}1️⃣  키움증권 REST API 설정{RESET}")
-    print(f"{YELLOW}   (한국투자증권 Open API 앱키/시크릿키){RESET}\n")
+    print(f"{YELLOW}   (키움증권 Open API 앱키/시크릿키){RESET}\n")
 
     kiwoom_rest = {
         "base_url": input_with_default(
@@ -229,7 +229,7 @@ def main():
 
         # 자격증명 수집
         print(f"{BOLD}{BLUE}API 키를 입력해주세요:{RESET}\n")
-        print(f"{YELLOW}💡 입력값은 화면에 표시되지 않습니다 (보안).{RESET}\n")
+        print(f"{YELLOW}💡 복사 붙여넣기를 사용하세요 (Ctrl+V 또는 Cmd+V).{RESET}\n")
 
         secrets = collect_credentials()
 
