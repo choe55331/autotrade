@@ -28,32 +28,43 @@ class Credentials:
     """API 자격증명 관리 클래스"""
 
     def __init__(self):
-        # secrets.json 로드 시도
+        # secrets.json 로드 (필수)
         secrets = self._load_secrets()
 
-        # Kiwoom API 설정 (secrets.json 우선, 환경변수 fallback)
+        if not secrets:
+            raise FileNotFoundError(
+                f"\n{'='*80}\n"
+                f"❌ secrets.json 파일이 없습니다!\n"
+                f"{'='*80}\n"
+                f"다음 명령어를 실행하여 API 키를 설정하세요:\n\n"
+                f"  python setup_secrets.py\n\n"
+                f"또는 수동으로 설정:\n"
+                f"  1. cp _immutable/credentials/secrets.example.json _immutable/credentials/secrets.json\n"
+                f"  2. secrets.json 파일을 열어서 실제 API 키를 입력\n"
+                f"  3. chmod 400 _immutable/credentials/secrets.json (읽기 전용 설정)\n"
+                f"{'='*80}\n"
+            )
+
+        # Kiwoom API 설정 (secrets.json 필수)
         kiwoom = secrets.get('kiwoom_rest', {})
-        self.KIWOOM_REST_BASE_URL = kiwoom.get('base_url') or os.getenv('KIWOOM_REST_BASE_URL', 'https://api.kiwoom.com')
-        self.KIWOOM_REST_APPKEY = kiwoom.get('appkey') or os.getenv('KIWOOM_REST_APPKEY', 'TjgoRS0k_U-EcnCBxwn23EM6wbTxHiFmuMHGpIYObRU')
-        self.KIWOOM_REST_SECRETKEY = kiwoom.get('secretkey') or os.getenv('KIWOOM_REST_SECRETKEY', 'LAcgLwxqlOduBocdLIDO57t4kHHjoyxVonSe2ghnt3U')
-        self.ACCOUNT_NUMBER = kiwoom.get('account_number') or os.getenv('ACCOUNT_NUMBER', '64523232-10')
+        self.KIWOOM_REST_BASE_URL = kiwoom.get('base_url')
+        self.KIWOOM_REST_APPKEY = kiwoom.get('appkey')
+        self.KIWOOM_REST_SECRETKEY = kiwoom.get('secretkey')
+        self.ACCOUNT_NUMBER = kiwoom.get('account_number')
 
         # Websocket 설정
         kiwoom_ws = secrets.get('kiwoom_websocket', {})
-        self.KIWOOM_WEBSOCKET_URL = kiwoom_ws.get('url') or os.getenv('KIWOOM_WEBSOCKET_URL', 'wss://api.kiwoom.com:10000/api/dostk/websocket')
+        self.KIWOOM_WEBSOCKET_URL = kiwoom_ws.get('url')
 
         # Gemini API 설정
         gemini = secrets.get('gemini', {})
-        self.GEMINI_API_KEY = gemini.get('api_key') or os.getenv('GEMINI_API_KEY', 'AIzaSyB1xDbzci0UpmcqG-2DJHH6EWv4QYBZUzQ')
-        self.GEMINI_MODEL_NAME = gemini.get('model_name') or os.getenv('GEMINI_MODEL_NAME', 'gemini-2.5-flash')
+        self.GEMINI_API_KEY = gemini.get('api_key')
+        self.GEMINI_MODEL_NAME = gemini.get('model_name')
 
-        # Telegram 설정 (환경변수만)
-        self.TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '')
-        self.TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID', '')
-
-        # Naver API 설정 (환경변수만)
-        self.NAVER_CLIENT_ID = os.getenv('NAVER_CLIENT_ID', '_coT1S_U5iEz4WWlf_yp')
-        self.NAVER_CLIENT_SECRET = os.getenv('NAVER_CLIENT_SECRET', 'PwkQiWJ_o0')
+        # Telegram 설정
+        telegram = secrets.get('telegram', {})
+        self.TELEGRAM_BOT_TOKEN = telegram.get('bot_token', '')
+        self.TELEGRAM_CHAT_ID = telegram.get('chat_id', '')
 
         # 계좌번호 파싱
         self._parse_account_number()
