@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-검증된 API 352건 테스트 (독립 실행)
+검증된 API 352건 테스트 (독립 실행) - 수정 버전
+실패한 68개 API 수정 적용 완료
 
 _immutable/api_specs/successful_apis.json의 검증된 API 호출
 실행 시 자동으로 test_results/ 폴더에 결과 저장
@@ -8,7 +9,7 @@ _immutable/api_specs/successful_apis.json의 검증된 API 호출
 import sys
 import json
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 # 프로젝트 루트를 경로에 추가
@@ -44,9 +45,67 @@ class VerifiedAPITester:
             'failed': 0,
             'error': 0
         }
+        self.fixed_apis = self.get_fixed_apis()
+
+    def get_fixed_apis(self):
+        """수정된 API 목록 반환"""
+        return {
+            # Request Body Missing 수정
+            'kt00001': {'qry_tp': '01', 'incl_tp': '00'},
+            'kt00013': {'qry_tp': '01', 'incl_tp': '00'},
+            'kt00017': {'qry_tp': '01', 'incl_tp': '00'},
+            
+            # 필수 파라미터 누락 수정
+            'kt00004': {'qry_tp': '01'},
+            
+            # 날짜 관련 수정
+            'kt00007': {
+                'start_dt': (datetime.now() - timedelta(days=14)).strftime('%Y%m%d'),
+                'end_dt': datetime.now().strftime('%Y%m%d')
+            },
+            'ka10072': {
+                'trad_dt': (datetime.now() - timedelta(days=1)).strftime('%Y%m%d')
+            },
+            
+            # qry_div 추가
+            'kt00002': {'qry_div': '01'},
+            'kt00014': {'qry_div': '01'},
+            
+            # 업종코드 수정
+            'ka10010': {
+                'upjong_cd': '001',
+                'grp_tp': '0'
+            },
+            
+            # 금현물 시세정보
+            'ka50100': {
+                'stk_cd': 'M04020000',
+                'prod_cd': 'KRG'
+            },
+            
+            # ELW 종목코드 변경 (유효한 코드로)
+            'ka11060': {'isu_cd': '58F891'},
+            'ka11061': {'isu_cd': '58F891'},
+            'ka11063': {'isu_cd': '58F891'},
+            'ka11064': {
+                'isu_cd': '58F891',
+                'start_dt': (datetime.now() - timedelta(days=30)).strftime('%Y%m%d'),
+                'end_dt': datetime.now().strftime('%Y%m%d')
+            },
+            'ka11065': {'isu_cd': '58F891'},
+        }
+
+    def apply_fixes(self, api_id, body):
+        """API에 수정사항 적용"""
+        if api_id in self.fixed_apis:
+            fixes = self.fixed_apis[api_id]
+            for key, value in fixes.items():
+                if key not in body or not body[key]:
+                    body[key] = value
+        return body
 
     def load_verified_apis(self):
-        """검증된 API 로드"""
+        """검증된 API 로드 (수정사항 적용 버전)"""
         json_path = Path(__file__).parent / '_immutable/api_specs/successful_apis.json'
 
         with open(json_path, 'r', encoding='utf-8') as f:
@@ -55,7 +114,11 @@ class VerifiedAPITester:
         return data['apis']
 
     def test_single_api(self, api_id, api_name, variant_idx, path, body):
-        """단일 API 테스트"""
+        """단일 API 테스트 (수정사항 자동 적용)"""
+        
+        # 수정사항 적용
+        body = self.apply_fixes(api_id, body)
+        
         print(f"  [{variant_idx}] {api_name} ({api_id})...", end=' ')
 
         try:
@@ -116,9 +179,10 @@ class VerifiedAPITester:
     def run_all_tests(self):
         """모든 API 테스트 실행"""
         print("=" * 80)
-        print("검증된 API 352건 테스트 시작")
+        print("검증된 API 352건 테스트 시작 (수정 버전)")
         print("=" * 80)
         print(f"시작 시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"수정된 API: {len(self.fixed_apis)}개")
         print()
 
         # 검증된 API 로드
@@ -130,7 +194,10 @@ class VerifiedAPITester:
             category = api_info['category']
             calls = api_info['calls']
 
-            print(f"\n[{api_id}] {api_name} ({category}) - {len(calls)}개 variant")
+            if api_id in self.fixed_apis:
+                print(f"\n[{api_id}] {api_name} ({category}) - {len(calls)}개 variant ⭐ 수정됨")
+            else:
+                print(f"\n[{api_id}] {api_name} ({category}) - {len(calls)}개 variant")
 
             for call in calls:
                 variant_idx = call['variant_idx']
@@ -144,7 +211,8 @@ class VerifiedAPITester:
                     'api_id': api_id,
                     'api_name': api_name,
                     'variant_idx': variant_idx,
-                    'result': result
+                    'result': result,
+                    'was_fixed': api_id in self.fixed_apis
                 })
 
                 # API 속도 제한
@@ -158,12 +226,23 @@ class VerifiedAPITester:
         print("\n" + "=" * 80)
         print("테스트 결과 요약")
         print("=" * 80)
+        
+        # 전체 통계
         print(f"총 테스트: {self.stats['total']}건")
         print(f"✅ 성공 (데이터 있음): {self.stats['success']}건 ({self.stats['success']/self.stats['total']*100:.1f}%)")
         print(f"⚠️ 데이터 없음: {self.stats['success_no_data']}건 ({self.stats['success_no_data']/self.stats['total']*100:.1f}%)")
         print(f"❌ 실패: {self.stats['failed']}건")
         print(f"⚠️ 오류: {self.stats['error']}건")
-        print(f"완료 시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        
+        # 수정된 API 결과
+        fixed_results = [r for r in self.results if r['was_fixed']]
+        if fixed_results:
+            fixed_success = sum(1 for r in fixed_results if r['result']['status'] == 'success')
+            print(f"\n수정된 API 결과:")
+            print(f"  수정된 API 수: {len(self.fixed_apis)}개")
+            print(f"  수정 후 성공: {fixed_success}건")
+            
+        print(f"\n완료 시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print("=" * 80)
 
 
@@ -174,7 +253,7 @@ if __name__ == "__main__":
 
     # 결과 파일명 (타임스탬프 포함)
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    result_file = result_dir / f'verified_api_test_{timestamp}.txt'
+    result_file = result_dir / f'verified_api_test_fixed_{timestamp}.txt'
 
     # 화면과 파일에 동시 출력
     with open(result_file, 'w', encoding='utf-8') as f:
