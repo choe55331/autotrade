@@ -197,14 +197,14 @@
       "api_id": "kt00004",
       "api_name": "계좌평가현황요청",
       "category": "account",
-      "total_variants": 3,
+      "total_variants": 2,
       "calls": [
         {
           "variant_idx": 1,
           "path": "acnt",
           "body": {
             "dmst_stex_tp": "KRX",
-            "qry_tp": "01"
+            "qry_tp": "0"
           },
           "status": "success"
         },
@@ -213,16 +213,7 @@
           "path": "acnt",
           "body": {
             "dmst_stex_tp": "NXT",
-            "qry_tp": "01"
-          },
-          "status": "success"
-        },
-        {
-          "variant_idx": 3,
-          "path": "acnt",
-          "body": {
-            "dmst_stex_tp": "%",
-            "qry_tp": "01"
+            "qry_tp": "0"
           },
           "status": "success"
         }
@@ -231,30 +222,6 @@
       "tested": true,
       "success_rate": 100.0,
       "note": "계좌 평가 데이터가 있어야 반환"
-    },
-    "kt00010": {
-      "api_id": "kt00010",
-      "api_name": "주문인출가능금액요청",
-      "category": "account",
-      "total_variants": 1,
-      "calls": [
-        {
-          "variant_idx": 2,
-          "path": "acnt",
-          "body": {
-            "stk_cd": "005930",
-            "trde_tp": "2",
-            "uv": "480000",
-            "ord_tp": "01"
-          },
-          "status": "corrected",
-          "fix_reason": "종목코드 000660 → 005930 (삼성전자)"
-        }
-      ],
-      "source": "corrected",
-      "tested": true,
-      "original_status": "partial_fail",
-      "corrections_applied": true
     },
     "kt00011": {
       "api_id": "kt00011",
@@ -1872,23 +1839,6 @@
           "body": {
             "mrkt_tp": "2"
           },
-          "status": "success"
-        }
-      ],
-      "source": "verified",
-      "tested": true,
-      "success_rate": 100.0
-    },
-    "ka10102": {
-      "api_id": "ka10102",
-      "api_name": "회원사 리스트",
-      "category": "other",
-      "total_variants": 1,
-      "calls": [
-        {
-          "variant_idx": 1,
-          "path": "stkinfo",
-          "body": {},
           "status": "success"
         }
       ],
@@ -4225,24 +4175,8 @@
       "api_id": "ka90007",
       "api_name": "프로그램매매누적추이요청",
       "category": "other",
-      "total_variants": 3,
+      "total_variants": 1,
       "calls": [
-        {
-          "variant_idx": 1,
-          "path": "mrkcond",
-          "body": {
-            "dt": "1"
-          },
-          "status": "success"
-        },
-        {
-          "variant_idx": 2,
-          "path": "mrkcond",
-          "body": {
-            "dt": "5"
-          },
-          "status": "success"
-        },
         {
           "variant_idx": 3,
           "path": "mrkcond",
