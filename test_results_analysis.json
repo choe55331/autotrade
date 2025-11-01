@@ -1,0 +1,1101 @@
+{
+  "analysis": {
+    "total_tests": 394,
+    "unique_apis": 144,
+    "status_counts": {
+      "success": 347,
+      "api_error": 37,
+      "no_data": 10
+    }
+  },
+  "api_summary": {
+    "kt00005": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "kt00018": {
+      "total": 4,
+      "success": 4,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10085": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10075": {
+      "total": 3,
+      "success": 0,
+      "no_data": 0,
+      "failed": 3
+    },
+    "ka10076": {
+      "total": 5,
+      "success": 0,
+      "no_data": 0,
+      "failed": 5
+    },
+    "kt00001": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "kt00004": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "kt00010": {
+      "total": 3,
+      "success": 2,
+      "no_data": 1,
+      "failed": 0
+    },
+    "kt00011": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "kt00012": {
+      "total": 2,
+      "success": 0,
+      "no_data": 2,
+      "failed": 0
+    },
+    "kt00013": {
+      "total": 1,
+      "success": 1,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10077": {
+      "total": 1,
+      "success": 1,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10074": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10073": {
+      "total": 3,
+      "success": 2,
+      "no_data": 0,
+      "failed": 1
+    },
+    "ka10072": {
+      "total": 3,
+      "success": 1,
+      "no_data": 0,
+      "failed": 2
+    },
+    "ka01690": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "kt00007": {
+      "total": 5,
+      "success": 2,
+      "no_data": 0,
+      "failed": 3
+    },
+    "kt00009": {
+      "total": 3,
+      "success": 0,
+      "no_data": 3,
+      "failed": 0
+    },
+    "kt00015": {
+      "total": 4,
+      "success": 4,
+      "no_data": 0,
+      "failed": 0
+    },
+    "kt00017": {
+      "total": 1,
+      "success": 1,
+      "no_data": 0,
+      "failed": 0
+    },
+    "kt00002": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "kt00003": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "kt00008": {
+      "total": 1,
+      "success": 1,
+      "no_data": 0,
+      "failed": 0
+    },
+    "kt00016": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10088": {
+      "total": 1,
+      "success": 0,
+      "no_data": 0,
+      "failed": 1
+    },
+    "ka10170": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10001": {
+      "total": 4,
+      "success": 4,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10004": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10003": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10007": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10087": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10006": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10005": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10059": {
+      "total": 4,
+      "success": 4,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10061": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10015": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10043": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10002": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10013": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10025": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10026": {
+      "total": 6,
+      "success": 6,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10045": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10046": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10047": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10052": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10054": {
+      "total": 3,
+      "success": 2,
+      "no_data": 0,
+      "failed": 1
+    },
+    "ka10055": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10063": {
+      "total": 4,
+      "success": 4,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10066": {
+      "total": 4,
+      "success": 4,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10078": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10086": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10095": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10099": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10100": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10101": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10102": {
+      "total": 1,
+      "success": 1,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10084": {
+      "total": 4,
+      "success": 4,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10079": {
+      "total": 4,
+      "success": 4,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10080": {
+      "total": 5,
+      "success": 5,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10081": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10082": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10083": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10094": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10060": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10064": {
+      "total": 3,
+      "success": 1,
+      "no_data": 0,
+      "failed": 2
+    },
+    "ka10027": {
+      "total": 4,
+      "success": 4,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10017": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10032": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10031": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10023": {
+      "total": 4,
+      "success": 4,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10016": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka00198": {
+      "total": 5,
+      "success": 5,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10020": {
+      "total": 4,
+      "success": 4,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10021": {
+      "total": 4,
+      "success": 3,
+      "no_data": 0,
+      "failed": 1
+    },
+    "ka10022": {
+      "total": 4,
+      "success": 4,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10019": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10028": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10018": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10029": {
+      "total": 4,
+      "success": 4,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10033": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10098": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka20001": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka20002": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka20003": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka20009": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10010": {
+      "total": 3,
+      "success": 0,
+      "no_data": 0,
+      "failed": 3
+    },
+    "ka10051": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka90001": {
+      "total": 4,
+      "success": 2,
+      "no_data": 0,
+      "failed": 2
+    },
+    "ka90002": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10008": {
+      "total": 1,
+      "success": 1,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10009": {
+      "total": 1,
+      "success": 1,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10131": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10034": {
+      "total": 4,
+      "success": 4,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10035": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10036": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10037": {
+      "total": 4,
+      "success": 4,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10038": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10039": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10040": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10042": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10053": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10058": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10062": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10065": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka90009": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka90004": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka90005": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka90007": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka90008": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka90013": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10014": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10068": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka10069": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka20068": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka90012": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka30001": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka30002": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka30003": {
+      "total": 3,
+      "success": 1,
+      "no_data": 0,
+      "failed": 2
+    },
+    "ka30004": {
+      "total": 4,
+      "success": 1,
+      "no_data": 0,
+      "failed": 3
+    },
+    "ka30005": {
+      "total": 3,
+      "success": 1,
+      "no_data": 0,
+      "failed": 2
+    },
+    "ka30009": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka30010": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka30012": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka40001": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka40002": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka40003": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka40004": {
+      "total": 3,
+      "success": 3,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka40006": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka40007": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka40008": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka40009": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka40010": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka50010": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka50012": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka50087": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka50100": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka50101": {
+      "total": 2,
+      "success": 2,
+      "no_data": 0,
+      "failed": 0
+    },
+    "ka52301": {
+      "total": 1,
+      "success": 1,
+      "no_data": 0,
+      "failed": 0
+    },
+    "kt50020": {
+      "total": 1,
+      "success": 0,
+      "no_data": 1,
+      "failed": 0
+    },
+    "kt50021": {
+      "total": 1,
+      "success": 0,
+      "no_data": 1,
+      "failed": 0
+    },
+    "kt50030": {
+      "total": 2,
+      "success": 0,
+      "no_data": 0,
+      "failed": 2
+    },
+    "kt50031": {
+      "total": 2,
+      "success": 0,
+      "no_data": 0,
+      "failed": 2
+    },
+    "kt50032": {
+      "total": 2,
+      "success": 0,
+      "no_data": 2,
+      "failed": 0
+    },
+    "kt50075": {
+      "total": 2,
+      "success": 0,
+      "no_data": 0,
+      "failed": 2
+    }
+  },
+  "failed_apis": [
+    {
+      "api_id": "ka10075",
+      "variant": "1/3",
+      "name": "미체결요청",
+      "status": "api_error"
+    },
+    {
+      "api_id": "ka10075",
+      "variant": "2/3",
+      "name": "미체결요청",
+      "status": "api_error"
+    },
+    {
+      "api_id": "ka10075",
+      "variant": "3/3",
+      "name": "미체결요청",
+      "status": "api_error"
+    },
+    {
+      "api_id": "ka10076",
+      "variant": "1/5",
+      "name": "체결요청",
+      "status": "api_error"
+    },
+    {
+      "api_id": "ka10076",
+      "variant": "2/5",
+      "name": "체결요청",
+      "status": "api_error"
+    },
+    {
+      "api_id": "ka10076",
+      "variant": "3/5",
+      "name": "체결요청",
+      "status": "api_error"
+    },
+    {
+      "api_id": "ka10076",
+      "variant": "4/5",
+      "name": "체결요청",
+      "status": "api_error"
+    },
+    {
+      "api_id": "ka10076",
+      "variant": "5/5",
+      "name": "체결요청",
+      "status": "api_error"
+    },
+    {
+      "api_id": "ka10073",
+      "variant": "3/3",
+      "name": "일자별종목별실현손익요청_기간",
+      "status": "api_error"
+    },
+    {
+      "api_id": "ka10072",
+      "variant": "2/3",
+      "name": "일자별종목별실현손익요청_일자",
+      "status": "api_error"
+    },
+    {
+      "api_id": "ka10072",
+      "variant": "3/3",
+      "name": "일자별종목별실현손익요청_일자",
+      "status": "api_error"
+    },
+    {
+      "api_id": "kt00007",
+      "variant": "1/5",
+      "name": "계좌별주문체결내역상세요청",
+      "status": "api_error"
+    },
+    {
+      "api_id": "kt00007",
+      "variant": "2/5",
+      "name": "계좌별주문체결내역상세요청",
+      "status": "api_error"
+    },
+    {
+      "api_id": "kt00007",
+      "variant": "3/5",
+      "name": "계좌별주문체결내역상세요청",
+      "status": "api_error"
+    },
+    {
+      "api_id": "ka10088",
+      "variant": "1/1",
+      "name": "미체결 분할주문 상세",
+      "status": "api_error"
+    },
+    {
+      "api_id": "ka10054",
+      "variant": "3/3",
+      "name": "변동성완화장치",
+      "status": "api_error"
+    },
+    {
+      "api_id": "ka10064",
+      "variant": "1/3",
+      "name": "장중투자자별매매차트요청",
+      "status": "api_error"
+    },
+    {
+      "api_id": "ka10064",
+      "variant": "3/3",
+      "name": "장중투자자별매매차트요청",
+      "status": "api_error"
+    },
+    {
+      "api_id": "ka10021",
+      "variant": "3/4",
+      "name": "호가잔량급증요청",
+      "status": "api_error"
+    },
+    {
+      "api_id": "ka10010",
+      "variant": "1/3",
+      "name": "업종프로그램요청",
+      "status": "api_error"
+    },
+    {
+      "api_id": "ka10010",
+      "variant": "2/3",
+      "name": "업종프로그램요청",
+      "status": "api_error"
+    },
+    {
+      "api_id": "ka10010",
+      "variant": "3/3",
+      "name": "업종프로그램요청",
+      "status": "api_error"
+    },
+    {
+      "api_id": "ka90001",
+      "variant": "3/4",
+      "name": "테마그룹별요청",
+      "status": "api_error"
+    },
+    {
+      "api_id": "ka90001",
+      "variant": "4/4",
+      "name": "테마그룹별요청",
+      "status": "api_error"
+    },
+    {
+      "api_id": "ka30003",
+      "variant": "2/3",
+      "name": "ELWLP보유일별추이요청",
+      "status": "api_error"
+    },
+    {
+      "api_id": "ka30003",
+      "variant": "3/3",
+      "name": "ELWLP보유일별추이요청",
+      "status": "api_error"
+    },
+    {
+      "api_id": "ka30004",
+      "variant": "2/4",
+      "name": "ELW괴리율요청",
+      "status": "api_error"
+    },
+    {
+      "api_id": "ka30004",
+      "variant": "3/4",
+      "name": "ELW괴리율요청",
+      "status": "api_error"
+    },
+    {
+      "api_id": "ka30004",
+      "variant": "4/4",
+      "name": "ELW괴리율요청",
+      "status": "api_error"
+    },
+    {
+      "api_id": "ka30005",
+      "variant": "2/3",
+      "name": "ELW조건검색요청",
+      "status": "api_error"
+    },
+    {
+      "api_id": "ka30005",
+      "variant": "3/3",
+      "name": "ELW조건검색요청",
+      "status": "api_error"
+    },
+    {
+      "api_id": "kt50030",
+      "variant": "1/2",
+      "name": "금현물 주문체결전체조회",
+      "status": "api_error"
+    },
+    {
+      "api_id": "kt50030",
+      "variant": "2/2",
+      "name": "금현물 주문체결전체조회",
+      "status": "api_error"
+    },
+    {
+      "api_id": "kt50031",
+      "variant": "1/2",
+      "name": "금현물 주문체결조회",
+      "status": "api_error"
+    },
+    {
+      "api_id": "kt50031",
+      "variant": "2/2",
+      "name": "금현물 주문체결조회",
+      "status": "api_error"
+    },
+    {
+      "api_id": "kt50075",
+      "variant": "1/2",
+      "name": "금현물 미체결조회",
+      "status": "api_error"
+    },
+    {
+      "api_id": "kt50075",
+      "variant": "2/2",
+      "name": "금현물 미체결조회",
+      "status": "api_error"
+    }
+  ]
+}
