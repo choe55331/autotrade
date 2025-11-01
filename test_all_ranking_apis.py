@@ -273,13 +273,16 @@ class APIResponseKeyDiscovery:
         calls = api_info.get('calls', [])
 
         for call in calls:
-            if call.get('status') != 'success':
+            # success, corrected, pending 상태 모두 테스트
+            status = call.get('status')
+            if status not in ['success', 'corrected', 'pending']:
                 continue
 
             variant_result = {
                 'variant_idx': call.get('variant_idx'),
                 'path': call.get('path'),
                 'body': call.get('body'),
+                'call_status': status,  # 원래 상태 기록
                 'success': False,
                 'has_data': False,
                 'response_keys': None
