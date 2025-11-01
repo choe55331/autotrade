@@ -388,6 +388,37 @@ class UnifiedSettingsManager:
             logger.error(f"설정 변경 실패: {e}")
             return False
 
+    def update_setting(self, category: str, key: str, value: Any, save_immediately: bool = True) -> bool:
+        """
+        특정 카테고리의 설정 값 변경 (편의 메서드)
+
+        Args:
+            category: 카테고리 이름
+            key: 설정 키
+            value: 새로운 값
+            save_immediately: 즉시 저장 여부
+
+        Returns:
+            성공 여부
+        """
+        key_path = f"{category}.{key}"
+        return self.set(key_path, value, save_immediately)
+
+    def get_setting(self, category: str, key: str, default: Any = None) -> Any:
+        """
+        특정 카테고리의 설정 값 조회 (편의 메서드)
+
+        Args:
+            category: 카테고리 이름
+            key: 설정 키
+            default: 기본값
+
+        Returns:
+            설정 값
+        """
+        key_path = f"{category}.{key}"
+        return self.get(key_path, default)
+
     def get_category(self, category: str) -> Dict[str, Any]:
         """카테고리별 설정 가져오기"""
         return self.settings.get(category, {})

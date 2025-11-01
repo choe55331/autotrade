@@ -26,22 +26,22 @@ class MarketSnapshot:
     timestamp: datetime
     stock_code: str
     price: float
-    volume: int
+    volume: int = 0
 
     # 호가창 데이터
-    bid_prices: List[float]  # 매수호가 (5단계)
-    bid_volumes: List[int]
-    ask_prices: List[float]  # 매도호가 (5단계)
-    ask_volumes: List[int]
+    bid_prices: List[float] = field(default_factory=list)  # 매수호가 (5단계)
+    bid_volumes: List[int] = field(default_factory=list)
+    ask_prices: List[float] = field(default_factory=list)  # 매도호가 (5단계)
+    ask_volumes: List[int] = field(default_factory=list)
 
     # 체결 데이터
-    trade_price: float
-    trade_volume: int
+    trade_price: float = 0.0
+    trade_volume: int = 0
 
     # 추가 정보
-    high: float
-    low: float
-    open: float
+    high: float = 0.0
+    low: float = 0.0
+    open: float = 0.0
 
 
 class ReplaySimulator:

@@ -86,10 +86,18 @@ from .options_hft import (
 )
 
 # v4.0 Advanced Features
-from .backtest_report_generator import BacktestReportGenerator, BacktestReport
-from .strategy_optimizer import StrategyOptimizer, OptimizationResult
-from .market_regime_classifier import MarketRegimeClassifier, RegimeType, VolatilityLevel
-from .anomaly_detector import AnomalyDetector, AnomalyEvent, AnomalyType
+try:
+    from .backtest_report_generator import BacktestReportGenerator, BacktestReport
+    from .strategy_optimizer import StrategyOptimizer, OptimizationResult
+    from .market_regime_classifier import MarketRegimeClassifier, RegimeType, VolatilityLevel
+    from .anomaly_detector import AnomalyDetector, AnomalyEvent, AnomalyType
+except ImportError as e:
+    import warnings
+    warnings.warn(f"v4.0 Advanced Features could not be imported: {e}")
+    BacktestReportGenerator = BacktestReport = None
+    StrategyOptimizer = OptimizationResult = None
+    MarketRegimeClassifier = RegimeType = VolatilityLevel = None
+    AnomalyDetector = AnomalyEvent = AnomalyType = None
 
 __all__ = [
     # Legacy

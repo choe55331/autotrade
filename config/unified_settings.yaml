@@ -1,0 +1,175 @@
+system:
+  trading_enabled: true
+  test_mode: false
+  auto_start: false
+  logging_level: INFO
+  max_concurrent_analysis: 3
+risk_management:
+  max_position_size: 0.3
+  max_daily_loss: 0.03
+  max_total_loss: 0.1
+  stop_loss_rate: 0.05
+  take_profit_rate: 0.1
+  max_consecutive_losses: 3
+  position_limit: 5
+  emergency_stop_loss: 0.15
+  enable_trailing_stop: true
+  trailing_stop_atr_multiplier: 2.0
+  trailing_stop_activation_pct: 0.03
+  enable_kelly_criterion: false
+  kelly_fraction: 0.5
+strategies:
+  momentum:
+    enabled: true
+    short_ma_period: 5
+    long_ma_period: 20
+    rsi_period: 14
+    rsi_overbought: 70
+    rsi_oversold: 30
+  volatility_breakout:
+    enabled: true
+    k_value: 0.5
+    entry_time: 09:05
+    exit_time: '15:15'
+    use_volume_filter: true
+  pairs_trading:
+    enabled: false
+    pairs:
+    - - 005930
+      - '000660'
+    spread_threshold: 2.0
+    lookback_period: 60
+  institutional_following:
+    enabled: true
+    min_net_buy_volume: 1000000000
+    consecutive_days: 3
+ai_analysis:
+  enabled: true
+  default_analyzer: gemini
+  min_confidence_score: 0.7
+  timeout_seconds: 30
+  market_regime_classification:
+    enabled: true
+    update_interval_hours: 4
+    regimes:
+      bull: 모멘텀
+      bear: 방어적
+      sideways: 역추세
+  scoring_weights:
+    technical_score: 0.3
+    fundamental_score: 0.2
+    ai_prediction_score: 0.25
+    sentiment_score: 0.15
+    volume_score: 0.1
+backtesting:
+  default_initial_capital: 10000000
+  commission_rate: 0.00015
+  slippage_pct: 0.0005
+  generate_report: true
+  report_format: html
+  report_includes:
+    equity_curve: true
+    drawdown_chart: true
+    monthly_returns: true
+    trade_list: true
+    correlation_matrix: true
+optimization:
+  method: bayesian
+  n_trials: 50
+  n_jobs: -1
+  timeout_minutes: 60
+  objective_metric: sharpe_ratio
+rebalancing:
+  enabled: false
+  method: time_based
+  frequency_days: 30
+  threshold_pct: 0.05
+  use_risk_parity: false
+  target_volatility: 0.15
+screening:
+  max_candidates: 50
+  min_market_cap: 100000000000
+  min_volume: 100000
+  min_price: 1000
+  quant_factors:
+    value:
+      enabled: true
+      per_max: 15
+      pbr_max: 1.5
+    quality:
+      enabled: true
+      roe_min: 10
+      debt_ratio_max: 100
+    momentum:
+      enabled: true
+      return_1m_min: 0.05
+      return_3m_min: 0.1
+notification:
+  enabled: true
+  channels:
+    email: false
+    sms: false
+    telegram: false
+    web_push: true
+  events:
+    order_executed: true
+    ai_signal: true
+    stop_loss_triggered: true
+    daily_report: true
+    system_error: true
+ui:
+  theme: light
+  language: ko
+  refresh_interval_seconds: 5
+  show_guide_tour: true
+  dashboard_widgets:
+  - id: account_summary
+    enabled: true
+    position:
+      x: 0
+      y: 0
+      w: 6
+      h: 4
+  - id: holdings
+    enabled: true
+    position:
+      x: 6
+      y: 0
+      w: 6
+      h: 4
+  - id: ai_analysis
+    enabled: true
+    position:
+      x: 0
+      y: 4
+      w: 12
+      h: 6
+  - id: chart
+    enabled: true
+    position:
+      x: 0
+      y: 10
+      w: 8
+      h: 8
+  - id: order_book
+    enabled: true
+    position:
+      x: 8
+      y: 10
+      w: 4
+      h: 8
+advanced_orders:
+  enable_stop_orders: true
+  enable_ioc_orders: true
+  enable_fok_orders: true
+  default_order_type: limit
+anomaly_detection:
+  enabled: true
+  check_interval_minutes: 5
+  alert_threshold: 0.8
+  monitor_items:
+    api_response_time: true
+    order_failure_rate: true
+    account_balance_change: true
+    system_cpu_usage: true
+    system_memory_usage: true
