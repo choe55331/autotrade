@@ -134,15 +134,15 @@ class MarketAPI:
         Returns:
             거래량 순위 리스트
         """
-        # 시장 코드 변환
-        market_map = {'ALL': '0', 'KOSPI': '1', 'KOSDAQ': '2'}
-        mrkt_tp = market_map.get(market.upper(), '0')
+        # 시장 코드 변환 (successful_apis.json 검증된 값)
+        market_map = {'ALL': '000', 'KOSPI': '001', 'KOSDAQ': '101'}
+        mrkt_tp = market_map.get(market.upper(), '001')
 
         # 순위 범위 설정 (1위부터 limit까지)
         body = {
-            "mrkt_tp": mrkt_tp,        # 시장구분
-            "qry_tp": "0",              # 조회구분 (0:거래량, 1:거래대금)
-            "stex_tp": "1",             # 증권거래소 (1:전체)
+            "mrkt_tp": mrkt_tp,        # 시장구분 (000:전체, 001:KOSPI, 101:KOSDAQ)
+            "qry_tp": "1",              # 조회구분 (1:거래량, 2:거래대금) - 검증됨
+            "stex_tp": "3",             # 증권거래소 (3:전체) - 검증됨
             "rank_strt": "1",           # 시작순위
             "rank_end": str(limit)      # 종료순위
         }
@@ -189,24 +189,24 @@ class MarketAPI:
         Returns:
             등락률 순위 리스트
         """
-        # 시장 코드 변환
-        market_map = {'ALL': '0', 'KOSPI': '1', 'KOSDAQ': '2'}
-        mrkt_tp = market_map.get(market.upper(), '0')
+        # 시장 코드 변환 (successful_apis.json 검증된 값)
+        market_map = {'ALL': '000', 'KOSPI': '001', 'KOSDAQ': '101'}
+        mrkt_tp = market_map.get(market.upper(), '001')
 
-        # 정렬 타입 변환 (0: 상승률, 1: 하락률, 2: 보합)
-        sort_map = {'rise': '0', 'fall': '1'}
-        sort_tp = sort_map.get(sort.lower(), '0')
+        # 정렬 타입 변환 (검증된 값: 1=상승률, 2=하락률로 추정)
+        sort_map = {'rise': '1', 'fall': '2'}
+        sort_tp = sort_map.get(sort.lower(), '1')
 
         body = {
-            "mrkt_tp": mrkt_tp,          # 시장구분
-            "sort_tp": sort_tp,           # 정렬구분 (0: 상승률, 1: 하락률)
+            "mrkt_tp": mrkt_tp,          # 시장구분 (000:전체, 001:KOSPI, 101:KOSDAQ)
+            "sort_tp": sort_tp,           # 정렬구분 (1:상승률, 2:하락률)
             "trde_qty_cnd": "0",          # 거래량 조건 (0: 전체)
             "stk_cnd": "0",               # 종목 조건 (0: 전체)
             "crd_cnd": "0",               # 신용 조건 (0: 전체)
             "updown_incls": "1",          # 상한하한 포함 (0: 제외, 1: 포함)
             "pric_cnd": "0",              # 가격 조건 (0: 전체)
             "trde_prica_cnd": "0",        # 거래대금 조건 (0: 전체)
-            "stex_tp": "1"                # 증권거래소 (1: 전체)
+            "stex_tp": "3"                # 증권거래소 (3: 전체)
         }
 
         response = self.client.request(
