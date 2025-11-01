@@ -1,0 +1,482 @@
+{
+  "ka10020": {
+    "name": "호가잔량상위요청",
+    "data_key": "bid_req_upper",
+    "response_keys": [
+      "bid_req_upper",
+      "return_code",
+      "return_msg"
+    ],
+    "sample_fields": [
+      "stk_cd",
+      "stk_nm",
+      "cur_prc",
+      "pred_pre_sig",
+      "pred_pre",
+      "trde_qty",
+      "tot_sel_req",
+      "tot_buy_req",
+      "netprps_req",
+      "buy_rt"
+    ]
+  },
+  "ka10021": {
+    "name": "호가잔량급증요청",
+    "data_key": "bid_req_sdnin",
+    "response_keys": [
+      "bid_req_sdnin",
+      "return_code",
+      "return_msg"
+    ],
+    "sample_fields": [
+      "stk_cd",
+      "stk_nm",
+      "cur_prc",
+      "pred_pre_sig",
+      "pred_pre",
+      "int",
+      "now",
+      "sdnin_qty",
+      "sdnin_rt",
+      "tot_buy_qty"
+    ]
+  },
+  "ka10022": {
+    "name": "잔량율급증요청",
+    "data_key": null,
+    "response_keys": [
+      "req_rt_sdnin",
+      "return_code",
+      "return_msg"
+    ],
+    "sample_fields": []
+  },
+  "ka10023": {
+    "name": "거래량급증요청",
+    "data_key": "trde_qty_sdnin",
+    "response_keys": [
+      "trde_qty_sdnin",
+      "return_code",
+      "return_msg"
+    ],
+    "sample_fields": [
+      "stk_cd",
+      "stk_nm",
+      "cur_prc",
+      "pred_pre_sig",
+      "pred_pre",
+      "flu_rt",
+      "prev_trde_qty",
+      "now_trde_qty",
+      "sdnin_qty",
+      "sdnin_rt"
+    ]
+  },
+  "ka10027": {
+    "name": "전일대비등락률상위요청",
+    "data_key": "pred_pre_flu_rt_upper",
+    "response_keys": [
+      "pred_pre_flu_rt_upper",
+      "return_code",
+      "return_msg"
+    ],
+    "sample_fields": [
+      "stk_cls",
+      "stk_cd",
+      "stk_nm",
+      "cur_prc",
+      "pred_pre_sig",
+      "pred_pre",
+      "flu_rt",
+      "sel_req",
+      "buy_req",
+      "now_trde_qty",
+      "cntr_str",
+      "cnt"
+    ]
+  },
+  "ka10029": {
+    "name": "예상체결등락률상위요청",
+    "data_key": "exp_cntr_flu_rt_upper",
+    "response_keys": [
+      "exp_cntr_flu_rt_upper",
+      "return_code",
+      "return_msg"
+    ],
+    "sample_fields": [
+      "stk_cd",
+      "stk_nm",
+      "exp_cntr_pric",
+      "base_pric",
+      "pred_pre_sig",
+      "pred_pre",
+      "flu_rt",
+      "exp_cntr_qty",
+      "sel_req",
+      "sel_bid",
+      "buy_bid",
+      "buy_req"
+    ]
+  },
+  "ka10030": {
+    "name": "당일거래량상위요청",
+    "data_key": "tdy_trde_qty_upper",
+    "response_keys": [
+      "tdy_trde_qty_upper",
+      "return_code",
+      "return_msg"
+    ],
+    "sample_fields": [
+      "stk_cd",
+      "stk_nm",
+      "cur_prc",
+      "pred_pre_sig",
+      "pred_pre",
+      "flu_rt",
+      "trde_qty",
+      "pred_rt",
+      "trde_tern_rt",
+      "trde_amt",
+      "opmr_trde_qty",
+      "opmr_pred_rt",
+      "opmr_trde_rt",
+      "opmr_trde_amt",
+      "af_mkrt_trde_qty",
+      "af_mkrt_pred_rt",
+      "af_mkrt_trde_rt",
+      "af_mkrt_trde_amt",
+      "bf_mkrt_trde_qty",
+      "bf_mkrt_pred_rt",
+      "bf_mkrt_trde_rt",
+      "bf_mkrt_trde_amt"
+    ]
+  },
+  "ka10031": {
+    "name": "전일거래량상위요청",
+    "data_key": "pred_trde_qty_upper",
+    "response_keys": [
+      "pred_trde_qty_upper",
+      "return_code",
+      "return_msg"
+    ],
+    "sample_fields": [
+      "stk_cd",
+      "stk_nm",
+      "cur_prc",
+      "pred_pre_sig",
+      "pred_pre",
+      "trde_qty"
+    ]
+  },
+  "ka10032": {
+    "name": "거래대금상위요청",
+    "data_key": "trde_prica_upper",
+    "response_keys": [
+      "trde_prica_upper",
+      "return_code",
+      "return_msg"
+    ],
+    "sample_fields": [
+      "stk_cd",
+      "now_rank",
+      "pred_rank",
+      "stk_nm",
+      "cur_prc",
+      "pred_pre_sig",
+      "pred_pre",
+      "flu_rt",
+      "sel_bid",
+      "buy_bid",
+      "now_trde_qty",
+      "pred_trde_qty",
+      "trde_prica"
+    ]
+  },
+  "ka10033": {
+    "name": "신용비율상위요청",
+    "data_key": "crd_rt_upper",
+    "response_keys": [
+      "crd_rt_upper",
+      "return_code",
+      "return_msg"
+    ],
+    "sample_fields": [
+      "stk_infr",
+      "stk_cd",
+      "stk_nm",
+      "cur_prc",
+      "pred_pre_sig",
+      "pred_pre",
+      "flu_rt",
+      "crd_rt",
+      "sel_req",
+      "buy_req",
+      "now_trde_qty"
+    ]
+  },
+  "ka10034": {
+    "name": "외인기간별매매상위요청",
+    "data_key": null,
+    "response_keys": [
+      "for_dt_trde_upper",
+      "return_code",
+      "return_msg"
+    ],
+    "sample_fields": []
+  },
+  "ka10035": {
+    "name": "외인연속순매매상위요청",
+    "data_key": "for_cont_nettrde_upper",
+    "response_keys": [
+      "for_cont_nettrde_upper",
+      "return_code",
+      "return_msg"
+    ],
+    "sample_fields": [
+      "stk_cd",
+      "stk_nm",
+      "cur_prc",
+      "pred_pre_sig",
+      "pred_pre",
+      "dm1",
+      "dm2",
+      "dm3",
+      "tot",
+      "limit_exh_rt",
+      "pred_pre_1",
+      "pred_pre_2",
+      "pred_pre_3"
+    ]
+  },
+  "ka10036": {
+    "name": "외인한도소진율증가상위",
+    "data_key": "for_limit_exh_rt_incrs_upper",
+    "response_keys": [
+      "for_limit_exh_rt_incrs_upper",
+      "return_code",
+      "return_msg"
+    ],
+    "sample_fields": [
+      "rank",
+      "stk_cd",
+      "stk_nm",
+      "cur_prc",
+      "pred_pre_sig",
+      "pred_pre",
+      "trde_qty",
+      "poss_stkcnt",
+      "gain_pos_stkcnt",
+      "base_limit_exh_rt",
+      "limit_exh_rt",
+      "exh_rt_incrs"
+    ]
+  },
+  "ka10037": {
+    "name": "외국계창구매매상위요청",
+    "data_key": "frgn_wicket_trde_upper",
+    "response_keys": [
+      "frgn_wicket_trde_upper",
+      "return_code",
+      "return_msg"
+    ],
+    "sample_fields": [
+      "rank",
+      "stk_cd",
+      "stk_nm",
+      "cur_prc",
+      "pred_pre_sig",
+      "pred_pre",
+      "flu_rt",
+      "sel_trde_qty",
+      "buy_trde_qty",
+      "netprps_trde_qty",
+      "netprps_prica",
+      "trde_qty",
+      "trde_prica"
+    ]
+  },
+  "ka10038": {
+    "name": "종목별증권사순위요청",
+    "data_key": "stk_sec_rank",
+    "response_keys": [
+      "rank_1",
+      "rank_2",
+      "rank_3",
+      "prid_trde_qty",
+      "stk_sec_rank",
+      "return_code",
+      "return_msg"
+    ],
+    "sample_fields": [
+      "rank",
+      "mmcm_nm",
+      "buy_qty",
+      "sell_qty",
+      "acc_netprps_qty"
+    ]
+  },
+  "ka10040": {
+    "name": "당일주요거래원요청",
+    "data_key": null,
+    "response_keys": [
+      "sel_trde_ori_irds_1",
+      "sel_trde_ori_qty_1",
+      "sel_trde_ori_1",
+      "sel_trde_ori_cd_1",
+      "buy_trde_ori_1",
+      "buy_trde_ori_cd_1",
+      "buy_trde_ori_qty_1",
+      "buy_trde_ori_irds_1",
+      "sel_trde_ori_irds_2",
+      "sel_trde_ori_qty_2",
+      "sel_trde_ori_2",
+      "sel_trde_ori_cd_2",
+      "buy_trde_ori_2",
+      "buy_trde_ori_cd_2",
+      "buy_trde_ori_qty_2",
+      "buy_trde_ori_irds_2",
+      "sel_trde_ori_irds_3",
+      "sel_trde_ori_qty_3",
+      "sel_trde_ori_3",
+      "sel_trde_ori_cd_3",
+      "buy_trde_ori_3",
+      "buy_trde_ori_cd_3",
+      "buy_trde_ori_qty_3",
+      "buy_trde_ori_irds_3",
+      "sel_trde_ori_irds_4",
+      "sel_trde_ori_qty_4",
+      "sel_trde_ori_4",
+      "sel_trde_ori_cd_4",
+      "buy_trde_ori_4",
+      "buy_trde_ori_cd_4",
+      "buy_trde_ori_qty_4",
+      "buy_trde_ori_irds_4",
+      "sel_trde_ori_irds_5",
+      "sel_trde_ori_qty_5",
+      "sel_trde_ori_5",
+      "sel_trde_ori_cd_5",
+      "buy_trde_ori_5",
+      "buy_trde_ori_cd_5",
+      "buy_trde_ori_qty_5",
+      "buy_trde_ori_irds_5",
+      "frgn_sel_prsm_sum_chang",
+      "frgn_sel_prsm_sum",
+      "frgn_buy_prsm_sum",
+      "frgn_buy_prsm_sum_chang",
+      "tdy_main_trde_ori",
+      "return_code",
+      "return_msg"
+    ],
+    "sample_fields": []
+  },
+  "ka10053": {
+    "name": "당일상위이탈원요청",
+    "data_key": "tdy_upper_scesn_ori",
+    "response_keys": [
+      "tdy_upper_scesn_ori",
+      "return_code",
+      "return_msg"
+    ],
+    "sample_fields": [
+      "sel_scesn_tm",
+      "sell_qty",
+      "sel_upper_scesn_ori",
+      "buy_scesn_tm",
+      "buy_qty",
+      "buy_upper_scesn_ori",
+      "qry_dt",
+      "qry_tm"
+    ]
+  },
+  "ka10062": {
+    "name": "동일순매매순위요청",
+    "data_key": "eql_nettrde_rank",
+    "response_keys": [
+      "eql_nettrde_rank",
+      "return_code",
+      "return_msg"
+    ],
+    "sample_fields": [
+      "stk_cd",
+      "rank",
+      "stk_nm",
+      "cur_prc",
+      "pre_sig",
+      "pred_pre",
+      "flu_rt",
+      "acc_trde_qty",
+      "orgn_nettrde_qty",
+      "orgn_nettrde_amt",
+      "orgn_nettrde_avg_pric",
+      "for_nettrde_qty",
+      "for_nettrde_amt",
+      "for_nettrde_avg_pric",
+      "nettrde_qty",
+      "nettrde_amt"
+    ]
+  },
+  "ka10065": {
+    "name": "장중투자자별매매상위요청",
+    "data_key": null,
+    "response_keys": [
+      "opmr_invsr_trde_upper",
+      "return_code",
+      "return_msg"
+    ],
+    "sample_fields": []
+  },
+  "ka10098": {
+    "name": "시간외단일가등락율순위요청",
+    "data_key": "ovt_sigpric_flu_rt_rank",
+    "response_keys": [
+      "ovt_sigpric_flu_rt_rank",
+      "return_code",
+      "return_msg"
+    ],
+    "sample_fields": [
+      "rank",
+      "stk_cd",
+      "stk_nm",
+      "cur_prc",
+      "pred_pre_sig",
+      "pred_pre",
+      "flu_rt",
+      "sel_tot_req",
+      "buy_tot_req",
+      "acc_trde_qty",
+      "acc_trde_prica",
+      "tdy_close_pric",
+      "tdy_close_pric_flu_rt"
+    ]
+  },
+  "ka90009": {
+    "name": "외국인기관매매상위요청",
+    "data_key": "frgnr_orgn_trde_upper",
+    "response_keys": [
+      "frgnr_orgn_trde_upper",
+      "return_code",
+      "return_msg"
+    ],
+    "sample_fields": [
+      "for_netslmt_stk_cd",
+      "for_netslmt_stk_nm",
+      "for_netslmt_amt",
+      "for_netslmt_qty",
+      "pipe1",
+      "for_netprps_stk_cd",
+      "for_netprps_stk_nm",
+      "for_netprps_amt",
+      "for_netprps_qty",
+      "pipe2",
+      "orgn_netslmt_stk_cd",
+      "orgn_netslmt_stk_nm",
+      "orgn_netslmt_amt",
+      "orgn_netslmt_qty",
+      "pipe3",
+      "orgn_netprps_stk_cd",
+      "orgn_netprps_stk_nm",
+      "orgn_netprps_amt",
+      "orgn_netprps_qty"
+    ]
+  }
+}
