@@ -164,8 +164,20 @@ class MarketAPI:
             # ka10031 API는 'pred_trde_qty_upper' 키에 데이터 반환
             rank_list = response.get('pred_trde_qty_upper', [])
 
-            logger.info(f"거래량 순위 {len(rank_list)}개 조회 완료")
-            return rank_list
+            # 데이터 정규화: API 응답 키 -> 표준 키
+            normalized_list = []
+            for item in rank_list:
+                normalized_list.append({
+                    'code': item.get('stk_cd', '').replace('_AL', ''),  # _AL 접미사 제거
+                    'name': item.get('stk_nm', ''),
+                    'price': int(item.get('cur_prc', '0').replace('+', '').replace('-', '')),
+                    'volume': int(item.get('trde_qty', '0')),
+                    'change': int(item.get('pred_pre', '0').replace('+', '').replace('-', '')),
+                    'change_sign': item.get('pred_pre_sig', ''),
+                })
+
+            logger.info(f"거래량 순위 {len(normalized_list)}개 조회 완료")
+            return normalized_list
         else:
             logger.error(f"거래량 순위 조회 실패: {response.get('return_msg')}")
             logger.error(f"응답 전체: {response}")
@@ -224,21 +236,25 @@ class MarketAPI:
             print(f"  전체 응답: {response}")
 
         if response and response.get('return_code') == 0:
-            # 응답 구조 확인
-            output = response.get('output', {})
+            # ka10027 API는 'pred_pre_flu_rt_upper' 키에 데이터 반환
+            rank_list = response.get('pred_pre_flu_rt_upper', [])
 
-            # output이 dict이면 리스트로 변환
-            if isinstance(output, dict):
-                rank_list = output.get('list', [])
-            else:
-                rank_list = output if isinstance(output, list) else []
-
-            # limit에 맞춰 자르기
-            rank_list = rank_list[:limit]
+            # 데이터 정규화: API 응답 키 -> 표준 키
+            normalized_list = []
+            for item in rank_list[:limit]:
+                normalized_list.append({
+                    'code': item.get('stk_cd', '').replace('_AL', ''),  # _AL 접미사 제거
+                    'name': item.get('stk_nm', ''),
+                    'price': int(item.get('cur_prc', '0').replace('+', '').replace('-', '')),
+                    'change_rate': float(item.get('flu_rt', '0').replace('+', '').replace('-', '')),
+                    'volume': int(item.get('now_trde_qty', '0')),
+                    'change': int(item.get('pred_pre', '0').replace('+', '').replace('-', '')),
+                    'change_sign': item.get('pred_pre_sig', ''),
+                })
 
             sort_name = "상승률" if sort == 'rise' else "하락률"
-            logger.info(f"{sort_name} 순위 {len(rank_list)}개 조회 완료")
-            return rank_list
+            logger.info(f"{sort_name} 순위 {len(normalized_list)}개 조회 완료")
+            return normalized_list
         else:
             logger.error(f"등락률 순위 조회 실패: {response.get('return_msg')}")
             logger.error(f"응답 전체: {response}")
