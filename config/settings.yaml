@@ -1,0 +1,47 @@
+# AutoTrade Pro v4.2 - Unified Configuration
+# Generated automatically by config.manager
+
+risk_management:
+  max_position_size: 0.3  # 30% of total capital per position
+  stop_loss_pct: 0.05  # 5% stop loss
+  take_profit_pct: 0.1  # 10% take profit
+  position_limit: 10  # Max 10 simultaneous positions
+  daily_loss_limit: 0.05  # 5% daily loss limit
+  trailing_stop_pct: 0.02  # 2% trailing stop
+
+trading:
+  min_price: 1000  # Minimum order price
+  max_price: 1000000  # Maximum order price
+  min_volume: 10000  # Minimum trading volume
+  commission_rate: 0.00015  # 0.015% commission
+  slippage_pct: 0.0005  # 0.05% slippage
+  market_start_time: '09:00'
+  market_end_time: '15:30'
+
+ai:
+  enabled: true
+  confidence_threshold: 0.7
+  models:
+  - gemini
+  - ensemble
+  analysis_interval: 300  # seconds
+
+logging:
+  level: INFO
+  file_path: logs/bot.log
+  max_file_size: 10485760  # 10MB
+  backup_count: 30
+  console_output: true
+  colored_output: true
+
+notification:
+  enabled: true
+  telegram_enabled: false
+  telegram_bot_token: null
+  telegram_chat_id: null
+  email_enabled: false
+  email_to: null
+
+environment: production
+debug_mode: false
+initial_capital: 10000000  # 10 million KRW
