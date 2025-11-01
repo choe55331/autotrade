@@ -1921,8 +1921,8 @@ def reset_settings():
 
 
 @app.route('/api/backtest/run', methods=['POST'])
-def run_backtest():
-    """백테스팅 실행"""
+def run_backtest_v4():
+    """백테스팅 실행 (v4.0 Unified Settings)"""
     try:
         params = request.json
 

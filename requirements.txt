@@ -95,7 +95,8 @@ ta-lib  # Technical Analysis Library (선택적)
 pandas-ta>=0.3.14b  # Pandas Technical Analysis
 
 # 차트 및 시각화
-chart.js  # JavaScript 차트 (웹 라이브러리이지만 참고용)
+# chart.js는 JavaScript 라이브러리이므로 Python requirements에서 제외
+# 웹 대시보드에서 CDN을 통해 사용: <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 # WebSocket 강화
 python-engineio>=4.8.0
