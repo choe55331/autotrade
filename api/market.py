@@ -630,12 +630,21 @@ class MarketAPI:
         response = self.client.request(api_id="ka90009", body=body, path="rkinfo")
 
         if response and response.get('return_code') == 0:
+            # 디버그: 응답 키 확인
             data_keys = [k for k in response.keys() if k not in ['return_code', 'return_msg', 'api-id', 'cont-yn', 'next-key']]
+            logger.debug(f"ka90009 응답 키: {data_keys}")
+
             rank_list = []
+            used_key = None
             for key in data_keys:
                 val = response.get(key)
                 if isinstance(val, list) and len(val) > 0:
                     rank_list = val
+                    used_key = key
+                    logger.debug(f"ka90009 사용된 데이터 키: {key}, 데이터 수: {len(val)}")
+                    if len(val) > 0 and isinstance(val[0], dict):
+                        logger.debug(f"ka90009 첫 번째 항목 키: {list(val[0].keys())}")
+                        logger.debug(f"ka90009 첫 번째 항목 샘플: {val[0]}")
                     break
 
             normalized_list = []
@@ -648,7 +657,7 @@ class MarketAPI:
                     'institution_net': int(item.get('orgn_nt', '0')),  # 기관 순매수
                 })
 
-            logger.info(f"외국인/기관 매매 {len(normalized_list)}개 조회")
+            logger.info(f"외국인/기관 매매 {len(normalized_list)}개 조회 (키: {used_key})")
             return normalized_list
         else:
             logger.error(f"외국인/기관 매매 조회 실패: {response.get('return_msg')}")
@@ -745,12 +754,21 @@ class MarketAPI:
         response = self.client.request(api_id="ka10065", body=body, path="rkinfo")
 
         if response and response.get('return_code') == 0:
+            # 디버그: 응답 키 확인
             data_keys = [k for k in response.keys() if k not in ['return_code', 'return_msg', 'api-id', 'cont-yn', 'next-key']]
+            logger.debug(f"ka10065 응답 키: {data_keys}")
+
             rank_list = []
+            used_key = None
             for key in data_keys:
                 val = response.get(key)
                 if isinstance(val, list) and len(val) > 0:
                     rank_list = val
+                    used_key = key
+                    logger.debug(f"ka10065 사용된 데이터 키: {key}, 데이터 수: {len(val)}")
+                    if len(val) > 0 and isinstance(val[0], dict):
+                        logger.debug(f"ka10065 첫 번째 항목 키: {list(val[0].keys())}")
+                        logger.debug(f"ka10065 첫 번째 항목 샘플: {val[0]}")
                     break
 
             normalized_list = []
@@ -764,7 +782,7 @@ class MarketAPI:
                 })
 
             investor_name = {'foreign': '외국인', 'institution': '기관', 'individual': '개인'}.get(investor_type.lower(), investor_type)
-            logger.info(f"{investor_name} 장중매매 {len(normalized_list)}개 조회")
+            logger.info(f"{investor_name} 장중매매 {len(normalized_list)}개 조회 (키: {used_key})")
             return normalized_list
         else:
             logger.error(f"투자자별 매매 조회 실패: {response.get('return_msg')}")
