@@ -270,7 +270,209 @@ class MarketAPI:
             logger.error(f"등락률 순위 조회 실패: {response.get('return_msg')}")
             logger.error(f"응답 전체: {response}")
             return []
-    
+
+    def get_trading_value_rank(
+        self,
+        market: str = 'ALL',
+        limit: int = 20,
+        include_managed: bool = False
+    ) -> List[Dict[str, Any]]:
+        """
+        거래대금 상위 조회 (ka10032)
+
+        Args:
+            market: 시장구분 ('ALL', 'KOSPI', 'KOSDAQ')
+            limit: 조회 건수 (최대 200)
+            include_managed: 관리종목 포함 여부
+
+        Returns:
+            거래대금 순위 리스트
+        """
+        # 시장 코드 변환 (successful_apis.json 검증된 값)
+        market_map = {'ALL': '000', 'KOSPI': '001', 'KOSDAQ': '101'}
+        mrkt_tp = market_map.get(market.upper(), '001')
+
+        body = {
+            "mrkt_tp": mrkt_tp,               # 시장구분
+            "mang_stk_incls": "1" if include_managed else "0",  # 관리종목 포함
+            "stex_tp": "3"                    # 증권거래소 (3: 전체)
+        }
+
+        response = self.client.request(
+            api_id="ka10032",
+            body=body,
+            path="rkinfo"
+        )
+
+        if response and response.get('return_code') == 0:
+            # 응답 키 찾기 (자동 탐색)
+            data_keys = [k for k in response.keys() if k not in ['return_code', 'return_msg', 'api-id', 'cont-yn', 'next-key']]
+
+            # 첫 번째 리스트 키 사용
+            rank_list = []
+            for key in data_keys:
+                val = response.get(key)
+                if isinstance(val, list) and len(val) > 0:
+                    rank_list = val
+                    break
+
+            # 데이터 정규화
+            normalized_list = []
+            for item in rank_list[:limit]:
+                normalized_list.append({
+                    'code': item.get('stk_cd', '').replace('_AL', ''),
+                    'name': item.get('stk_nm', ''),
+                    'price': int(item.get('cur_prc', '0').replace('+', '').replace('-', '')),
+                    'trading_value': int(item.get('trde_prica', '0')),  # 거래대금
+                    'volume': int(item.get('trde_qty', '0')),
+                    'change': int(item.get('pred_pre', '0').replace('+', '').replace('-', '')),
+                    'change_sign': item.get('pred_pre_sig', ''),
+                })
+
+            logger.info(f"거래대금 순위 {len(normalized_list)}개 조회 완료")
+            return normalized_list
+        else:
+            logger.error(f"거래대금 순위 조회 실패: {response.get('return_msg')}")
+            return []
+
+    def get_volume_surge_rank(
+        self,
+        market: str = 'ALL',
+        limit: int = 20,
+        time_interval: int = 5
+    ) -> List[Dict[str, Any]]:
+        """
+        거래량 급증 종목 조회 (ka10023)
+
+        Args:
+            market: 시장구분 ('ALL', 'KOSPI', 'KOSDAQ')
+            limit: 조회 건수
+            time_interval: 시간 간격 (분)
+
+        Returns:
+            거래량 급증 순위 리스트
+        """
+        market_map = {'ALL': '000', 'KOSPI': '001', 'KOSDAQ': '101'}
+        mrkt_tp = market_map.get(market.upper(), '000')
+
+        body = {
+            "mrkt_tp": mrkt_tp,
+            "trde_qty_tp": "100",  # 거래량 조건
+            "sort_tp": "2",        # 정렬 타입
+            "tm_tp": "1",          # 시간 타입 (1:분, 2:시간)
+            "tm": str(time_interval),  # 시간 간격
+            "stk_cnd": "0",
+            "pric_tp": "0",
+            "stex_tp": "3"
+        }
+
+        response = self.client.request(
+            api_id="ka10023",
+            body=body,
+            path="rkinfo"
+        )
+
+        if response and response.get('return_code') == 0:
+            # 응답 키 찾기
+            data_keys = [k for k in response.keys() if k not in ['return_code', 'return_msg', 'api-id', 'cont-yn', 'next-key']]
+
+            rank_list = []
+            for key in data_keys:
+                val = response.get(key)
+                if isinstance(val, list) and len(val) > 0:
+                    rank_list = val
+                    break
+
+            # 데이터 정규화
+            normalized_list = []
+            for item in rank_list[:limit]:
+                normalized_list.append({
+                    'code': item.get('stk_cd', '').replace('_AL', ''),
+                    'name': item.get('stk_nm', ''),
+                    'price': int(item.get('cur_prc', '0').replace('+', '').replace('-', '')),
+                    'volume': int(item.get('trde_qty', '0')),
+                    'volume_increase_rate': float(item.get('qty_incrs_rt', '0')),  # 거래량 증가율
+                    'change_rate': float(item.get('flu_rt', '0').replace('+', '').replace('-', '')),
+                })
+
+            logger.info(f"거래량 급증 {len(normalized_list)}개 조회 완료")
+            return normalized_list
+        else:
+            logger.error(f"거래량 급증 조회 실패: {response.get('return_msg')}")
+            return []
+
+    def get_intraday_change_rank(
+        self,
+        market: str = 'ALL',
+        sort: str = 'rise',
+        limit: int = 20
+    ) -> List[Dict[str, Any]]:
+        """
+        시가대비 등락률 순위 조회 (ka10028)
+
+        Args:
+            market: 시장구분 ('ALL', 'KOSPI', 'KOSDAQ')
+            sort: 정렬 ('rise': 상승률, 'fall': 하락률)
+            limit: 조회 건수
+
+        Returns:
+            시가대비 등락률 순위 리스트
+        """
+        market_map = {'ALL': '000', 'KOSPI': '001', 'KOSDAQ': '101'}
+        mrkt_tp = market_map.get(market.upper(), '000')
+
+        # 정렬 타입 (1:상승률, 2:하락률)
+        sort_map = {'rise': '1', 'fall': '2'}
+        sort_tp = sort_map.get(sort.lower(), '1')
+
+        body = {
+            "sort_tp": sort_tp,
+            "trde_qty_cnd": "0000",
+            "mrkt_tp": mrkt_tp,
+            "updown_incls": "1",
+            "stk_cnd": "0",
+            "crd_cnd": "0",
+            "trde_prica_cnd": "0",
+            "flu_cnd": "1",
+            "stex_tp": "3"
+        }
+
+        response = self.client.request(
+            api_id="ka10028",
+            body=body,
+            path="stkinfo"
+        )
+
+        if response and response.get('return_code') == 0:
+            # 응답 키 찾기
+            data_keys = [k for k in response.keys() if k not in ['return_code', 'return_msg', 'api-id', 'cont-yn', 'next-key']]
+
+            rank_list = []
+            for key in data_keys:
+                val = response.get(key)
+                if isinstance(val, list) and len(val) > 0:
+                    rank_list = val
+                    break
+
+            # 데이터 정규화
+            normalized_list = []
+            for item in rank_list[:limit]:
+                normalized_list.append({
+                    'code': item.get('stk_cd', '').replace('_AL', ''),
+                    'name': item.get('stk_nm', ''),
+                    'price': int(item.get('cur_prc', '0').replace('+', '').replace('-', '')),
+                    'open_price': int(item.get('open_prc', '0')),  # 시가
+                    'intraday_change_rate': float(item.get('flu_rt', '0').replace('+', '').replace('-', '')),
+                    'volume': int(item.get('trde_qty', '0')),
+                })
+
+            sort_name = "상승률" if sort == 'rise' else "하락률"
+            logger.info(f"시가대비 {sort_name} {len(normalized_list)}개 조회 완료")
+            return normalized_list
+        else:
+            logger.error(f"시가대비 등락률 조회 실패: {response.get('return_msg')}")
+            return []
+
     def get_sector_list(self) -> List[Dict[str, Any]]:
         """
         업종 목록 조회
