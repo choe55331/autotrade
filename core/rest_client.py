@@ -360,7 +360,11 @@ class KiwoomRESTClient:
         }
         
         # URL 구성
-        url = f"{self.base_url}/api/dostk/{path}"
+        # path에 이미 전체 경로가 포함되어 있으므로 base_url에 직접 결합
+        if path.startswith('/'):
+            url = f"{self.base_url}{path}"
+        else:
+            url = f"{self.base_url}/{path}"
 
         logger.debug(f"[REST] {http_method} {url} (API ID: {api_id})")
         
