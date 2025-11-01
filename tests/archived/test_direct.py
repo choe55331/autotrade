@@ -3,10 +3,13 @@
 """
 import sys
 import os
+from pathlib import Path
 
-# 환경변수 직접 설정 (실제 키로 변경하세요)
-os.environ['KIWOOM_REST_APPKEY'] = 'TjgoRS0k_U-EcnCBxwn23EM6wbTxHiFmuMHGpIYObRU'
-os.environ['KIWOOM_REST_SECRETKEY'] = 'LAcgLwxqlOduBocdLIDO57t4kHHjoyxVonSe2ghnt3U'
+# 프로젝트 루트 경로 추가
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
+# credentials.py에서 API 키 로드
+from config import get_credentials
 
 # 간단한 REST 클라이언트
 import requests
@@ -15,9 +18,13 @@ import datetime
 
 class SimpleClient:
     def __init__(self):
-        self.base_url = "https://api.kiwoom.com"
-        self.appkey = os.environ['KIWOOM_REST_APPKEY']
-        self.secretkey = os.environ['KIWOOM_REST_SECRETKEY']
+        # secrets.json에서 설정 로드
+        credentials = get_credentials()
+        kiwoom_config = credentials.get_kiwoom_config()
+
+        self.base_url = kiwoom_config['base_url']
+        self.appkey = kiwoom_config['appkey']
+        self.secretkey = kiwoom_config['secretkey']
         self.token = None
         self.get_token()
 
