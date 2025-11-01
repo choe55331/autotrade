@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 class MarketAPI:
     """
     시세 및 시장 정보 API
-    
+
     통합된 기능:
     - 시세 조회
     - 호가 조회
@@ -20,6 +20,31 @@ class MarketAPI:
     - 순위 정보
     - 업종 정보
     - 테마 정보
+
+    ⚠️ 중요: API 응답 파싱 패턴
+    ----------------------------------
+    키움증권 REST API는 응답 구조가 API마다 다릅니다!
+
+    1. 일반적인 패턴: response['output']
+       예: DOSK_XXXX 시리즈
+
+    2. 랭킹 API 패턴: 특정 키 사용
+       - ka10031 (거래량순위): response['pred_trde_qty_upper']
+       - ka10027 (등락률순위): response['pred_pre_flu_rt_upper']
+
+    3. 데이터 정규화 필요
+       API 응답 키 → 표준 키 변환:
+       - stk_cd → code (종목코드, _AL 접미사 제거)
+       - stk_nm → name (종목명)
+       - cur_prc → price (현재가)
+       - trde_qty / now_trde_qty → volume (거래량)
+       - flu_rt → change_rate (등락률)
+
+    새 API 추가 시:
+    1. successful_apis.json에서 실제 응답 구조 확인
+    2. 디버그 출력으로 실제 응답 키 확인
+    3. 올바른 키로 데이터 추출
+    4. 필요시 데이터 정규화
     """
     
     def __init__(self, client):
@@ -153,13 +178,6 @@ class MarketAPI:
             path="rkinfo"
         )
 
-        # 디버그: 실제 응답 확인
-        print(f"\n[DEBUG] ka10031 API 응답:")
-        print(f"  return_code: {response.get('return_code') if response else 'None'}")
-        print(f"  return_msg: {response.get('return_msg') if response else 'None'}")
-        if response:
-            print(f"  전체 응답: {response}")
-
         if response and response.get('return_code') == 0:
             # ka10031 API는 'pred_trde_qty_upper' 키에 데이터 반환
             rank_list = response.get('pred_trde_qty_upper', [])
@@ -227,13 +245,6 @@ class MarketAPI:
             body=body,
             path="rkinfo"
         )
-
-        # 디버그: 실제 응답 확인
-        print(f"\n[DEBUG] ka10027 API 응답:")
-        print(f"  return_code: {response.get('return_code') if response else 'None'}")
-        print(f"  return_msg: {response.get('return_msg') if response else 'None'}")
-        if response:
-            print(f"  전체 응답: {response}")
 
         if response and response.get('return_code') == 0:
             # ka10027 API는 'pred_pre_flu_rt_upper' 키에 데이터 반환
