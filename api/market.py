@@ -617,7 +617,7 @@ class MarketAPI:
         amt_qty_tp = amt_qty_map.get(amount_or_qty.lower(), '1')
 
         if date is None:
-            date = get_last_trading_date().strftime('%Y%m%d')
+            date = get_last_trading_date()  # 이미 'YYYYMMDD' 형식 문자열 반환
 
         body = {
             "mrkt_tp": mrkt_tp,
