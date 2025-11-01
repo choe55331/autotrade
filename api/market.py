@@ -124,40 +124,50 @@ class MarketAPI:
         date: str = None
     ) -> List[Dict[str, Any]]:
         """
-        거래량 순위 조회
+        전일 거래량 순위 조회 (ka10031)
 
         Args:
-            market: 시장구분 ('ALL', 'KOSPI', 'KOSDAQ')
-            limit: 조회 건수
-            date: 조회일 (YYYYMMDD, None이면 최근 거래일 자동 계산)
+            market: 시장구분 ('0': 전체, '1': KOSPI, '2': KOSDAQ)
+            limit: 조회 건수 (최대 200)
+            date: 조회일 (현재 미사용, 자동으로 전일 데이터 조회)
 
         Returns:
             거래량 순위 리스트
         """
-        # 날짜 자동 계산
-        if not date:
-            date = get_last_trading_date()
-            logger.info(f"거래량 순위 조회 날짜: {date}")
+        # 시장 코드 변환
+        market_map = {'ALL': '0', 'KOSPI': '1', 'KOSDAQ': '2'}
+        mrkt_tp = market_map.get(market.upper(), '0')
 
+        # 순위 범위 설정 (1위부터 limit까지)
         body = {
-            "market": market,
-            "limit": limit,
-            "sort": "volume",
-            "date": date
+            "mrkt_tp": mrkt_tp,        # 시장구분
+            "qry_tp": "0",              # 조회구분 (0:거래량, 1:거래대금)
+            "stex_tp": "1",             # 증권거래소 (1:전체)
+            "rank_strt": "1",           # 시작순위
+            "rank_end": str(limit)      # 종료순위
         }
 
         response = self.client.request(
-            api_id="DOSK_0010",
+            api_id="ka10031",
             body=body,
-            path="/api/dostk/inquire/rank"
+            path="/api/dostk/rkinfo"
         )
 
         if response and response.get('return_code') == 0:
-            rank_list = response.get('output', [])
-            logger.info(f"거래량 순위 {len(rank_list)}개 조회 완료 (날짜: {date})")
+            # 응답 구조 확인
+            output = response.get('output', {})
+
+            # output이 dict이면 리스트로 변환
+            if isinstance(output, dict):
+                rank_list = output.get('list', [])
+            else:
+                rank_list = output if isinstance(output, list) else []
+
+            logger.info(f"거래량 순위 {len(rank_list)}개 조회 완료")
             return rank_list
         else:
             logger.error(f"거래량 순위 조회 실패: {response.get('return_msg')}")
+            logger.error(f"응답 전체: {response}")
             return []
     
     def get_price_change_rank(
@@ -168,42 +178,62 @@ class MarketAPI:
         date: str = None
     ) -> List[Dict[str, Any]]:
         """
-        등락률 순위 조회
+        전일대비 등락률 상위 조회 (ka10027)
 
         Args:
             market: 시장구분 ('ALL', 'KOSPI', 'KOSDAQ')
             sort: 정렬 ('rise': 상승률, 'fall': 하락률)
-            limit: 조회 건수
-            date: 조회일 (YYYYMMDD, None이면 최근 거래일 자동 계산)
+            limit: 조회 건수 (최대 200, 실제로는 40개씩 반환)
+            date: 조회일 (현재 미사용)
 
         Returns:
             등락률 순위 리스트
         """
-        # 날짜 자동 계산
-        if not date:
-            date = get_last_trading_date()
-            logger.info(f"등락률 순위 조회 날짜: {date}")
+        # 시장 코드 변환
+        market_map = {'ALL': '0', 'KOSPI': '1', 'KOSDAQ': '2'}
+        mrkt_tp = market_map.get(market.upper(), '0')
+
+        # 정렬 타입 변환 (0: 상승률, 1: 하락률, 2: 보합)
+        sort_map = {'rise': '0', 'fall': '1'}
+        sort_tp = sort_map.get(sort.lower(), '0')
 
         body = {
-            "market": market,
-            "limit": limit,
-            "sort": sort,
-            "date": date
+            "mrkt_tp": mrkt_tp,          # 시장구분
+            "sort_tp": sort_tp,           # 정렬구분 (0: 상승률, 1: 하락률)
+            "trde_qty_cnd": "0",          # 거래량 조건 (0: 전체)
+            "stk_cnd": "0",               # 종목 조건 (0: 전체)
+            "crd_cnd": "0",               # 신용 조건 (0: 전체)
+            "updown_incls": "1",          # 상한하한 포함 (0: 제외, 1: 포함)
+            "pric_cnd": "0",              # 가격 조건 (0: 전체)
+            "trde_prica_cnd": "0",        # 거래대금 조건 (0: 전체)
+            "stex_tp": "1"                # 증권거래소 (1: 전체)
         }
 
         response = self.client.request(
-            api_id="DOSK_0011",
+            api_id="ka10027",
             body=body,
-            path="/api/dostk/inquire/rank"
+            path="/api/dostk/rkinfo"
         )
 
         if response and response.get('return_code') == 0:
-            rank_list = response.get('output', [])
+            # 응답 구조 확인
+            output = response.get('output', {})
+
+            # output이 dict이면 리스트로 변환
+            if isinstance(output, dict):
+                rank_list = output.get('list', [])
+            else:
+                rank_list = output if isinstance(output, list) else []
+
+            # limit에 맞춰 자르기
+            rank_list = rank_list[:limit]
+
             sort_name = "상승률" if sort == 'rise' else "하락률"
-            logger.info(f"{sort_name} 순위 {len(rank_list)}개 조회 완료 (날짜: {date})")
+            logger.info(f"{sort_name} 순위 {len(rank_list)}개 조회 완료")
             return rank_list
         else:
             logger.error(f"등락률 순위 조회 실패: {response.get('return_msg')}")
+            logger.error(f"응답 전체: {response}")
             return []
     
     def get_sector_list(self) -> List[Dict[str, Any]]:
