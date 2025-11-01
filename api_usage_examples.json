@@ -1,0 +1,66 @@
+{
+  "description": "Kiwoom REST API 사용 예제",
+  "base_url": "https://api.kiwoom.com",
+  "authentication": {
+    "method": "Bearer Token",
+    "header": "authorization: Bearer {token}"
+  },
+  "examples": [
+    {
+      "category": "account",
+      "api_id": "kt00005",
+      "api_name": "체결잔고요청",
+      "request": {
+        "method": "POST",
+        "url": "https://api.kiwoom.com/api/dostk/acnt",
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8",
+          "authorization": "Bearer {your_token}",
+          "api-id": "kt00005"
+        },
+        "body": {
+          "dmst_stex_tp": "KRX"
+        }
+      },
+      "description": "Variant 1 - 검증된 호출"
+    },
+    {
+      "category": "market",
+      "api_id": "ka10079",
+      "api_name": "주식틱차트조회요청",
+      "request": {
+        "method": "POST",
+        "url": "https://api.kiwoom.com/api/dostk/chart",
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8",
+          "authorization": "Bearer {your_token}",
+          "api-id": "ka10079"
+        },
+        "body": {
+          "stk_cd": "000660",
+          "tic_scope": "1",
+          "upd_stkpc_tp": "1"
+        }
+      },
+      "description": "Variant 1 - 검증된 호출"
+    },
+    {
+      "category": "stock_info",
+      "api_id": "ka10001",
+      "api_name": "주식기본정보요청",
+      "request": {
+        "method": "POST",
+        "url": "https://api.kiwoom.com/api/dostk/stkinfo",
+        "headers": {
+          "Content-Type": "application/json; charset=utf-8",
+          "authorization": "Bearer {your_token}",
+          "api-id": "ka10001"
+        },
+        "body": {
+          "stk_cd": "000660"
+        }
+      },
+      "description": "Variant 1 - 검증된 호출"
+    }
+  ]
+}
