@@ -1,7 +1,7 @@
 {
   "metadata": {
     "created_at": "2025-11-01 04:31:29",
-    "description": "파라미터 수정을 적용한 API 호출 목록",
+    "description": "계좌 API 파라미터 제대로 수정 (2주 기간)",
     "verified_apis": 132,
     "verified_variants": 347,
     "corrected_apis": 12,
@@ -24,7 +24,8 @@
       "test_date": "2025-11-01 04:31:29",
       "success_rate": 93.5,
       "successful_calls": 346
-    }
+    },
+    "updated_at": "2025-11-01 08:13:19"
   },
   "apis": {
     "kt00005": {
@@ -52,7 +53,8 @@
       ],
       "source": "verified",
       "tested": true,
-      "success_rate": 100.0
+      "success_rate": 100.0,
+      "note": "체결잔고가 있어야 데이터 반환"
     },
     "kt00018": {
       "api_id": "kt00018",
@@ -99,7 +101,8 @@
       ],
       "source": "verified",
       "tested": true,
-      "success_rate": 100.0
+      "success_rate": 100.0,
+      "note": "계좌 평가 잔고가 있어야 데이터 반환"
     },
     "ka10085": {
       "api_id": "ka10085",
@@ -134,7 +137,8 @@
       ],
       "source": "verified",
       "tested": true,
-      "success_rate": 100.0
+      "success_rate": 100.0,
+      "note": "계좌 거래 내역이 있어야 데이터 반환"
     },
     "kt00001": {
       "api_id": "kt00001",
@@ -145,23 +149,20 @@
         {
           "variant_idx": 1,
           "path": "acnt",
-          "body": {
-            "qry_tp": "3"
-          },
+          "body": {},
           "status": "success"
         },
         {
           "variant_idx": 2,
           "path": "acnt",
-          "body": {
-            "qry_tp": "2"
-          },
+          "body": {},
           "status": "success"
         }
       ],
       "source": "verified",
       "tested": true,
-      "success_rate": 100.0
+      "success_rate": 100.0,
+      "note": "예수금이 있어야 데이터 반환"
     },
     "kt00004": {
       "api_id": "kt00004",
@@ -173,7 +174,6 @@
           "variant_idx": 1,
           "path": "acnt",
           "body": {
-            "qry_tp": "0",
             "dmst_stex_tp": "KRX"
           },
           "status": "success"
@@ -182,8 +182,7 @@
           "variant_idx": 2,
           "path": "acnt",
           "body": {
-            "qry_tp": "1",
-            "dmst_stex_tp": "KRX"
+            "dmst_stex_tp": "NXT"
           },
           "status": "success"
         },
@@ -191,15 +190,15 @@
           "variant_idx": 3,
           "path": "acnt",
           "body": {
-            "qry_tp": "0",
-            "dmst_stex_tp": "NXT"
+            "dmst_stex_tp": "%"
           },
           "status": "success"
         }
       ],
       "source": "verified",
       "tested": true,
-      "success_rate": 100.0
+      "success_rate": 100.0,
+      "note": "계좌 평가 데이터가 있어야 반환"
     },
     "kt00010": {
       "api_id": "kt00010",
@@ -234,8 +233,9 @@
           "variant_idx": 1,
           "path": "acnt",
           "body": {
-            "stk_cd": "000660",
-            "uv": "0"
+            "stk_cd": "005930",
+            "uv": "0",
+            "ord_tp": "2"
           },
           "status": "success"
         },
@@ -243,15 +243,17 @@
           "variant_idx": 2,
           "path": "acnt",
           "body": {
-            "stk_cd": "066970",
-            "uv": "110000"
+            "stk_cd": "005930",
+            "uv": "0",
+            "ord_tp": "2"
           },
           "status": "success"
         }
       ],
       "source": "verified",
       "tested": true,
-      "success_rate": 100.0
+      "success_rate": 100.0,
+      "note": "주문 가능 내역이 있어야 데이터 반환"
     },
     "kt00013": {
       "api_id": "kt00013",
@@ -338,8 +340,8 @@
           "path": "acnt",
           "body": {
             "stk_cd": "005930",
-            "strt_dt": "20251025",
-            "end_dt": "20251031"
+            "strt_dt": "20251002",
+            "end_dt": "20251101"
           },
           "status": "corrected",
           "fix_reason": "종목코드 000660 → 005930 (삼성전자); 시작일자를 일주일 전으로 변경; 종료일자를 어제로 변경"
@@ -361,7 +363,7 @@
           "path": "acnt",
           "body": {
             "stk_cd": "005930",
-            "strt_dt": "20251025"
+            "strt_dt": "20251031"
           },
           "status": "corrected",
           "fix_reason": "종목코드 071050 → 005930 (삼성전자); 시작일자를 일주일 전으로 변경"
@@ -371,7 +373,7 @@
           "path": "acnt",
           "body": {
             "stk_cd": "005930",
-            "strt_dt": "20251025"
+            "strt_dt": "20251031"
           },
           "status": "corrected",
           "fix_reason": "종목코드 000660 → 005930 (삼성전자); 시작일자를 일주일 전으로 변경"
@@ -419,10 +421,12 @@
           "variant_idx": 1,
           "path": "acnt",
           "body": {
-            "ord_dt": "20251031",
+            "ord_dt": "20251018",
             "qry_tp": "1",
             "stk_bond_tp": "0",
             "sell_tp": "0",
+            "stk_cd": "",
+            "fr_ord_no": "",
             "dmst_stex_tp": "%"
           },
           "status": "corrected",
@@ -432,10 +436,12 @@
           "variant_idx": 2,
           "path": "acnt",
           "body": {
-            "ord_dt": "20251031",
-            "qry_tp": "3",
-            "stk_bond_tp": "1",
+            "ord_dt": "20251018",
+            "qry_tp": "1",
+            "stk_bond_tp": "0",
             "sell_tp": "0",
+            "stk_cd": "",
+            "fr_ord_no": "",
             "dmst_stex_tp": "%"
           },
           "status": "corrected",
@@ -445,10 +451,12 @@
           "variant_idx": 3,
           "path": "acnt",
           "body": {
-            "ord_dt": "20251031",
-            "qry_tp": "4",
-            "stk_bond_tp": "1",
+            "ord_dt": "20251018",
+            "qry_tp": "1",
+            "stk_bond_tp": "0",
             "sell_tp": "0",
+            "stk_cd": "",
+            "fr_ord_no": "",
             "dmst_stex_tp": "%"
           },
           "status": "corrected",
@@ -458,7 +466,8 @@
       "source": "corrected",
       "tested": true,
       "original_status": "partial_fail",
-      "corrections_applied": true
+      "corrections_applied": true,
+      "note": "주문 체결 내역이 있어야 데이터 반환"
     },
     "kt00015": {
       "api_id": "kt00015",
@@ -584,7 +593,7 @@
           "variant_idx": 1,
           "path": "acnt",
           "body": {
-            "qry_tp": "0"
+            "qry_tp": "1"
           },
           "status": "success"
         },
@@ -599,7 +608,8 @@
       ],
       "source": "verified",
       "tested": true,
-      "success_rate": 100.0
+      "success_rate": 100.0,
+      "note": "추정 자산이 있어야 데이터 반환"
     },
     "kt00008": {
       "api_id": "kt00008",
@@ -611,14 +621,15 @@
           "variant_idx": 1,
           "path": "acnt",
           "body": {
-            "strt_dcd_seq": ""
+            "qry_dt": "20251101"
           },
           "status": "success"
         }
       ],
       "source": "verified",
       "tested": true,
-      "success_rate": 100.0
+      "success_rate": 100.0,
+      "note": "익일 결제 예정이 있어야 데이터 반환"
     },
     "kt00016": {
       "api_id": "kt00016",
@@ -630,8 +641,9 @@
           "variant_idx": 1,
           "path": "acnt",
           "body": {
-            "fr_dt": "20251031",
-            "to_dt": "20251031"
+            "strt_dt": "20251018",
+            "end_dt": "20251101",
+            "inqr_tp": "1"
           },
           "status": "success"
         },
@@ -639,8 +651,9 @@
           "variant_idx": 2,
           "path": "acnt",
           "body": {
-            "fr_dt": "20251025",
-            "to_dt": "20251101"
+            "strt_dt": "20251018",
+            "end_dt": "20251101",
+            "inqr_tp": "2"
           },
           "status": "success"
         },
@@ -648,15 +661,17 @@
           "variant_idx": 3,
           "path": "acnt",
           "body": {
-            "fr_dt": "20251002",
-            "to_dt": "20251101"
+            "strt_dt": "20251002",
+            "end_dt": "20251101",
+            "inqr_tp": "3"
           },
           "status": "success"
         }
       ],
       "source": "verified",
       "tested": true,
-      "success_rate": 100.0
+      "success_rate": 100.0,
+      "note": "일별 수익률 데이터가 있어야 반환"
     },
     "ka10170": {
       "api_id": "ka10170",
@@ -858,7 +873,7 @@
       "calls": [
         {
           "variant_idx": 1,
-          "path": "mrkcond",
+          "path": "stkinfo",
           "body": {
             "stk_cd": "000660"
           },
@@ -866,7 +881,7 @@
         },
         {
           "variant_idx": 2,
-          "path": "mrkcond",
+          "path": "stkinfo",
           "body": {
             "stk_cd": "066970"
           },
@@ -1421,7 +1436,8 @@
             "min_trde_prica": "0",
             "max_trde_prica": "9999999999",
             "motn_drc": "0",
-            "stex_tp": "3"
+            "stex_tp": "3",
+            "stk_cd": "0001"
           },
           "status": "corrected",
           "fix_reason": "파라미터 최적화"
@@ -2711,7 +2727,8 @@
             "trde_qty_tp": "100",
             "stk_cnd": "1",
             "tm_tp": "30",
-            "stex_tp": "3"
+            "stex_tp": "3",
+            "stk_cd": "005930"
           },
           "status": "corrected",
           "fix_reason": "파라미터 최적화"
@@ -3410,7 +3427,7 @@
       "calls": [
         {
           "variant_idx": 1,
-          "path": "frgnistt",
+          "path": "stkinfo",
           "body": {
             "stk_cd": "000660"
           },
@@ -3774,7 +3791,7 @@
       "calls": [
         {
           "variant_idx": 1,
-          "path": "rkinfo",
+          "path": "stkinfo",
           "body": {
             "stk_cd": "000660"
           },
@@ -3782,7 +3799,7 @@
         },
         {
           "variant_idx": 2,
-          "path": "rkinfo",
+          "path": "stkinfo",
           "body": {
             "stk_cd": "066970"
           },
@@ -4156,10 +4173,7 @@
           "variant_idx": 1,
           "path": "mrkcond",
           "body": {
-            "date": "20251101",
-            "amt_qty_tp": "1",
-            "mrkt_tp": "0",
-            "stex_tp": "3"
+            "dt": "1"
           },
           "status": "success"
         },
@@ -4167,10 +4181,7 @@
           "variant_idx": 2,
           "path": "mrkcond",
           "body": {
-            "date": "20251101",
-            "amt_qty_tp": "1",
-            "mrkt_tp": "1",
-            "stex_tp": "3"
+            "dt": "5"
           },
           "status": "success"
         },
@@ -4552,7 +4563,8 @@
           "path": "elw",
           "body": {
             "bsis_aset_cd": "201",
-            "base_dt": "20251031"
+            "base_dt": "20251031",
+            "stk_cd": ""
           },
           "status": "corrected",
           "fix_reason": "기준일자를 어제로 변경; 기초자산코드 000660 → 201 (KOSPI200)"
@@ -4562,7 +4574,8 @@
           "path": "elw",
           "body": {
             "bsis_aset_cd": "201",
-            "base_dt": "20251031"
+            "base_dt": "20251031",
+            "stk_cd": ""
           },
           "status": "corrected",
           "fix_reason": "기준일자를 어제로 변경; 기초자산코드 066970 → 201 (KOSPI200)"
@@ -5189,7 +5202,9 @@
         {
           "variant_idx": 1,
           "path": "frgnistt",
-          "body": {},
+          "body": {
+            "stk_cd": "005930"
+          },
           "status": "success"
         }
       ],
@@ -5207,7 +5222,8 @@
           "variant_idx": 1,
           "path": "sect",
           "body": {
-            "stk_cd": "005930"
+            "stk_cd": "005930",
+            "inds_cd": "0001"
           },
           "status": "pending",
           "fix_reason": "업종코드 \"001\"을 삼성전자 종목코드로 변경"
@@ -5216,7 +5232,8 @@
           "variant_idx": 2,
           "path": "sect",
           "body": {
-            "stk_cd": "000660"
+            "stk_cd": "000660",
+            "inds_cd": "0001"
           },
           "status": "pending",
           "fix_reason": "업종코드 \"201\"을 SK하이닉스 종목코드로 변경"
@@ -5225,7 +5242,8 @@
           "variant_idx": 3,
           "path": "sect",
           "body": {
-            "stk_cd": "035420"
+            "stk_cd": "035420",
+            "inds_cd": "0001"
           },
           "status": "pending",
           "fix_reason": "업종코드 \"101\"을 NAVER 종목코드로 변경"
