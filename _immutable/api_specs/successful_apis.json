@@ -702,9 +702,8 @@
           "variant_idx": 1,
           "path": "acnt",
           "body": {
-            "strt_dt": "20251018",
-            "end_dt": "20251101",
-            "inqr_tp": "1"
+            "fr_dt": "20251018",
+            "to_dt": "20251101"
           },
           "status": "success"
         },
@@ -712,9 +711,8 @@
           "variant_idx": 2,
           "path": "acnt",
           "body": {
-            "strt_dt": "20251018",
-            "end_dt": "20251101",
-            "inqr_tp": "2"
+            "fr_dt": "20251018",
+            "to_dt": "20251101"
           },
           "status": "success"
         },
@@ -722,9 +720,8 @@
           "variant_idx": 3,
           "path": "acnt",
           "body": {
-            "strt_dt": "20251002",
-            "end_dt": "20251101",
-            "inqr_tp": "3"
+            "fr_dt": "20251002",
+            "to_dt": "20251101"
           },
           "status": "success"
         }
@@ -934,7 +931,7 @@
       "calls": [
         {
           "variant_idx": 1,
-          "path": "stkinfo",
+          "path": "mrkcond",
           "body": {
             "stk_cd": "000660"
           },
@@ -942,7 +939,7 @@
         },
         {
           "variant_idx": 2,
-          "path": "stkinfo",
+          "path": "mrkcond",
           "body": {
             "stk_cd": "066970"
           },
@@ -3488,7 +3485,7 @@
       "calls": [
         {
           "variant_idx": 1,
-          "path": "stkinfo",
+          "path": "frgnistt",
           "body": {
             "stk_cd": "000660"
           },
@@ -3852,7 +3849,7 @@
       "calls": [
         {
           "variant_idx": 1,
-          "path": "stkinfo",
+          "path": "rkinfo",
           "body": {
             "stk_cd": "000660"
           },
@@ -3860,7 +3857,7 @@
         },
         {
           "variant_idx": 2,
-          "path": "stkinfo",
+          "path": "rkinfo",
           "body": {
             "stk_cd": "066970"
           },
