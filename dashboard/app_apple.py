@@ -2135,11 +2135,23 @@ def get_system_connections():
                 # Gemini가 실제로 초기화되었는지 확인 (Mock analyzer가 아닌지)
                 if analyzer is not None:
                     analyzer_type = type(analyzer).__name__
-                    connections['gemini'] = 'Gemini' in analyzer_type or 'gemini' in analyzer_type.lower()
+                    analyzer_module = type(analyzer).__module__
+
+                    # Mock이 아니고 Gemini analyzer인지 확인
+                    is_mock = 'Mock' in analyzer_type or 'mock' in analyzer_module.lower()
+                    is_gemini = 'Gemini' in analyzer_type or 'gemini' in analyzer_module.lower()
+
+                    connections['gemini'] = is_gemini and not is_mock
+
+                    # 디버깅용 로그
+                    print(f"[DEBUG] Analyzer type: {analyzer_type}, module: {analyzer_module}, is_gemini: {is_gemini}, is_mock: {is_mock}")
                 else:
                     connections['gemini'] = False
-            except:
-                pass
+            except Exception as e:
+                print(f"[DEBUG] Gemini check error: {e}")
+                connections['gemini'] = False
+        else:
+            connections['gemini'] = False
 
         # Test mode 체크
         if bot_instance:

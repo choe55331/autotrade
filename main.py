@@ -162,15 +162,10 @@ class TradingBotV2:
             # 2-1. WebSocket 클라이언트 (선택사항)
             try:
                 logger.info("🔌 WebSocket 클라이언트 초기화 중...")
-                # WebSocket URL과 토큰 가져오기
-                ws_url = self.client.config.get('websocket_url', '')
-                ws_token = self.client.token if hasattr(self.client, 'token') else ''
-
-                if ws_url and ws_token:
-                    self.websocket_client = WebSocketClient(ws_url, ws_token)
-                    logger.info("✓ WebSocket 클라이언트 초기화 완료")
-                else:
-                    logger.warning("⚠️  WebSocket 설정 없음 - 실시간 데이터 미지원")
+                # WebSocket은 선택사항 - 설정이 없어도 REST API로 동작
+                # TODO: WebSocket 설정 추가 시 활성화
+                self.websocket_client = None
+                logger.info("⚠️  WebSocket 미사용 - REST API로 동작")
             except Exception as e:
                 logger.warning(f"⚠️  WebSocket 초기화 실패: {e} - 실시간 데이터 미지원")
                 self.websocket_client = None
