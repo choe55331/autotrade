@@ -26,6 +26,9 @@ except ImportError:
 from .position_manager import PositionManager, Position, get_position_manager
 from .signal_checker import SignalChecker, SignalType, TradingSignalValidator
 
+# v4.1 Advanced Risk & Orchestration
+from .risk_orchestrator import RiskOrchestrator, RiskLevel, RiskAssessment, get_risk_orchestrator
+
 __all__ = [
     'BaseStrategy',
     'MomentumStrategy',
@@ -49,4 +52,9 @@ __all__ = [
     'SignalChecker',
     'SignalType',
     'TradingSignalValidator',
+    # v4.1 Advanced Risk & Orchestration
+    'RiskOrchestrator',
+    'RiskLevel',
+    'RiskAssessment',
+    'get_risk_orchestrator',
 ]
