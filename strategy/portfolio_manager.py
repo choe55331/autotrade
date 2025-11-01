@@ -158,7 +158,11 @@ class PortfolioManager:
     def get_all_positions(self) -> Dict[str, Dict[str, Any]]:
         """모든 포지션 조회"""
         return self.positions.copy()
-    
+
+    def get_positions(self) -> Dict[str, Dict[str, Any]]:
+        """모든 포지션 반환 (get_all_positions 별칭, main.py 호환)"""
+        return self.get_all_positions()
+
     def get_position_count(self) -> int:
         """포지션 개수"""
         return len(self.positions)

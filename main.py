@@ -591,7 +591,7 @@ class TradingBotV2:
             snapshot = PortfolioSnapshot(
                 total_capital=summary['total_assets'],
                 cash=summary['cash'],
-                stock_value=summary['stock_value'],
+                stock_value=summary['stocks_value'],  # Fixed: stocks_value -> stock_value
                 total_profit_loss=summary['total_profit_loss'],
                 total_profit_loss_ratio=summary['total_profit_loss_rate'] / 100,
                 open_positions=summary['position_count'],
