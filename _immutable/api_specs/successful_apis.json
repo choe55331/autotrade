@@ -1,7 +1,7 @@
 {
   "metadata": {
     "created_at": "2025-11-01 04:31:29",
-    "description": "파라미터 수정을 적용한 API 호출 목록 (실패/데이터없음 수정)",
+    "description": "계좌 API 파라미터 제대로 수정 (2주 기간)",
     "verified_apis": 132,
     "verified_variants": 347,
     "corrected_apis": 12,
@@ -25,7 +25,7 @@
       "success_rate": 93.5,
       "successful_calls": 346
     },
-    "updated_at": "2025-11-01 08:09:20"
+    "updated_at": "2025-11-01 08:13:19"
   },
   "apis": {
     "kt00005": {
@@ -149,17 +149,13 @@
         {
           "variant_idx": 1,
           "path": "acnt",
-          "body": {
-            "qry_tp": "3"
-          },
+          "body": {},
           "status": "success"
         },
         {
           "variant_idx": 2,
           "path": "acnt",
-          "body": {
-            "qry_tp": "2"
-          },
+          "body": {},
           "status": "success"
         }
       ],
@@ -178,7 +174,6 @@
           "variant_idx": 1,
           "path": "acnt",
           "body": {
-            "qry_tp": "0",
             "dmst_stex_tp": "KRX"
           },
           "status": "success"
@@ -187,8 +182,7 @@
           "variant_idx": 2,
           "path": "acnt",
           "body": {
-            "qry_tp": "1",
-            "dmst_stex_tp": "KRX"
+            "dmst_stex_tp": "NXT"
           },
           "status": "success"
         },
@@ -196,8 +190,7 @@
           "variant_idx": 3,
           "path": "acnt",
           "body": {
-            "qry_tp": "0",
-            "dmst_stex_tp": "NXT"
+            "dmst_stex_tp": "%"
           },
           "status": "success"
         }
@@ -240,8 +233,9 @@
           "variant_idx": 1,
           "path": "acnt",
           "body": {
-            "stk_cd": "000660",
-            "uv": "0"
+            "stk_cd": "005930",
+            "uv": "0",
+            "ord_tp": "2"
           },
           "status": "success"
         },
@@ -249,8 +243,9 @@
           "variant_idx": 2,
           "path": "acnt",
           "body": {
-            "stk_cd": "066970",
-            "uv": "110000"
+            "stk_cd": "005930",
+            "uv": "0",
+            "ord_tp": "2"
           },
           "status": "success"
         }
@@ -426,10 +421,12 @@
           "variant_idx": 1,
           "path": "acnt",
           "body": {
-            "ord_dt": "20251031",
+            "ord_dt": "20251018",
             "qry_tp": "1",
             "stk_bond_tp": "0",
             "sell_tp": "0",
+            "stk_cd": "",
+            "fr_ord_no": "",
             "dmst_stex_tp": "%"
           },
           "status": "corrected",
@@ -439,10 +436,12 @@
           "variant_idx": 2,
           "path": "acnt",
           "body": {
-            "ord_dt": "20251031",
-            "qry_tp": "3",
-            "stk_bond_tp": "1",
+            "ord_dt": "20251018",
+            "qry_tp": "1",
+            "stk_bond_tp": "0",
             "sell_tp": "0",
+            "stk_cd": "",
+            "fr_ord_no": "",
             "dmst_stex_tp": "%"
           },
           "status": "corrected",
@@ -452,10 +451,12 @@
           "variant_idx": 3,
           "path": "acnt",
           "body": {
-            "ord_dt": "20251031",
-            "qry_tp": "4",
-            "stk_bond_tp": "1",
+            "ord_dt": "20251018",
+            "qry_tp": "1",
+            "stk_bond_tp": "0",
             "sell_tp": "0",
+            "stk_cd": "",
+            "fr_ord_no": "",
             "dmst_stex_tp": "%"
           },
           "status": "corrected",
@@ -592,7 +593,7 @@
           "variant_idx": 1,
           "path": "acnt",
           "body": {
-            "qry_tp": "0"
+            "qry_tp": "1"
           },
           "status": "success"
         },
@@ -620,7 +621,7 @@
           "variant_idx": 1,
           "path": "acnt",
           "body": {
-            "strt_dcd_seq": ""
+            "qry_dt": "20251101"
           },
           "status": "success"
         }
@@ -640,8 +641,9 @@
           "variant_idx": 1,
           "path": "acnt",
           "body": {
-            "fr_dt": "20251031",
-            "to_dt": "20251031"
+            "strt_dt": "20251018",
+            "end_dt": "20251101",
+            "inqr_tp": "1"
           },
           "status": "success"
         },
@@ -649,8 +651,9 @@
           "variant_idx": 2,
           "path": "acnt",
           "body": {
-            "fr_dt": "20251025",
-            "to_dt": "20251101"
+            "strt_dt": "20251018",
+            "end_dt": "20251101",
+            "inqr_tp": "2"
           },
           "status": "success"
         },
@@ -658,8 +661,9 @@
           "variant_idx": 3,
           "path": "acnt",
           "body": {
-            "fr_dt": "20251002",
-            "to_dt": "20251101"
+            "strt_dt": "20251002",
+            "end_dt": "20251101",
+            "inqr_tp": "3"
           },
           "status": "success"
         }
@@ -869,7 +873,7 @@
       "calls": [
         {
           "variant_idx": 1,
-          "path": "mrkcond",
+          "path": "stkinfo",
           "body": {
             "stk_cd": "000660"
           },
@@ -877,7 +881,7 @@
         },
         {
           "variant_idx": 2,
-          "path": "mrkcond",
+          "path": "stkinfo",
           "body": {
             "stk_cd": "066970"
           },
@@ -3423,7 +3427,7 @@
       "calls": [
         {
           "variant_idx": 1,
-          "path": "frgnistt",
+          "path": "stkinfo",
           "body": {
             "stk_cd": "000660"
           },
@@ -3787,7 +3791,7 @@
       "calls": [
         {
           "variant_idx": 1,
-          "path": "rkinfo",
+          "path": "stkinfo",
           "body": {
             "stk_cd": "000660"
           },
@@ -3795,7 +3799,7 @@
         },
         {
           "variant_idx": 2,
-          "path": "rkinfo",
+          "path": "stkinfo",
           "body": {
             "stk_cd": "066970"
           },
