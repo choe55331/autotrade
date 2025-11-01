@@ -3,6 +3,7 @@
 검증된 API 370건 테스트 (독립 실행)
 
 _immutable/api_specs/successful_apis.json의 검증된 API 호출
+실행 시 자동으로 test_results/ 폴더에 결과 저장
 """
 import sys
 import json
@@ -15,6 +16,21 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from config import get_credentials
 from core.rest_client import KiwoomRESTClient
+
+
+class Tee:
+    """화면과 파일에 동시 출력"""
+    def __init__(self, *files):
+        self.files = files
+
+    def write(self, data):
+        for f in self.files:
+            f.write(data)
+            f.flush()
+
+    def flush(self):
+        for f in self.files:
+            f.flush()
 
 
 class VerifiedAPITester:
@@ -150,5 +166,27 @@ class VerifiedAPITester:
 
 
 if __name__ == "__main__":
-    tester = VerifiedAPITester()
-    tester.run_all_tests()
+    # 결과 저장 디렉토리 생성
+    result_dir = Path(__file__).parent / 'test_results'
+    result_dir.mkdir(exist_ok=True)
+
+    # 결과 파일명 (타임스탬프 포함)
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    result_file = result_dir / f'verified_api_test_{timestamp}.txt'
+
+    # 화면과 파일에 동시 출력
+    with open(result_file, 'w', encoding='utf-8') as f:
+        original_stdout = sys.stdout
+        sys.stdout = Tee(sys.stdout, f)
+
+        try:
+            print(f"결과 파일: {result_file}")
+            print()
+
+            tester = VerifiedAPITester()
+            tester.run_all_tests()
+
+            print()
+            print(f"✅ 결과 저장: {result_file}")
+        finally:
+            sys.stdout = original_stdout

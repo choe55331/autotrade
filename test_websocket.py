@@ -3,6 +3,7 @@
 WebSocket 구독 기능 테스트
 
 키움 WebSocket API 실시간 데이터 구독 테스트
+실행 시 자동으로 test_results/ 폴더에 결과 저장
 """
 import sys
 import json
@@ -15,6 +16,21 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from config import get_credentials
+
+
+class Tee:
+    """화면과 파일에 동시 출력"""
+    def __init__(self, *files):
+        self.files = files
+
+    def write(self, data):
+        for f in self.files:
+            f.write(data)
+            f.flush()
+
+    def flush(self):
+        for f in self.files:
+            f.flush()
 
 
 class WebSocketTester:
@@ -264,12 +280,34 @@ async def main():
 
 
 if __name__ == "__main__":
-    print("\n⚠️  주의: WebSocket 테스트는 장 시작 시간(9:00-15:30)에만 작동합니다")
-    print("⚠️  장 외 시간에는 실시간 데이터가 수신되지 않을 수 있습니다\n")
+    # 결과 저장 디렉토리 생성
+    result_dir = Path(__file__).parent / 'test_results'
+    result_dir.mkdir(exist_ok=True)
 
-    # 사용자 확인
-    response = input("테스트를 시작하시겠습니까? (y/n): ")
-    if response.lower() == 'y':
-        asyncio.run(main())
-    else:
-        print("테스트 취소")
+    # 결과 파일명 (타임스탬프 포함)
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    result_file = result_dir / f'websocket_test_{timestamp}.txt'
+
+    # 화면과 파일에 동시 출력
+    with open(result_file, 'w', encoding='utf-8') as f:
+        original_stdout = sys.stdout
+        sys.stdout = Tee(sys.stdout, f)
+
+        try:
+            print(f"결과 파일: {result_file}")
+            print()
+            print("⚠️  주의: WebSocket 테스트는 장 시작 시간(9:00-15:30)에만 작동합니다")
+            print("⚠️  장 외 시간에는 실시간 데이터가 수신되지 않을 수 있습니다")
+            print()
+
+            # 사용자 확인
+            response = input("테스트를 시작하시겠습니까? (y/n): ")
+            if response.lower() == 'y':
+                asyncio.run(main())
+            else:
+                print("테스트 취소")
+
+            print()
+            print(f"✅ 결과 저장: {result_file}")
+        finally:
+            sys.stdout = original_stdout
