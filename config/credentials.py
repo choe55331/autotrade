@@ -10,11 +10,14 @@ API 키 및 민감정보 관리
 import os
 import json
 from pathlib import Path
-from dotenv import load_dotenv
 from typing import Dict, Optional
 
-# 환경변수 로드
-load_dotenv()
+# 환경변수 로드 (dotenv 선택적)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass  # dotenv 없이도 작동
 
 # 경로 설정
 PROJECT_ROOT = Path(__file__).parent.parent

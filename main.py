@@ -14,8 +14,20 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 # 새로운 시스템 임포트
 from config.config_manager import get_config
-from utils.logger_new import get_logger
-from database import get_db_session, Trade, Position, PortfolioSnapshot
+try:
+    from utils.logger_new import get_logger
+except ImportError:
+    import logging
+    def get_logger():
+        return logging.getLogger(__name__)
+try:
+    from database import get_db_session, Trade, Position, PortfolioSnapshot
+except ImportError:
+    def get_db_session():
+        return None
+    Trade = None
+    Position = None
+    PortfolioSnapshot = None
 
 # 핵심 모듈
 from core import KiwoomRESTClient
