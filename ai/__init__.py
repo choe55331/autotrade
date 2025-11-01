@@ -52,8 +52,10 @@ from .automl import (
 )
 from .backtesting import (
     BacktestEngine, BacktestResult, BacktestConfig,
-    Trade, Position, get_backtest_engine
+    BacktestTrade, get_backtest_engine
 )
+# Position is now imported from core (v4.2 standardization)
+from core import Position
 
 # v4.2 modules
 from .realtime_system import (
@@ -152,8 +154,8 @@ __all__ = [
     'BacktestEngine',
     'BacktestResult',
     'BacktestConfig',
-    'Trade',
-    'Position',
+    'BacktestTrade',  # v4.2: Renamed from Trade
+    'Position',  # v4.2: From core (standardized)
     'get_backtest_engine',
 
     # v4.2 - Real-time System
