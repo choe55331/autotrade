@@ -1,0 +1,351 @@
+{
+  "ka10020": {
+    "api_name": "호가잔량상위요청",
+    "success_count": 1,
+    "total_variants": 1,
+    "verified_calls": [
+      {
+        "path": "rkinfo",
+        "body": {
+          "mrkt_tp": "0",
+          "sort_tp": "0",
+          "trde_qty_tp": "0",
+          "stk_cnd": "0",
+          "crd_cnd": "0",
+          "stex_tp": "1"
+        },
+        "data_count": 200
+      }
+    ],
+    "last_tested": "2025-11-01T03:25:55.374139",
+    "note": "Converted from kiwoom_api_test_results.json"
+  },
+  "ka10021": {
+    "api_name": "호가잔량급증요청",
+    "success_count": 1,
+    "total_variants": 1,
+    "verified_calls": [
+      {
+        "path": "rkinfo",
+        "body": {
+          "mrkt_tp": "0",
+          "trde_tp": "0",
+          "sort_tp": "0",
+          "trde_qty_tp": "0",
+          "stk_cnd": "0",
+          "stex_tp": "1",
+          "tm_tp": "10"
+        },
+        "data_count": 200
+      }
+    ],
+    "last_tested": "2025-11-01T03:25:55.374162",
+    "note": "Converted from kiwoom_api_test_results.json"
+  },
+  "ka10023": {
+    "api_name": "거래량급증요청",
+    "success_count": 1,
+    "total_variants": 1,
+    "verified_calls": [
+      {
+        "path": "rkinfo",
+        "body": {
+          "mrkt_tp": "0",
+          "sort_tp": "0",
+          "tm_tp": "0",
+          "trde_qty_tp": "0",
+          "stk_cnd": "0",
+          "pric_tp": "0",
+          "stex_tp": "1",
+          "tm": "10"
+        },
+        "data_count": 200
+      }
+    ],
+    "last_tested": "2025-11-01T03:25:55.374164",
+    "note": "Converted from kiwoom_api_test_results.json"
+  },
+  "ka10027": {
+    "api_name": "전일대비등락률상위요청",
+    "success_count": 1,
+    "total_variants": 1,
+    "verified_calls": [
+      {
+        "path": "rkinfo",
+        "body": {
+          "mrkt_tp": "0",
+          "sort_tp": "0",
+          "trde_qty_cnd": "0",
+          "stk_cnd": "0",
+          "crd_cnd": "0",
+          "updown_incls": "1",
+          "pric_cnd": "0",
+          "trde_prica_cnd": "0",
+          "stex_tp": "1"
+        },
+        "data_count": 200
+      }
+    ],
+    "last_tested": "2025-11-01T03:25:55.374168",
+    "note": "Converted from kiwoom_api_test_results.json"
+  },
+  "ka10029": {
+    "api_name": "예상체결등락률상위요청",
+    "success_count": 1,
+    "total_variants": 1,
+    "verified_calls": [
+      {
+        "path": "rkinfo",
+        "body": {
+          "mrkt_tp": "0",
+          "sort_tp": "0",
+          "trde_qty_cnd": "0",
+          "stk_cnd": "0",
+          "crd_cnd": "0",
+          "pric_cnd": "0",
+          "stex_tp": "1"
+        },
+        "data_count": 100
+      }
+    ],
+    "last_tested": "2025-11-01T03:25:55.374179",
+    "note": "Converted from kiwoom_api_test_results.json"
+  },
+  "ka10030": {
+    "api_name": "당일거래량상위요청",
+    "success_count": 1,
+    "total_variants": 1,
+    "verified_calls": [
+      {
+        "path": "rkinfo",
+        "body": {
+          "mrkt_tp": "0",
+          "sort_tp": "0",
+          "mang_stk_incls": "0",
+          "crd_tp": "0",
+          "trde_qty_tp": "0",
+          "pric_tp": "0",
+          "trde_prica_tp": "0",
+          "mrkt_open_tp": "0",
+          "stex_tp": "1"
+        },
+        "data_count": 100
+      }
+    ],
+    "last_tested": "2025-11-01T03:25:55.374180",
+    "note": "Converted from kiwoom_api_test_results.json"
+  },
+  "ka10031": {
+    "api_name": "전일거래량상위요청",
+    "success_count": 1,
+    "total_variants": 1,
+    "verified_calls": [
+      {
+        "path": "rkinfo",
+        "body": {
+          "mrkt_tp": "0",
+          "qry_tp": "0",
+          "stex_tp": "1",
+          "rank_strt": "1",
+          "rank_end": "20"
+        },
+        "data_count": 19
+      }
+    ],
+    "last_tested": "2025-11-01T03:25:55.374187",
+    "note": "Converted from kiwoom_api_test_results.json"
+  },
+  "ka10032": {
+    "api_name": "거래대금상위요청",
+    "success_count": 1,
+    "total_variants": 1,
+    "verified_calls": [
+      {
+        "path": "rkinfo",
+        "body": {
+          "mrkt_tp": "0",
+          "mang_stk_incls": "0",
+          "stex_tp": "1"
+        },
+        "data_count": 100
+      }
+    ],
+    "last_tested": "2025-11-01T03:25:55.374189",
+    "note": "Converted from kiwoom_api_test_results.json"
+  },
+  "ka10033": {
+    "api_name": "신용비율상위요청",
+    "success_count": 1,
+    "total_variants": 1,
+    "verified_calls": [
+      {
+        "path": "rkinfo",
+        "body": {
+          "mrkt_tp": "0",
+          "trde_qty_tp": "0",
+          "stk_cnd": "0",
+          "updown_incls": "1",
+          "crd_cnd": "0",
+          "stex_tp": "1"
+        },
+        "data_count": 100
+      }
+    ],
+    "last_tested": "2025-11-01T03:25:55.374192",
+    "note": "Converted from kiwoom_api_test_results.json"
+  },
+  "ka10035": {
+    "api_name": "외인연속순매매상위요청",
+    "success_count": 1,
+    "total_variants": 1,
+    "verified_calls": [
+      {
+        "path": "rkinfo",
+        "body": {
+          "mrkt_tp": "0",
+          "trde_tp": "0",
+          "stex_tp": "1",
+          "base_dt_tp": "3"
+        },
+        "data_count": 100
+      }
+    ],
+    "last_tested": "2025-11-01T03:25:55.374200",
+    "note": "Converted from kiwoom_api_test_results.json"
+  },
+  "ka10036": {
+    "api_name": "외인한도소진율증가상위",
+    "success_count": 1,
+    "total_variants": 1,
+    "verified_calls": [
+      {
+        "path": "rkinfo",
+        "body": {
+          "mrkt_tp": "0",
+          "stex_tp": "1",
+          "dt": "1"
+        },
+        "data_count": 100
+      }
+    ],
+    "last_tested": "2025-11-01T03:25:55.374201",
+    "note": "Converted from kiwoom_api_test_results.json"
+  },
+  "ka10037": {
+    "api_name": "외국계창구매매상위요청",
+    "success_count": 1,
+    "total_variants": 1,
+    "verified_calls": [
+      {
+        "path": "rkinfo",
+        "body": {
+          "mrkt_tp": "0",
+          "trde_tp": "0",
+          "sort_tp": "0",
+          "stex_tp": "1",
+          "dt": "1"
+        },
+        "data_count": 100
+      }
+    ],
+    "last_tested": "2025-11-01T03:25:55.374203",
+    "note": "Converted from kiwoom_api_test_results.json"
+  },
+  "ka10038": {
+    "api_name": "종목별증권사순위요청",
+    "success_count": 1,
+    "total_variants": 1,
+    "verified_calls": [
+      {
+        "path": "rkinfo",
+        "body": {
+          "qry_tp": "0",
+          "stk_cd": "005930",
+          "strt_dt": "20251025",
+          "end_dt": "20251101",
+          "dt": "0"
+        },
+        "data_count": 50
+      }
+    ],
+    "last_tested": "2025-11-01T03:25:55.374205",
+    "note": "Converted from kiwoom_api_test_results.json"
+  },
+  "ka10053": {
+    "api_name": "당일상위이탈원요청",
+    "success_count": 1,
+    "total_variants": 1,
+    "verified_calls": [
+      {
+        "path": "rkinfo",
+        "body": {
+          "stk_cd": "005930"
+        },
+        "data_count": 5
+      }
+    ],
+    "last_tested": "2025-11-01T03:25:55.374207",
+    "note": "Converted from kiwoom_api_test_results.json"
+  },
+  "ka10062": {
+    "api_name": "동일순매매순위요청",
+    "success_count": 1,
+    "total_variants": 1,
+    "verified_calls": [
+      {
+        "path": "rkinfo",
+        "body": {
+          "mrkt_tp": "0",
+          "trde_tp": "0",
+          "sort_cnd": "0",
+          "unit_tp": "0",
+          "stex_tp": "1",
+          "strt_dt": "20251025"
+        },
+        "data_count": 100
+      }
+    ],
+    "last_tested": "2025-11-01T03:25:55.374210",
+    "note": "Converted from kiwoom_api_test_results.json"
+  },
+  "ka10098": {
+    "api_name": "시간외단일가등락율순위요청",
+    "success_count": 1,
+    "total_variants": 1,
+    "verified_calls": [
+      {
+        "path": "rkinfo",
+        "body": {
+          "mrkt_tp": "0",
+          "sort_base": "0",
+          "stk_cnd": "0",
+          "trde_qty_cnd": "0",
+          "crd_cnd": "0",
+          "trde_prica": "0"
+        },
+        "data_count": 100
+      }
+    ],
+    "last_tested": "2025-11-01T03:25:55.374212",
+    "note": "Converted from kiwoom_api_test_results.json"
+  },
+  "ka90009": {
+    "api_name": "외국인기관매매상위요청",
+    "success_count": 1,
+    "total_variants": 1,
+    "verified_calls": [
+      {
+        "path": "rkinfo",
+        "body": {
+          "mrkt_tp": "0",
+          "amt_qty_tp": "0",
+          "qry_dt_tp": "0",
+          "stex_tp": "1"
+        },
+        "data_count": 25
+      }
+    ],
+    "last_tested": "2025-11-01T03:25:55.374214",
+    "note": "Converted from kiwoom_api_test_results.json"
+  }
+}
