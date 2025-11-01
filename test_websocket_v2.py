@@ -69,14 +69,8 @@ class WebSocketTesterV2:
         print(f"URL: {self.ws_url}")
 
         try:
-            # 연결 시 appkey 전송
-            headers = {
-                "approval_key": self.appkey
-            }
-            self.ws = await websockets.connect(
-                self.ws_url,
-                extra_headers=headers
-            )
+            # WebSocket 연결 (헤더는 첫 메시지에 포함)
+            self.ws = await websockets.connect(self.ws_url)
             print("✅ WebSocket 연결 성공")
             return True
         except Exception as e:
@@ -95,13 +89,21 @@ class WebSocketTesterV2:
             refresh: 기존등록유지여부 (0:유지안함, 1:유지, 기본값: "1")
         """
         message = {
-            "trnm": "REG",
-            "grp_no": grp_no,
-            "refresh": refresh,
-            "data": [{
-                "item": items,
-                "type": types
-            }]
+            "header": {
+                "approval_key": self.appkey,
+                "custtype": "P",
+                "tr_type": "3",
+                "content-type": "utf-8"
+            },
+            "body": {
+                "trnm": "REG",
+                "grp_no": grp_no,
+                "refresh": refresh,
+                "data": [{
+                    "item": items,
+                    "type": types
+                }]
+            }
         }
 
         print(f"\n실시간 데이터 등록:")
@@ -114,13 +116,15 @@ class WebSocketTesterV2:
         response = await asyncio.wait_for(self.ws.recv(), timeout=5.0)
         response_data = json.loads(response)
 
-        if response_data.get('return_code') == 0:
+        # body에서 return_code 확인
+        body = response_data.get('body', {})
+        if body.get('return_code') == 0:
             print(f"✅ 등록 성공")
             self.registered_types.extend(types)
         else:
-            print(f"❌ 등록 실패: {response_data.get('return_msg')}")
+            print(f"❌ 등록 실패: {body.get('return_msg', response_data)}")
 
-        return response_data.get('return_code') == 0
+        return body.get('return_code') == 0
 
     async def unregister_realtime(self, items: list, types: list, grp_no: str = "1"):
         """
@@ -132,12 +136,20 @@ class WebSocketTesterV2:
             grp_no: 그룹번호
         """
         message = {
-            "trnm": "REMOVE",
-            "grp_no": grp_no,
-            "data": [{
-                "item": items,
-                "type": types
-            }]
+            "header": {
+                "approval_key": self.appkey,
+                "custtype": "P",
+                "tr_type": "3",
+                "content-type": "utf-8"
+            },
+            "body": {
+                "trnm": "REMOVE",
+                "grp_no": grp_no,
+                "data": [{
+                    "item": items,
+                    "type": types
+                }]
+            }
         }
 
         print(f"\n실시간 데이터 해지:")
@@ -172,9 +184,10 @@ class WebSocketTesterV2:
 
                     data = json.loads(message)
 
-                    # 실시간 데이터인지 확인
-                    if data.get('trnm') == 'REAL':
-                        for item_data in data.get('data', []):
+                    # body에서 실시간 데이터 확인
+                    body = data.get('body', {})
+                    if body.get('trnm') == 'REAL':
+                        for item_data in body.get('data', []):
                             msg_type = item_data.get('type', 'Unknown')
                             msg_name = item_data.get('name', 'Unknown')
                             msg_item = item_data.get('item', '')
