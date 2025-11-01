@@ -127,9 +127,36 @@ def is_after_market_hours() -> bool:
     return False
 
 
+def should_use_test_mode() -> bool:
+    """
+    테스트 모드를 사용해야 하는지 확인
+
+    조건:
+    - 휴일 (토요일, 일요일)
+    - 평일 오후 8시(20:00) ~ 오전 8시(08:00)
+
+    Returns:
+        테스트 모드 사용 여부
+    """
+    now = datetime.now()
+    current_weekday = now.weekday()  # 0=월요일, 6=일요일
+    current_hour = now.hour
+
+    # 주말은 항상 테스트 모드
+    if current_weekday >= 5:
+        return True
+
+    # 평일: 20:00 ~ 23:59 또는 00:00 ~ 07:59
+    if current_hour >= 20 or current_hour < 8:
+        return True
+
+    return False
+
+
 __all__ = [
     'get_last_trading_date',
     'get_trading_date_with_fallback',
     'is_market_hours',
-    'is_after_market_hours'
+    'is_after_market_hours',
+    'should_use_test_mode'
 ]

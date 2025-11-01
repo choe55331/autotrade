@@ -669,14 +669,28 @@
 
             <!-- Tab 1: Main Dashboard -->
             <div class="tab-content active" id="tab-main">
-                <!-- Real-time Chart -->
+                <!-- Real-time Chart with Search -->
                 <div class="card">
                     <div class="card-header">
                         <div class="card-title">
                             <i class="fas fa-chart-candlestick"></i>
                             <span id="chart-stock-name">실시간 차트</span>
                         </div>
-                        <span style="font-size: 12px; color: var(--text-secondary);" id="chart-price">₩0</span>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <!-- Stock Search -->
+                            <div style="position: relative;">
+                                <input
+                                    type="text"
+                                    id="stock-search-input"
+                                    placeholder="종목 검색..."
+                                    style="padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary); font-size: 12px; width: 200px;"
+                                    autocomplete="off"
+                                />
+                                <!-- Search Results Dropdown -->
+                                <div id="stock-search-results" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 4px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; width: 300px; max-height: 300px; overflow-y: auto; z-index: 1000; box-shadow: 0 4px 6px rgba(0,0,0,0.3);"></div>
+                            </div>
+                            <span style="font-size: 12px; color: var(--text-secondary);" id="chart-price">₩0</span>
+                        </div>
                     </div>
                     <div id="main-chart"></div>
                 </div>
@@ -1160,6 +1174,7 @@
             initializeChart();
             loadAllData();
             initializePaperEquityChart();
+            initializeStockSearch();
 
             // Auto-refresh every 3 seconds
             setInterval(loadAllData, 3000);
@@ -1942,6 +1957,97 @@
                 console.error('Regime detection error:', error);
                 alert('레짐 감지 중 오류가 발생했습니다.');
             }
+        }
+
+        // ============================================================================
+        // Stock Search Functionality
+        // ============================================================================
+
+        function initializeStockSearch() {
+            const searchInput = document.getElementById('stock-search-input');
+            const resultsContainer = document.getElementById('stock-search-results');
+            let searchTimeout;
+
+            if (!searchInput || !resultsContainer) return;
+
+            // Search on input
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                const query = this.value.trim();
+
+                if (query.length < 1) {
+                    resultsContainer.style.display = 'none';
+                    return;
+                }
+
+                // Debounce search
+                searchTimeout = setTimeout(() => {
+                    searchStocks(query);
+                }, 300);
+            });
+
+            // Hide results when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!searchInput.contains(e.target) && !resultsContainer.contains(e.target)) {
+                    resultsContainer.style.display = 'none';
+                }
+            });
+
+            // Show results when focusing on input
+            searchInput.addEventListener('focus', function() {
+                if (resultsContainer.children.length > 0) {
+                    resultsContainer.style.display = 'block';
+                }
+            });
+        }
+
+        async function searchStocks(query) {
+            const resultsContainer = document.getElementById('stock-search-results');
+
+            try {
+                const response = await fetch(`/api/search/stocks?q=${encodeURIComponent(query)}&limit=10`);
+                const data = await response.json();
+
+                if (data.success && data.results.length > 0) {
+                    let html = '';
+                    data.results.forEach(stock => {
+                        const changeColor = stock.change_rate >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
+                        const changeSign = stock.change_rate >= 0 ? '+' : '';
+                        html += `
+                            <div onclick="selectStock('${stock.code}', '${stock.name}')" style="padding: 10px; border-bottom: 1px solid var(--border-color); cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='var(--bg-secondary)'" onmouseout="this.style.background='transparent'">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div>
+                                        <div style="font-weight: 600; font-size: 13px;">${stock.name}</div>
+                                        <div style="font-size: 11px; color: var(--text-muted);">${stock.code}</div>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <div style="font-weight: 600; font-size: 13px;">₩${formatNumber(stock.price)}</div>
+                                        <div style="font-size: 11px; color: ${changeColor};">${changeSign}${stock.change_rate.toFixed(2)}%</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    resultsContainer.innerHTML = html;
+                    resultsContainer.style.display = 'block';
+                } else {
+                    resultsContainer.innerHTML = '<div style="padding: 12px; text-align: center; color: var(--text-muted); font-size: 12px;">검색 결과 없음</div>';
+                    resultsContainer.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Stock search error:', error);
+                resultsContainer.innerHTML = '<div style="padding: 12px; text-align: center; color: var(--color-danger); font-size: 12px;">검색 오류</div>';
+                resultsContainer.style.display = 'block';
+            }
+        }
+
+        function selectStock(code, name) {
+            // Load chart for selected stock
+            loadChartData(code);
+
+            // Clear search input and hide results
+            document.getElementById('stock-search-input').value = '';
+            document.getElementById('stock-search-results').style.display = 'none';
         }
     </script>
 </body>

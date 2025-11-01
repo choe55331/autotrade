@@ -114,24 +114,39 @@ class TradingBotV2:
         logger.info("✅ AutoTrade Pro v2.0 초기화 완료")
 
     def _check_test_mode(self):
-        """테스트 모드 확인 및 활성화"""
-        try:
-            from features.test_mode_manager import TestModeManager
-            from utils.trading_date import is_market_hours, get_last_trading_date
+        """테스트 모드 확인 및 활성화
 
-            # 장 운영 시간이 아니면 테스트 모드 활성화
-            if not is_market_hours():
+        조건:
+        - 휴일 (토요일, 일요일)
+        - 평일 오후 8시(20:00) ~ 오전 8시(08:00)
+        """
+        try:
+            from utils.trading_date import should_use_test_mode, get_last_trading_date
+
+            # 테스트 모드 사용 여부 확인
+            if should_use_test_mode():
                 self.test_mode_active = True
                 self.test_date = get_last_trading_date()
 
+                now = datetime.now()
+                weekday_kr = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일']
+                current_weekday = weekday_kr[now.weekday()]
+
                 logger.info("=" * 60)
-                logger.info("🧪 테스트 모드 활성화")
+                logger.info("🧪 테스트 모드 자동 활성화")
+                logger.info(f"   현재 시간: {now.strftime('%Y-%m-%d %H:%M:%S')} ({current_weekday})")
                 logger.info(f"   사용 데이터 날짜: {self.test_date}")
-                logger.info(f"   현재 시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S (%A)')}")
+
+                if now.weekday() >= 5:
+                    logger.info(f"   사유: 휴일 ({current_weekday})")
+                else:
+                    logger.info(f"   사유: 평일 비장시간 (20:00~08:00)")
+
                 logger.info("   ⚠️  실제 주문은 발생하지 않습니다")
                 logger.info("=" * 60)
             else:
                 logger.info("⚡ 정규 장 시간 - 실시간 모드")
+                self.test_mode_active = False
 
         except Exception as e:
             logger.warning(f"테스트 모드 확인 실패: {e}")
@@ -159,15 +174,37 @@ class TradingBotV2:
             self.client = KiwoomRESTClient()
             logger.info("✓ REST API 클라이언트 초기화 완료")
 
-            # 2-1. WebSocket 클라이언트 (선택사항)
+            # 2-1. WebSocket 클라이언트 (실시간 데이터 수신)
             try:
                 logger.info("🔌 WebSocket 클라이언트 초기화 중...")
-                # WebSocket은 선택사항 - 설정이 없어도 REST API로 동작
-                # TODO: WebSocket 설정 추가 시 활성화
-                self.websocket_client = None
-                logger.info("⚠️  WebSocket 미사용 - REST API로 동작")
+                # 설정에서 WebSocket URL과 토큰 가져오기
+                from config import get_config
+                config = get_config()
+
+                # WebSocket 설정이 있으면 연결
+                ws_url = getattr(config, 'websocket_url', None)
+                if ws_url and self.client.token:
+                    self.websocket_client = WebSocketClient(
+                        url=ws_url,
+                        token=self.client.token
+                    )
+
+                    # 콜백 등록
+                    self.websocket_client.register_callbacks(
+                        on_open=self._on_ws_open,
+                        on_message=self._on_ws_message,
+                        on_error=self._on_ws_error,
+                        on_close=self._on_ws_close
+                    )
+
+                    # 연결 시작
+                    self.websocket_client.connect()
+                    logger.info("✓ WebSocket 클라이언트 초기화 완료 (자동 재연결 활성화)")
+                else:
+                    self.websocket_client = None
+                    logger.info("⚠️  WebSocket 설정 없음 - REST API로 동작")
             except Exception as e:
-                logger.warning(f"⚠️  WebSocket 초기화 실패: {e} - 실시간 데이터 미지원")
+                logger.warning(f"⚠️  WebSocket 초기화 실패: {e} - REST API로 동작")
                 self.websocket_client = None
 
             # 3. API 모듈
@@ -695,6 +732,60 @@ class TradingBotV2:
 
         except Exception as e:
             logger.error(f"통계 출력 실패: {e}")
+
+    # ==================== WebSocket 콜백 메서드 ====================
+
+    def _on_ws_open(self, ws):
+        """WebSocket 연결 성공 콜백"""
+        logger.info("🔌 WebSocket 연결 성공 - 실시간 데이터 수신 시작")
+        self.monitor.log_activity(
+            'system',
+            '🔌 WebSocket 연결 성공',
+            level='success'
+        )
+
+    def _on_ws_message(self, data: dict):
+        """WebSocket 메시지 수신 콜백"""
+        try:
+            # 실시간 데이터 처리
+            msg_type = data.get('type')
+
+            if msg_type == 'price':
+                # 실시간 가격 업데이트
+                stock_code = data.get('stock_code')
+                price = data.get('price')
+                logger.debug(f"실시간 가격: {stock_code} = {price:,}원")
+
+            elif msg_type == 'order':
+                # 주문 체결 알림
+                logger.info(f"📥 주문 체결 알림: {data.get('message')}")
+                self.monitor.log_activity(
+                    'order',
+                    data.get('message', '주문 체결'),
+                    level='info'
+                )
+
+        except Exception as e:
+            logger.error(f"WebSocket 메시지 처리 중 오류: {e}")
+
+    def _on_ws_error(self, error):
+        """WebSocket 에러 콜백"""
+        logger.error(f"🔌 WebSocket 오류: {error}")
+        self.monitor.log_activity(
+            'system',
+            f'⚠️ WebSocket 오류: {error}',
+            level='error'
+        )
+
+    def _on_ws_close(self, close_status_code, close_msg):
+        """WebSocket 연결 종료 콜백"""
+        logger.warning(f"🔌 WebSocket 연결 종료 (코드: {close_status_code}, 메시지: {close_msg})")
+        logger.info("🔄 자동 재연결 시도 중...")
+        self.monitor.log_activity(
+            'system',
+            f'⚠️ WebSocket 연결 종료 - 재연결 시도 중',
+            level='warning'
+        )
 
 
 def signal_handler(signum, frame):
