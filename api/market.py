@@ -153,6 +153,13 @@ class MarketAPI:
             path="rkinfo"
         )
 
+        # 디버그: 실제 응답 확인
+        print(f"\n[DEBUG] ka10031 API 응답:")
+        print(f"  return_code: {response.get('return_code') if response else 'None'}")
+        print(f"  return_msg: {response.get('return_msg') if response else 'None'}")
+        if response:
+            print(f"  전체 응답: {response}")
+
         if response and response.get('return_code') == 0:
             # 응답 구조 확인
             output = response.get('output', {})
@@ -214,6 +221,13 @@ class MarketAPI:
             body=body,
             path="rkinfo"
         )
+
+        # 디버그: 실제 응답 확인
+        print(f"\n[DEBUG] ka10027 API 응답:")
+        print(f"  return_code: {response.get('return_code') if response else 'None'}")
+        print(f"  return_msg: {response.get('return_msg') if response else 'None'}")
+        if response:
+            print(f"  전체 응답: {response}")
 
         if response and response.get('return_code') == 0:
             # 응답 구조 확인
