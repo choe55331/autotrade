@@ -116,9 +116,47 @@ def main():
     # 테스트 실행
     results = []
 
+    # 기본 ranking
     results.append(("거래대금상위", test_trading_value_rank(market_api)))
     results.append(("거래량급증", test_volume_surge_rank(market_api)))
     results.append(("시가대비등락률", test_intraday_change_rank(market_api)))
+
+    # 외국인/기관 매매 (추가)
+    print_header("4. 외국인 5일 순매수 (ka10034)")
+    result = market_api.get_foreign_period_trading_rank(market='KOSPI', period_days=5, limit=5)
+    if result and len(result) > 0:
+        print(f"✅ {len(result)}개 조회")
+        results.append(("외국인5일매매", True))
+    else:
+        print("❌ 데이터 없음")
+        results.append(("외국인5일매매", False))
+
+    print_header("5. 외국인/기관 매매상위 (ka90009)")
+    result = market_api.get_foreign_institution_trading_rank(market='KOSPI', limit=5)
+    if result and len(result) > 0:
+        print(f"✅ {len(result)}개 조회")
+        results.append(("외국인기관매매", True))
+    else:
+        print("❌ 데이터 없음")
+        results.append(("외국인기관매매", False))
+
+    print_header("6. 장중 투자자별 매매 (ka10065)")
+    result = market_api.get_investor_intraday_trading_rank(market='KOSPI', investor_type='foreign', limit=5)
+    if result and len(result) > 0:
+        print(f"✅ {len(result)}개 조회")
+        results.append(("투자자별매매", True))
+    else:
+        print("❌ 데이터 없음")
+        results.append(("투자자별매매", False))
+
+    print_header("7. 신용비율 상위 (ka10033)")
+    result = market_api.get_credit_ratio_rank(market='KOSPI', limit=5)
+    if result and len(result) > 0:
+        print(f"✅ {len(result)}개 조회")
+        results.append(("신용비율", True))
+    else:
+        print("❌ 데이터 없음")
+        results.append(("신용비율", False))
 
     # 결과 요약
     print_header("테스트 결과 요약")
