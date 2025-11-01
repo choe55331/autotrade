@@ -122,6 +122,21 @@ strategy_state.json
 backup/
 data/
 
+# Configuration files (NEVER COMMIT - contains API keys!)
+config.yaml
+config.yml
+config/*.yaml
+config/*.yml
+credentials.yaml
+credentials.yml
+settings.yaml
+settings.yml
+
+# EXCEPT example files (these should be committed)
+!config/*.example.yaml
+!config/*.example.yml
+!config/README.md
+
 # Immutable credentials (NEVER commit!)
 _immutable/credentials/secrets.json
 _immutable/credentials/*.key
