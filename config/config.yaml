@@ -382,7 +382,7 @@ main_cycle:
 # ====================================
 
 development:
-  test_mode: true  # 테스트 모드 활성화 (Mock API 사용, 실제 API 호출 안함)
+  test_mode: false
   mock_trading: false
   mock_ai_analysis: false
   dry_run: false

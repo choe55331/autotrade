@@ -3,56 +3,15 @@ api/market.py
 시세 및 시장 정보 API (market_condition, rank_info, sector, theme 등 통합)
 """
 import logging
-import random
 from typing import Dict, Any, Optional, List
-from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
-
-
-def get_last_trading_day(target_date: datetime = None) -> str:
-    """
-    가장 최근 거래일을 반환합니다.
-    주말(토요일, 일요일)을 자동으로 피하고 가장 최근 평일을 반환합니다.
-
-    Args:
-        target_date: 기준 날짜 (None이면 오늘)
-
-    Returns:
-        YYYYMMDD 형식의 거래일 문자열
-
-    Examples:
-        - 금요일: 금요일 반환
-        - 토요일: 지난 금요일 반환
-        - 일요일: 지난 금요일 반환
-        - 월요일: 월요일 반환
-    """
-    if target_date is None:
-        target_date = datetime.now()
-
-    # 주말인 경우 가장 최근 평일로 이동
-    # 토요일(5) -> 하루 전 금요일
-    # 일요일(6) -> 이틀 전 금요일
-    weekday = target_date.weekday()
-
-    if weekday == 5:  # 토요일
-        target_date = target_date - timedelta(days=1)
-        logger.info(f"토요일이므로 전날 금요일로 조정: {target_date.strftime('%Y%m%d')}")
-    elif weekday == 6:  # 일요일
-        target_date = target_date - timedelta(days=2)
-        logger.info(f"일요일이므로 지난 금요일로 조정: {target_date.strftime('%Y%m%d')}")
-
-    # TODO: 추후 공휴일 처리 추가 가능
-    # - 한국 증시 공휴일 목록을 관리
-    # - 공휴일인 경우 이전 거래일로 이동
-
-    return target_date.strftime('%Y%m%d')
 
 
 class MarketAPI:
     """
     시세 및 시장 정보 API
-
+    
     통합된 기능:
     - 시세 조회
     - 호가 조회
@@ -61,18 +20,16 @@ class MarketAPI:
     - 업종 정보
     - 테마 정보
     """
-
+    
     def __init__(self, client):
         """
         MarketAPI 초기화
-
+        
         Args:
             client: KiwoomRESTClient 인스턴스
         """
         self.client = client
-        self.test_mode = getattr(client, 'test_mode', False)
-        mode_str = "(테스트 모드 - Mock 데이터)" if self.test_mode else "(실전 모드)"
-        logger.info(f"MarketAPI 초기화 완료 {mode_str}")
+        logger.info("MarketAPI 초기화 완료")
     
     def get_stock_price(self, stock_code: str) -> Optional[Dict[str, Any]]:
         """
@@ -159,94 +116,36 @@ class MarketAPI:
             logger.error(f"지수 조회 실패: {response.get('return_msg')}")
             return None
     
-    def _generate_mock_stock_data(self, count: int = 20, rank_type: str = "volume") -> List[Dict[str, Any]]:
-        """테스트용 Mock 종목 데이터 생성"""
-        mock_stocks = [
-            ("005930", "삼성전자"), ("000660", "SK하이닉스"), ("035420", "NAVER"),
-            ("051910", "LG화학"), ("006400", "삼성SDI"), ("035720", "카카오"),
-            ("207940", "삼성바이오로직스"), ("068270", "셀트리온"), ("005380", "현대차"),
-            ("012330", "현대모비스"), ("105560", "KB금융"), ("055550", "신한지주"),
-            ("000270", "기아"), ("017670", "SK텔레콤"), ("032830", "삼성생명"),
-            ("028260", "삼성물산"), ("096770", "SK이노베이션"), ("018260", "삼성에스디에스"),
-            ("051900", "LG생활건강"), ("009150", "삼성전기"), ("003550", "LG"),
-            ("034730", "SK"), ("011170", "롯데케미칼"), ("010130", "고려아연"),
-            ("086790", "하나금융지주"), ("316140", "우리금융지주"), ("003670", "포스코퓨처엠"),
-            ("034220", "LG디스플레이"), ("015760", "한국전력"), ("010140", "삼성중공업")
-        ]
-
-        result = []
-        for i, (code, name) in enumerate(mock_stocks[:count]):
-            base_price = random.randint(20000, 100000)
-            change_rate = random.uniform(-5.0, 8.0)
-
-            if rank_type == "volume":
-                volume = random.randint(5000000, 50000000)
-                trading_value = base_price * volume
-            elif rank_type == "price_change":
-                volume = random.randint(1000000, 20000000)
-                trading_value = base_price * volume
-                # 상승률 순위면 양수 비중 높이기
-                change_rate = random.uniform(3.0, 15.0)
-            else:  # trading_value
-                volume = random.randint(3000000, 30000000)
-                trading_value = random.randint(10000000000, 100000000000)
-
-            result.append({
-                "code": code,
-                "name": name,
-                "price": base_price,
-                "price_change": round(change_rate, 2),
-                "volume": volume,
-                "trading_value": trading_value,
-                "rank": i + 1
-            })
-
-        return result
-
     def get_volume_rank(
         self,
         market: str = 'ALL',
-        limit: int = 20,
-        date: str = None
+        limit: int = 20
     ) -> List[Dict[str, Any]]:
         """
         거래량 순위 조회
-
+        
         Args:
             market: 시장구분 ('ALL', 'KOSPI', 'KOSDAQ')
             limit: 조회 건수
-            date: 조회 날짜 (YYYYMMDD, None이면 가장 최근 거래일)
-
+        
         Returns:
             거래량 순위 리스트
         """
-        # 테스트 모드: Mock 데이터 반환
-        if self.test_mode:
-            logger.info(f"🧪 테스트 모드: Mock 거래량 순위 데이터 생성 (limit={limit})")
-            return self._generate_mock_stock_data(limit, "volume")
-
-        # 날짜가 지정되지 않은 경우 가장 최근 거래일 사용
-        # 참고: 키움 API는 자동으로 최신 거래일 데이터를 반환합니다
-        if not date:
-            date = get_last_trading_day()
-            logger.info(f"📅 거래량 순위 조회 - 주말/휴일은 자동으로 최근 거래일({date}) 데이터 반환")
-
         body = {
             "market": market,
             "limit": limit,
             "sort": "volume"
-            # 참고: date 파라미터는 API에서 지원하지 않음. API가 자동으로 최신 데이터 반환
         }
-
+        
         response = self.client.request(
             api_id="DOSK_0010",
             body=body,
             path="/api/dostk/inquire/rank"
         )
-
+        
         if response and response.get('return_code') == 0:
             rank_list = response.get('output', [])
-            logger.info(f"거래량 순위 {len(rank_list)}개 조회 완료 (날짜: {date})")
+            logger.info(f"거래량 순위 {len(rank_list)}개 조회 완료")
             return rank_list
         else:
             logger.error(f"거래량 순위 조회 실패: {response.get('return_msg')}")
@@ -256,103 +155,38 @@ class MarketAPI:
         self,
         market: str = 'ALL',
         sort: str = 'rise',
-        limit: int = 20,
-        date: str = None
+        limit: int = 20
     ) -> List[Dict[str, Any]]:
         """
         등락률 순위 조회
-
+        
         Args:
             market: 시장구분 ('ALL', 'KOSPI', 'KOSDAQ')
             sort: 정렬 ('rise': 상승률, 'fall': 하락률)
             limit: 조회 건수
-            date: 조회 날짜 (YYYYMMDD, None이면 가장 최근 거래일)
-
+        
         Returns:
             등락률 순위 리스트
         """
-        # 테스트 모드: Mock 데이터 반환
-        if self.test_mode:
-            sort_name = "상승률" if sort == 'rise' else "하락률"
-            logger.info(f"🧪 테스트 모드: Mock {sort_name} 순위 데이터 생성 (limit={limit})")
-            return self._generate_mock_stock_data(limit, "price_change")
-
-        # 날짜가 지정되지 않은 경우 가장 최근 거래일 사용
-        # 참고: 키움 API는 자동으로 최신 거래일 데이터를 반환합니다
-        if not date:
-            date = get_last_trading_day()
-            sort_name = "상승률" if sort == 'rise' else "하락률"
-            logger.info(f"📅 {sort_name} 순위 조회 - 주말/휴일은 자동으로 최근 거래일({date}) 데이터 반환")
-
         body = {
             "market": market,
             "limit": limit,
             "sort": sort
-            # 참고: date 파라미터는 API에서 지원하지 않음. API가 자동으로 최신 데이터 반환
         }
-
+        
         response = self.client.request(
             api_id="DOSK_0011",
             body=body,
             path="/api/dostk/inquire/rank"
         )
-
+        
         if response and response.get('return_code') == 0:
             rank_list = response.get('output', [])
             sort_name = "상승률" if sort == 'rise' else "하락률"
-            logger.info(f"{sort_name} 순위 {len(rank_list)}개 조회 완료 (날짜: {date})")
+            logger.info(f"{sort_name} 순위 {len(rank_list)}개 조회 완료")
             return rank_list
         else:
             logger.error(f"등락률 순위 조회 실패: {response.get('return_msg')}")
-            return []
-
-    def get_trading_value_rank(
-        self,
-        market: str = 'ALL',
-        limit: int = 20,
-        date: str = None
-    ) -> List[Dict[str, Any]]:
-        """
-        거래대금 순위 조회
-
-        Args:
-            market: 시장구분 ('ALL', 'KOSPI', 'KOSDAQ')
-            limit: 조회 건수
-            date: 조회 날짜 (YYYYMMDD, None이면 가장 최근 거래일)
-
-        Returns:
-            거래대금 순위 리스트
-        """
-        # 테스트 모드: Mock 데이터 반환
-        if self.test_mode:
-            logger.info(f"🧪 테스트 모드: Mock 거래대금 순위 데이터 생성 (limit={limit})")
-            return self._generate_mock_stock_data(limit, "trading_value")
-
-        # 날짜가 지정되지 않은 경우 가장 최근 거래일 사용
-        # 참고: 키움 API는 자동으로 최신 거래일 데이터를 반환합니다
-        if not date:
-            date = get_last_trading_day()
-            logger.info(f"📅 거래대금 순위 조회 - 주말/휴일은 자동으로 최근 거래일({date}) 데이터 반환")
-
-        body = {
-            "market": market,
-            "limit": limit,
-            "sort": "trading_value"
-            # 참고: date 파라미터는 API에서 지원하지 않음. API가 자동으로 최신 데이터 반환
-        }
-
-        response = self.client.request(
-            api_id="DOSK_0010",
-            body=body,
-            path="/api/dostk/inquire/rank"
-        )
-
-        if response and response.get('return_code') == 0:
-            rank_list = response.get('output', [])
-            logger.info(f"거래대금 순위 {len(rank_list)}개 조회 완료 (날짜: {date})")
-            return rank_list
-        else:
-            logger.error(f"거래대금 순위 조회 실패: {response.get('return_msg')}")
             return []
     
     def get_sector_list(self) -> List[Dict[str, Any]]:
