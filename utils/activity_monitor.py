@@ -265,6 +265,19 @@ class TradingActivityMonitor:
                     'warning'
                 )
 
+    def get_recent_activities(self, limit: int = 20) -> List[Dict[str, Any]]:
+        """
+        최근 활동 로그 반환
+
+        Args:
+            limit: 반환할 최대 활동 수
+
+        Returns:
+            최근 활동 리스트
+        """
+        with self._lock:
+            return list(self.activities)[-limit:]
+
     def get_dashboard_data(self) -> Dict[str, Any]:
         """
         대시보드용 데이터 반환

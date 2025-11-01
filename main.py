@@ -78,6 +78,7 @@ class TradingBotV2:
         self.is_running = False
         self.is_initialized = False
         self.market_status = {}  # 시장 상태 정보 (NXT 포함)
+        self.start_time = datetime.now()  # 봇 시작 시간 기록
 
         # 제어 파일 (data 폴더로 이동)
         self.control_file = Path('data/control.json')
