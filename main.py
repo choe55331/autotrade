@@ -65,6 +65,11 @@ class TradingBotV2:
         # 설정 로드
         self.config = get_config()
 
+        # 테스트 모드 확인 및 활성화
+        self.test_mode_active = False
+        self.test_date = None
+        self._check_test_mode()
+
         # 상태
         self.is_running = False
         self.is_initialized = False
@@ -99,6 +104,39 @@ class TradingBotV2:
         self._initialize_components()
 
         logger.info("✅ AutoTrade Pro v2.0 초기화 완료")
+
+    def _check_test_mode(self):
+        """테스트 모드 확인 및 활성화"""
+        try:
+            from features.test_mode_manager import TestModeManager
+            from utils.trading_date import is_market_hours, get_last_trading_date
+
+            # 장 운영 시간이 아니면 테스트 모드 활성화
+            if not is_market_hours():
+                self.test_mode_active = True
+                self.test_date = get_last_trading_date()
+
+                logger.info("=" * 60)
+                logger.info("🧪 테스트 모드 활성화")
+                logger.info(f"   사용 데이터 날짜: {self.test_date}")
+                logger.info(f"   현재 시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S (%A)')}")
+                logger.info("   ⚠️  실제 주문은 발생하지 않습니다")
+                logger.info("=" * 60)
+            else:
+                logger.info("⚡ 정규 장 시간 - 실시간 모드")
+
+        except Exception as e:
+            logger.warning(f"테스트 모드 확인 실패: {e}")
+            self.test_mode_active = False
+
+    def get_test_mode_info(self) -> dict:
+        """테스트 모드 정보 반환"""
+        return {
+            "active": self.test_mode_active,
+            "test_date": self.test_date,
+            "current_time": datetime.now().isoformat(),
+            "is_market_hours": not self.test_mode_active
+        }
 
     def _initialize_components(self):
         """컴포넌트 초기화"""

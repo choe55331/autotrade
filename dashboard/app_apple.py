@@ -126,6 +126,14 @@ def get_status():
     """Get system status"""
     control = get_control_status()
 
+    # 테스트 모드 정보 가져오기
+    test_mode_info = {}
+    if bot_instance:
+        try:
+            test_mode_info = bot_instance.get_test_mode_info()
+        except:
+            test_mode_info = {'active': False}
+
     # Mock data for now - will be replaced with real data
     return jsonify({
         'system': {
@@ -134,6 +142,7 @@ def get_status():
             'uptime': '2h 34m',
             'last_update': datetime.now().isoformat()
         },
+        'test_mode': test_mode_info,
         'risk': {
             'mode': 'NORMAL',
             'description': 'Normal trading conditions'
@@ -149,9 +158,16 @@ def get_status():
 @app.route('/api/account')
 def get_account():
     """Get account information from real API"""
+    # 테스트 모드 정보
+    test_mode_active = False
+    test_date = None
+    if bot_instance:
+        test_mode_active = getattr(bot_instance, 'test_mode_active', False)
+        test_date = getattr(bot_instance, 'test_date', None)
+
     try:
         if bot_instance and hasattr(bot_instance, 'account_api'):
-            # 실제 API에서 데이터 가져오기
+            # 실제 API에서 데이터 가져오기 (테스트 모드에서도 가장 최근 데이터 사용)
             deposit = bot_instance.account_api.get_deposit()
             holdings = bot_instance.account_api.get_holdings()
 
@@ -171,7 +187,9 @@ def get_account():
                 'stock_value': stock_value,
                 'profit_loss': profit_loss,
                 'profit_loss_percent': profit_loss_percent,
-                'open_positions': len(holdings) if holdings else 0
+                'open_positions': len(holdings) if holdings else 0,
+                'test_mode': test_mode_active,
+                'test_date': test_date
             })
         else:
             # Bot이 없으면 mock data
@@ -181,7 +199,9 @@ def get_account():
                 'stock_value': 0,
                 'profit_loss': 0,
                 'profit_loss_percent': 0,
-                'open_positions': 0
+                'open_positions': 0,
+                'test_mode': test_mode_active,
+                'test_date': test_date
             })
     except Exception as e:
         print(f"Error getting account info: {e}")
@@ -191,7 +211,9 @@ def get_account():
             'stock_value': 0,
             'profit_loss': 0,
             'profit_loss_percent': 0,
-            'open_positions': 0
+            'open_positions': 0,
+            'test_mode': test_mode_active,
+            'test_date': test_date
         })
 
 
