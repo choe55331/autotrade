@@ -8,8 +8,6 @@ import datetime
 import time
 import threading
 import logging
-import os
-from pathlib import Path
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 from typing import Dict, Any, Optional
@@ -23,9 +21,6 @@ from .exceptions import (
 )
 
 logger = logging.getLogger(__name__)
-
-# 토큰 캐시 파일 경로
-TOKEN_CACHE_FILE = Path(__file__).parent.parent / 'data' / 'token_cache.json'
 
 
 class KiwoomRESTClient:
@@ -89,32 +84,24 @@ class KiwoomRESTClient:
     def _load_config(self):
         """설정 로드 및 검증"""
         try:
-            from config import get_credentials, API_RATE_LIMIT, get_config
-
+            from config import get_credentials, API_RATE_LIMIT
+            
             credentials = get_credentials()
             kiwoom_config = credentials.get_kiwoom_config()
-
+            
             self.base_url = kiwoom_config['base_url']
             self.appkey = kiwoom_config['appkey']
             self.appsecret = kiwoom_config['secretkey']
             self.account_number_full = kiwoom_config['account_number']
             self.account_prefix = kiwoom_config['account_prefix']
             self.account_suffix = kiwoom_config['account_suffix']
-
+            
             # API 속도 제한 설정
             self.min_call_interval = API_RATE_LIMIT.get('REST_CALL_INTERVAL', 0.3)
             self.max_retries = API_RATE_LIMIT.get('REST_MAX_RETRIES', 3)
             self.retry_backoff = API_RATE_LIMIT.get('REST_RETRY_BACKOFF', 1.0)
-
-            # 테스트 모드 설정
-            try:
-                config = get_config()
-                self.test_mode = config.get('development', {}).get('test_mode', False)
-            except:
-                self.test_mode = False
-
-            mode_str = "테스트 모드 (Mock API)" if self.test_mode else "실전 모드 (Real API)"
-            logger.info(f"계좌번호: {self.account_prefix}-{self.account_suffix} - {mode_str}")
+            
+            logger.info(f"계좌번호: {self.account_prefix}-{self.account_suffix}")
         except ImportError:
             # config 모듈이 없을 경우 기본값 사용
             logger.warning("config 모듈을 찾을 수 없습니다. 기본값을 사용합니다.")
@@ -127,7 +114,6 @@ class KiwoomRESTClient:
             self.min_call_interval = 0.3
             self.max_retries = 3
             self.retry_backoff = 1.0
-            self.test_mode = False
     
     def _create_session(self) -> requests.Session:
         """재시도 기능이 있는 HTTP 세션 생성"""
@@ -149,101 +135,28 @@ class KiwoomRESTClient:
         return session
     
     def _initialize_token(self):
-        """초기 토큰 발급 (캐시 우선 사용)"""
+        """초기 토큰 발급"""
         try:
-            # 1. 캐시된 토큰 먼저 시도
-            if self._load_token_from_cache():
-                logger.info("✅ 캐시된 토큰 로드 성공 - 발급 횟수 절약!")
-                return
-
-            # 2. 캐시 없으면 새로 발급
             if not self._get_token():
                 logger.warning(f"초기 API 토큰 발급 실패: {self.last_error_msg}")
             else:
                 logger.info("초기 토큰 발급 성공")
-                # 발급받은 토큰 저장
-                self._save_token_to_cache()
         except Exception as e:
             logger.error(f"토큰 초기화 실패: {e}")
-
-    def _save_token_to_cache(self):
-        """토큰을 파일에 저장"""
-        try:
-            # data 디렉토리 생성
-            TOKEN_CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
-
-            cache_data = {
-                'token': self.token,
-                'expiry': self.token_expiry.strftime('%Y%m%d%H%M%S') if self.token_expiry else None,
-                'saved_at': datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-            }
-
-            with open(TOKEN_CACHE_FILE, 'w', encoding='utf-8') as f:
-                json.dump(cache_data, f, indent=2)
-
-            logger.debug(f"토큰 캐시 저장: {TOKEN_CACHE_FILE}")
-        except Exception as e:
-            logger.warning(f"토큰 캐시 저장 실패 (무시): {e}")
-
-    def _load_token_from_cache(self) -> bool:
-        """캐시된 토큰 로드"""
-        try:
-            if not TOKEN_CACHE_FILE.exists():
-                logger.debug("토큰 캐시 파일 없음")
-                return False
-
-            with open(TOKEN_CACHE_FILE, 'r', encoding='utf-8') as f:
-                cache_data = json.load(f)
-
-            token = cache_data.get('token')
-            expiry_str = cache_data.get('expiry')
-
-            if not token or not expiry_str:
-                logger.debug("캐시 데이터 불완전")
-                return False
-
-            # 만료 시간 파싱
-            try:
-                expiry = datetime.datetime.strptime(expiry_str, '%Y%m%d%H%M%S')
-            except ValueError:
-                logger.warning("캐시 만료 시간 파싱 실패")
-                return False
-
-            # 토큰 유효성 확인 (5분 버퍼)
-            buffer_time = datetime.timedelta(minutes=5)
-            if datetime.datetime.now() >= (expiry - buffer_time):
-                logger.info("캐시된 토큰 만료됨")
-                return False
-
-            # 유효한 토큰 로드
-            self.token = token
-            self.token_expiry = expiry
-            logger.info(f"캐시된 토큰 사용 (만료: {expiry.strftime('%Y-%m-%d %H:%M:%S')})")
-            return True
-
-        except Exception as e:
-            logger.warning(f"토큰 캐시 로드 실패 (무시): {e}")
-            return False
     
     def _is_token_valid(self) -> bool:
         """토큰 유효성 확인"""
         if not self.token:
             return False
-
-        # 만료 5분 전까지 유효한 것으로 간주 (여유 시간 증가)
-        # 이전: 1분 전 -> 갱신 실패 시 토큰 만료 위험
-        # 개선: 5분 전 -> 갱신 실패해도 재시도 시간 확보
-        buffer_time = datetime.timedelta(minutes=5)
+        
+        # 만료 1분 전까지 유효한 것으로 간주
+        buffer_time = datetime.timedelta(minutes=1)
         return datetime.datetime.now() < (self.token_expiry - buffer_time)
     
-    def _get_token(self, retry_count: int = 0, max_retries: int = 3) -> bool:
+    def _get_token(self) -> bool:
         """
-        API 토큰 발급/갱신 (재시도 로직 포함)
-
-        Args:
-            retry_count: 현재 재시도 횟수
-            max_retries: 최대 재시도 횟수
-
+        API 토큰 발급/갱신
+        
         Returns:
             성공 여부
         """
@@ -251,30 +164,17 @@ class KiwoomRESTClient:
         if self._is_token_valid():
             logger.debug(f"기존 토큰 사용 (만료: {self.token_expiry.strftime('%Y-%m-%d %H:%M:%S')})")
             return True
-
-        # 테스트 모드: 실제 API 호출 스킵, Mock 토큰 사용
-        if self.test_mode:
-            logger.info("🧪 테스트 모드: API 토큰 발급 스킵 (Mock 토큰 사용)")
-            self.token = "TEST_MOCK_TOKEN_FOR_DEVELOPMENT"
-            self.token_expiry = datetime.datetime.now() + datetime.timedelta(days=1)
-            self.last_error_msg = None
-            return True
-
-        retry_suffix = f" (재시도 {retry_count}/{max_retries})" if retry_count > 0 else ""
-        logger.info(f"API 토큰 발급 시도{retry_suffix}...")
-
+        
+        logger.info("API 토큰 발급 시도...")
+        
         token_url = f"{self.base_url}/oauth2/token"
         payload = {
             "grant_type": "client_credentials",
             "appkey": self.appkey,
             "secretkey": self.appsecret
         }
-        headers = {
-            "content-type": "application/json;charset=UTF-8",
-            "api-id": "au10001",
-            "User-Agent": "KiwoomTradingBot/1.0"
-        }
-
+        headers = {"content-type": "application/json;charset=UTF-8"}
+        
         try:
             res = self.session.post(
                 token_url,
@@ -282,7 +182,7 @@ class KiwoomRESTClient:
                 data=json.dumps(payload),
                 timeout=10
             )
-
+            
             logger.debug(f"토큰 요청 응답 상태: {res.status_code}")
 
             if res.status_code != 200:
@@ -291,78 +191,43 @@ class KiwoomRESTClient:
                 logger.error(f"토큰 요청 URL: {token_url}")
                 logger.error(f"토큰 요청 본문: appkey={self.appkey[:10]}..., secretkey={self.appsecret[:10]}...")
                 logger.error(f"응답 내용: {res.text[:500]}")
-
-                # 재시도 로직 (네트워크 일시 오류 대응)
-                if retry_count < max_retries and res.status_code in [500, 502, 503, 504]:
-                    wait_time = 2 ** retry_count  # 지수 백오프: 1초, 2초, 4초
-                    logger.warning(f"서버 오류 - {wait_time}초 후 재시도...")
-                    time.sleep(wait_time)
-                    return self._get_token(retry_count + 1, max_retries)
-
                 return False
-
+            
             token_data = res.json()
-            success = self._process_token_response(token_data)
-
-            # 토큰 발급 성공 시 재시도 카운터 리셋
-            if success and retry_count > 0:
-                logger.info(f"✅ 토큰 발급 성공 (재시도 {retry_count}회 만에 성공)")
-
-            return success
-
+            return self._process_token_response(token_data)
+        
         except requests.exceptions.Timeout:
             self._set_error("토큰 요청 시간 초과")
-
-            # 타임아웃 시 재시도
-            if retry_count < max_retries:
-                wait_time = 2 ** retry_count
-                logger.warning(f"타임아웃 - {wait_time}초 후 재시도...")
-                time.sleep(wait_time)
-                return self._get_token(retry_count + 1, max_retries)
-
             return False
-
+        
         except requests.exceptions.RequestException as e:
             self._set_error(f"토큰 요청 네트워크 오류: {e}")
-
-            # 네트워크 오류 시 재시도
-            if retry_count < max_retries:
-                wait_time = 2 ** retry_count
-                logger.warning(f"네트워크 오류 - {wait_time}초 후 재시도...")
-                time.sleep(wait_time)
-                return self._get_token(retry_count + 1, max_retries)
-
             return False
-
+        
         except Exception as e:
             self._set_error(f"토큰 발급 중 예외: {e}")
             logger.exception("토큰 발급 중 예외 발생")
             return False
     
     def _process_token_response(self, token_data: Dict[str, Any]) -> bool:
-        """토큰 응답 처리 (한국투자증권 OpenAPI 형식)"""
-        # 한국투자증권은 'token' 필드 사용 (access_token 아님)
-        access_token = token_data.get('access_token') or token_data.get('token')
-        expires_dt_str = token_data.get('access_token_token_expired') or token_data.get('expires_dt')
-
+        """토큰 응답 처리"""
+        access_token = token_data.get('token')
+        expires_dt_str = token_data.get('expires_dt')
+        
         if not access_token or not expires_dt_str:
             error_msg = token_data.get('return_msg', '알 수 없는 토큰 응답')
             error_code = token_data.get('return_code', 'N/A')
             self._set_error(f"토큰 발급 실패 ({error_code}): {error_msg}")
             return False
-
+        
         try:
             self.token = access_token
             self.token_expiry = datetime.datetime.strptime(expires_dt_str, '%Y%m%d%H%M%S')
-
+            
             logger.info(f"토큰 발급 성공 (만료: {self.token_expiry.strftime('%Y-%m-%d %H:%M:%S')})")
             self.last_error_msg = None
-
-            # 새로 발급받은 토큰 저장
-            self._save_token_to_cache()
-
             return True
-
+        
         except ValueError as e:
             self._set_error(f"토큰 만료 시간 파싱 실패: {expires_dt_str}")
             self.token = None
