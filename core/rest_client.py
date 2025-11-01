@@ -359,10 +359,8 @@ class KiwoomRESTClient:
         }
         
         # URL 구성
-        if not path.startswith("/"):
-            path = "/" + path
-        url = f"{self.base_url}{path}"
-        
+        url = f"{self.base_url}/api/dostk/{path}"
+
         logger.debug(f"[REST] {http_method} {url} (API ID: {api_id})")
         
         try:
