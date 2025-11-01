@@ -33,27 +33,27 @@ class Tee:
 
 class WebSocketTesterV2:
     """
-    키움 WebSocket 실시간 데이터 구독 테스터
+    키움 WebSocket 실시간 데이터 구독 테스터 (확장 버전)
 
-    지원하는 TR 유형:
-    - 00: 주문체결 (계좌 기반, item 불필요)
-    - 04: 잔고 (계좌 기반, item 불필요)
-    - 0A: 주식시세
-    - 0B: 주식체결
-    - 0C: 주식우선호가
-    - 0D: 주식호가잔량
-    - 0E: 주식시간외호가
-    - 0F: 주식당일거래원
-    - 0G: ETF NAV
-    - 0H: 주식예상체결
-    - 0J: 업종지수
-    - 0U: 업종등락
-    - 0g: 주식종목정보
-    - 0m: ELW 이론가
-    - 0s: 장시작시간
-    - 0u: ELW 지표
-    - 0w: 종목프로그램매매
-    - 1h: VI발동/해제
+    지원하는 TR 유형 (18개 전체 지원):
+    - 00: 주문체결 (계좌 기반, item 불필요) - 주문 접수/체결/정정/취소
+    - 04: 잔고 (계좌 기반, item 불필요) - 계좌 잔고 변동
+    - 0A: 주식시세 - 현재가, 대비, 거래량, 거래대금
+    - 0B: 주식체결 - 체결가, 체결량
+    - 0C: 주식우선호가 - 매도/매수 우선호가, 예상체결가
+    - 0D: 주식호가잔량 - 10단계 호가 및 잔량
+    - 0E: 주식시간외호가 - 시간외 단일가
+    - 0F: 주식당일거래원 - 거래원별 매매 현황
+    - 0G: ETF NAV - ETF 순자산가치, 괴리율
+    - 0H: 주식예상체결 - 장 시작 전 예상체결가/량
+    - 0J: 업종지수 - 업종별 지수, 등락률
+    - 0U: 업종등락 - 업종 내 상승/하락/보합 종목 수
+    - 0g: 주식종목정보 - 시가총액, 액면가, 상장주식수
+    - 0m: ELW 이론가 - ELW 이론가, 내재변동성
+    - 0s: 장시작시간 - 장 운영 시간, 구분
+    - 0u: ELW 지표 - 델타, 감마, 세타, 베가
+    - 0w: 종목프로그램매매 - 차익/비차익 매수/매도
+    - 1h: VI발동/해제 - 변동성완화장치 발동/해제
     """
 
     def __init__(self):
@@ -214,9 +214,43 @@ class WebSocketTesterV2:
                             elif msg_type in ['0A', '0B']:  # 주식시세, 주식체결
                                 print(f"  현재가: {msg_values.get('10')}, 대비: {msg_values.get('11')}, "
                                       f"거래량: {msg_values.get('13')}, 거래대금: {msg_values.get('14')}")
+                            elif msg_type == '0C':  # 주식우선호가
+                                print(f"  매도우선호가: {msg_values.get('27')}, 매수우선호가: {msg_values.get('28')}, "
+                                      f"예상체결가: {msg_values.get('23')}")
                             elif msg_type == '0D':  # 주식호가잔량
                                 print(f"  매도호가: {msg_values.get('27')}, 매수호가: {msg_values.get('28')}, "
                                       f"매도잔량: {msg_values.get('41')}, 매수잔량: {msg_values.get('51')}")
+                            elif msg_type == '0E':  # 주식시간외호가
+                                print(f"  단일가: {msg_values.get('10010')}, 대비: {msg_values.get('11')}")
+                            elif msg_type == '0F':  # 주식당일거래원
+                                print(f"  외국계순매수: {msg_values.get('621')}, 증권사코드: {msg_values.get('620')}")
+                            elif msg_type == '0G':  # ETF NAV
+                                print(f"  NAV: {msg_values.get('548')}, 괴리율: {msg_values.get('549')}")
+                            elif msg_type == '0H':  # 주식예상체결
+                                print(f"  예상체결가: {msg_values.get('23')}, 예상체결량: {msg_values.get('24')}, "
+                                      f"대비: {msg_values.get('25')}")
+                            elif msg_type == '0J':  # 업종지수
+                                print(f"  현재지수: {msg_values.get('10')}, 대비: {msg_values.get('11')}, "
+                                      f"등락률: {msg_values.get('12')}")
+                            elif msg_type == '0U':  # 업종등락
+                                print(f"  상승종목수: {msg_values.get('252')}, 하락종목수: {msg_values.get('251')}, "
+                                      f"보합종목수: {msg_values.get('253')}")
+                            elif msg_type == '0g':  # 주식종목정보
+                                print(f"  시가총액: {msg_values.get('307')}, 액면가: {msg_values.get('305')}, "
+                                      f"상장주식수: {msg_values.get('306')}")
+                            elif msg_type == '0m':  # ELW 이론가
+                                print(f"  이론가: {msg_values.get('589')}, 내재변동성: {msg_values.get('590')}")
+                            elif msg_type == '0s':  # 장시작시간
+                                print(f"  장운영시간: {msg_values.get('215')}, 장운영구분: {msg_values.get('216')}")
+                            elif msg_type == '0u':  # ELW 지표
+                                print(f"  델타: {msg_values.get('595')}, 감마: {msg_values.get('596')}, "
+                                      f"세타: {msg_values.get('597')}, 베가: {msg_values.get('598')}")
+                            elif msg_type == '0w':  # 종목프로그램매매
+                                print(f"  차익매수: {msg_values.get('679')}, 차익매도: {msg_values.get('680')}, "
+                                      f"비차익매수: {msg_values.get('681')}, 비차익매도: {msg_values.get('682')}")
+                            elif msg_type == '1h':  # VI발동/해제
+                                print(f"  VI구분: {msg_values.get('729')}, VI발동가: {msg_values.get('730')}, "
+                                      f"VI발동시간: {msg_values.get('731')}")
                             else:
                                 # 처음 5개 필드만 출력
                                 preview = {k: v for k, v in list(msg_values.items())[:5]}
@@ -241,23 +275,25 @@ class WebSocketTesterV2:
     async def disconnect(self):
         """WebSocket 연결 해제"""
         if self.ws:
-            if not self.ws.closed:
-                try:
-                    # 모든 등록 해제
-                    if self.registered_types:
-                        await self.unregister_realtime([""], self.registered_types)
-                        await asyncio.sleep(0.5)
-                except Exception as e:
-                    print(f"⚠️ 구독 해제 중 오류 (무시): {e}")
+            try:
+                # 모든 등록 해제
+                if self.registered_types:
+                    await self.unregister_realtime([""], self.registered_types)
+                    await asyncio.sleep(0.5)
+            except Exception as e:
+                print(f"⚠️ 구독 해제 중 오류 (무시): {e}")
 
-            if not self.ws.closed:
+            try:
                 await self.ws.close()
+            except Exception as e:
+                print(f"⚠️ WebSocket 닫기 중 오류 (무시): {e}")
+
             print("\n✅ WebSocket 연결 해제")
 
     async def run_comprehensive_test(self):
         """포괄적인 테스트 실행"""
         print("=" * 80)
-        print("WebSocket 실시간 데이터 구독 테스트 (v2)")
+        print("WebSocket 실시간 데이터 구독 테스트 (v2 - 확장)")
         print("=" * 80)
         print(f"시작 시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print()
@@ -269,49 +305,111 @@ class WebSocketTesterV2:
         await asyncio.sleep(1)
 
         try:
-            # 테스트 1: 주식 시세 + 체결
+            # 테스트 1: 주식 시세 + 체결 + 종목정보
             print("\n" + "=" * 80)
-            print("테스트 1: 주식 시세(0A) + 체결(0B) - 삼성전자")
+            print("테스트 1: 주식 시세(0A) + 체결(0B) + 종목정보(0g) - 삼성전자")
             print("=" * 80)
             success = await self.register_realtime(
                 items=["005930"],
-                types=["0A", "0B"]
+                types=["0A", "0B", "0g"]
             )
             if success:
                 await self.receive_messages(duration=15)
 
-            # 테스트 2: 주식 호가잔량
+            # 테스트 2: 주식 호가잔량 + 우선호가
             print("\n" + "=" * 80)
-            print("테스트 2: 주식 호가잔량(0D) - 삼성전자, 현대차")
+            print("테스트 2: 주식 호가잔량(0D) + 우선호가(0C) - 삼성전자, 현대차")
             print("=" * 80)
             success = await self.register_realtime(
                 items=["005930", "005380"],
-                types=["0D"],
+                types=["0D", "0C"],
                 refresh="0"  # 기존 등록 제거하고 새로 등록
             )
             if success:
                 await self.receive_messages(duration=15)
 
-            # 테스트 3: 업종지수
+            # 테스트 3: 업종지수 + 업종등락
             print("\n" + "=" * 80)
-            print("테스트 3: 업종지수(0J) - KOSPI, KOSDAQ")
+            print("테스트 3: 업종지수(0J) + 업종등락(0U) - KOSPI, KOSDAQ")
             print("=" * 80)
             success = await self.register_realtime(
                 items=["0001", "1001"],  # KOSPI, KOSDAQ
-                types=["0J"],
+                types=["0J", "0U"],
                 refresh="0"
             )
             if success:
                 await self.receive_messages(duration=10)
 
-            # 테스트 4: 주문체결 (계좌 기반)
+            # 테스트 4: 주식예상체결 + 시간외호가
             print("\n" + "=" * 80)
-            print("테스트 4: 주문체결(00) - 계좌 기반")
+            print("테스트 4: 주식예상체결(0H) + 시간외호가(0E) - 삼성전자")
             print("=" * 80)
-            print("⚠️ 주의: 실제 주문이 발생해야 데이터 수신됨")
+            print("⚠️ 주의: 장 시작 전/후에만 데이터 수신됨")
+            success = await self.register_realtime(
+                items=["005930"],
+                types=["0H", "0E"],
+                refresh="0"
+            )
+            if success:
+                await self.receive_messages(duration=10)
+
+            # 테스트 5: 거래원 + 프로그램매매 + VI
+            print("\n" + "=" * 80)
+            print("테스트 5: 당일거래원(0F) + 프로그램매매(0w) + VI발동/해제(1h) - 삼성전자")
+            print("=" * 80)
+            success = await self.register_realtime(
+                items=["005930"],
+                types=["0F", "0w", "1h"],
+                refresh="0"
+            )
+            if success:
+                await self.receive_messages(duration=10)
+
+            # 테스트 6: ETF NAV
+            print("\n" + "=" * 80)
+            print("테스트 6: ETF NAV(0G) - KODEX 200")
+            print("=" * 80)
+            success = await self.register_realtime(
+                items=["069500"],  # KODEX 200
+                types=["0G"],
+                refresh="0"
+            )
+            if success:
+                await self.receive_messages(duration=10)
+
+            # 테스트 7: ELW 이론가 + 지표
+            print("\n" + "=" * 80)
+            print("테스트 7: ELW 이론가(0m) + ELW 지표(0u)")
+            print("=" * 80)
+            print("⚠️ 주의: ELW 종목에만 적용됨")
+            success = await self.register_realtime(
+                items=[""],  # ELW 종목코드가 필요함
+                types=["0m", "0u"],
+                refresh="0"
+            )
+            if success:
+                await self.receive_messages(duration=5)
+
+            # 테스트 8: 장시작시간
+            print("\n" + "=" * 80)
+            print("테스트 8: 장시작시간(0s)")
+            print("=" * 80)
+            success = await self.register_realtime(
+                items=[""],
+                types=["0s"],
+                refresh="0"
+            )
+            if success:
+                await self.receive_messages(duration=5)
+
+            # 테스트 9: 주문체결 + 잔고 (계좌 기반)
+            print("\n" + "=" * 80)
+            print("테스트 9: 주문체결(00) + 잔고(04) - 계좌 기반")
+            print("=" * 80)
+            print("⚠️ 주의: 실제 주문/체결이 발생해야 데이터 수신됨")
             success = await self.register_realtime(
                 items=[""],  # 계좌 기반이므로 빈 문자열
-                types=["00"],
+                types=["00", "04"],
                 refresh="0"
             )
             if success:
