@@ -1259,7 +1259,7 @@
                 const response = await fetch(`/api/chart/${stockCode}`);
                 const data = await response.json();
 
-                if (data.success && data.data) {
+                if (data.success && data.data && data.data.length > 0) {
                     candlestickSeries.setData(data.data);
 
                     // Add trading signals
@@ -1271,9 +1271,19 @@
                     if (data.current_price) {
                         document.getElementById('chart-price').textContent = '₩' + formatNumber(data.current_price);
                     }
+                } else if (!data.success) {
+                    // 에러 발생 시 사용자에게 알림
+                    console.error('Chart load error:', data.error);
+                    document.getElementById('chart-stock-name').textContent = `차트 로딩 실패: ${stockCode}`;
+                    alert(`차트를 불러올 수 없습니다: ${data.error || '알 수 없는 오류'}`);
+                } else {
+                    // 데이터가 비어있을 때
+                    console.warn('No chart data available for:', stockCode);
+                    document.getElementById('chart-stock-name').textContent = `데이터 없음: ${stockCode}`;
                 }
             } catch (error) {
                 console.error('Chart data error:', error);
+                alert('차트 데이터 요청 중 오류가 발생했습니다.');
             }
         }
 

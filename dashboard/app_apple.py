@@ -1805,12 +1805,14 @@ def get_chart_data(stock_code: str):
                 })
 
             except Exception as e:
-                print(f"Chart data fetch error: {e}")
+                error_msg = str(e)
+                print(f"Chart data fetch error: {error_msg}")
                 import traceback
                 traceback.print_exc()
-                # Return empty but valid structure
+                # Return error response with message
                 return jsonify({
-                    'success': True,
+                    'success': False,
+                    'error': f'차트 데이터를 가져올 수 없습니다: {error_msg}',
                     'data': [],
                     'signals': [],
                     'name': stock_code,
@@ -1906,38 +1908,37 @@ def get_market_trading_value_rank():
 
 @app.route('/api/trading-activity')
 def get_trading_activity():
-    """Get recent trading activity"""
+    """Get recent trading activity from activity monitor"""
     try:
         activities = []
-        
-        if bot_instance and hasattr(bot_instance, 'scanner_pipeline'):
-            # Try to get real trading activity
-            # This would come from a trading log or database
-            pass
-        
-        # For now, return recent activity structure
-        # In production, this would read from trading logs
-        now = datetime.now()
-        
-        # Mock recent activities
-        activities = [
-            {
-                'time': now.strftime('%H:%M:%S'),
-                'type': 'SCAN',
-                'message': 'AI 스캔 완료: 3개 고점수 종목 발견'
-            },
-            {
-                'time': (now - timedelta(minutes=2)).strftime('%H:%M:%S'),
-                'type': 'BUY',
-                'message': '삼성전자 (005930) 10주 매수 대기 중'
-            }
-        ]
-        
+
+        if bot_instance and hasattr(bot_instance, 'monitor'):
+            # Get activities from activity monitor
+            from utils.activity_monitor import get_monitor
+            monitor = get_monitor()
+            recent_activities = monitor.get_recent_activities(limit=50)
+
+            for activity in recent_activities:
+                # timestamp를 ISO format에서 시간만 추출
+                timestamp_str = activity.get('timestamp', datetime.now().isoformat())
+                try:
+                    timestamp = datetime.fromisoformat(timestamp_str)
+                    time_str = timestamp.strftime('%H:%M:%S')
+                except:
+                    time_str = datetime.now().strftime('%H:%M:%S')
+
+                activities.append({
+                    'time': time_str,
+                    'type': activity.get('type', 'SYSTEM').upper(),
+                    'message': activity.get('message', ''),
+                    'level': activity.get('level', 'info')
+                })
+
         return jsonify({
             'success': True,
             'activities': activities
         })
-        
+
     except Exception as e:
         print(f"Trading activity error: {e}")
         return jsonify({'success': True, 'activities': []})

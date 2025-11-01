@@ -744,6 +744,25 @@ class TradingBotV2:
             level='success'
         )
 
+        # 실시간 데이터 구독 시작
+        try:
+            # 보유 종목에 대한 실시간 가격 구독
+            if self.portfolio_manager and hasattr(self.portfolio_manager, 'get_positions'):
+                positions = self.portfolio_manager.get_positions()
+                for position in positions:
+                    stock_code = position.get('stock_code')
+                    if stock_code and self.websocket_client:
+                        # 실시간 가격 구독 요청
+                        self.websocket_client.subscribe({
+                            'type': 'price',
+                            'stock_code': stock_code
+                        })
+                        logger.debug(f"실시간 가격 구독: {stock_code}")
+
+            logger.info("✓ 실시간 데이터 구독 완료")
+        except Exception as e:
+            logger.warning(f"실시간 데이터 구독 중 오류: {e}")
+
     def _on_ws_message(self, data: dict):
         """WebSocket 메시지 수신 콜백"""
         try:
