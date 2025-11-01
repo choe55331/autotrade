@@ -443,5 +443,37 @@ class AccountAPI:
             logger.error(f"체결 주문 조회 오류: {e}")
             return None
 
+    def get_holdings(self, market_type: str = "KRX") -> List[Dict[str, Any]]:
+        """
+        보유 종목 정보 조회 (main.py 호환)
+
+        Args:
+            market_type: 시장구분 (KRX, NXT)
+
+        Returns:
+            보유 종목 리스트
+        """
+        try:
+            result = self.get_account_balance(query_type="2", market_type=market_type)
+
+            if result and result.get('return_code') == 0:
+                # 응답에서 보유 종목 리스트 추출
+                holdings_key = 'acnt_evlt_remn_indv_tot'  # 계좌평가잔고 개별 합계
+                holdings = result.get(holdings_key, [])
+
+                if holdings:
+                    logger.info(f"보유 종목 조회 성공: {len(holdings)}개")
+                    return holdings
+                else:
+                    logger.info("보유 종목 없음")
+                    return []
+            else:
+                logger.warning("보유 종목 조회 실패, 빈 리스트 반환")
+                return []
+
+        except Exception as e:
+            logger.error(f"보유 종목 조회 오류: {e}")
+            return []
+
 
 __all__ = ['AccountAPI']
