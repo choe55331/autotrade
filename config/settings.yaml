@@ -42,6 +42,10 @@ notification:
   email_enabled: false
   email_to: null
 
+main_cycle:
+  sleep_seconds: 60  # Main loop sleep time
+  health_check_interval: 300  # Health check interval (5 minutes)
+
 environment: production
 debug_mode: false
 initial_capital: 10000000  # 10 million KRW

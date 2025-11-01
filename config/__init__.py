@@ -74,6 +74,7 @@ try:
         AIConfig,
         LoggingConfig,
         NotificationConfig,
+        MainCycleConfig,
     )
 except ImportError:
     # Fallback if pydantic not installed
@@ -90,6 +91,7 @@ except ImportError:
     AIConfig = None
     LoggingConfig = None
     NotificationConfig = None
+    MainCycleConfig = None
 
 # 하위 호환성을 위한 변수
 LOG_FILE_PATH = LOG_CONFIG['LOG_FILE_PATH']
@@ -210,6 +212,7 @@ __all__ = [
     'AIConfig',
     'LoggingConfig',
     'NotificationConfig',
+    'MainCycleConfig',
 
     # Legacy compatibility
     'LOG_FILE_PATH',

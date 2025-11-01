@@ -112,6 +112,23 @@ class NotificationConfig(BaseModel):
     email_to: Optional[str] = Field(default=None, description="수신 이메일")
 
 
+class MainCycleConfig(BaseModel):
+    """메인 사이클 설정"""
+    sleep_seconds: int = Field(default=60, ge=1, description="메인 루프 대기 시간 (초)")
+    health_check_interval: int = Field(default=300, ge=60, description="헬스 체크 간격 (초)")
+
+    # Backward compatibility
+    @property
+    def SLEEP_SECONDS(self) -> int:
+        """별칭: sleep_seconds"""
+        return self.sleep_seconds
+
+    @property
+    def HEALTH_CHECK_INTERVAL(self) -> int:
+        """별칭: health_check_interval"""
+        return self.health_check_interval
+
+
 class AutoTradeConfig(BaseModel):
     """통합 설정 (루트)"""
     # 하위 설정 그룹
@@ -120,6 +137,7 @@ class AutoTradeConfig(BaseModel):
     ai: AIConfig = Field(default_factory=AIConfig)
     logging: LoggingConfig = Field(default_factory=LoggingConfig)
     notification: NotificationConfig = Field(default_factory=NotificationConfig)
+    main_cycle: MainCycleConfig = Field(default_factory=MainCycleConfig)
 
     # 전역 설정
     environment: str = Field(default="production", description="환경 (production/development/test)")
@@ -210,4 +228,5 @@ __all__ = [
     'AIConfig',
     'LoggingConfig',
     'NotificationConfig',
+    'MainCycleConfig',
 ]
