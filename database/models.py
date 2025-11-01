@@ -112,6 +112,62 @@ class Position(Base):
     def __repr__(self):
         return f"<Position(id={self.id}, {self.stock_name} {self.quantity}주 @ {self.entry_price}원)>"
 
+    def to_core_position(self):
+        """
+        ORM Position → Core Position 변환
+
+        Returns:
+            core.Position instance
+        """
+        from core import Position as CorePosition
+
+        return CorePosition(
+            stock_code=self.stock_code,
+            stock_name=self.stock_name,
+            quantity=self.quantity,
+            purchase_price=float(self.entry_price),
+            current_price=float(self.current_price),
+            entry_time=self.created_at,
+            stop_loss_price=float(self.stop_loss_price) if self.stop_loss_price else None,
+            take_profit_price=float(self.take_profit_price) if self.take_profit_price else None,
+            metadata={
+                'db_id': self.id,
+                'entry_risk_mode': self.entry_risk_mode,
+                'is_active': self.is_active
+            }
+        )
+
+    @classmethod
+    def from_core_position(cls, pos, session=None):
+        """
+        Core Position → ORM Position 변환
+
+        Args:
+            pos: core.Position instance
+            session: SQLAlchemy session (for saving)
+
+        Returns:
+            database.Position instance
+        """
+        db_pos = cls(
+            stock_code=pos.stock_code,
+            stock_name=pos.stock_name,
+            quantity=pos.quantity,
+            entry_price=int(pos.purchase_price),
+            current_price=int(pos.current_price),
+            take_profit_price=int(pos.take_profit_price) if pos.take_profit_price else None,
+            stop_loss_price=int(pos.stop_loss_price) if pos.stop_loss_price else None,
+            profit_loss=int(pos.profit_loss),
+            profit_loss_ratio=pos.profit_loss_rate / 100.0 if pos.profit_loss_rate else 0.0,
+            entry_risk_mode=pos.metadata.get('entry_risk_mode') if pos.metadata else None,
+            is_active=pos.metadata.get('is_active', True) if pos.metadata else True
+        )
+
+        if session:
+            session.add(db_pos)
+
+        return db_pos
+
 
 class PortfolioSnapshot(Base):
     """포트폴리오 스냅샷 (일일 기록)"""

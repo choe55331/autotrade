@@ -89,7 +89,7 @@ class BacktestResult:
     worst_day: float
 
     # Positions
-    trades: List[Trade] = field(default_factory=list)
+    trades: List[BacktestTrade] = field(default_factory=list)
     equity_curve: List[float] = field(default_factory=list)
     daily_returns: List[float] = field(default_factory=list)
 
