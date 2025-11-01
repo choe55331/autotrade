@@ -41,6 +41,16 @@ from .api_loader import (
     is_api_tested,
     APICategory,
 )
+# v4.0 Advanced Features
+from .unified_settings import UnifiedSettingsManager, get_unified_settings
+
+# v4.1 Parameter Standards
+from .parameter_standards import (
+    StandardParameters,
+    ParameterConverter,
+    migrate_parameters,
+    LEGACY_PARAMETER_MAPPING
+)
 
 # 하위 호환성을 위한 변수
 LOG_FILE_PATH = LOG_CONFIG['LOG_FILE_PATH']
@@ -136,6 +146,16 @@ __all__ = [
     'search_api',
     'is_api_tested',
     'APICategory',
+
+    # v4.0 Advanced Features
+    'UnifiedSettingsManager',
+    'get_unified_settings',
+
+    # v4.1 Parameter Standards
+    'StandardParameters',
+    'ParameterConverter',
+    'migrate_parameters',
+    'LEGACY_PARAMETER_MAPPING',
 
     # Legacy compatibility
     'LOG_FILE_PATH',

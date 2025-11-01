@@ -19,6 +19,9 @@ try:
     from .paper_trading import PaperTradingEngine, VirtualAccount, VirtualPosition, StrategyConfig, get_paper_trading_engine
     from .trading_journal import TradingJournal, JournalEntry, JournalInsight, get_trading_journal
     from .notification import NotificationManager, Notification, NotificationPriority, get_notification_manager
+    # v4.0 Advanced Features
+    from .replay_simulator import ReplaySimulator, MarketSnapshot
+    from .portfolio_rebalancer import PortfolioRebalancer, PortfolioTarget
 except ImportError as e:
     import warnings
     warnings.warn(f"Some features modules could not be imported: {e}. Install required dependencies (numpy, pandas, etc.)")
@@ -33,6 +36,9 @@ except ImportError as e:
     PaperTradingEngine = VirtualAccount = VirtualPosition = StrategyConfig = get_paper_trading_engine = None
     TradingJournal = JournalEntry = JournalInsight = get_trading_journal = None
     NotificationManager = Notification = NotificationPriority = get_notification_manager = None
+    # v4.0 Advanced Features
+    ReplaySimulator = MarketSnapshot = None
+    PortfolioRebalancer = PortfolioTarget = None
 
 __all__ = [
     # Test Mode Manager (no dependencies)
@@ -85,4 +91,9 @@ __all__ = [
     'Notification',
     'NotificationPriority',
     'get_notification_manager',
+    # v4.0 Advanced Features
+    'ReplaySimulator',
+    'MarketSnapshot',
+    'PortfolioRebalancer',
+    'PortfolioTarget',
 ]
