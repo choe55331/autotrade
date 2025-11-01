@@ -1744,15 +1744,23 @@ def get_chart_data(stock_code: str):
 
             try:
                 from datetime import datetime, timedelta
+                from utils.trading_date import get_last_trading_date
 
-                # Calculate date range for last 100 trading days
-                # Request more days to account for weekends/holidays
-                end_date = datetime.now()
-                start_date = end_date - timedelta(days=150)  # ~100 trading days
+                # Use last trading date to avoid future date errors
+                # System clock may be incorrect or in test mode
+                try:
+                    # Get last trading date (handles weekends/holidays)
+                    end_date_str = get_last_trading_date()
+                    end_date = datetime.strptime(end_date_str, '%Y%m%d')
+                except Exception as e:
+                    # Fallback to a known past date if trading_date fails
+                    print(f"Trading date calculation failed, using fallback: {e}")
+                    end_date = datetime(2024, 10, 31)  # Safe past date
+                    end_date_str = end_date.strftime('%Y%m%d')
 
-                # Format dates as YYYYMMDD
+                # Calculate start date (150 days before for ~100 trading days)
+                start_date = end_date - timedelta(days=150)
                 start_date_str = start_date.strftime('%Y%m%d')
-                end_date_str = end_date.strftime('%Y%m%d')
 
                 # Get daily price data from Kiwoom API
                 daily_data = bot_instance.data_fetcher.get_daily_price(
