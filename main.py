@@ -35,6 +35,7 @@ except ImportError:
 
 # 핵심 모듈
 from core import KiwoomRESTClient
+from core.websocket_client import WebSocketClient
 from api import AccountAPI, MarketAPI, OrderAPI
 from research import Screener, DataFetcher
 from research.scanner_pipeline import ScannerPipeline
@@ -86,9 +87,11 @@ class TradingBotV2:
 
         # 컴포넌트
         self.client = None
+        self.websocket_client = None  # WebSocket 클라이언트
         self.account_api = None
         self.market_api = None
         self.order_api = None
+        self.data_fetcher = None  # 시장 데이터 조회용
 
         # 새로운 시스템
         self.scanner_pipeline = None
@@ -156,11 +159,28 @@ class TradingBotV2:
             self.client = KiwoomRESTClient()
             logger.info("✓ REST API 클라이언트 초기화 완료")
 
+            # 2-1. WebSocket 클라이언트 (선택사항)
+            try:
+                logger.info("🔌 WebSocket 클라이언트 초기화 중...")
+                # WebSocket URL과 토큰 가져오기
+                ws_url = self.client.config.get('websocket_url', '')
+                ws_token = self.client.token if hasattr(self.client, 'token') else ''
+
+                if ws_url and ws_token:
+                    self.websocket_client = WebSocketClient(ws_url, ws_token)
+                    logger.info("✓ WebSocket 클라이언트 초기화 완료")
+                else:
+                    logger.warning("⚠️  WebSocket 설정 없음 - 실시간 데이터 미지원")
+            except Exception as e:
+                logger.warning(f"⚠️  WebSocket 초기화 실패: {e} - 실시간 데이터 미지원")
+                self.websocket_client = None
+
             # 3. API 모듈
             logger.info("📡 API 모듈 초기화 중...")
             self.account_api = AccountAPI(self.client)
             self.market_api = MarketAPI(self.client)
             self.order_api = OrderAPI(self.client)
+            self.data_fetcher = DataFetcher(self.client)  # 시장 데이터 조회
             logger.info("✓ API 모듈 초기화 완료")
 
             # 4. AI 분석기
