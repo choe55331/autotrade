@@ -207,17 +207,61 @@ async def get_system_status():
 async def get_account_info():
     """계좌 정보 조회"""
     try:
-        # TODO: Implement real account info retrieval
+        if bot_instance is None or bot_instance.account_api is None:
+            logger.warning("Bot instance not initialized, returning default data")
+            return AccountInfo(
+                account_number="Not Connected",
+                total_assets=0,
+                cash=0,
+                stock_value=0,
+                profit_loss=0,
+                profit_loss_pct=0
+            )
+
+        # 예수금 조회
+        deposit_info = bot_instance.account_api.get_deposit()
+        # 계좌평가잔고 조회
+        balance_info = bot_instance.account_api.get_account_balance()
+
+        if not deposit_info or not balance_info:
+            logger.error("Failed to get account info from API")
+            return AccountInfo(
+                account_number="Error",
+                total_assets=0,
+                cash=0,
+                stock_value=0,
+                profit_loss=0,
+                profit_loss_pct=0
+            )
+
+        # 데이터 파싱
+        deposit_data = deposit_info.get('output', {})
+        balance_data = balance_info.get('output1', [{}])[0] if balance_info.get('output1') else {}
+
+        # 현금 및 자산 정보
+        cash = float(deposit_data.get('d_ord_aval_cash', 0) or 0)  # 주문가능현금
+        stock_value = float(balance_data.get('sttl_prsm', 0) or 0)  # 평가금액
+        total_assets = float(deposit_data.get('tot_evl_amt', 0) or 0)  # 총평가금액
+        profit_loss = float(balance_data.get('prsm_sum', 0) or 0)  # 평가손익합계
+
+        # 수익률 계산
+        if total_assets > 0:
+            profit_loss_pct = (profit_loss / (total_assets - profit_loss)) * 100
+        else:
+            profit_loss_pct = 0
+
+        logger.info(f"Account info retrieved: total={total_assets:,.0f}, cash={cash:,.0f}")
+
         return AccountInfo(
-            account_number="12345678",
-            total_assets=10500000,
-            cash=5000000,
-            stock_value=5500000,
-            profit_loss=500000,
-            profit_loss_pct=5.0
+            account_number=bot_instance.client.account_no if bot_instance.client else "Unknown",
+            total_assets=total_assets,
+            cash=cash,
+            stock_value=stock_value,
+            profit_loss=profit_loss,
+            profit_loss_pct=round(profit_loss_pct, 2)
         )
     except Exception as e:
-        logger.error(f"Error getting account info: {e}")
+        logger.error(f"Error getting account info: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -225,23 +269,81 @@ async def get_account_info():
 async def get_positions():
     """보유 포지션 조회"""
     try:
-        # TODO: Implement real positions retrieval
+        if bot_instance is None or bot_instance.account_api is None:
+            logger.warning("Bot instance not initialized")
+            return {"positions": [], "total_count": 0}
+
+        # 체결잔고 조회 (KRX)
+        balance_krx = bot_instance.account_api.get_balance(market_type="KRX")
+        # NXT 시장도 조회
+        balance_nxt = bot_instance.account_api.get_balance(market_type="NXT")
+
+        positions = []
+
+        # KRX 시장 포지션 처리
+        if balance_krx and balance_krx.get('return_code') == 0:
+            output2 = balance_krx.get('output2', [])
+            for item in output2:
+                stock_code = item.get('종목코드', '')
+                stock_name = item.get('종목명', '')
+                quantity = int(item.get('보유수량', 0) or 0)
+                avg_price = float(item.get('매입단가', 0) or 0)
+                current_price = float(item.get('현재가', 0) or 0)
+                profit_loss = float(item.get('평가손익', 0) or 0)
+
+                # 수익률 계산
+                if avg_price > 0:
+                    profit_loss_pct = ((current_price - avg_price) / avg_price) * 100
+                else:
+                    profit_loss_pct = 0
+
+                positions.append({
+                    "stock_code": stock_code,
+                    "stock_name": stock_name,
+                    "quantity": quantity,
+                    "avg_price": avg_price,
+                    "current_price": current_price,
+                    "profit_loss": profit_loss,
+                    "profit_loss_pct": round(profit_loss_pct, 2),
+                    "market": "KRX"
+                })
+
+        # NXT 시장 포지션 처리
+        if balance_nxt and balance_nxt.get('return_code') == 0:
+            output2 = balance_nxt.get('output2', [])
+            for item in output2:
+                stock_code = item.get('종목코드', '')
+                stock_name = item.get('종목명', '')
+                quantity = int(item.get('보유수량', 0) or 0)
+                avg_price = float(item.get('매입단가', 0) or 0)
+                current_price = float(item.get('현재가', 0) or 0)
+                profit_loss = float(item.get('평가손익', 0) or 0)
+
+                # 수익률 계산
+                if avg_price > 0:
+                    profit_loss_pct = ((current_price - avg_price) / avg_price) * 100
+                else:
+                    profit_loss_pct = 0
+
+                positions.append({
+                    "stock_code": stock_code,
+                    "stock_name": stock_name,
+                    "quantity": quantity,
+                    "avg_price": avg_price,
+                    "current_price": current_price,
+                    "profit_loss": profit_loss,
+                    "profit_loss_pct": round(profit_loss_pct, 2),
+                    "market": "NXT"
+                })
+
+        logger.info(f"Retrieved {len(positions)} positions")
+
         return {
-            "positions": [
-                {
-                    "stock_code": "005930",
-                    "stock_name": "삼성전자",
-                    "quantity": 10,
-                    "avg_price": 70000,
-                    "current_price": 72000,
-                    "profit_loss": 20000,
-                    "profit_loss_pct": 2.86
-                }
-            ],
-            "total_count": 1
+            "positions": positions,
+            "total_count": len(positions)
         }
     except Exception as e:
-        logger.error(f"Error getting positions: {e}")
+        logger.error(f"Error getting positions: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -251,22 +353,44 @@ async def get_positions():
 
 @app.get("/api/market/stocks")
 async def search_stocks(query: str = "", limit: int = 20):
-    """종목 검색"""
+    """종목 검색 - 거래량 상위 종목 반환"""
     try:
-        # TODO: Implement real stock search
+        if bot_instance is None or bot_instance.market_api is None:
+            logger.warning("Bot instance not initialized")
+            return {"stocks": [], "total": 0}
+
+        # 거래량 순위로 종목 조회 (검색어 필터링은 추후 구현)
+        volume_rank = bot_instance.market_api.get_volume_rank(
+            market='ALL',
+            limit=limit
+        )
+
+        stocks = []
+        for item in volume_rank:
+            stocks.append({
+                "code": item.get('code', ''),
+                "name": item.get('name', ''),
+                "current_price": item.get('current_price', 0),
+                "change_rate": item.get('change_rate', 0),
+                "volume": item.get('volume', 0)
+            })
+
+        # 검색어가 있으면 필터링
+        if query:
+            query_lower = query.lower()
+            stocks = [
+                s for s in stocks
+                if query_lower in s['name'].lower() or query_lower in s['code']
+            ]
+
+        logger.info(f"Found {len(stocks)} stocks")
+
         return {
-            "stocks": [
-                {
-                    "code": "005930",
-                    "name": "삼성전자",
-                    "current_price": 72000,
-                    "change_rate": 1.5
-                }
-            ],
-            "total": 1
+            "stocks": stocks,
+            "total": len(stocks)
         }
     except Exception as e:
-        logger.error(f"Error searching stocks: {e}")
+        logger.error(f"Error searching stocks: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -274,21 +398,57 @@ async def search_stocks(query: str = "", limit: int = 20):
 async def get_stock_detail(stock_code: str):
     """종목 상세 정보"""
     try:
-        # TODO: Implement real stock detail retrieval
-        return {
-            "code": stock_code,
-            "name": "종목명",
-            "current_price": 10000,
-            "change_rate": 1.5,
-            "volume": 1000000,
-            "indicators": {
-                "rsi": 55.5,
-                "macd": 0.5,
-                "moving_avg_20": 9800
+        if bot_instance is None or bot_instance.market_api is None:
+            logger.warning("Bot instance not initialized")
+            return {
+                "code": stock_code,
+                "name": "Error",
+                "current_price": 0,
+                "change_rate": 0,
+                "volume": 0
             }
+
+        # 종목 현재가 조회
+        price_info = bot_instance.market_api.get_stock_price(stock_code)
+
+        if not price_info:
+            logger.error(f"Failed to get stock price for {stock_code}")
+            return {
+                "code": stock_code,
+                "name": "Unknown",
+                "current_price": 0,
+                "change_rate": 0,
+                "volume": 0
+            }
+
+        # 호가 정보 조회
+        orderbook = bot_instance.market_api.get_orderbook(stock_code)
+
+        result = {
+            "code": stock_code,
+            "name": price_info.get('stock_name', stock_code),
+            "current_price": int(price_info.get('current_price', 0) or 0),
+            "change_rate": float(price_info.get('change_rate', 0) or 0),
+            "volume": int(price_info.get('volume', 0) or 0),
+            "high_price": int(price_info.get('high_price', 0) or 0),
+            "low_price": int(price_info.get('low_price', 0) or 0),
+            "open_price": int(price_info.get('open_price', 0) or 0),
         }
+
+        # 호가 정보 추가
+        if orderbook:
+            result["orderbook"] = {
+                "buy_price1": orderbook.get('buy_price1', 0),
+                "sell_price1": orderbook.get('sell_price1', 0),
+                "buy_volume1": orderbook.get('buy_volume1', 0),
+                "sell_volume1": orderbook.get('sell_volume1', 0),
+            }
+
+        logger.info(f"Stock detail retrieved: {stock_code} - {result['name']}")
+
+        return result
     except Exception as e:
-        logger.error(f"Error getting stock detail: {e}")
+        logger.error(f"Error getting stock detail: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
