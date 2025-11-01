@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-검증된 API 370건 테스트 (독립 실행)
+검증된 API 352건 테스트 (독립 실행)
 
 _immutable/api_specs/successful_apis.json의 검증된 API 호출
 실행 시 자동으로 test_results/ 폴더에 결과 저장
@@ -40,6 +40,7 @@ class VerifiedAPITester:
         self.stats = {
             'total': 0,
             'success': 0,
+            'success_no_data': 0,
             'failed': 0,
             'error': 0
         }
@@ -89,15 +90,15 @@ class VerifiedAPITester:
                     self.stats['success'] += 1
                     return {'status': 'success', 'data_count': data_count}
                 else:
-                    print("⚠️ 성공 (데이터 없음)")
-                    self.stats['success'] += 1
+                    print("⚠️ 데이터 없음")
+                    self.stats['success_no_data'] += 1
                     return {'status': 'success_no_data'}
 
             elif return_code == 20:
-                # 업무 메시지 (성공으로 간주)
+                # 업무 메시지 (데이터 없음으로 간주)
                 msg = response.get('return_msg', '')
                 print(f"⚠️ 업무메시지: {msg[:30]}")
-                self.stats['success'] += 1
+                self.stats['success_no_data'] += 1
                 return {'status': 'warning', 'msg': msg}
 
             else:
@@ -115,7 +116,7 @@ class VerifiedAPITester:
     def run_all_tests(self):
         """모든 API 테스트 실행"""
         print("=" * 80)
-        print("검증된 API 370건 테스트 시작")
+        print("검증된 API 352건 테스트 시작")
         print("=" * 80)
         print(f"시작 시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print()
@@ -158,7 +159,8 @@ class VerifiedAPITester:
         print("테스트 결과 요약")
         print("=" * 80)
         print(f"총 테스트: {self.stats['total']}건")
-        print(f"✅ 성공: {self.stats['success']}건 ({self.stats['success']/self.stats['total']*100:.1f}%)")
+        print(f"✅ 성공 (데이터 있음): {self.stats['success']}건 ({self.stats['success']/self.stats['total']*100:.1f}%)")
+        print(f"⚠️ 데이터 없음: {self.stats['success_no_data']}건 ({self.stats['success_no_data']/self.stats['total']*100:.1f}%)")
         print(f"❌ 실패: {self.stats['failed']}건")
         print(f"⚠️ 오류: {self.stats['error']}건")
         print(f"완료 시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
