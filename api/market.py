@@ -594,19 +594,29 @@ class MarketAPI:
         market: str = 'KOSPI',
         amount_or_qty: str = 'amount',
         date: str = None,
-        limit: int = 20
+        limit: int = 20,
+        investor_type: str = 'foreign_buy'
     ) -> List[Dict[str, Any]]:
         """
         외국인/기관 매매 상위 (ka90009)
+
+        ⚠️ 주의: 이 API는 현재가를 제공하지 않습니다!
+        각 항목은 4개의 카테고리로 구성됩니다:
+        - for_netprps_: 외국인 순매수 상위
+        - for_netslmt_: 외국인 순매도 상위
+        - orgn_netprps_: 기관 순매수 상위
+        - orgn_netslmt_: 기관 순매도 상위
 
         Args:
             market: 시장구분 ('KOSPI', 'KOSDAQ')
             amount_or_qty: 조회구분 ('amount': 금액, 'qty': 수량)
             date: 조회일 (YYYYMMDD, None이면 오늘)
             limit: 조회 건수
+            investor_type: 투자자 유형 ('foreign_buy': 외국인 순매수, 'foreign_sell': 외국인 순매도,
+                                      'institution_buy': 기관 순매수, 'institution_sell': 기관 순매도)
 
         Returns:
-            외국인/기관 매매 순위
+            외국인/기관 매매 순위 (현재가 없음)
         """
         from utils.trading_date import get_last_trading_date
 
@@ -630,34 +640,36 @@ class MarketAPI:
         response = self.client.request(api_id="ka90009", body=body, path="rkinfo")
 
         if response and response.get('return_code') == 0:
-            # 디버그: 응답 키 확인
-            data_keys = [k for k in response.keys() if k not in ['return_code', 'return_msg', 'api-id', 'cont-yn', 'next-key']]
-            logger.debug(f"ka90009 응답 키: {data_keys}")
+            # ka90009 API는 'frgnr_orgn_trde_upper' 키에 데이터 반환
+            rank_list = response.get('frgnr_orgn_trde_upper', [])
 
-            rank_list = []
-            used_key = None
-            for key in data_keys:
-                val = response.get(key)
-                if isinstance(val, list) and len(val) > 0:
-                    rank_list = val
-                    used_key = key
-                    logger.debug(f"ka90009 사용된 데이터 키: {key}, 데이터 수: {len(val)}")
-                    if len(val) > 0 and isinstance(val[0], dict):
-                        logger.debug(f"ka90009 첫 번째 항목 키: {list(val[0].keys())}")
-                        logger.debug(f"ka90009 첫 번째 항목 샘플: {val[0]}")
-                    break
+            # 투자자 유형에 따른 필드명 매핑
+            field_map = {
+                'foreign_buy': ('for_netprps_stk_cd', 'for_netprps_stk_nm', 'for_netprps_amt', 'for_netprps_qty'),
+                'foreign_sell': ('for_netslmt_stk_cd', 'for_netslmt_stk_nm', 'for_netslmt_amt', 'for_netslmt_qty'),
+                'institution_buy': ('orgn_netprps_stk_cd', 'orgn_netprps_stk_nm', 'orgn_netprps_amt', 'orgn_netprps_qty'),
+                'institution_sell': ('orgn_netslmt_stk_cd', 'orgn_netslmt_stk_nm', 'orgn_netslmt_amt', 'orgn_netslmt_qty'),
+            }
+
+            code_field, name_field, amt_field, qty_field = field_map.get(investor_type, field_map['foreign_buy'])
 
             normalized_list = []
             for item in rank_list[:limit]:
                 normalized_list.append({
-                    'code': item.get('stk_cd', '').replace('_AL', ''),
-                    'name': item.get('stk_nm', ''),
-                    'price': int(item.get('cur_prc', '0').replace('+', '').replace('-', '')),
-                    'foreign_net': int(item.get('frg_nt', '0')),  # 외국인 순매수
-                    'institution_net': int(item.get('orgn_nt', '0')),  # 기관 순매수
+                    'code': item.get(code_field, '').replace('_AL', ''),
+                    'name': item.get(name_field, ''),
+                    'net_amount': int(item.get(amt_field, '0').replace('+', '').replace('-', '')),  # 순매수/매도 금액 (백만원)
+                    'net_qty': int(item.get(qty_field, '0').replace('+', '').replace('-', '')),  # 순매수/매도 수량 (천주)
                 })
 
-            logger.info(f"외국인/기관 매매 {len(normalized_list)}개 조회 (키: {used_key})")
+            type_name = {
+                'foreign_buy': '외국인 순매수',
+                'foreign_sell': '외국인 순매도',
+                'institution_buy': '기관 순매수',
+                'institution_sell': '기관 순매도'
+            }.get(investor_type, investor_type)
+
+            logger.info(f"{type_name} {len(normalized_list)}개 조회")
             return normalized_list
         else:
             logger.error(f"외국인/기관 매매 조회 실패: {response.get('return_msg')}")
@@ -726,13 +738,16 @@ class MarketAPI:
         """
         장중 투자자별 매매 상위 (ka10065)
 
+        ⚠️ 주의: 이 API는 현재가를 제공하지 않습니다!
+        매도수량, 매수수량, 순매수량만 제공됩니다.
+
         Args:
             market: 시장구분 ('KOSPI', 'KOSDAQ')
             investor_type: 투자자구분 ('foreign': 외국인, 'institution': 기관, 'individual': 개인)
             limit: 조회 건수
 
         Returns:
-            투자자별 매매 순위
+            투자자별 매매 순위 (현재가 없음)
         """
         market_map = {'KOSPI': '001', 'KOSDAQ': '101'}
         mrkt_tp = market_map.get(market.upper(), '001')
@@ -754,35 +769,26 @@ class MarketAPI:
         response = self.client.request(api_id="ka10065", body=body, path="rkinfo")
 
         if response and response.get('return_code') == 0:
-            # 디버그: 응답 키 확인
-            data_keys = [k for k in response.keys() if k not in ['return_code', 'return_msg', 'api-id', 'cont-yn', 'next-key']]
-            logger.debug(f"ka10065 응답 키: {data_keys}")
-
-            rank_list = []
-            used_key = None
-            for key in data_keys:
-                val = response.get(key)
-                if isinstance(val, list) and len(val) > 0:
-                    rank_list = val
-                    used_key = key
-                    logger.debug(f"ka10065 사용된 데이터 키: {key}, 데이터 수: {len(val)}")
-                    if len(val) > 0 and isinstance(val[0], dict):
-                        logger.debug(f"ka10065 첫 번째 항목 키: {list(val[0].keys())}")
-                        logger.debug(f"ka10065 첫 번째 항목 샘플: {val[0]}")
-                    break
+            # ka10065 API는 'opmr_invsr_trde_upper' 키에 데이터 반환
+            rank_list = response.get('opmr_invsr_trde_upper', [])
 
             normalized_list = []
             for item in rank_list[:limit]:
+                # 값에서 +,- 기호 제거하고 숫자로 변환
+                sel_qty = int(item.get('sel_qty', '0').replace('+', '').replace('-', ''))
+                buy_qty = int(item.get('buy_qty', '0').replace('+', '').replace('-', ''))
+                netslmt = int(item.get('netslmt', '0').replace('+', '').replace('-', ''))
+
                 normalized_list.append({
                     'code': item.get('stk_cd', '').replace('_AL', ''),
                     'name': item.get('stk_nm', ''),
-                    'price': int(item.get('cur_prc', '0').replace('+', '').replace('-', '')),
-                    'net_buy_qty': int(item.get('nt_by_qty', '0')),  # 순매수량
-                    'net_buy_amount': int(item.get('nt_by_amt', '0')),  # 순매수금액
+                    'sell_qty': sel_qty,      # 매도수량
+                    'buy_qty': buy_qty,       # 매수수량
+                    'net_buy_qty': netslmt,   # 순매수량 (매수-매도)
                 })
 
             investor_name = {'foreign': '외국인', 'institution': '기관', 'individual': '개인'}.get(investor_type.lower(), investor_type)
-            logger.info(f"{investor_name} 장중매매 {len(normalized_list)}개 조회 (키: {used_key})")
+            logger.info(f"{investor_name} 장중매매 {len(normalized_list)}개 조회")
             return normalized_list
         else:
             logger.error(f"투자자별 매매 조회 실패: {response.get('return_msg')}")

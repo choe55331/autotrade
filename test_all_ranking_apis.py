@@ -72,8 +72,21 @@ class RankingAPITester:
                 if len(result) > 0:
                     print("\n샘플 데이터 (상위 3개):")
                     for i, item in enumerate(result[:3], 1):
-                        print(f"  {i}. {item.get('name', 'N/A')} - "
-                              f"현재가: {item.get('price', 0):,}원")
+                        name_str = item.get('name', 'N/A')
+
+                        # API별로 다른 정보 표시
+                        if api_id == 'ka90009':
+                            # 외국인기관매매: 순매수 금액
+                            net_amt = item.get('net_amount', 0)
+                            print(f"  {i}. {name_str} - 순매수금액: {net_amt:,}백만원")
+                        elif api_id == 'ka10065':
+                            # 장중투자자별매매: 순매수량
+                            net_qty = item.get('net_buy_qty', 0)
+                            print(f"  {i}. {name_str} - 순매수량: {net_qty:,}주")
+                        else:
+                            # 기본: 현재가
+                            price = item.get('price', 0)
+                            print(f"  {i}. {name_str} - 현재가: {price:,}원")
 
                 self.results.append((name, True))
                 return True
@@ -260,13 +273,16 @@ class APIResponseKeyDiscovery:
         calls = api_info.get('calls', [])
 
         for call in calls:
-            if call.get('status') != 'success':
+            # success, corrected, pending 상태 모두 테스트
+            status = call.get('status')
+            if status not in ['success', 'corrected', 'pending']:
                 continue
 
             variant_result = {
                 'variant_idx': call.get('variant_idx'),
                 'path': call.get('path'),
                 'body': call.get('body'),
+                'call_status': status,  # 원래 상태 기록
                 'success': False,
                 'has_data': False,
                 'response_keys': None
