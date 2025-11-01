@@ -27,7 +27,7 @@ python-dotenv>=1.0.0
 
 # 설정 관리
 PyYAML>=6.0.0
-pydantic>=2.0.0  # v4.2: Type-safe configuration
+pydantic>=2.5.0  # v4.2: Type-safe configuration (also used by FastAPI)
 
 # 로깅
 colorlog>=6.8.0
@@ -72,7 +72,6 @@ xgboost>=2.0.0
 # FastAPI for REST API
 fastapi>=0.104.0
 uvicorn>=0.24.0
-pydantic>=2.5.0
 
 # 고급 백테스팅 리포트 (HTML/PDF 생성)
 jinja2>=3.1.0
