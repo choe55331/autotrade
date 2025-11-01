@@ -294,7 +294,7 @@ class TradingBotV2:
     def _main_loop(self):
         """메인 루프"""
         cycle_count = 0
-        sleep_seconds = self.config.main_cycle.get('sleep_seconds', 60)
+        sleep_seconds = self.config.main_cycle.sleep_seconds
 
         while self.is_running:
             cycle_count += 1
