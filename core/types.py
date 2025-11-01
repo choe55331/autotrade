@@ -74,6 +74,27 @@ class Position:
     # 메타데이터 (전략별 확장 데이터)
     metadata: Dict[str, Any] = field(default_factory=dict)
 
+    # Backward compatibility aliases
+    @property
+    def avg_price(self) -> float:
+        """별칭: purchase_price (백테스팅 호환성)"""
+        return self.purchase_price
+
+    @avg_price.setter
+    def avg_price(self, value: float):
+        """별칭: purchase_price setter"""
+        self.purchase_price = value
+
+    @property
+    def unrealized_pnl(self) -> float:
+        """별칭: profit_loss (백테스팅 호환성)"""
+        return self.profit_loss
+
+    @property
+    def unrealized_pnl_pct(self) -> float:
+        """별칭: profit_loss_rate (백테스팅 호환성)"""
+        return self.profit_loss_rate
+
     def update_current_price(self, price: float):
         """
         현재가 업데이트 및 손익 자동 계산

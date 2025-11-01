@@ -1,62 +1,17 @@
 """
 AutoTrade Pro - 통합 포지션 관리자
 모든 전략에서 공통으로 사용하는 포지션 관리 로직
+
+v4.2 CRITICAL #2: Use standard Position from core
 """
-from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Dict, List, Optional, Any
 import logging
 
+# v4.2: Use standard Position from core
+from core import Position
+
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class Position:
-    """포지션 정보"""
-    stock_code: str
-    stock_name: str = ""
-    quantity: int = 0
-    purchase_price: float = 0.0
-    current_price: float = 0.0
-    purchase_time: datetime = field(default_factory=datetime.now)
-    order_id: Optional[str] = None
-
-    # 손익 정보
-    profit_loss: float = 0.0
-    profit_loss_rate: float = 0.0
-    evaluation_amount: float = 0.0
-
-    # 리스크 관리
-    stop_loss_price: Optional[float] = None
-    take_profit_price: Optional[float] = None
-
-    # 추가 메타데이터
-    metadata: Dict[str, Any] = field(default_factory=dict)
-
-    def update_current_price(self, price: float):
-        """현재가 업데이트 및 손익 계산"""
-        self.current_price = price
-        self.evaluation_amount = self.quantity * price
-        self.profit_loss = self.evaluation_amount - (self.quantity * self.purchase_price)
-        self.profit_loss_rate = (self.profit_loss / (self.quantity * self.purchase_price)) if self.purchase_price > 0 else 0.0
-
-    def to_dict(self) -> Dict[str, Any]:
-        """딕셔너리로 변환"""
-        return {
-            'stock_code': self.stock_code,
-            'stock_name': self.stock_name,
-            'quantity': self.quantity,
-            'purchase_price': self.purchase_price,
-            'current_price': self.current_price,
-            'purchase_time': self.purchase_time.isoformat() if isinstance(self.purchase_time, datetime) else self.purchase_time,
-            'order_id': self.order_id,
-            'profit_loss': self.profit_loss,
-            'profit_loss_rate': self.profit_loss_rate,
-            'evaluation_amount': self.evaluation_amount,
-            'stop_loss_price': self.stop_loss_price,
-            'take_profit_price': self.take_profit_price,
-            'metadata': self.metadata,
-        }
 
 
 class PositionManager:
@@ -107,17 +62,21 @@ class PositionManager:
 
             return existing
         else:
+            # Prepare metadata (include order_id if provided)
+            meta = dict(metadata)
+            if order_id:
+                meta['order_id'] = order_id
+
             position = Position(
                 stock_code=stock_code,
                 stock_name=stock_name,
                 quantity=quantity,
                 purchase_price=purchase_price,
                 current_price=purchase_price,
-                purchase_time=datetime.now(),
-                order_id=order_id,
+                entry_time=datetime.now(),  # core.Position uses entry_time
                 stop_loss_price=stop_loss_price,
                 take_profit_price=take_profit_price,
-                metadata=metadata
+                metadata=meta
             )
             position.update_current_price(purchase_price)
 
