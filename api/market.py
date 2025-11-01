@@ -49,7 +49,7 @@ class MarketAPI:
         response = self.client.request(
             api_id="DOSK_0002",
             body=body,
-            path="/api/dostk/inquire/price"
+            path="inquire/price"
         )
         
         if response and response.get('return_code') == 0:
@@ -77,7 +77,7 @@ class MarketAPI:
         response = self.client.request(
             api_id="DOSK_0003",
             body=body,
-            path="/api/dostk/inquire/orderbook"
+            path="inquire/orderbook"
         )
         
         if response and response.get('return_code') == 0:
@@ -105,7 +105,7 @@ class MarketAPI:
         response = self.client.request(
             api_id="DOSK_0004",
             body=body,
-            path="/api/dostk/inquire/index"
+            path="inquire/index"
         )
         
         if response and response.get('return_code') == 0:
@@ -150,7 +150,7 @@ class MarketAPI:
         response = self.client.request(
             api_id="ka10031",
             body=body,
-            path="/api/dostk/rkinfo"
+            path="rkinfo"
         )
 
         if response and response.get('return_code') == 0:
@@ -212,7 +212,7 @@ class MarketAPI:
         response = self.client.request(
             api_id="ka10027",
             body=body,
-            path="/api/dostk/rkinfo"
+            path="rkinfo"
         )
 
         if response and response.get('return_code') == 0:
@@ -246,7 +246,7 @@ class MarketAPI:
         response = self.client.request(
             api_id="DOSK_0020",
             body={},
-            path="/api/dostk/inquire/sector/list"
+            path="inquire/sector/list"
         )
         
         if response and response.get('return_code') == 0:
@@ -274,7 +274,7 @@ class MarketAPI:
         response = self.client.request(
             api_id="DOSK_0021",
             body=body,
-            path="/api/dostk/inquire/sector/info"
+            path="inquire/sector/info"
         )
         
         if response and response.get('return_code') == 0:
@@ -295,7 +295,7 @@ class MarketAPI:
         response = self.client.request(
             api_id="DOSK_0030",
             body={},
-            path="/api/dostk/inquire/theme/list"
+            path="inquire/theme/list"
         )
         
         if response and response.get('return_code') == 0:
@@ -323,7 +323,7 @@ class MarketAPI:
         response = self.client.request(
             api_id="DOSK_0031",
             body=body,
-            path="/api/dostk/inquire/theme/stocks"
+            path="inquire/theme/stocks"
         )
         
         if response and response.get('return_code') == 0:
@@ -351,7 +351,7 @@ class MarketAPI:
         response = self.client.request(
             api_id="DOSK_0005",
             body=body,
-            path="/api/dostk/inquire/stock/info"
+            path="inquire/stock/info"
         )
         
         if response and response.get('return_code') == 0:
@@ -379,7 +379,7 @@ class MarketAPI:
         response = self.client.request(
             api_id="DOSK_0006",
             body=body,
-            path="/api/dostk/inquire/stock/search"
+            path="inquire/stock/search"
         )
         
         if response and response.get('return_code') == 0:
@@ -417,7 +417,7 @@ class MarketAPI:
         response = self.client.request(
             api_id="DOSK_0040",
             body=body,
-            path="/api/dostk/inquire/investor"
+            path="inquire/investor"
         )
 
         if response and response.get('return_code') == 0:
