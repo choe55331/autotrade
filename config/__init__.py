@@ -31,6 +31,16 @@ from .trading_params import (
     validate_trading_params,
     get_trading_params_summary,
 )
+from .api_loader import (
+    APILoader,
+    get_api_loader,
+    load_successful_apis,
+    get_api_by_id,
+    get_api_by_category,
+    search_api,
+    is_api_tested,
+    APICategory,
+)
 
 # 하위 호환성을 위한 변수
 LOG_FILE_PATH = LOG_CONFIG['LOG_FILE_PATH']
@@ -95,7 +105,7 @@ __all__ = [
     'MAIN_CYCLE_CONFIG',
     'get_default_control_state',
     'validate_environment',
-    
+
     # Credentials
     'Credentials',
     'get_credentials',
@@ -107,7 +117,7 @@ __all__ = [
     'KIWOOM_WEBSOCKET_URL',
     'GEMINI_API_KEY',
     'GEMINI_MODEL_NAME',
-    
+
     # Trading Params
     'TRADING_PARAMS',
     'POSITION_CONFIG',
@@ -116,7 +126,17 @@ __all__ = [
     'AI_CONFIG',
     'validate_trading_params',
     'get_trading_params_summary',
-    
+
+    # API Loader
+    'APILoader',
+    'get_api_loader',
+    'load_successful_apis',
+    'get_api_by_id',
+    'get_api_by_category',
+    'search_api',
+    'is_api_tested',
+    'APICategory',
+
     # Legacy compatibility
     'LOG_FILE_PATH',
     'LOG_LEVEL',

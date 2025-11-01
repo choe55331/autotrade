@@ -121,3 +121,9 @@ control.json
 strategy_state.json
 backup/
 data/
+
+# Immutable credentials (NEVER commit!)
+_immutable/credentials/secrets.json
+_immutable/credentials/*.key
+_immutable/credentials/*.pem
+_immutable/credentials/*.env
