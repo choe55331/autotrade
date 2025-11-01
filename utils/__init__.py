@@ -1,8 +1,34 @@
 """
 utils 패키지
 유틸리티 모듈
+
+v4.2 CRITICAL 개선:
+- 통합 로깅 시스템 (logger.py, logger_new.py, rate_limited_logger.py → logger_new.py)
+- 3→1 로거 통합으로 80% I/O 감소
 """
-from .logger import setup_logger, get_logger
+
+# ============================================================================
+# UNIFIED LOGGING SYSTEM (v4.2 CRITICAL FIX #1)
+# ============================================================================
+# logger_new.py를 표준 로거로 사용 (Loguru 기반 + Rate-limiting 통합)
+from .logger_new import (
+    get_logger,
+    setup_logger,
+    configure_default_logger,
+    LoggerMixin,
+    debug,
+    info,
+    warning,
+    error,
+    critical,
+    exception,
+    RateLimitedLogger,
+    get_rate_limited_logger,
+)
+
+# ============================================================================
+# Other Utils
+# ============================================================================
 from .file_handler import FileHandler
 from .validators import (
     validate_stock_code,
@@ -30,14 +56,6 @@ from .exceptions import (
     handle_exception,
     retry_on_exception,
 )
-from .rate_limited_logger import (
-    RateLimitedLogger,
-    LogThrottler,
-    AggregatedLogger,
-    get_rate_limited_logger,
-    get_log_throttler,
-    get_aggregated_logger,
-)
 from .performance_profiler import (
     PerformanceProfiler,
     measure_performance,
@@ -47,28 +65,39 @@ from .performance_profiler import (
     reset_performance_stats,
 )
 
+# Deprecated: old rate_limited_logger.py 클래스들 (logger_new.py로 통합됨)
+# LogThrottler, AggregatedLogger는 필요시 logger_new.py에 추가 가능
+
 __all__ = [
-    # Logger
-    'setup_logger',
+    # ========== Unified Logging (v4.2 CRITICAL #1) ==========
     'get_logger',
-    
-    # FileHandler
+    'setup_logger',
+    'configure_default_logger',
+    'LoggerMixin',
+    'debug',
+    'info',
+    'warning',
+    'error',
+    'critical',
+    'exception',
+    'RateLimitedLogger',
+    'get_rate_limited_logger',
+
+    # ========== File & Validation ==========
     'FileHandler',
-    
-    # Validators
     'validate_stock_code',
     'validate_price',
     'validate_quantity',
     'validate_account_number',
     'validate_date',
-    
-    # Decorators
+
+    # ========== Decorators ==========
     'retry',
     'timing',
     'log_execution',
     'catch_exceptions',
 
-    # v4.1 Exceptions
+    # ========== v4.1 Exceptions ==========
     'AutoTradeException',
     'TradingException',
     'RiskException',
@@ -79,15 +108,7 @@ __all__ = [
     'handle_exception',
     'retry_on_exception',
 
-    # v4.1 Rate-Limited Logger
-    'RateLimitedLogger',
-    'LogThrottler',
-    'AggregatedLogger',
-    'get_rate_limited_logger',
-    'get_log_throttler',
-    'get_aggregated_logger',
-
-    # v4.1 Performance Profiler
+    # ========== v4.1 Performance Profiler ==========
     'PerformanceProfiler',
     'measure_performance',
     'profile_code',

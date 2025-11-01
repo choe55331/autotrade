@@ -91,8 +91,9 @@ pyod>=1.1.0  # Outlier Detection
 statsmodels>=0.14.0  # 통계 분석
 
 # 기술적 지표
-ta-lib  # Technical Analysis Library (선택적)
-pandas-ta>=0.3.14b  # Pandas Technical Analysis
+# ta-lib은 Windows에서 설치 어려움 (numpy 빌드 의존성 필요)
+# ta-lib  # Technical Analysis Library (선택적) - 주석 처리, pandas-ta 사용 권장
+pandas-ta>=0.3.14b  # Pandas Technical Analysis (ta-lib 대체 가능)
 
 # 차트 및 시각화
 # chart.js는 JavaScript 라이브러리이므로 Python requirements에서 제외
