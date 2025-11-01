@@ -223,14 +223,21 @@ class WebSocketTester:
     async def disconnect(self):
         """WebSocket 연결 해제"""
         if self.ws:
-            # 모든 구독 해제
-            for sub in self.subscriptions:
-                tr_id = sub['tr_id']
-                tr_key = sub.get('stock_code') or sub.get('index_code')
-                await self.unsubscribe(tr_id, tr_key)
-                await asyncio.sleep(0.1)
+            # 연결이 열려있는 경우에만 구독 해제
+            if not self.ws.closed:
+                try:
+                    # 모든 구독 해제
+                    for sub in self.subscriptions:
+                        tr_id = sub['tr_id']
+                        tr_key = sub.get('stock_code') or sub.get('index_code')
+                        await self.unsubscribe(tr_id, tr_key)
+                        await asyncio.sleep(0.1)
+                except Exception as e:
+                    print(f"⚠️ 구독 해제 중 오류 (무시): {e}")
 
-            await self.ws.close()
+            # 연결 종료
+            if not self.ws.closed:
+                await self.ws.close()
             print("\n✅ WebSocket 연결 해제")
 
     async def run_test(self):
