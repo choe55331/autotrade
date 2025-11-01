@@ -103,6 +103,26 @@
             color: var(--color-success);
         }
 
+        .settings-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .settings-btn:hover {
+            background: var(--color-primary);
+            color: white;
+            border-color: var(--color-primary);
+        }
+
         /* Sidebar */
         .sidebar {
             background: var(--bg-secondary);
@@ -494,7 +514,10 @@
                 <i class="fas fa-chart-line"></i>
                 <span>AutoTrade Pro v4.2 AI</span>
             </div>
-            <div>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <a href="/settings" target="_blank" class="settings-btn" title="설정">
+                    <i class="fas fa-cog"></i>
+                </a>
                 <div class="status-badge live" id="status-indicator">
                     <span class="realtime-indicator"></span>
                     <span id="status-text">AI 자동매매 실행 중</span>
@@ -570,6 +593,18 @@
                 </button>
                 <button class="tab" onclick="switchTab(3)">
                     <i class="fas fa-search-dollar"></i> 시장 탐색
+                </button>
+                <button class="tab" onclick="switchTab(4)">
+                    <i class="fas fa-chart-pie"></i> 포트폴리오
+                </button>
+                <button class="tab" onclick="switchTab(5)">
+                    <i class="fas fa-newspaper"></i> 감성 분석
+                </button>
+                <button class="tab" onclick="switchTab(6)">
+                    <i class="fas fa-shield-alt"></i> 리스크 관리
+                </button>
+                <button class="tab" onclick="switchTab(7)">
+                    <i class="fas fa-brain"></i> 마켓 레짐
                 </button>
             </div>
 
@@ -829,6 +864,187 @@
                     <div id="market-results" style="overflow-x: auto;">
                         <div class="loading" style="padding: 40px; text-align: center;">
                             <p style="font-size: 12px; color: var(--text-secondary);">필터를 선택하고 탐색하기를 클릭하세요</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 5: Portfolio Optimization (v4.2) -->
+            <div class="tab-content" id="tab-portfolio">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fas fa-chart-pie"></i>
+                            포트폴리오 최적화 (v4.2)
+                        </div>
+                    </div>
+                    <div style="padding: 20px;">
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px;">
+                            <div style="padding: 15px; background: var(--bg-secondary); border-radius: 8px;">
+                                <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px;">최적화 방법</div>
+                                <select id="portfolio-method" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary);">
+                                    <option value="markowitz">Markowitz (최소분산)</option>
+                                    <option value="black-litterman">Black-Litterman</option>
+                                    <option value="risk-parity">Risk Parity (위험균등)</option>
+                                </select>
+                            </div>
+                            <div style="padding: 15px; background: var(--bg-secondary); border-radius: 8px;">
+                                <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px;">목표 수익률 (%)</div>
+                                <input type="number" id="portfolio-target-return" value="15" step="0.5" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary);">
+                            </div>
+                            <div style="padding: 15px; background: var(--bg-secondary); border-radius: 8px;">
+                                <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px;">리스크 허용 수준</div>
+                                <select id="portfolio-risk-level" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary);">
+                                    <option value="conservative">보수적</option>
+                                    <option value="moderate" selected>중립</option>
+                                    <option value="aggressive">공격적</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button onclick="runPortfolioOptimization()" style="width: 100%; padding: 12px; border-radius: 6px; border: none; background: var(--color-primary); color: white; font-weight: 600; cursor: pointer;">
+                            <i class="fas fa-calculator"></i> 포트폴리오 최적화 실행
+                        </button>
+                        <div id="portfolio-results" style="margin-top: 20px; padding: 20px; background: var(--bg-secondary); border-radius: 8px; display: none;">
+                            <h3 style="margin-bottom: 15px; font-size: 14px;">최적 포트폴리오</h3>
+                            <div id="portfolio-allocation"></div>
+                            <div style="margin-top: 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                                <div>
+                                    <div style="font-size: 11px; color: var(--text-secondary);">예상 수익률</div>
+                                    <div style="font-size: 18px; font-weight: 700; color: var(--color-success);" id="portfolio-exp-return">-</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 11px; color: var(--text-secondary);">예상 변동성</div>
+                                    <div style="font-size: 18px; font-weight: 700; color: var(--color-warning);" id="portfolio-volatility">-</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 11px; color: var(--text-secondary);">샤프 비율</div>
+                                    <div style="font-size: 18px; font-weight: 700; color: var(--color-info);" id="portfolio-sharpe">-</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 6: Sentiment Analysis (v4.2) -->
+            <div class="tab-content" id="tab-sentiment">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fas fa-newspaper"></i>
+                            감성 분석 (v4.2)
+                        </div>
+                    </div>
+                    <div style="padding: 20px;">
+                        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 15px; margin-bottom: 20px;">
+                            <input type="text" id="sentiment-stock-code" placeholder="종목 코드 입력 (예: 005930)" style="padding: 12px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary);">
+                            <button onclick="analyzeSentiment()" style="padding: 12px; border-radius: 6px; border: none; background: var(--color-primary); color: white; font-weight: 600; cursor: pointer;">
+                                <i class="fas fa-search"></i> 분석
+                            </button>
+                        </div>
+                        <div id="sentiment-results" style="display: none;">
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px;">
+                                <div style="padding: 20px; background: var(--bg-secondary); border-radius: 8px; text-align: center;">
+                                    <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px;">전체 감성</div>
+                                    <div style="font-size: 32px; font-weight: 700;" id="sentiment-overall">-</div>
+                                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 5px;" id="sentiment-label">-</div>
+                                </div>
+                                <div style="padding: 20px; background: var(--bg-secondary); border-radius: 8px; text-align: center;">
+                                    <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px;">뉴스 감성</div>
+                                    <div style="font-size: 32px; font-weight: 700; color: var(--color-info);" id="sentiment-news">-</div>
+                                </div>
+                                <div style="padding: 20px; background: var(--bg-secondary); border-radius: 8px; text-align: center;">
+                                    <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px;">소셜 감성</div>
+                                    <div style="font-size: 32px; font-weight: 700; color: var(--color-warning);" id="sentiment-social">-</div>
+                                </div>
+                            </div>
+                            <div style="padding: 15px; background: var(--bg-secondary); border-radius: 8px;">
+                                <h4 style="font-size: 13px; margin-bottom: 10px;">최근 뉴스</h4>
+                                <div id="sentiment-news-list" style="font-size: 12px; color: var(--text-secondary);"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 7: Risk Management (v4.2) -->
+            <div class="tab-content" id="tab-risk">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fas fa-shield-alt"></i>
+                            고급 리스크 관리 (v4.2)
+                        </div>
+                    </div>
+                    <div style="padding: 20px;">
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px;">
+                            <div style="padding: 20px; background: var(--bg-secondary); border-radius: 8px; text-align: center;">
+                                <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px;">VaR (95%)</div>
+                                <div style="font-size: 24px; font-weight: 700; color: var(--color-danger);" id="risk-var">-</div>
+                            </div>
+                            <div style="padding: 20px; background: var(--bg-secondary); border-radius: 8px; text-align: center;">
+                                <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px;">CVaR (95%)</div>
+                                <div style="font-size: 24px; font-weight: 700; color: var(--color-danger);" id="risk-cvar">-</div>
+                            </div>
+                            <div style="padding: 20px; background: var(--bg-secondary); border-radius: 8px; text-align: center;">
+                                <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px;">최대 손실</div>
+                                <div style="font-size: 24px; font-weight: 700; color: var(--color-warning);" id="risk-max-loss">-</div>
+                            </div>
+                            <div style="padding: 20px; background: var(--bg-secondary); border-radius: 8px; text-align: center;">
+                                <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px;">리스크 레벨</div>
+                                <div style="font-size: 24px; font-weight: 700;" id="risk-level">-</div>
+                            </div>
+                        </div>
+                        <button onclick="assessRisk()" style="width: 100%; padding: 12px; border-radius: 6px; border: none; background: var(--color-primary); color: white; font-weight: 600; cursor: pointer;">
+                            <i class="fas fa-calculator"></i> 리스크 평가 실행
+                        </button>
+                        <div id="risk-chart" style="margin-top: 20px; height: 300px; background: var(--bg-secondary); border-radius: 8px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 8: Market Regime (v4.2) -->
+            <div class="tab-content" id="tab-regime">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fas fa-brain"></i>
+                            마켓 레짐 감지 (v4.2)
+                        </div>
+                    </div>
+                    <div style="padding: 20px;">
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 20px;">
+                            <div style="padding: 30px; background: var(--bg-secondary); border-radius: 12px; text-align: center;">
+                                <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 15px;">현재 시장 상태</div>
+                                <div style="font-size: 36px; font-weight: 700; margin-bottom: 10px;" id="regime-current">-</div>
+                                <div style="font-size: 12px; color: var(--text-secondary);" id="regime-confidence">신뢰도: -</div>
+                            </div>
+                            <div style="padding: 20px; background: var(--bg-secondary); border-radius: 12px;">
+                                <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 15px;">시장 지표</div>
+                                <div style="display: grid; gap: 10px;">
+                                    <div style="display: flex; justify-content: space-between;">
+                                        <span style="font-size: 12px;">변동성:</span>
+                                        <span style="font-size: 12px; font-weight: 700;" id="regime-volatility">-</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between;">
+                                        <span style="font-size: 12px;">추세 강도:</span>
+                                        <span style="font-size: 12px; font-weight: 700;" id="regime-trend">-</span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between;">
+                                        <span style="font-size: 12px;">시장 심리:</span>
+                                        <span style="font-size: 12px; font-weight: 700;" id="regime-sentiment">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="detectRegime()" style="width: 100%; padding: 12px; border-radius: 6px; border: none; background: var(--color-primary); color: white; font-weight: 600; cursor: pointer;">
+                            <i class="fas fa-sync-alt"></i> 레짐 감지 실행
+                        </button>
+                        <div style="margin-top: 20px; padding: 20px; background: var(--bg-secondary); border-radius: 8px;">
+                            <h4 style="font-size: 13px; margin-bottom: 15px;">추천 전략</h4>
+                            <div id="regime-recommendations" style="font-size: 12px; color: var(--text-secondary);">
+                                레짐 감지를 실행하여 추천 전략을 확인하세요.
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1450,6 +1666,189 @@
             `;
 
             resultsDiv.innerHTML = tableHTML;
+        }
+
+        // ========================================================================
+        // v4.2 NEW FEATURES
+        // ========================================================================
+
+        // Portfolio Optimization (v4.2)
+        async function runPortfolioOptimization() {
+            const method = document.getElementById('portfolio-method').value;
+            const targetReturn = parseFloat(document.getElementById('portfolio-target-return').value);
+            const riskLevel = document.getElementById('portfolio-risk-level').value;
+
+            try {
+                const response = await fetch('/api/v4.2/portfolio/optimize', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        method: method,
+                        target_return: targetReturn / 100,
+                        risk_level: riskLevel
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const results = data.result;
+                    document.getElementById('portfolio-results').style.display = 'block';
+                    document.getElementById('portfolio-exp-return').textContent =
+                        (results.expected_return * 100).toFixed(2) + '%';
+                    document.getElementById('portfolio-volatility').textContent =
+                        (results.volatility * 100).toFixed(2) + '%';
+                    document.getElementById('portfolio-sharpe').textContent =
+                        results.sharpe_ratio.toFixed(2);
+
+                    // Display allocation
+                    let allocationHTML = '<div style="display: grid; gap: 8px;">';
+                    for (const [stock, weight] of Object.entries(results.weights)) {
+                        const percentage = (weight * 100).toFixed(1);
+                        allocationHTML += `
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 12px;">${stock}</span>
+                                <div style="flex: 1; margin: 0 10px; height: 20px; background: var(--bg-primary); border-radius: 10px; overflow: hidden;">
+                                    <div style="width: ${percentage}%; height: 100%; background: var(--color-primary);"></div>
+                                </div>
+                                <span style="font-size: 12px; font-weight: 700; width: 50px; text-align: right;">${percentage}%</span>
+                            </div>
+                        `;
+                    }
+                    allocationHTML += '</div>';
+                    document.getElementById('portfolio-allocation').innerHTML = allocationHTML;
+                } else {
+                    alert('포트폴리오 최적화 실패: ' + (data.message || '알 수 없는 오류'));
+                }
+            } catch (error) {
+                console.error('Portfolio optimization error:', error);
+                alert('포트폴리오 최적화 중 오류가 발생했습니다.');
+            }
+        }
+
+        // Sentiment Analysis (v4.2)
+        async function analyzeSentiment() {
+            const stockCode = document.getElementById('sentiment-stock-code').value;
+            if (!stockCode) {
+                alert('종목 코드를 입력하세요.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/v4.2/sentiment/${stockCode}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const result = data.result;
+                    document.getElementById('sentiment-results').style.display = 'block';
+                    document.getElementById('sentiment-overall').textContent =
+                        result.overall_sentiment.toFixed(1);
+                    document.getElementById('sentiment-overall').style.color =
+                        result.overall_sentiment > 6 ? 'var(--color-success)' :
+                        result.overall_sentiment < 4 ? 'var(--color-danger)' : 'var(--color-warning)';
+                    document.getElementById('sentiment-label').textContent = result.sentiment_label;
+                    document.getElementById('sentiment-news').textContent =
+                        result.news_sentiment.toFixed(1);
+                    document.getElementById('sentiment-social').textContent =
+                        result.social_sentiment.toFixed(1);
+
+                    // Display news
+                    let newsHTML = '<ul style="list-style: none; padding: 0; margin: 0;">';
+                    result.news_articles.slice(0, 5).forEach(article => {
+                        newsHTML += `
+                            <li style="padding: 8px 0; border-bottom: 1px solid var(--border-color);">
+                                <div style="font-size: 12px; margin-bottom: 3px;">${article.title}</div>
+                                <div style="font-size: 10px; color: var(--text-muted);">${article.source} • ${article.date}</div>
+                            </li>
+                        `;
+                    });
+                    newsHTML += '</ul>';
+                    document.getElementById('sentiment-news-list').innerHTML = newsHTML;
+                } else {
+                    alert('감성 분석 실패: ' + (data.message || '알 수 없는 오류'));
+                }
+            } catch (error) {
+                console.error('Sentiment analysis error:', error);
+                alert('감성 분석 중 오류가 발생했습니다.');
+            }
+        }
+
+        // Risk Assessment (v4.2)
+        async function assessRisk() {
+            try {
+                const response = await fetch('/api/v4.2/risk/assess', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({})
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const result = data.result;
+                    document.getElementById('risk-var').textContent =
+                        '₩' + formatNumber(Math.abs(result.var_95));
+                    document.getElementById('risk-cvar').textContent =
+                        '₩' + formatNumber(Math.abs(result.cvar_95));
+                    document.getElementById('risk-max-loss').textContent =
+                        '₩' + formatNumber(Math.abs(result.max_drawdown));
+                    document.getElementById('risk-level').textContent = result.risk_level;
+                    document.getElementById('risk-level').style.color =
+                        result.risk_level === 'Low' ? 'var(--color-success)' :
+                        result.risk_level === 'High' ? 'var(--color-danger)' : 'var(--color-warning)';
+                } else {
+                    alert('리스크 평가 실패: ' + (data.message || '알 수 없는 오류'));
+                }
+            } catch (error) {
+                console.error('Risk assessment error:', error);
+                alert('리스크 평가 중 오류가 발생했습니다.');
+            }
+        }
+
+        // Market Regime Detection (v4.2)
+        async function detectRegime() {
+            try {
+                const response = await fetch('/api/v4.2/regime/detect', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({})
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const result = data.result;
+                    document.getElementById('regime-current').textContent = result.current_regime;
+                    document.getElementById('regime-current').style.color =
+                        result.current_regime === 'Bull Market' ? 'var(--color-success)' :
+                        result.current_regime === 'Bear Market' ? 'var(--color-danger)' : 'var(--color-warning)';
+                    document.getElementById('regime-confidence').textContent =
+                        `신뢰도: ${(result.confidence * 100).toFixed(1)}%`;
+                    document.getElementById('regime-volatility').textContent =
+                        (result.volatility * 100).toFixed(2) + '%';
+                    document.getElementById('regime-trend').textContent =
+                        result.trend_strength.toFixed(2);
+                    document.getElementById('regime-sentiment').textContent =
+                        result.market_sentiment;
+
+                    // Display recommendations
+                    let recHTML = '<ul style="list-style: none; padding: 0; margin: 0;">';
+                    result.recommended_strategies.forEach(strategy => {
+                        recHTML += `
+                            <li style="padding: 8px 12px; margin-bottom: 8px; background: var(--bg-primary); border-left: 3px solid var(--color-primary); border-radius: 4px;">
+                                ${strategy}
+                            </li>
+                        `;
+                    });
+                    recHTML += '</ul>';
+                    document.getElementById('regime-recommendations').innerHTML = recHTML;
+                } else {
+                    alert('레짐 감지 실패: ' + (data.message || '알 수 없는 오류'));
+                }
+            } catch (error) {
+                console.error('Regime detection error:', error);
+                alert('레짐 감지 중 오류가 발생했습니다.');
+            }
         }
     </script>
 </body>
