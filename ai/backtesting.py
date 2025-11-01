@@ -3,7 +3,7 @@ Backtesting Engine for Strategy Validation
 Tests trading strategies on historical data
 
 Author: AutoTrade Pro
-Version: 4.1
+Version: 4.2 - CRITICAL #2: Use standard Position/Trade from core
 """
 
 from dataclasses import dataclass, asdict, field
@@ -13,12 +13,16 @@ from datetime import datetime, timedelta
 from collections import defaultdict
 import json
 
+# v4.2: Use standard types from core (CRITICAL #2)
+from core import Position, Trade as CoreTrade, OrderAction
 
+
+# Backtesting-specific classes
 @dataclass
-class Trade:
-    """Single trade record"""
+class BacktestTrade:
+    """Backtest trade record (extends core.Trade with backtest-specific fields)"""
     trade_id: int
-    timestamp: str
+    timestamp: str  # ISO format
     stock_code: str
     action: str  # 'buy' or 'sell'
     quantity: int
@@ -27,16 +31,28 @@ class Trade:
     commission: float = 0.0
     reason: str = ""
 
+    @classmethod
+    def from_core_trade(cls, core_trade: CoreTrade, trade_id: int) -> 'BacktestTrade':
+        """Convert core.Trade to BacktestTrade"""
+        return cls(
+            trade_id=trade_id,
+            timestamp=core_trade.timestamp.isoformat(),
+            stock_code=core_trade.stock_code,
+            action=core_trade.action.value,
+            quantity=core_trade.quantity,
+            price=core_trade.price,
+            value=core_trade.quantity * core_trade.price,
+            commission=core_trade.commission,
+            reason=core_trade.reason
+        )
 
-@dataclass
-class Position:
-    """Current position"""
-    stock_code: str
-    quantity: int
-    avg_price: float
-    current_price: float
-    unrealized_pnl: float
-    unrealized_pnl_pct: float
+
+# Note: Using core.Position directly instead of custom Position class
+# core.Position has all needed fields:
+# - purchase_price (= avg_price)
+# - current_price
+# - profit_loss (= unrealized_pnl)
+# - profit_loss_rate (= unrealized_pnl_pct)
 
 
 @dataclass
@@ -237,15 +253,13 @@ class BacktestEngine:
         self.max_drawdown = 0.0
 
     def _update_positions(self, data: Dict):
-        """Update position prices"""
+        """Update position prices (using core.Position.update_current_price)"""
         stock_code = data.get('stock_code')
         close_price = data.get('close', 0)
 
         if stock_code in self.positions:
             pos = self.positions[stock_code]
-            pos.current_price = close_price
-            pos.unrealized_pnl = (close_price - pos.avg_price) * pos.quantity
-            pos.unrealized_pnl_pct = (close_price - pos.avg_price) / pos.avg_price * 100
+            pos.update_current_price(close_price)  # Automatically calculates P&L
 
     def _get_portfolio_state(self) -> Dict[str, Any]:
         """Get current portfolio state"""
@@ -296,26 +310,25 @@ class BacktestEngine:
         # Execute trade
         self.cash -= total_cost
 
-        # Update or create position
+        # Update or create position (using core.Position)
         if stock_code in self.positions:
             pos = self.positions[stock_code]
             total_quantity = pos.quantity + quantity
-            total_cost_basis = pos.avg_price * pos.quantity + price * quantity
-            pos.avg_price = total_cost_basis / total_quantity
+            total_cost_basis = pos.purchase_price * pos.quantity + price * quantity
+            pos.purchase_price = total_cost_basis / total_quantity
             pos.quantity = total_quantity
+            pos.update_current_price(price)  # Recalculate P&L
         else:
             self.positions[stock_code] = Position(
                 stock_code=stock_code,
                 quantity=quantity,
-                avg_price=price,
-                current_price=price,
-                unrealized_pnl=0.0,
-                unrealized_pnl_pct=0.0
+                purchase_price=price,
+                current_price=price
             )
 
         # Record trade
         self.trade_counter += 1
-        self.trades.append(Trade(
+        self.trades.append(BacktestTrade(
             trade_id=self.trade_counter,
             timestamp=data.get('date', ''),
             stock_code=stock_code,
@@ -355,7 +368,7 @@ class BacktestEngine:
 
         # Record trade
         self.trade_counter += 1
-        self.trades.append(Trade(
+        self.trades.append(BacktestTrade(
             trade_id=self.trade_counter,
             timestamp=data.get('date', ''),
             stock_code=stock_code,
