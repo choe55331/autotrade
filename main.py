@@ -294,7 +294,11 @@ class TradingBotV2:
     def _main_loop(self):
         """메인 루프"""
         cycle_count = 0
-        sleep_seconds = self.config.main_cycle.sleep_seconds
+        # Backward compatibility: handle both Pydantic (object) and old config (dict)
+        if hasattr(self.config.main_cycle, 'sleep_seconds'):
+            sleep_seconds = self.config.main_cycle.sleep_seconds
+        else:
+            sleep_seconds = self.config.main_cycle.get('sleep_seconds', 60)
 
         while self.is_running:
             cycle_count += 1
