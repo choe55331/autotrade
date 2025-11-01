@@ -66,8 +66,10 @@ class APIResponseKeyDiscovery:
         try:
             with open(api_specs_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-                print(f"✅ {len(data)} 개 API 정의 로드 완료\n")
-                return data
+                # successful_apis.json 구조: {"metadata": {...}, "apis": {...}}
+                apis = data.get('apis', {})
+                print(f"✅ {len(apis)} 개 API 정의 로드 완료\n")
+                return apis
         except Exception as e:
             print(f"❌ 로드 실패: {e}\n")
             return {}

@@ -473,6 +473,303 @@ class MarketAPI:
             logger.error(f"시가대비 등락률 조회 실패: {response.get('return_msg')}")
             return []
 
+    def get_foreign_period_trading_rank(
+        self,
+        market: str = 'KOSPI',
+        trade_type: str = 'buy',
+        period_days: int = 5,
+        limit: int = 20
+    ) -> List[Dict[str, Any]]:
+        """
+        외국인 기간별 매매 상위 (ka10034)
+
+        Args:
+            market: 시장구분 ('KOSPI', 'KOSDAQ')
+            trade_type: 매매구분 ('buy': 순매수, 'sell': 순매도)
+            period_days: 기간 (1, 3, 5, 10, 20일)
+            limit: 조회 건수
+
+        Returns:
+            외국인 기간별 매매 순위
+        """
+        market_map = {'KOSPI': '001', 'KOSDAQ': '101'}
+        mrkt_tp = market_map.get(market.upper(), '001')
+
+        trade_map = {'buy': '2', 'sell': '1'}
+        trde_tp = trade_map.get(trade_type.lower(), '2')
+
+        body = {
+            "mrkt_tp": mrkt_tp,
+            "trde_tp": trde_tp,
+            "dt": str(period_days),
+            "stex_tp": "1"
+        }
+
+        response = self.client.request(api_id="ka10034", body=body, path="rkinfo")
+
+        if response and response.get('return_code') == 0:
+            data_keys = [k for k in response.keys() if k not in ['return_code', 'return_msg', 'api-id', 'cont-yn', 'next-key']]
+            rank_list = []
+            for key in data_keys:
+                val = response.get(key)
+                if isinstance(val, list) and len(val) > 0:
+                    rank_list = val
+                    break
+
+            normalized_list = []
+            for item in rank_list[:limit]:
+                normalized_list.append({
+                    'code': item.get('stk_cd', '').replace('_AL', ''),
+                    'name': item.get('stk_nm', ''),
+                    'price': int(item.get('cur_prc', '0').replace('+', '').replace('-', '')),
+                    'foreign_net_buy': int(item.get('frg_nt_qty', '0')),  # 외국인 순매수량
+                    'change_rate': float(item.get('flu_rt', '0').replace('+', '').replace('-', '')),
+                })
+
+            logger.info(f"외국인 {period_days}일 매매 {len(normalized_list)}개 조회")
+            return normalized_list
+        else:
+            logger.error(f"외국인 기간별 매매 조회 실패: {response.get('return_msg')}")
+            return []
+
+    def get_foreign_continuous_trading_rank(
+        self,
+        market: str = 'KOSPI',
+        trade_type: str = 'buy',
+        limit: int = 20
+    ) -> List[Dict[str, Any]]:
+        """
+        외국인 연속 순매매 상위 (ka10035)
+
+        Args:
+            market: 시장구분 ('KOSPI', 'KOSDAQ')
+            trade_type: 매매구분 ('buy': 순매수, 'sell': 순매도)
+            limit: 조회 건수
+
+        Returns:
+            외국인 연속 순매매 순위
+        """
+        market_map = {'KOSPI': '001', 'KOSDAQ': '101'}
+        mrkt_tp = market_map.get(market.upper(), '001')
+
+        trade_map = {'buy': '2', 'sell': '1'}
+        trde_tp = trade_map.get(trade_type.lower(), '2')
+
+        body = {
+            "mrkt_tp": mrkt_tp,
+            "trde_tp": trde_tp,
+            "base_dt_tp": "0",
+            "stex_tp": "1"
+        }
+
+        response = self.client.request(api_id="ka10035", body=body, path="rkinfo")
+
+        if response and response.get('return_code') == 0:
+            data_keys = [k for k in response.keys() if k not in ['return_code', 'return_msg', 'api-id', 'cont-yn', 'next-key']]
+            rank_list = []
+            for key in data_keys:
+                val = response.get(key)
+                if isinstance(val, list) and len(val) > 0:
+                    rank_list = val
+                    break
+
+            normalized_list = []
+            for item in rank_list[:limit]:
+                normalized_list.append({
+                    'code': item.get('stk_cd', '').replace('_AL', ''),
+                    'name': item.get('stk_nm', ''),
+                    'price': int(item.get('cur_prc', '0').replace('+', '').replace('-', '')),
+                    'continuous_days': int(item.get('cont_dt', '0')),  # 연속일수
+                    'total_net_buy': int(item.get('tot_nt_qty', '0')),  # 총 순매수량
+                })
+
+            logger.info(f"외국인 연속매매 {len(normalized_list)}개 조회")
+            return normalized_list
+        else:
+            logger.error(f"외국인 연속 순매매 조회 실패: {response.get('return_msg')}")
+            return []
+
+    def get_foreign_institution_trading_rank(
+        self,
+        market: str = 'KOSPI',
+        amount_or_qty: str = 'amount',
+        date: str = None,
+        limit: int = 20
+    ) -> List[Dict[str, Any]]:
+        """
+        외국인/기관 매매 상위 (ka90009)
+
+        Args:
+            market: 시장구분 ('KOSPI', 'KOSDAQ')
+            amount_or_qty: 조회구분 ('amount': 금액, 'qty': 수량)
+            date: 조회일 (YYYYMMDD, None이면 오늘)
+            limit: 조회 건수
+
+        Returns:
+            외국인/기관 매매 순위
+        """
+        from utils.trading_date import get_last_trading_date
+
+        market_map = {'KOSPI': '001', 'KOSDAQ': '101'}
+        mrkt_tp = market_map.get(market.upper(), '001')
+
+        amt_qty_map = {'amount': '1', 'qty': '2'}
+        amt_qty_tp = amt_qty_map.get(amount_or_qty.lower(), '1')
+
+        if date is None:
+            date = get_last_trading_date().strftime('%Y%m%d')
+
+        body = {
+            "mrkt_tp": mrkt_tp,
+            "amt_qty_tp": amt_qty_tp,
+            "qry_dt_tp": "1",
+            "date": date,
+            "stex_tp": "1"
+        }
+
+        response = self.client.request(api_id="ka90009", body=body, path="rkinfo")
+
+        if response and response.get('return_code') == 0:
+            data_keys = [k for k in response.keys() if k not in ['return_code', 'return_msg', 'api-id', 'cont-yn', 'next-key']]
+            rank_list = []
+            for key in data_keys:
+                val = response.get(key)
+                if isinstance(val, list) and len(val) > 0:
+                    rank_list = val
+                    break
+
+            normalized_list = []
+            for item in rank_list[:limit]:
+                normalized_list.append({
+                    'code': item.get('stk_cd', '').replace('_AL', ''),
+                    'name': item.get('stk_nm', ''),
+                    'price': int(item.get('cur_prc', '0').replace('+', '').replace('-', '')),
+                    'foreign_net': int(item.get('frg_nt', '0')),  # 외국인 순매수
+                    'institution_net': int(item.get('orgn_nt', '0')),  # 기관 순매수
+                })
+
+            logger.info(f"외국인/기관 매매 {len(normalized_list)}개 조회")
+            return normalized_list
+        else:
+            logger.error(f"외국인/기관 매매 조회 실패: {response.get('return_msg')}")
+            return []
+
+    def get_credit_ratio_rank(
+        self,
+        market: str = 'KOSPI',
+        limit: int = 20
+    ) -> List[Dict[str, Any]]:
+        """
+        신용비율 상위 (ka10033)
+
+        Args:
+            market: 시장구분 ('KOSPI', 'KOSDAQ')
+            limit: 조회 건수
+
+        Returns:
+            신용비율 상위 순위
+        """
+        market_map = {'KOSPI': '001', 'KOSDAQ': '101'}
+        mrkt_tp = market_map.get(market.upper(), '001')
+
+        body = {
+            "mrkt_tp": mrkt_tp,
+            "trde_qty_tp": "100",
+            "stk_cnd": "0",
+            "updown_incls": "1",
+            "crd_cnd": "0",
+            "stex_tp": "3"
+        }
+
+        response = self.client.request(api_id="ka10033", body=body, path="rkinfo")
+
+        if response and response.get('return_code') == 0:
+            data_keys = [k for k in response.keys() if k not in ['return_code', 'return_msg', 'api-id', 'cont-yn', 'next-key']]
+            rank_list = []
+            for key in data_keys:
+                val = response.get(key)
+                if isinstance(val, list) and len(val) > 0:
+                    rank_list = val
+                    break
+
+            normalized_list = []
+            for item in rank_list[:limit]:
+                normalized_list.append({
+                    'code': item.get('stk_cd', '').replace('_AL', ''),
+                    'name': item.get('stk_nm', ''),
+                    'price': int(item.get('cur_prc', '0').replace('+', '').replace('-', '')),
+                    'credit_ratio': float(item.get('crd_rt', '0')),  # 신용비율
+                    'credit_balance': int(item.get('crd_rmn_qty', '0')),  # 신용잔고
+                })
+
+            logger.info(f"신용비율 {len(normalized_list)}개 조회")
+            return normalized_list
+        else:
+            logger.error(f"신용비율 조회 실패: {response.get('return_msg')}")
+            return []
+
+    def get_investor_intraday_trading_rank(
+        self,
+        market: str = 'KOSPI',
+        investor_type: str = 'foreign',
+        limit: int = 20
+    ) -> List[Dict[str, Any]]:
+        """
+        장중 투자자별 매매 상위 (ka10065)
+
+        Args:
+            market: 시장구분 ('KOSPI', 'KOSDAQ')
+            investor_type: 투자자구분 ('foreign': 외국인, 'institution': 기관, 'individual': 개인)
+            limit: 조회 건수
+
+        Returns:
+            투자자별 매매 순위
+        """
+        market_map = {'KOSPI': '001', 'KOSDAQ': '101'}
+        mrkt_tp = market_map.get(market.upper(), '001')
+
+        # 투자자 타입: 9000=외국인, 1000=개인, 8000=기관
+        investor_map = {
+            'foreign': '9000',
+            'institution': '8000',
+            'individual': '1000'
+        }
+        orgn_tp = investor_map.get(investor_type.lower(), '9000')
+
+        body = {
+            "trde_tp": "1",  # 1: 순매수
+            "mrkt_tp": mrkt_tp,
+            "orgn_tp": orgn_tp
+        }
+
+        response = self.client.request(api_id="ka10065", body=body, path="rkinfo")
+
+        if response and response.get('return_code') == 0:
+            data_keys = [k for k in response.keys() if k not in ['return_code', 'return_msg', 'api-id', 'cont-yn', 'next-key']]
+            rank_list = []
+            for key in data_keys:
+                val = response.get(key)
+                if isinstance(val, list) and len(val) > 0:
+                    rank_list = val
+                    break
+
+            normalized_list = []
+            for item in rank_list[:limit]:
+                normalized_list.append({
+                    'code': item.get('stk_cd', '').replace('_AL', ''),
+                    'name': item.get('stk_nm', ''),
+                    'price': int(item.get('cur_prc', '0').replace('+', '').replace('-', '')),
+                    'net_buy_qty': int(item.get('nt_by_qty', '0')),  # 순매수량
+                    'net_buy_amount': int(item.get('nt_by_amt', '0')),  # 순매수금액
+                })
+
+            investor_name = {'foreign': '외국인', 'institution': '기관', 'individual': '개인'}.get(investor_type.lower(), investor_type)
+            logger.info(f"{investor_name} 장중매매 {len(normalized_list)}개 조회")
+            return normalized_list
+        else:
+            logger.error(f"투자자별 매매 조회 실패: {response.get('return_msg')}")
+            return []
+
     def get_sector_list(self) -> List[Dict[str, Any]]:
         """
         업종 목록 조회
