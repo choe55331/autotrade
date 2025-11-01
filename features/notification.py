@@ -66,9 +66,22 @@ class NotificationManager:
         self.desktop_enabled = True
         self.telegram_enabled = False
 
-        # Telegram config
-        self.telegram_bot_token: Optional[str] = None
-        self.telegram_chat_id: Optional[str] = None
+        # Telegram config - credentials.py에서 초기값 로드
+        try:
+            from config import get_credentials
+            creds = get_credentials()
+            telegram_config = creds.get_telegram_config()
+            self.telegram_bot_token: Optional[str] = telegram_config.get('bot_token')
+            self.telegram_chat_id: Optional[str] = telegram_config.get('chat_id')
+
+            # 텔레그램 설정이 있으면 자동 활성화
+            if self.telegram_bot_token and self.telegram_chat_id:
+                self.telegram_enabled = True
+                logger.info("Telegram 설정을 credentials에서 로드했습니다")
+        except Exception as e:
+            logger.warning(f"Telegram credentials 로드 실패: {e}")
+            self.telegram_bot_token: Optional[str] = None
+            self.telegram_chat_id: Optional[str] = None
 
         # Notification history
         self.notifications: List[Notification] = []
