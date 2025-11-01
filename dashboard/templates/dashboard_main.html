@@ -1309,10 +1309,10 @@
             // Gemini AI
             updateSingleConnection('conn-gemini', data.gemini, 'Gemini AI');
 
-            // Test Mode (다른 상태 표시 - 활성/비활성)
+            // Test Mode (활성=파란색, 비활성=빨간색)
             const testModeEl = document.getElementById('conn-testmode');
             if (testModeEl) {
-                testModeEl.className = 'connection-status ' + (data.test_mode ? 'active' : 'connected');
+                testModeEl.className = 'connection-status ' + (data.test_mode ? 'active' : 'disconnected');
                 testModeEl.querySelector('span').textContent = data.test_mode ? '활성' : '비활성';
             }
         }
