@@ -218,24 +218,22 @@ def run_verification_test(force=False):
     }
 
     # =======================================================================
-    # [3] 검증된 API 재확인
+    # [3] 검증된 API 전체 재확인
     # =======================================================================
-    print("\n[3] 검증된 API 재확인 (샘플 10개만)...")
+    print("\n[3] 검증된 API 전체 재확인 (347개 variant)...")
     print("-"*80)
 
-    sample_count = 0
-    for api_id, api_info in list(verified_apis.items())[:10]:  # 샘플 10개만
+    for api_id, api_info in verified_apis.items():
         api_name = api_info['api_name']
 
-        for call in api_info['optimized_calls'][:1]:  # 각 API의 첫 variant만
+        for call in api_info['optimized_calls']:
             variant_idx = call['variant_idx']
             path = call['path']
             body = call['body']
 
             stats['verified']['tested'] += 1
-            sample_count += 1
 
-            print(f"  [{api_id} Var {variant_idx}] {api_name[:40]:40s} ", end='', flush=True)
+            print(f"  테스트 중 [{api_id} Var {variant_idx}] {api_name[:30]:30s} ", end='', flush=True)
 
             test_result = test_api_call(client, api_id, api_name, path, body)
 
@@ -260,8 +258,6 @@ def run_verification_test(force=False):
             else:
                 print(f"❌ ERROR: {test_result.get('return_msg', 'Unknown')[:50]}")
                 stats['verified']['error'] += 1
-
-    print(f"\n  (샘플 {sample_count}개만 테스트, 나머지는 스킵)")
 
     # =======================================================================
     # [4] 수정된 API 테스트
@@ -321,10 +317,10 @@ def run_verification_test(force=False):
     print("📊 테스트 결과 통계")
     print("="*80)
 
-    print(f"\n✅ 검증된 API 재확인 (샘플 {sample_count}개)")
-    print(f"  - 진짜 성공: {stats['verified']['real_success']}개")
-    print(f"  - 데이터 없음: {stats['verified']['no_data']}개")
-    print(f"  - 오류: {stats['verified']['error']}개")
+    print(f"\n✅ 검증된 API 재확인 ({stats['verified']['tested']}개 variant)")
+    print(f"  - 진짜 성공: {stats['verified']['real_success']}개 ({stats['verified']['real_success']/stats['verified']['tested']*100:.1f}%)")
+    print(f"  - 데이터 없음: {stats['verified']['no_data']}개 ({stats['verified']['no_data']/stats['verified']['tested']*100:.1f}%)")
+    print(f"  - 오류: {stats['verified']['error']}개 ({stats['verified']['error']/stats['verified']['tested']*100:.1f}%)")
 
     print(f"\n🔧 수정된 API 테스트 ({stats['corrected']['tested']}개)")
     print(f"  - 진짜 성공: {stats['corrected']['real_success']}개")
