@@ -25,7 +25,11 @@
       "success_rate": 93.5,
       "successful_calls": 346
     },
-    "updated_at": "2025-11-01 08:13:19"
+    "updated_at": "2025-11-01 08:13:19",
+    "patch_applied_at": "2025-11-01T17:27:59.317871",
+    "patches_applied": 29,
+    "fix_applied_at": "2025-11-01T17:28:08.111289",
+    "fixes_count": 5
   },
   "apis": {
     "kt00005": {
@@ -38,7 +42,8 @@
           "variant_idx": 1,
           "path": "acnt",
           "body": {
-            "dmst_stex_tp": "KRX"
+            "dmst_stex_tp": "KRX",
+            "stk_cd": "005930"
           },
           "status": "success"
         },
@@ -46,7 +51,8 @@
           "variant_idx": 2,
           "path": "acnt",
           "body": {
-            "dmst_stex_tp": "NXT"
+            "dmst_stex_tp": "NXT",
+            "stk_cd": "005930"
           },
           "status": "success"
         }
@@ -67,7 +73,9 @@
           "path": "acnt",
           "body": {
             "qry_tp": "2",
-            "dmst_stex_tp": "KRX"
+            "dmst_stex_tp": "KRX",
+            "stk_cd": "005930",
+            "qry_dt": "20251101"
           },
           "status": "success"
         },
@@ -76,7 +84,9 @@
           "path": "acnt",
           "body": {
             "qry_tp": "1",
-            "dmst_stex_tp": "KRX"
+            "dmst_stex_tp": "KRX",
+            "stk_cd": "005930",
+            "qry_dt": "20251101"
           },
           "status": "success"
         },
@@ -85,7 +95,9 @@
           "path": "acnt",
           "body": {
             "qry_tp": "2",
-            "dmst_stex_tp": "NXT"
+            "dmst_stex_tp": "NXT",
+            "stk_cd": "005930",
+            "qry_dt": "20251101"
           },
           "status": "success"
         },
@@ -94,7 +106,9 @@
           "path": "acnt",
           "body": {
             "qry_tp": "1",
-            "dmst_stex_tp": "NXT"
+            "dmst_stex_tp": "NXT",
+            "stk_cd": "005930",
+            "qry_dt": "20251101"
           },
           "status": "success"
         }
@@ -114,7 +128,10 @@
           "variant_idx": 1,
           "path": "acnt",
           "body": {
-            "stex_tp": "0"
+            "stex_tp": "0",
+            "period": "1M",
+            "strt_dt": "20251001",
+            "end_dt": "20251101"
           },
           "status": "success"
         },
@@ -122,7 +139,10 @@
           "variant_idx": 2,
           "path": "acnt",
           "body": {
-            "stex_tp": "1"
+            "stex_tp": "1",
+            "period": "1M",
+            "strt_dt": "20251001",
+            "end_dt": "20251101"
           },
           "status": "success"
         },
@@ -130,7 +150,10 @@
           "variant_idx": 3,
           "path": "acnt",
           "body": {
-            "stex_tp": "2"
+            "stex_tp": "2",
+            "period": "1M",
+            "strt_dt": "20251001",
+            "end_dt": "20251101"
           },
           "status": "success"
         }
@@ -149,13 +172,19 @@
         {
           "variant_idx": 1,
           "path": "acnt",
-          "body": {},
+          "body": {
+            "qry_tp": "01",
+            "incl_tp": "00"
+          },
           "status": "success"
         },
         {
           "variant_idx": 2,
           "path": "acnt",
-          "body": {},
+          "body": {
+            "qry_tp": "01",
+            "incl_tp": "00"
+          },
           "status": "success"
         }
       ],
@@ -174,7 +203,8 @@
           "variant_idx": 1,
           "path": "acnt",
           "body": {
-            "dmst_stex_tp": "KRX"
+            "dmst_stex_tp": "KRX",
+            "qry_tp": "01"
           },
           "status": "success"
         },
@@ -182,7 +212,8 @@
           "variant_idx": 2,
           "path": "acnt",
           "body": {
-            "dmst_stex_tp": "NXT"
+            "dmst_stex_tp": "NXT",
+            "qry_tp": "01"
           },
           "status": "success"
         },
@@ -190,7 +221,8 @@
           "variant_idx": 3,
           "path": "acnt",
           "body": {
-            "dmst_stex_tp": "%"
+            "dmst_stex_tp": "%",
+            "qry_tp": "01"
           },
           "status": "success"
         }
@@ -212,7 +244,8 @@
           "body": {
             "stk_cd": "005930",
             "trde_tp": "2",
-            "uv": "480000"
+            "uv": "480000",
+            "ord_tp": "01"
           },
           "status": "corrected",
           "fix_reason": "종목코드 000660 → 005930 (삼성전자)"
@@ -264,7 +297,10 @@
         {
           "variant_idx": 1,
           "path": "acnt",
-          "body": {},
+          "body": {
+            "qry_tp": "01",
+            "incl_tp": "00"
+          },
           "status": "success"
         }
       ],
@@ -363,7 +399,11 @@
           "path": "acnt",
           "body": {
             "stk_cd": "005930",
-            "strt_dt": "20251031"
+            "strt_dt": "20251031",
+            "trad_dt": "20251101",
+            "start_dt": "20251018",
+            "end_dt": "20251101",
+            "qry_dt": "20251101"
           },
           "status": "corrected",
           "fix_reason": "종목코드 071050 → 005930 (삼성전자); 시작일자를 일주일 전으로 변경"
@@ -373,7 +413,11 @@
           "path": "acnt",
           "body": {
             "stk_cd": "005930",
-            "strt_dt": "20251031"
+            "strt_dt": "20251031",
+            "trad_dt": "20251101",
+            "start_dt": "20251018",
+            "end_dt": "20251101",
+            "qry_dt": "20251101"
           },
           "status": "corrected",
           "fix_reason": "종목코드 000660 → 005930 (삼성전자); 시작일자를 일주일 전으로 변경"
@@ -427,7 +471,11 @@
             "sell_tp": "0",
             "stk_cd": "",
             "fr_ord_no": "",
-            "dmst_stex_tp": "%"
+            "dmst_stex_tp": "%",
+            "start_dt": "20251018",
+            "end_dt": "20251101",
+            "qry_dt": "20251101",
+            "trad_dt": "20251101"
           },
           "status": "corrected",
           "fix_reason": "주문일자를 어제로 변경"
@@ -442,7 +490,11 @@
             "sell_tp": "0",
             "stk_cd": "",
             "fr_ord_no": "",
-            "dmst_stex_tp": "%"
+            "dmst_stex_tp": "%",
+            "start_dt": "20251018",
+            "end_dt": "20251101",
+            "qry_dt": "20251101",
+            "trad_dt": "20251101"
           },
           "status": "corrected",
           "fix_reason": "주문일자를 어제로 변경"
@@ -457,7 +509,11 @@
             "sell_tp": "0",
             "stk_cd": "",
             "fr_ord_no": "",
-            "dmst_stex_tp": "%"
+            "dmst_stex_tp": "%",
+            "start_dt": "20251018",
+            "end_dt": "20251101",
+            "qry_dt": "20251101",
+            "trad_dt": "20251101"
           },
           "status": "corrected",
           "fix_reason": "주문일자를 어제로 변경"
@@ -537,7 +593,12 @@
         {
           "variant_idx": 1,
           "path": "acnt",
-          "body": {},
+          "body": {
+            "qry_tp": "01",
+            "incl_tp": "00",
+            "strt_dt": "20251018",
+            "end_dt": "20251101"
+          },
           "status": "success"
         }
       ],
@@ -5147,7 +5208,8 @@
           "variant_idx": 1,
           "path": "mrkcond",
           "body": {
-            "stk_cd": "M04020000"
+            "stk_cd": "M04020000",
+            "prod_cd": "KRG"
           },
           "status": "success"
         },
@@ -5155,7 +5217,8 @@
           "variant_idx": 2,
           "path": "mrkcond",
           "body": {
-            "stk_cd": "M04020100"
+            "stk_cd": "M04020100",
+            "prod_cd": "KRG"
           },
           "status": "success"
         }
@@ -5223,7 +5286,9 @@
           "path": "sect",
           "body": {
             "stk_cd": "005930",
-            "inds_cd": "0001"
+            "inds_cd": "0001",
+            "upjong_cd": "001",
+            "grp_tp": "0"
           },
           "status": "pending",
           "fix_reason": "업종코드 \"001\"을 삼성전자 종목코드로 변경"
@@ -5233,7 +5298,9 @@
           "path": "sect",
           "body": {
             "stk_cd": "000660",
-            "inds_cd": "0001"
+            "inds_cd": "0001",
+            "upjong_cd": "001",
+            "grp_tp": "0"
           },
           "status": "pending",
           "fix_reason": "업종코드 \"201\"을 SK하이닉스 종목코드로 변경"
@@ -5243,7 +5310,9 @@
           "path": "sect",
           "body": {
             "stk_cd": "035420",
-            "inds_cd": "0001"
+            "inds_cd": "0001",
+            "upjong_cd": "001",
+            "grp_tp": "0"
           },
           "status": "pending",
           "fix_reason": "업종코드 \"101\"을 NAVER 종목코드로 변경"
