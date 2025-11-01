@@ -127,3 +127,11 @@ _immutable/credentials/secrets.json
 _immutable/credentials/*.key
 _immutable/credentials/*.pem
 _immutable/credentials/*.env
+
+# Archived and test results
+_archived/
+test_results/*.txt
+test_results/*.json
+*.txt
+!requirements.txt
+!README.txt

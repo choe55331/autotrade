@@ -1,0 +1,20 @@
+{
+  "created_at": "2025-11-01",
+  "total_categories": 7,
+  "stats": {
+    "total_apis": 133,
+    "total_variants": 352,
+    "by_category": {
+      "account": 31,
+      "other": 45,
+      "info": 1,
+      "market": 13,
+      "search": 25,
+      "ranking": 24,
+      "elw": 5
+    },
+    "test_date": "2025-11-01 04:31:29",
+    "success_rate": 93.5,
+    "successful_calls": 346
+  }
+}

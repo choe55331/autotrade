@@ -1,0 +1,134 @@
+{
+  "category": "elw",
+  "apis": {
+    "ka30001": {
+      "api_id": "ka30001",
+      "api_name": "ELW가격급등락요청",
+      "category": "elw",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 1,
+          "path": "elw",
+          "body": {
+            "flu_tp": "1",
+            "tm_tp": "1",
+            "tm": "5",
+            "trde_qty_tp": "0",
+            "isscomp_cd": "000000000000",
+            "bsis_aset_cd": "000000000000",
+            "rght_tp": "000",
+            "lpcd": "000000000000",
+            "trde_end_elwskip": "0"
+          },
+          "status": "success"
+        },
+        {
+          "variant_idx": 2,
+          "path": "elw",
+          "body": {
+            "flu_tp": "2",
+            "tm_tp": "2",
+            "tm": "1",
+            "trde_qty_tp": "10",
+            "isscomp_cd": "000000000003",
+            "bsis_aset_cd": "201",
+            "rght_tp": "002",
+            "lpcd": "000000000000",
+            "trde_end_elwskip": "1"
+          },
+          "status": "success"
+        }
+      ],
+      "source": "verified",
+      "tested": true,
+      "success_rate": 100.0
+    },
+    "ka30003": {
+      "api_id": "ka30003",
+      "api_name": "ELWLP보유일별추이요청",
+      "category": "elw",
+      "total_variants": 2,
+      "calls": [
+        {
+          "variant_idx": 2,
+          "path": "elw",
+          "body": {
+            "bsis_aset_cd": "201",
+            "base_dt": "20251031",
+            "stk_cd": ""
+          },
+          "status": "corrected",
+          "fix_reason": "기준일자를 어제로 변경; 기초자산코드 000660 → 201 (KOSPI200)"
+        },
+        {
+          "variant_idx": 3,
+          "path": "elw",
+          "body": {
+            "bsis_aset_cd": "201",
+            "base_dt": "20251031",
+            "stk_cd": ""
+          },
+          "status": "corrected",
+          "fix_reason": "기준일자를 어제로 변경; 기초자산코드 066970 → 201 (KOSPI200)"
+        }
+      ],
+      "source": "corrected",
+      "tested": true,
+      "original_status": "partial_fail",
+      "corrections_applied": true
+    },
+    "ka30004": {
+      "api_id": "ka30004",
+      "api_name": "ELW괴리율요청",
+      "category": "elw",
+      "total_variants": 3,
+      "calls": [
+        {
+          "variant_idx": 2,
+          "path": "elw",
+          "body": {
+            "isscomp_cd": "000000000000",
+            "bsis_aset_cd": "201",
+            "rght_tp": "002",
+            "lpcd": "000000000000",
+            "trde_end_elwskip": "1"
+          },
+          "status": "corrected",
+          "fix_reason": "기초자산코드 066970 → 201 (KOSPI200)"
+        },
+        {
+          "variant_idx": 3,
+          "path": "elw",
+          "body": {
+            "isscomp_cd": "000000000000",
+            "bsis_aset_cd": "201",
+            "rght_tp": "001",
+            "lpcd": "000000000000",
+            "trde_end_elwskip": "0"
+          },
+          "status": "corrected",
+          "fix_reason": "기초자산코드 000660 → 201 (KOSPI200)"
+        },
+        {
+          "variant_idx": 4,
+          "path": "elw",
+          "body": {
+            "isscomp_cd": "000000000003",
+            "bsis_aset_cd": "101",
+            "rght_tp": "000",
+            "lpcd": "000000000000",
+            "trde_end_elwskip": "0"
+          },
+          "status": "corrected",
+          "fix_reason": "파라미터 최적화"
+        }
+      ],
+      "source": "corrected",
+      "tested": true,
+      "original_status": "partial_fail",
+      "corrections_applied": true
+    }
+  },
+  "count": 3
+}
