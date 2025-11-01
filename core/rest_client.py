@@ -294,7 +294,8 @@ class KiwoomRESTClient:
         """에러 응답 파싱"""
         try:
             return str(res.json())
-        except:
+        except (ValueError, json.JSONDecodeError, Exception) as e:
+            logger.warning(f"Error parsing response: {e}")
             return res.text[:200]
     
     def request(
@@ -419,7 +420,7 @@ class KiwoomRESTClient:
             error_text = e.response.text[:200]
             logger.error(f"HTTP 오류 ({api_id}): {e.response.status_code} - {error_text}")
             return {
-                "return_code": f"-{e.response.status_code}",
+                "return_code": -int(e.response.status_code),
                 "return_msg": f"HTTP 오류: {e.response.reason}",
                 "error_detail": error_text
             }

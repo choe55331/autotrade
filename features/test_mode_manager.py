@@ -399,40 +399,140 @@ class TestModeManager:
             print(f"   ❌ 오류: {e}")
 
     async def _test_ai_analysis(self):
-        """AI 분석 테스트"""
-        print("\n[7/8] AI 분석 시뮬레이션 테스트...")
+        """AI 분석 테스트 (실제 기술적 지표 계산)"""
+        print("\n[7/8] AI 분석 및 기술적 지표 계산 테스트...")
 
         try:
-            # AI 분석 시뮬레이션 (실제 API 호출 없이 구조 테스트)
-            print("   📊 AI 분석 시뮬레이션 실행 중...")
+            # 실제 차트 데이터를 사용한 기술적 지표 계산
+            print("   📊 차트 데이터 조회 및 기술적 지표 계산 중...")
 
-            # 기술적 지표 계산 시뮬레이션
-            technical_analysis = {
-                "rsi": 45.2,
-                "macd": "매수 신호",
-                "bollinger": "중립",
-                "volume": "평균 대비 120%"
-            }
+            from api.market import get_daily_chart
+            import pandas as pd
+            from indicators.momentum import rsi, macd, calculate_momentum_score
+            from indicators.volatility import bollinger_bands, calculate_volatility_score
+            from indicators.volume import calculate_volume_profile
 
-            # 감성 분석 시뮬레이션
+            # 삼성전자 차트 데이터 조회 (60일)
+            stock_code = "005930"
+            chart_data = get_daily_chart(stock_code, period=60, date=self.test_date)
+
+            if not chart_data or len(chart_data) < 20:
+                # 데이터가 충분하지 않으면 시뮬레이션 모드
+                technical_analysis = {
+                    "rsi": "데이터 부족",
+                    "macd": "데이터 부족",
+                    "bollinger": "데이터 부족",
+                    "volume": "데이터 부족"
+                }
+                print("   ⚠️ 차트 데이터 부족 - 시뮬레이션 모드")
+            else:
+                # DataFrame 변환 (필드명은 API 응답에 맞춰 조정 필요)
+                df = pd.DataFrame(chart_data)
+
+                # 필드명 표준화 (API 응답 구조에 따라 조정)
+                if 'stck_clpr' in df.columns:  # 키움 API 필드명
+                    df['close'] = pd.to_numeric(df['stck_clpr'], errors='coerce')
+                    df['high'] = pd.to_numeric(df.get('stck_hgpr', df['stck_clpr']), errors='coerce')
+                    df['low'] = pd.to_numeric(df.get('stck_lwpr', df['stck_clpr']), errors='coerce')
+                    df['volume'] = pd.to_numeric(df.get('acml_vol', 0), errors='coerce')
+                elif 'close' not in df.columns and len(df.columns) > 0:
+                    # 컬럼명이 다른 경우 매핑
+                    df['close'] = pd.to_numeric(df.iloc[:, 4], errors='coerce')  # 5번째 컬럼 = 종가
+                    df['high'] = pd.to_numeric(df.iloc[:, 2], errors='coerce')   # 3번째 컬럼 = 고가
+                    df['low'] = pd.to_numeric(df.iloc[:, 3], errors='coerce')    # 4번째 컬럼 = 저가
+                    df['volume'] = pd.to_numeric(df.iloc[:, 5], errors='coerce')  # 6번째 컬럼 = 거래량
+
+                # 실제 기술적 지표 계산
+                close_prices = df['close'].dropna()
+
+                if len(close_prices) >= 20:
+                    # RSI 계산
+                    rsi_values = rsi(close_prices, period=14)
+                    current_rsi = round(rsi_values.iloc[-1], 2) if not pd.isna(rsi_values.iloc[-1]) else 50.0
+
+                    # MACD 계산
+                    macd_line, signal_line, histogram = macd(close_prices)
+                    current_hist = histogram.iloc[-1] if not pd.isna(histogram.iloc[-1]) else 0
+
+                    if current_hist > 0:
+                        macd_signal = "매수 신호"
+                    elif current_hist < 0:
+                        macd_signal = "매도 신호"
+                    else:
+                        macd_signal = "중립"
+
+                    # Bollinger Bands 계산
+                    high_prices = df['high'].dropna()
+                    low_prices = df['low'].dropna()
+
+                    if len(high_prices) >= 20:
+                        upper, middle, lower = bollinger_bands(close_prices, period=20)
+                        current_price = close_prices.iloc[-1]
+                        current_upper = upper.iloc[-1]
+                        current_lower = lower.iloc[-1]
+
+                        bandwidth = current_upper - current_lower
+                        percent_b = (current_price - current_lower) / bandwidth if bandwidth > 0 else 0.5
+
+                        if percent_b > 0.8:
+                            bollinger_signal = "상단 근접"
+                        elif percent_b < 0.2:
+                            bollinger_signal = "하단 근접"
+                        else:
+                            bollinger_signal = "중립"
+                    else:
+                        bollinger_signal = "중립"
+
+                    # 거래량 분석
+                    volumes = df['volume'].dropna()
+                    if len(volumes) >= 20:
+                        avg_volume = volumes.tail(20).mean()
+                        current_volume = volumes.iloc[-1]
+                        volume_ratio = (current_volume / avg_volume * 100) if avg_volume > 0 else 100
+                        volume_signal = f"평균 대비 {volume_ratio:.0f}%"
+                    else:
+                        volume_signal = "평균 대비 100%"
+
+                    technical_analysis = {
+                        "rsi": current_rsi,
+                        "macd": macd_signal,
+                        "bollinger": bollinger_signal,
+                        "volume": volume_signal
+                    }
+
+                    print(f"   ✅ 실제 기술적 지표 계산 완료 ({len(close_prices)}일 데이터 사용)")
+                else:
+                    # 데이터 부족
+                    technical_analysis = {
+                        "rsi": "데이터 부족",
+                        "macd": "데이터 부족",
+                        "bollinger": "데이터 부족",
+                        "volume": "데이터 부족"
+                    }
+                    print("   ⚠️ 유효한 가격 데이터 부족")
+
+            # 감성 분석은 시뮬레이션 (실제 뉴스/소셜 분석은 별도 구현 필요)
             sentiment_analysis = {
-                "news_sentiment": "긍정적",
-                "social_sentiment": "중립",
-                "analyst_rating": "매수"
+                "news_sentiment": "시뮬레이션",
+                "social_sentiment": "시뮬레이션",
+                "analyst_rating": "시뮬레이션"
             }
 
             self.test_results["tests"]["ai_analysis"] = {
                 "success": True,
                 "technical": technical_analysis,
-                "sentiment": sentiment_analysis
+                "sentiment": sentiment_analysis,
+                "data_points": len(chart_data) if chart_data else 0
             }
 
-            print("   ✅ AI 분석 시뮬레이션 완료")
-            print(f"      기술적 분석: RSI={technical_analysis['rsi']}, MACD={technical_analysis['macd']}")
-            print(f"      감성 분석: 뉴스={sentiment_analysis['news_sentiment']}, 애널리스트={sentiment_analysis['analyst_rating']}")
+            print("   ✅ 기술적 분석 완료")
+            print(f"      RSI: {technical_analysis['rsi']}")
+            print(f"      MACD: {technical_analysis['macd']}")
+            print(f"      Bollinger: {technical_analysis['bollinger']}")
+            print(f"      Volume: {technical_analysis['volume']}")
 
         except Exception as e:
-            logger.error(f"AI 분석 테스트 실패: {e}")
+            logger.error(f"AI 분석 테스트 실패: {e}", exc_info=True)
             self.test_results["tests"]["ai_analysis"] = {
                 "success": False,
                 "error": str(e)

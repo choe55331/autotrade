@@ -153,23 +153,49 @@ async def health_check():
 
 @app.get("/api/status", response_model=SystemStatus)
 async def get_system_status():
-    """시스템 전체 상태 조회"""
+    """시스템 전체 상태 조회 (실제 연결 상태 확인)"""
     try:
-        # TODO: Implement real status retrieval from bot instance
+        from features.status_monitor import get_status_monitor
+
+        # 상태 모니터 인스턴스 가져오기
+        monitor = get_status_monitor()
+
+        # 모든 시스템 상태 확인
+        status_summary = monitor.check_all_status()
+
+        # 연결 상태 추출
+        components = status_summary.get('components', {})
+        connections = {
+            "rest_api": components.get('rest_api', {}).get('connected', False),
+            "websocket": components.get('websocket', {}).get('connected', False),
+            "gemini": components.get('gemini', {}).get('connected', False)
+        }
+
+        # 테스트 모드 정보
+        test_mode_info = components.get('test_mode', {})
+        test_mode = {
+            "active": test_mode_info.get('enabled', False),
+            "test_date": test_mode_info.get('test_date'),
+            "reason": test_mode_info.get('reason')
+        }
+
+        # 시스템 실행 상태 (bot_instance 확인)
+        running = bot_instance is not None
+        trading_enabled = running and connections.get('rest_api', False)
+
+        # 업타임 계산 (TODO: 실제 시작 시간 추적 필요)
+        uptime = "Running"
+
         return SystemStatus(
-            running=True,
-            trading_enabled=True,
-            uptime="2h 30m",
-            last_update=datetime.now().isoformat(),
-            test_mode={"active": False},
-            connections={
-                "rest_api": True,
-                "websocket": True,
-                "gemini": True
-            }
+            running=running,
+            trading_enabled=trading_enabled,
+            uptime=uptime,
+            last_update=status_summary.get('timestamp', datetime.now().isoformat()),
+            test_mode=test_mode,
+            connections=connections
         )
     except Exception as e:
-        logger.error(f"Error getting system status: {e}")
+        logger.error(f"Error getting system status: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
