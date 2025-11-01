@@ -65,6 +65,55 @@ scikit-learn>=1.3.0
 xgboost>=2.0.0
 
 # ====================================
+# v4.0 Comprehensive Enhancement
+# ====================================
+
+# FastAPI for REST API
+fastapi>=0.104.0
+uvicorn>=0.24.0
+pydantic>=2.5.0
+
+# 고급 백테스팅 리포트 (HTML/PDF 생성)
+jinja2>=3.1.0
+matplotlib>=3.8.0
+seaborn>=0.13.0
+plotly>=5.18.0
+kaleido>=0.2.1  # Plotly 이미지 export
+weasyprint>=60.0  # HTML to PDF
+reportlab>=4.0.0  # PDF 생성
+
+# 파라미터 최적화
+optuna>=3.4.0  # Bayesian Optimization
+scikit-optimize>=0.9.0  # 추가 최적화 도구
+
+# 이상 감지
+pyod>=1.1.0  # Outlier Detection
+statsmodels>=0.14.0  # 통계 분석
+
+# 기술적 지표
+ta-lib  # Technical Analysis Library (선택적)
+pandas-ta>=0.3.14b  # Pandas Technical Analysis
+
+# 차트 및 시각화
+chart.js  # JavaScript 차트 (웹 라이브러리이지만 참고용)
+
+# WebSocket 강화
+python-engineio>=4.8.0
+
+# 스케줄링
+apscheduler>=3.10.0
+
+# 데이터 검증
+cerberus>=1.3.5
+
+# 암호화 (API 키 보안)
+cryptography>=41.0.0
+
+# 추가 유틸리티
+more-itertools>=10.1.0
+tqdm>=4.66.0  # 진행률 표시
+
+# ====================================
 # 선택적 패키지 (설치 실패 시 주석 처리)
 # ====================================
 

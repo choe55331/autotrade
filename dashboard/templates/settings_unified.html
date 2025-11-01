@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>통합 설정 - AutoTrade Pro v4.0</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --primary-color: #667eea;
+            --primary-dark: #5568d3;
+            --success-color: #00c853;
+            --danger-color: #d32f2f;
+            --warning-color: #ffa726;
+            --bg-color: #f5f5f7;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --border-color: #e0e0e0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            padding: 20px;
+        }
+
+        /* 다크 모드 */
+        body.dark-mode {
+            --bg-color: #1a1a1a;
+            --card-bg: #2d2d2d;
+            --text-color: #e0e0e0;
+            --border-color: #404040;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .theme-toggle {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .tab:hover {
+            border-color: var(--primary-color);
+        }
+
+        .tab.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .settings-panel {
+            display: none;
+        }
+
+        .settings-panel.active {
+            display: block;
+        }
+
+        .settings-section {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--text-color);
+        }
+
+        .form-label small {
+            color: #999;
+            font-weight: 400;
+        }
+
+        .form-input,
+        .form-select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            background: var(--card-bg);
+            color: var(--text-color);
+            transition: all 0.3s;
+        }
+
+        .form-input:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .form-checkbox {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-left: 4px solid var(--success-color);
+        }
+
+        .alert-danger {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 4px solid var(--danger-color);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .header {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>⚙️ 통합 설정</h1>
+                <p style="margin-top: 5px; opacity: 0.9;">모든 기능을 한 곳에서 관리</p>
+            </div>
+            <button class="theme-toggle" onclick="toggleTheme()">🌙 다크 모드</button>
+        </div>
+
+        <div class="alert alert-success" id="success-alert">
+            <strong>✅ 성공!</strong> 설정이 저장되었습니다.
+        </div>
+
+        <div class="alert alert-danger" id="error-alert">
+            <strong>❌ 오류!</strong> <span id="error-message"></span>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('system')">시스템</div>
+            <div class="tab" onclick="switchTab('risk')">리스크 관리</div>
+            <div class="tab" onclick="switchTab('strategies')">전략 설정</div>
+            <div class="tab" onclick="switchTab('ai')">AI 분석</div>
+            <div class="tab" onclick="switchTab('backtest')">백테스팅</div>
+            <div class="tab" onclick="switchTab('notification')">알림</div>
+            <div class="tab" onclick="switchTab('ui')">UI 설정</div>
+        </div>
+
+        <!-- 시스템 설정 -->
+        <div id="panel-system" class="settings-panel active">
+            <div class="settings-section">
+                <div class="section-title">시스템 설정</div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label checkbox-group">
+                            <input type="checkbox" class="form-checkbox" id="trading_enabled">
+                            매매 기능 활성화
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label checkbox-group">
+                            <input type="checkbox" class="form-checkbox" id="test_mode">
+                            테스트 모드
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">로그 레벨</label>
+                        <select class="form-select" id="logging_level">
+                            <option value="DEBUG">DEBUG</option>
+                            <option value="INFO" selected>INFO</option>
+                            <option value="WARNING">WARNING</option>
+                            <option value="ERROR">ERROR</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">최대 동시 AI 분석 수</label>
+                        <input type="number" class="form-input" id="max_concurrent_analysis" value="3" min="1" max="10">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 리스크 관리 설정 -->
+        <div id="panel-risk" class="settings-panel">
+            <div class="settings-section">
+                <div class="section-title">리스크 관리</div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">최대 포지션 크기 (%)</label>
+                        <input type="number" class="form-input" id="max_position_size" value="30" step="1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">일일 최대 손실 (%)</label>
+                        <input type="number" class="form-input" id="max_daily_loss" value="3" step="0.5">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">기본 손절 비율 (%)</label>
+                        <input type="number" class="form-input" id="stop_loss_rate" value="5" step="0.5">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">기본 익절 비율 (%)</label>
+                        <input type="number" class="form-input" id="take_profit_rate" value="10" step="0.5">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label checkbox-group">
+                            <input type="checkbox" class="form-checkbox" id="enable_trailing_stop" checked>
+                            Trailing Stop 활성화
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">ATR 승수</label>
+                        <input type="number" class="form-input" id="trailing_stop_atr_multiplier" value="2.0" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label checkbox-group">
+                            <input type="checkbox" class="form-checkbox" id="enable_kelly_criterion">
+                            켈리 배팅 자금 관리
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">켈리 비율 (보수적)</label>
+                        <input type="number" class="form-input" id="kelly_fraction" value="0.5" step="0.1" max="1">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 전략 설정 -->
+        <div id="panel-strategies" class="settings-panel">
+            <div class="settings-section">
+                <div class="section-title">모멘텀 전략</div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label checkbox-group">
+                            <input type="checkbox" class="form-checkbox" id="momentum_enabled" checked>
+                            활성화
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">단기 이동평균 기간</label>
+                        <input type="number" class="form-input" id="momentum_short_ma" value="5">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">장기 이동평균 기간</label>
+                        <input type="number" class="form-input" id="momentum_long_ma" value="20">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">RSI 기간</label>
+                        <input type="number" class="form-input" id="momentum_rsi_period" value="14">
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="section-title">변동성 돌파 전략</div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label checkbox-group">
+                            <input type="checkbox" class="form-checkbox" id="vb_enabled" checked>
+                            활성화
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">K 값 (변동폭 승수)</label>
+                        <input type="number" class="form-input" id="vb_k_value" value="0.5" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">진입 시각</label>
+                        <input type="time" class="form-input" id="vb_entry_time" value="09:05">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">청산 시각</label>
+                        <input type="time" class="form-input" id="vb_exit_time" value="15:15">
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="section-title">페어 트레이딩</div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label checkbox-group">
+                            <input type="checkbox" class="form-checkbox" id="pairs_enabled">
+                            활성화
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">스프레드 임계값 (표준편차)</label>
+                        <input type="number" class="form-input" id="pairs_spread_threshold" value="2.0" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">롤백 기간 (일)</label>
+                        <input type="number" class="form-input" id="pairs_lookback_period" value="60">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI 분석 설정 -->
+        <div id="panel-ai" class="settings-panel">
+            <div class="settings-section">
+                <div class="section-title">AI 분석 설정</div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label checkbox-group">
+                            <input type="checkbox" class="form-checkbox" id="ai_enabled" checked>
+                            AI 분석 활성화
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">기본 분석기</label>
+                        <select class="form-select" id="ai_default_analyzer">
+                            <option value="gemini" selected>Gemini</option>
+                            <option value="gpt4">GPT-4</option>
+                            <option value="claude">Claude</option>
+                            <option value="ensemble">Ensemble</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">최소 신뢰도 점수</label>
+                        <input type="number" class="form-input" id="ai_min_confidence" value="0.7" step="0.1" min="0" max="1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">타임아웃 (초)</label>
+                        <input type="number" class="form-input" id="ai_timeout" value="30">
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="section-title">시장 레짐 분류</div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label checkbox-group">
+                            <input type="checkbox" class="form-checkbox" id="market_regime_enabled" checked>
+                            활성화
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">업데이트 주기 (시간)</label>
+                        <input type="number" class="form-input" id="market_regime_interval" value="4">
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="section-title">이상 감지</div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label checkbox-group">
+                            <input type="checkbox" class="form-checkbox" id="anomaly_enabled" checked>
+                            활성화
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">확인 주기 (분)</label>
+                        <input type="number" class="form-input" id="anomaly_check_interval" value="5">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">알림 임계값</label>
+                        <input type="number" class="form-input" id="anomaly_alert_threshold" value="0.8" step="0.1" min="0" max="1">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 백테스팅 설정 -->
+        <div id="panel-backtest" class="settings-panel">
+            <div class="settings-section">
+                <div class="section-title">백테스팅 설정</div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">초기 자본금 (원)</label>
+                        <input type="number" class="form-input" id="backtest_initial_capital" value="10000000" step="1000000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">수수료율 (%)</label>
+                        <input type="number" class="form-input" id="backtest_commission_rate" value="0.015" step="0.001">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">슬리피지 (%)</label>
+                        <input type="number" class="form-input" id="backtest_slippage_pct" value="0.05" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">리포트 형식</label>
+                        <select class="form-select" id="backtest_report_format">
+                            <option value="html" selected>HTML</option>
+                            <option value="pdf">PDF</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="section-title">파라미터 최적화</div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">최적화 방법</label>
+                        <select class="form-select" id="optimization_method">
+                            <option value="grid">Grid Search</option>
+                            <option value="random">Random Search</option>
+                            <option value="bayesian" selected>Bayesian Optimization</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">시도 횟수</label>
+                        <input type="number" class="form-input" id="optimization_n_trials" value="50">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">목표 지표</label>
+                        <select class="form-select" id="optimization_objective">
+                            <option value="sharpe_ratio" selected>Sharpe Ratio</option>
+                            <option value="total_return">총 수익률</option>
+                            <option value="max_drawdown">Max Drawdown</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 알림 설정 -->
+        <div id="panel-notification" class="settings-panel">
+            <div class="settings-section">
+                <div class="section-title">알림 채널</div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label checkbox-group">
+                            <input type="checkbox" class="form-checkbox" id="notif_enabled" checked>
+                            알림 활성화
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label checkbox-group">
+                            <input type="checkbox" class="form-checkbox" id="notif_web_push" checked>
+                            웹 브라우저 PUSH
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label checkbox-group">
+                            <input type="checkbox" class="form-checkbox" id="notif_email">
+                            이메일
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label checkbox-group">
+                            <input type="checkbox" class="form-checkbox" id="notif_telegram">
+                            텔레그램
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="section-title">알림 이벤트</div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label checkbox-group">
+                            <input type="checkbox" class="form-checkbox" id="notif_order_executed" checked>
+                            주문 체결
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label checkbox-group">
+                            <input type="checkbox" class="form-checkbox" id="notif_ai_signal" checked>
+                            AI 매매 신호
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label checkbox-group">
+                            <input type="checkbox" class="form-checkbox" id="notif_stop_loss" checked>
+                            손절 발동
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label checkbox-group">
+                            <input type="checkbox" class="form-checkbox" id="notif_system_error" checked>
+                            시스템 오류
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- UI 설정 -->
+        <div id="panel-ui" class="settings-panel">
+            <div class="settings-section">
+                <div class="section-title">UI 설정</div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">테마</label>
+                        <select class="form-select" id="ui_theme">
+                            <option value="light" selected>라이트</option>
+                            <option value="dark">다크</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">언어</label>
+                        <select class="form-select" id="ui_language">
+                            <option value="ko" selected>한국어</option>
+                            <option value="en">English</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">새로고침 주기 (초)</label>
+                        <input type="number" class="form-input" id="ui_refresh_interval" value="5">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label checkbox-group">
+                            <input type="checkbox" class="form-checkbox" id="ui_show_guide" checked>
+                            가이드 투어 표시
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 버튼 그룹 -->
+        <div class="btn-group">
+            <button class="btn btn-primary" onclick="saveSettings()">💾 저장</button>
+            <button class="btn btn-success" onclick="applySettings()">✅ 적용</button>
+            <button class="btn btn-danger" onclick="resetSettings()">🔄 기본값 복원</button>
+        </div>
+    </div>
+
+    <script>
+        // 탭 전환
+        function switchTab(tabName) {
+            // 모든 탭 비활성화
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.settings-panel').forEach(panel => panel.classList.remove('active'));
+
+            // 선택한 탭 활성화
+            event.target.classList.add('active');
+            document.getElementById('panel-' + tabName).classList.add('active');
+        }
+
+        // 테마 토글
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const btn = document.querySelector('.theme-toggle');
+            if (document.body.classList.contains('dark-mode')) {
+                btn.textContent = '☀️ 라이트 모드';
+            } else {
+                btn.textContent = '🌙 다크 모드';
+            }
+        }
+
+        // 설정 저장
+        async function saveSettings() {
+            const settings = collectSettings();
+
+            try {
+                const response = await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(settings)
+                });
+
+                if (response.ok) {
+                    showAlert('success', '설정이 저장되었습니다.');
+                } else {
+                    showAlert('error', '설정 저장 실패');
+                }
+            } catch (error) {
+                showAlert('error', '네트워크 오류: ' + error.message);
+            }
+        }
+
+        // 설정 적용
+        async function applySettings() {
+            await saveSettings();
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        }
+
+        // 기본값 복원
+        async function resetSettings() {
+            if (!confirm('모든 설정을 기본값으로 복원하시겠습니까?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/settings/reset', {method: 'POST'});
+                if (response.ok) {
+                    showAlert('success', '기본값으로 복원되었습니다.');
+                    setTimeout(() => window.location.reload(), 1500);
+                }
+            } catch (error) {
+                showAlert('error', '복원 실패: ' + error.message);
+            }
+        }
+
+        // 설정 수집
+        function collectSettings() {
+            // 모든 입력 필드에서 설정 수집
+            const settings = {};
+            document.querySelectorAll('.form-input, .form-select, .form-checkbox').forEach(el => {
+                if (el.type === 'checkbox') {
+                    settings[el.id] = el.checked;
+                } else if (el.type === 'number') {
+                    settings[el.id] = parseFloat(el.value);
+                } else {
+                    settings[el.id] = el.value;
+                }
+            });
+            return settings;
+        }
+
+        // 알림 표시
+        function showAlert(type, message) {
+            const successAlert = document.getElementById('success-alert');
+            const errorAlert = document.getElementById('error-alert');
+
+            if (type === 'success') {
+                successAlert.classList.add('show');
+                setTimeout(() => successAlert.classList.remove('show'), 3000);
+            } else {
+                document.getElementById('error-message').textContent = message;
+                errorAlert.classList.add('show');
+                setTimeout(() => errorAlert.classList.remove('show'), 5000);
+            }
+        }
+
+        // 설정 로드
+        async function loadSettings() {
+            try {
+                const response = await fetch('/api/settings');
+                const settings = await response.json();
+
+                // 설정 값 적용
+                for (const [key, value] of Object.entries(settings)) {
+                    const el = document.getElementById(key);
+                    if (el) {
+                        if (el.type === 'checkbox') {
+                            el.checked = value;
+                        } else {
+                            el.value = value;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('설정 로드 실패:', error);
+            }
+        }
+
+        // 페이지 로드 시 설정 로드
+        window.addEventListener('DOMContentLoaded', loadSettings);
+    </script>
+</body>
+</html>
