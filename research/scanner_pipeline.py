@@ -307,11 +307,22 @@ class ScannerPipeline:
             )
 
             # 필터링: 최소 기관 매수 조건
-            min_institutional_buy = deep_config.get('min_institutional_net_buy', 10_000_000)
-            candidates = [
-                c for c in candidates
-                if c.institutional_net_buy >= min_institutional_buy or c.foreign_net_buy >= 5_000_000
-            ]
+            # 단, API 실패로 데이터가 없으면 필터링 스킵 (주말/비거래시간 대응)
+            has_investor_data = any(
+                c.institutional_net_buy != 0 or c.foreign_net_buy != 0
+                for c in candidates
+            )
+
+            if has_investor_data:
+                min_institutional_buy = deep_config.get('min_institutional_net_buy', 10_000_000)
+                before_filter = len(candidates)
+                candidates = [
+                    c for c in candidates
+                    if c.institutional_net_buy >= min_institutional_buy or c.foreign_net_buy >= 5_000_000
+                ]
+                logger.info(f"📊 기관/외국인 필터링: {before_filter}개 → {len(candidates)}개")
+            else:
+                logger.warning("⚠️  기관/외국인 데이터 없음 (API 실패) - 필터링 스킵")
 
             # 최대 개수 제한
             candidates = candidates[:self.deep_max_candidates]
