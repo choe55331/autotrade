@@ -1773,6 +1773,7 @@ def get_chart_data(stock_code: str):
 
         # Get real OHLCV data from Kiwoom
         chart_data = []
+        indicators = {}
 
         try:
             from datetime import datetime, timedelta
@@ -1814,7 +1815,7 @@ def get_chart_data(stock_code: str):
             except:
                 pass
 
-            # Convert daily data to chart format
+            # Convert daily data to chart format and calculate indicators
             if daily_data:
                 print(f"🔄 Converting {len(daily_data[:100])} data points to chart format")
 
@@ -1822,7 +1823,52 @@ def get_chart_data(stock_code: str):
                 recent_data = daily_data[:100]
                 recent_data.reverse()  # Reverse to get oldest first
 
-                for item in recent_data:
+                # Prepare data for indicators
+                import pandas as pd
+                df = pd.DataFrame(recent_data)
+                df['close'] = df['close'].astype(float)
+                df['open'] = df['open'].astype(float)
+                df['high'] = df['high'].astype(float)
+                df['low'] = df['low'].astype(float)
+                df['volume'] = df['volume'].astype(float)
+
+                # Calculate indicators
+                from indicators.momentum import rsi, macd
+                from indicators.trend import sma, ema
+                from indicators.volatility import bollinger_bands
+
+                # RSI
+                rsi_values = rsi(df['close'], period=14)
+
+                # MACD
+                macd_line, signal_line, histogram = macd(df['close'])
+
+                # Moving Averages
+                sma_5 = sma(df['close'], 5)
+                sma_20 = sma(df['close'], 20)
+                sma_60 = sma(df['close'], 60)
+                ema_12 = ema(df['close'], 12)
+                ema_26 = ema(df['close'], 26)
+
+                # Bollinger Bands
+                bb_upper, bb_middle, bb_lower = bollinger_bands(df['close'], period=20, std_dev=2.0)
+
+                # Prepare indicator data
+                indicators = {
+                    'rsi': [],
+                    'macd': [],
+                    'volume': [],
+                    'ma5': [],
+                    'ma20': [],
+                    'ma60': [],
+                    'ema12': [],
+                    'ema26': [],
+                    'bb_upper': [],
+                    'bb_middle': [],
+                    'bb_lower': []
+                }
+
+                for idx, item in enumerate(recent_data):
                     try:
                         # Parse date string
                         date_str = item.get('date', item.get('stck_bsop_date', ''))
@@ -1838,6 +1884,44 @@ def get_chart_data(stock_code: str):
                                 'low': float(item.get('low', item.get('stck_lwpr', 0))),
                                 'close': float(item.get('close', item.get('stck_clpr', 0)))
                             })
+
+                            # Add indicator data
+                            if not pd.isna(rsi_values.iloc[idx]):
+                                indicators['rsi'].append({'time': formatted_date, 'value': float(rsi_values.iloc[idx])})
+
+                            if not pd.isna(macd_line.iloc[idx]):
+                                indicators['macd'].append({
+                                    'time': formatted_date,
+                                    'macd': float(macd_line.iloc[idx]),
+                                    'signal': float(signal_line.iloc[idx]),
+                                    'histogram': float(histogram.iloc[idx])
+                                })
+
+                            # Volume
+                            indicators['volume'].append({
+                                'time': formatted_date,
+                                'value': float(item.get('volume', 0)),
+                                'color': '#10b981' if float(item.get('close', 0)) >= float(item.get('open', 0)) else '#ef4444'
+                            })
+
+                            # Moving Averages (only add if not NaN)
+                            if not pd.isna(sma_5.iloc[idx]):
+                                indicators['ma5'].append({'time': formatted_date, 'value': float(sma_5.iloc[idx])})
+                            if not pd.isna(sma_20.iloc[idx]):
+                                indicators['ma20'].append({'time': formatted_date, 'value': float(sma_20.iloc[idx])})
+                            if not pd.isna(sma_60.iloc[idx]):
+                                indicators['ma60'].append({'time': formatted_date, 'value': float(sma_60.iloc[idx])})
+                            if not pd.isna(ema_12.iloc[idx]):
+                                indicators['ema12'].append({'time': formatted_date, 'value': float(ema_12.iloc[idx])})
+                            if not pd.isna(ema_26.iloc[idx]):
+                                indicators['ema26'].append({'time': formatted_date, 'value': float(ema_26.iloc[idx])})
+
+                            # Bollinger Bands
+                            if not pd.isna(bb_upper.iloc[idx]):
+                                indicators['bb_upper'].append({'time': formatted_date, 'value': float(bb_upper.iloc[idx])})
+                                indicators['bb_middle'].append({'time': formatted_date, 'value': float(bb_middle.iloc[idx])})
+                                indicators['bb_lower'].append({'time': formatted_date, 'value': float(bb_lower.iloc[idx])})
+
                     except Exception as e:
                         print(f"⚠️ Error parsing chart data item: {e}, item={item}")
                         continue
@@ -1854,6 +1938,7 @@ def get_chart_data(stock_code: str):
             return jsonify({
                 'success': True,
                 'data': chart_data,
+                'indicators': indicators,
                 'signals': signals,
                 'name': stock_name,
                 'current_price': current_price
