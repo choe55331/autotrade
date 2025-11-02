@@ -404,34 +404,58 @@ class TradingBotV2:
 
             try:
                 # 1. 제어 파일 확인
+                print("📍 [1/7] 제어 파일 확인 중...")
                 self._read_control_file()
+                print(f"📍 제어 파일 확인 완료 (is_running={self.is_running}, pause_buy={self.pause_buy}, pause_sell={self.pause_sell})")
 
                 if not self.is_running:
+                    print("⚠️ is_running=False, 루프 종료")
                     break
 
                 # 2. 거래 시간 확인
-                if not self._check_trading_hours():
+                print("📍 [2/7] 거래 시간 확인 중...")
+                trading_hours_ok = self._check_trading_hours()
+                print(f"📍 거래 시간 확인 완료 (result={trading_hours_ok})")
+                if not trading_hours_ok:
+                    print("⚠️ 거래 시간 아님, 다음 사이클로 이동")
                     continue
 
                 # 3. 계좌 정보 업데이트
+                print("📍 [3/7] 계좌 정보 업데이트 중...")
                 self._update_account_info()
+                print("📍 계좌 정보 업데이트 완료")
 
                 # 4. 매도 검토
+                print(f"📍 [4/7] 매도 검토 중... (pause_sell={self.pause_sell})")
                 if not self.pause_sell:
                     self._check_sell_signals()
+                    print("📍 매도 검토 완료")
+                else:
+                    print("⚠️ 매도 일시정지됨")
 
                 # 5. 매수 검토 (3단계 스캐닝)
+                print(f"📍 [5/7] 매수 검토 중... (pause_buy={self.pause_buy})")
                 if not self.pause_buy:
                     self._run_scanning_pipeline()
+                    print("📍 매수 검토 완료")
+                else:
+                    print("⚠️ 매수 일시정지됨")
 
                 # 6. 포트폴리오 스냅샷 저장
+                print("📍 [6/7] 포트폴리오 스냅샷 저장 중...")
                 self._save_portfolio_snapshot()
+                print("📍 포트폴리오 스냅샷 저장 완료")
 
                 # 7. 통계 출력
+                print("📍 [7/7] 통계 출력 중...")
                 self._print_statistics()
+                print("📍 통계 출력 완료")
 
             except Exception as e:
                 logger.error(f"메인 루프 오류: {e}", exc_info=True)
+                print(f"❌ 메인 루프 오류: {e}")
+                import traceback
+                traceback.print_exc()
 
     def _read_control_file(self):
         """제어 파일 읽기"""
