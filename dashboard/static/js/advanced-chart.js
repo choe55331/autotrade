@@ -375,7 +375,38 @@ class AdvancedTradingChart {
 
             if (!data.success || !data.data || data.data.length === 0) {
                 console.error('No chart data available');
+                this.showError('차트 데이터를 불러올 수 없습니다.');
                 return;
+            }
+
+            // Check if actual timeframe differs from requested
+            if (data.timeframe && data.requested_timeframe && data.timeframe !== data.requested_timeframe) {
+                const timeframeNames = {
+                    '1': '1분봉',
+                    '3': '3분봉',
+                    '5': '5분봉',
+                    '10': '10분봉',
+                    '30': '30분봉',
+                    '60': '60분봉',
+                    'D': '일봉',
+                    'W': '주봉',
+                    'M': '월봉'
+                };
+
+                const requestedName = timeframeNames[data.requested_timeframe] || data.requested_timeframe;
+                const actualName = timeframeNames[data.timeframe] || data.timeframe;
+
+                this.showWarning(`${requestedName} 데이터를 사용할 수 없어 ${actualName}을 표시합니다. (주말/휴일)`);
+
+                // Update button to show actual timeframe
+                document.querySelectorAll('.timeframe-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.getAttribute('data-timeframe') === data.timeframe) {
+                        btn.classList.add('active');
+                    }
+                });
+
+                this.currentTimeframe = data.timeframe;
             }
 
             // Update chart title and price
@@ -475,19 +506,33 @@ class AdvancedTradingChart {
     }
 
     async changeTimeframe(timeframe) {
-        this.currentTimeframe = timeframe;
+        try {
+            this.currentTimeframe = timeframe;
 
-        // Update button states
-        document.querySelectorAll('.timeframe-btn').forEach(btn => {
-            if (btn.getAttribute('data-timeframe') === timeframe) {
-                btn.classList.add('active');
-            } else {
-                btn.classList.remove('active');
-            }
-        });
+            // Show loading indicator
+            this.showLoading();
 
-        // Reload data with new timeframe
-        await this.loadData(this.currentStockCode, timeframe);
+            // Update button states
+            document.querySelectorAll('.timeframe-btn').forEach(btn => {
+                if (btn.getAttribute('data-timeframe') === timeframe) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            // Reload data with new timeframe
+            await this.loadData(this.currentStockCode, timeframe);
+
+        } catch (error) {
+            console.error('Timeframe change error:', error);
+            this.showError('시간 간격 변경 실패. 일봉으로 전환합니다.');
+            // Fallback to daily
+            this.currentTimeframe = 'D';
+            await this.loadData(this.currentStockCode, 'D');
+        } finally {
+            this.hideLoading();
+        }
     }
 
     setDrawingMode(mode) {
@@ -654,6 +699,66 @@ class AdvancedTradingChart {
 
     formatNumber(num) {
         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+
+    showLoading() {
+        const container = document.getElementById(this.containerId);
+        if (!container) return;
+
+        let loader = container.querySelector('.chart-loader');
+        if (!loader) {
+            loader = document.createElement('div');
+            loader.className = 'chart-loader';
+            loader.innerHTML = `
+                <div class="chart-loader-spinner"></div>
+                <div class="chart-loader-text">차트 로딩 중...</div>
+            `;
+            container.appendChild(loader);
+        }
+        loader.style.display = 'flex';
+    }
+
+    hideLoading() {
+        const container = document.getElementById(this.containerId);
+        if (!container) return;
+
+        const loader = container.querySelector('.chart-loader');
+        if (loader) {
+            loader.style.display = 'none';
+        }
+    }
+
+    showError(message) {
+        this.showToast(message, 'error');
+    }
+
+    showWarning(message) {
+        this.showToast(message, 'warning');
+    }
+
+    showToast(message, type = 'info') {
+        // Remove existing toasts
+        const existingToasts = document.querySelectorAll('.chart-toast');
+        existingToasts.forEach(toast => toast.remove());
+
+        // Create new toast
+        const toast = document.createElement('div');
+        toast.className = `chart-toast chart-toast-${type}`;
+        toast.innerHTML = `
+            <i class="fas ${type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}"></i>
+            <span>${message}</span>
+        `;
+
+        document.body.appendChild(toast);
+
+        // Show animation
+        setTimeout(() => toast.classList.add('show'), 10);
+
+        // Auto hide after 4 seconds
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 4000);
     }
 }
 
