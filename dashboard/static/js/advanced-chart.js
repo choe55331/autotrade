@@ -379,7 +379,7 @@ class AdvancedTradingChart {
                 return;
             }
 
-            // Check if actual timeframe differs from requested
+            // Check if actual timeframe differs from requested (only show warning for minute charts)
             if (data.timeframe && data.requested_timeframe && data.timeframe !== data.requested_timeframe) {
                 const timeframeNames = {
                     '1': '1분봉',
@@ -396,7 +396,10 @@ class AdvancedTradingChart {
                 const requestedName = timeframeNames[data.requested_timeframe] || data.requested_timeframe;
                 const actualName = timeframeNames[data.timeframe] || data.timeframe;
 
-                this.showWarning(`${requestedName} 데이터를 사용할 수 없어 ${actualName}을 표시합니다. (주말/휴일)`);
+                // Only show warning if requested minute chart but got daily (market closed)
+                if (data.requested_timeframe.match(/^\d+$/)) {
+                    this.showWarning(`${requestedName} 데이터를 사용할 수 없어 ${actualName}을 표시합니다. (장 마감/주말)`);
+                }
 
                 // Update button to show actual timeframe
                 document.querySelectorAll('.timeframe-btn').forEach(btn => {

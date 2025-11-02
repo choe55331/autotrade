@@ -355,6 +355,49 @@
             border-left: 1px solid var(--border-color);
             padding: 15px;
             overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .right-panel-section {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title i {
+            color: var(--color-primary);
+        }
+
+        .compact-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px;
+            overflow-y: auto;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .compact-card .loading {
+            text-align: center;
+            color: var(--text-secondary);
+            padding: 20px;
+            font-size: 12px;
         }
 
         .candidate-item {
@@ -1127,13 +1170,44 @@
             </div>
         </main>
 
-        <!-- Right Panel: Candidates -->
+        <!-- Right Panel: 3-Column Grid -->
         <aside class="right-panel">
-            <div class="section-title">AI 매수 후보 종목</div>
-            <div id="candidates-list">
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <p style="margin-top: 10px; font-size: 12px;">후보 종목 분석 중...</p>
+            <!-- Portfolio Section -->
+            <div class="right-panel-section">
+                <div class="section-title">
+                    <i class="fas fa-chart-pie"></i> 포트폴리오
+                </div>
+                <div id="portfolio-summary" class="compact-card">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p style="margin-top: 10px; font-size: 12px;">포트폴리오 로딩 중...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trading Activity Section -->
+            <div class="right-panel-section">
+                <div class="section-title">
+                    <i class="fas fa-clock"></i> 실시간 매매
+                </div>
+                <div id="trading-activity-compact" class="compact-card">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p style="margin-top: 10px; font-size: 12px;">매매 내역 로딩 중...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Candidates Section -->
+            <div class="right-panel-section">
+                <div class="section-title">
+                    <i class="fas fa-robot"></i> AI 매수 후보
+                </div>
+                <div id="candidates-list" class="compact-card">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p style="margin-top: 10px; font-size: 12px;">후보 종목 분석 중...</p>
+                    </div>
                 </div>
             </div>
         </aside>
@@ -1335,10 +1409,14 @@
 
                 updateAccount(account);
                 updatePositions(positions);
-                updateCandidates(candidates);
                 updateStatus(status);
                 updateTradingActivity(activity);
                 updateConnectionStatus(connections);
+
+                // Update compact right panel sections
+                updatePortfolioSummary(account, positions);
+                updateTradingActivityCompact(activity);
+                updateCandidatesCompact(candidates);
             } catch (error) {
                 console.error('Error loading data:', error);
             }
@@ -1470,6 +1548,133 @@
                     <div class="activity-item ${typeClass}">
                         <div class="activity-time">${act.time}</div>
                         <div class="activity-text">${act.message}</div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Update compact sections in right panel
+        function updatePortfolioSummary(account, positions) {
+            const container = document.getElementById('portfolio-summary');
+
+            if (!account) {
+                container.innerHTML = '<div style="text-align: center; padding: 15px; color: var(--text-secondary); font-size: 11px;">데이터 없음</div>';
+                return;
+            }
+
+            const totalAssets = account.total_assets || 0;
+            const cash = account.cash || 0;
+            const stockValue = account.stock_value || 0;
+            const pl = account.profit_loss || 0;
+            const plColor = pl >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
+
+            let html = `
+                <div style="margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color);">
+                    <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">총 자산</div>
+                    <div style="font-size: 16px; font-weight: 700;">₩${formatNumber(totalAssets)}</div>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <div>
+                        <div style="font-size: 10px; color: var(--text-secondary);">현금</div>
+                        <div style="font-size: 12px; font-weight: 600;">₩${formatNumber(cash)}</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 10px; color: var(--text-secondary);">주식</div>
+                        <div style="font-size: 12px; font-weight: 600;">₩${formatNumber(stockValue)}</div>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px; padding: 6px; background: rgba(59, 130, 246, 0.05); border-radius: 4px;">
+                    <div style="font-size: 10px; color: var(--text-secondary);">수익/손실</div>
+                    <div style="font-size: 12px; font-weight: 700; color: ${plColor};">
+                        ${pl >= 0 ? '+' : ''}₩${formatNumber(Math.abs(pl))}
+                    </div>
+                </div>
+            `;
+
+            // Add top 3 positions
+            if (positions && positions.length > 0) {
+                html += '<div style="border-top: 1px solid var(--border-color); padding-top: 10px;">';
+                html += '<div style="font-size: 10px; color: var(--text-secondary); margin-bottom: 6px;">주요 보유종목</div>';
+                positions.slice(0, 3).forEach(p => {
+                    const posPlColor = p.profit_loss >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
+                    html += `
+                        <div style="padding: 5px; border-left: 2px solid ${posPlColor}; margin-bottom: 6px; padding-left: 6px; cursor: pointer;" onclick="loadChartData('${p.code}')">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+                                <span style="font-size: 11px; font-weight: 600;">${p.name}</span>
+                                <span style="font-size: 11px; font-weight: 700; color: ${posPlColor};">
+                                    ${p.profit_loss >= 0 ? '+' : ''}${p.profit_loss_percent.toFixed(1)}%
+                                </span>
+                            </div>
+                            <div style="font-size: 10px; color: var(--text-secondary);">
+                                ${p.quantity}주 × ₩${formatNumber(p.current_price)}
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+
+            container.innerHTML = html;
+        }
+
+        function updateTradingActivityCompact(data) {
+            const container = document.getElementById('trading-activity-compact');
+
+            if (!data || !data.activities || data.activities.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 15px; color: var(--text-secondary); font-size: 11px;">매매 활동 없음</div>';
+                return;
+            }
+
+            let html = '';
+            data.activities.slice(0, 6).forEach(act => {
+                const typeClass = act.type === 'BUY' ? 'buy' : 'sell';
+                const bgColor = act.type === 'BUY' ? 'rgba(16, 185, 129, 0.05)' : 'rgba(239, 68, 68, 0.05)';
+                const borderColor = act.type === 'BUY' ? 'var(--color-success)' : 'var(--color-danger)';
+                html += `
+                    <div style="padding: 6px; border-left: 3px solid ${borderColor}; background: ${bgColor}; border-radius: 3px; margin-bottom: 6px;">
+                        <div style="font-size: 9px; color: var(--text-muted); margin-bottom: 3px;">${act.time}</div>
+                        <div style="font-size: 11px;">${act.message}</div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function updateCandidatesCompact(candidates) {
+            const container = document.getElementById('candidates-list');
+
+            if (!candidates || candidates.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 15px; color: var(--text-secondary); font-size: 11px;">후보 종목 없음</div>';
+                return;
+            }
+
+            let html = '';
+            candidates.slice(0, 8).forEach(c => {
+                html += `
+                    <div style="padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s;"
+                         onclick="loadChartData('${c.code}')"
+                         onmouseover="this.style.borderColor='var(--color-primary)'; this.style.transform='translateY(-1px)'"
+                         onmouseout="this.style.borderColor='var(--border-color)'; this.style.transform='translateY(0)'">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                            <div style="font-size: 12px; font-weight: 600;">${c.name}</div>
+                            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 600;">
+                                ${c.ai_score.toFixed(1)}
+                            </div>
+                        </div>
+                        <div style="font-size: 10px; color: var(--text-secondary); margin-bottom: 4px;">
+                            ${c.code} · ₩${formatNumber(c.price)}
+                        </div>
+                        <div style="display: flex; gap: 4px; flex-wrap: wrap;">
+                            <span style="padding: 2px 6px; border-radius: 3px; font-size: 9px; font-weight: 600; background: rgba(16, 185, 129, 0.1); color: var(--color-success);">
+                                ${c.signal || 'BUY'}
+                            </span>
+                            <span style="padding: 2px 6px; border-radius: 3px; font-size: 9px; font-weight: 600; background: rgba(59, 130, 246, 0.1); color: var(--color-primary);">
+                                ${Math.round((c.confidence || 0.85) * 100)}%
+                            </span>
+                        </div>
                     </div>
                 `;
             });
