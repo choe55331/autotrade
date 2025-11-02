@@ -89,8 +89,15 @@ class VolumeBasedStrategy(ScanStrategy):
         try:
             start_time = time.time()
 
-            # 거래량 순위 조회
+            # 필터링 조건
             conditions = self.get_filter_conditions()
+            print(f"📋 필터 조건:")
+            print(f"   - 거래량: {conditions['min_volume']:,}주 이상")
+            print(f"   - 가격: {conditions['min_price']:,}원 ~ {conditions['max_price']:,}원")
+            print(f"   - 상승률: {conditions['min_rate']:.1f}% ~ {conditions['max_rate']:.1f}%")
+            print(f"   - ETF/지수 제외")
+
+            # 거래량 순위 조회
             candidates = self.screener.screen_combined(
                 min_volume=conditions['min_volume'],
                 min_price=conditions['min_price'],
@@ -155,14 +162,15 @@ class VolumeBasedStrategy(ScanStrategy):
                 if len(stock_candidates) >= 20:  # 20개 확보되면 종료
                     break
 
-            if etf_count > 0:
-                print(f"   ℹ️  ETF/지수 {etf_count}개 제외됨")
-
             # 점수 기준 정렬
             stock_candidates.sort(key=lambda x: x.fast_scan_score, reverse=True)
 
             elapsed = time.time() - start_time
-            print(f"✅ [{self.name}] 스캔 완료: {len(stock_candidates)}개 후보 (소요: {elapsed:.2f}초)")
+            print(f"\n📊 필터링 결과:")
+            print(f"   - 총 조회: {len(candidates)}개")
+            print(f"   - ETF 제외: {etf_count}개")
+            print(f"   - 조건 통과: {len(stock_candidates)}개")
+            print(f"✅ 스캔 완료 (소요: {elapsed:.2f}초)")
             logger.info(f"✅ [{self.name}] 스캔 완료: {len(stock_candidates)}개 후보")
 
             self.scan_results = stock_candidates

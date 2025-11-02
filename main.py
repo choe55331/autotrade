@@ -604,21 +604,54 @@ class TradingBotV2:
             print("✅ 포지션 및 리스크 체크 통과 - 스캐닝 시작")
 
             # 현재 전략 실행 (3가지 전략 순환)
-            print("📍 strategy_manager.run_current_strategy() 호출 중...")
             final_candidates = self.strategy_manager.run_current_strategy()
-            print(f"📍 스캔 완료: {len(final_candidates) if final_candidates else 0}개 최종 후보")
 
             if not final_candidates:
                 print("✅ 스캐닝 완료: 최종 후보 없음")
                 logger.info("✅ 스캐닝 완료: 최종 후보 없음")
                 return
 
-            # 최종 후보 매수 처리 (AI 분석은 이 시점에만 실행)
-            print(f"📊 최종 후보 {len(final_candidates)}개 - AI 분석 시작 (최대 3개)")
-            for idx, candidate in enumerate(final_candidates[:3], 1):
-                print(f"\n📍 [{idx}/{min(3, len(final_candidates))}] {candidate.name} ({candidate.code}) AI 매수 분석 중...")
+            # 후보들의 점수 먼저 계산 (AI 검토 전)
+            print(f"\n📊 매수 후보 {len(final_candidates)}개 선정됨:")
+            candidate_scores = {}  # 점수 저장용
+            for idx, candidate in enumerate(final_candidates, 1):
+                stock_data = {
+                    'stock_code': candidate.code,
+                    'stock_name': candidate.name,
+                    'current_price': candidate.price,
+                    'volume': candidate.volume,
+                    'change_rate': candidate.rate,
+                    'institutional_net_buy': candidate.institutional_net_buy,
+                    'foreign_net_buy': candidate.foreign_net_buy,
+                    'bid_ask_ratio': candidate.bid_ask_ratio,
+                }
+                scoring_result = self.scoring_system.calculate_score(stock_data)
+                candidate_scores[candidate.code] = scoring_result  # 저장
 
-                # AI 분석 실행 (이 종목을 지금 매수해야 하는가?)
+                print(f"   {idx}. {candidate.name:10s} ({candidate.code}) | "
+                      f"가격: {candidate.price:>7,}원 | "
+                      f"상승률: {candidate.rate:>5.1f}% | "
+                      f"점수: {scoring_result.total_score:>3.0f}/440 ({scoring_result.percentage:.0f}%)")
+
+            # 포트폴리오 정보 생성
+            positions = self.account_manager.get_positions()
+            if positions:
+                portfolio_lines = [f"Current holdings: {len(positions)} stocks"]
+                for pos in positions[:3]:  # 최대 3개만
+                    portfolio_lines.append(f"- {pos.get('stock_name')} ({pos.get('stock_code')}): {pos.get('quantity')} shares, P/L: {pos.get('profit_loss_rate', 0):+.1f}%")
+                portfolio_info = "\n".join(portfolio_lines)
+            else:
+                portfolio_info = "No positions currently held"
+
+            # AI 매수 검토
+            print(f"\n🤖 AI 매수 검토 시작 (상위 3개)")
+            for idx, candidate in enumerate(final_candidates[:3], 1):
+                print(f"\n[{idx}/{min(3, len(final_candidates))}] {candidate.name} ({candidate.code})")
+
+                # 이미 계산된 점수 사용
+                scoring_result = candidate_scores[candidate.code]
+
+                # AI 분석 실행
                 stock_data = {
                     'stock_code': candidate.code,
                     'stock_name': candidate.name,
@@ -630,47 +663,53 @@ class TradingBotV2:
                     'bid_ask_ratio': candidate.bid_ask_ratio,
                 }
 
-                print(f"    🤖 AI에게 매수 여부 문의 중...")
-                ai_analysis = self.analyzer.analyze_stock(stock_data)
-                print(f"    🤖 AI 응답: 신호={ai_analysis.get('signal')}, 점수={ai_analysis.get('score')}, 신뢰도={ai_analysis.get('confidence')}")
+                # 점수 breakdown 생성
+                score_info = {
+                    'score': scoring_result.total_score,
+                    'percentage': scoring_result.percentage,
+                    'breakdown': {
+                        '거래량 급증': scoring_result.volume_surge_score,
+                        '가격 모멘텀': scoring_result.price_momentum_score,
+                        '기관 매수세': scoring_result.institutional_buying_score,
+                        '매수 호가 강도': scoring_result.bid_strength_score,
+                        '체결 강도': scoring_result.execution_intensity_score,
+                        '증권사 활동': scoring_result.broker_activity_score,
+                        '프로그램 매매': scoring_result.program_trading_score,
+                        '기술적 지표': scoring_result.technical_indicators_score,
+                        '테마/뉴스': scoring_result.theme_news_score,
+                        '변동성 패턴': scoring_result.volatility_pattern_score,
+                    }
+                }
 
-                # AI 분석 결과를 candidate에 저장
-                candidate.ai_score = ai_analysis.get('score', 0)
-                candidate.ai_signal = ai_analysis.get('signal', 'hold')
-                candidate.ai_confidence = ai_analysis.get('confidence', 'Low')
+                # AI에게 매수 여부, 분할 매수 전략 질문
+                ai_analysis = self.analyzer.analyze_stock(
+                    stock_data,
+                    score_info=score_info,
+                    portfolio_info=portfolio_info
+                )
+                ai_signal = ai_analysis.get('signal', 'hold')
+                split_strategy = ai_analysis.get('split_strategy', '')
+
+                # AI 분석 결과 저장
+                candidate.ai_signal = ai_signal
                 candidate.ai_reasons = ai_analysis.get('reasons', [])
-                candidate.ai_risks = ai_analysis.get('risks', [])
 
-                # 스코어링 시스템으로 추가 검증
-                scoring_result = self.scoring_system.calculate_score(stock_data)
-
-                # 상세 점수 출력
-                print(f"📊 {candidate.name} 스코어: {scoring_result.total_score:.1f}/440 ({scoring_result.percentage:.1f}%) - {self.scoring_system.get_grade(scoring_result.total_score)}등급")
-                print(f"   ├─ 거래량 급증: {scoring_result.volume_surge_score:.0f}/60")
-                print(f"   ├─ 가격 모멘텀: {scoring_result.price_momentum_score:.0f}/60")
-                print(f"   ├─ 기관 매수세: {scoring_result.institutional_buying_score:.0f}/60")
-                print(f"   ├─ 매수 호가 강도: {scoring_result.bid_strength_score:.0f}/40")
-                print(f"   ├─ 체결 강도: {scoring_result.execution_intensity_score:.0f}/40")
-                print(f"   ├─ 증권사 활동: {scoring_result.broker_activity_score:.0f}/40")
-                print(f"   ├─ 프로그램 매매: {scoring_result.program_trading_score:.0f}/40")
-                print(f"   ├─ 기술적 지표: {scoring_result.technical_indicators_score:.0f}/40")
-                print(f"   ├─ 테마/뉴스: {scoring_result.theme_news_score:.0f}/40")
-                print(f"   └─ 변동성 패턴: {scoring_result.volatility_pattern_score:.0f}/40")
-                logger.info(f"{candidate.name} 총점: {scoring_result.total_score:.1f}/440")
+                # 결과 출력
+                print(f"   AI 결정: {ai_signal.upper()}")
+                if ai_signal == 'buy' and split_strategy:
+                    print(f"   분할매수 제안: {split_strategy}")
+                if ai_analysis.get('reasons'):
+                    print(f"   사유: {ai_analysis['reasons'][0]}")
 
                 # 최종 승인 조건
-                ai_approved = self.dynamic_risk_manager.should_approve_ai_signal(candidate.ai_score, candidate.ai_confidence)
-                print(f"   AI 신호: {candidate.ai_signal}, 점수: {scoring_result.total_score:.1f}, AI 승인: {ai_approved}")
-
-                if (candidate.ai_signal == 'buy' and
-                    scoring_result.total_score >= 300 and  # 300점 이상
-                    ai_approved):
-
-                    print(f"✅ {candidate.name} 매수 조건 충족 - 주문 실행")
+                if ai_signal == 'buy' and scoring_result.total_score >= 300:
+                    print(f"✅ 매수 조건 충족 - 주문 실행")
+                    # TODO: split_strategy에 따라 분할 매수 실행
                     self._execute_buy(candidate, scoring_result)
                     break  # 1회 사이클에 1개만
                 else:
-                    print(f"❌ {candidate.name} 매수 조건 미충족 (신호:{candidate.ai_signal}, 점수:{scoring_result.total_score:.1f}, AI승인:{ai_approved})")
+                    reason = f"AI={ai_signal}, 점수={scoring_result.total_score:.0f}"
+                    print(f"❌ 매수 조건 미충족 ({reason})")
 
             print("📍 스캔 전략 완료")
 
