@@ -13,10 +13,25 @@ logger = logging.getLogger(__name__)
 class GeminiAnalyzer(BaseAnalyzer):
     """
     Google Gemini AI 분석기
-    
+
     Gemini API를 사용한 종목/시장 분석
     """
-    
+
+    # 종목 분석 프롬프트 템플릿 (고정)
+    STOCK_ANALYSIS_PROMPT_TEMPLATE = """Analyze this Korean stock for day trading:
+Stock: {stock_name} ({stock_code})
+Price: {current_price} KRW
+Change: {change_rate:.2f}%
+Volume: {volume}
+
+Provide analysis in this format:
+Score: [0-10]
+Signal: [buy/sell/hold]
+Confidence: [Low/Medium/High]
+Reasons: [3 brief reasons]
+Risks: [2 brief risks]
+"""
+
     def __init__(self, api_key: str = None, model_name: str = None):
         """
         Gemini 분석기 초기화
@@ -102,9 +117,15 @@ class GeminiAnalyzer(BaseAnalyzer):
 
         for attempt in range(max_retries):
             try:
-                print(f"        [시도 {attempt + 1}/{max_retries}] 프롬프트 생성 중...")
-                # 프롬프트 생성
-                prompt = self._create_stock_analysis_prompt(stock_data, analysis_type)
+                print(f"        [시도 {attempt + 1}/{max_retries}] 프롬프트 준비 중...")
+                # 프롬프트 템플릿 사용 (클래스 상수)
+                prompt = self.STOCK_ANALYSIS_PROMPT_TEMPLATE.format(
+                    stock_name=stock_data.get('stock_name', ''),
+                    stock_code=stock_data.get('stock_code', ''),
+                    current_price=stock_data.get('current_price', 0),
+                    change_rate=stock_data.get('change_rate', 0.0),
+                    volume=stock_data.get('volume', 0)
+                )
                 print(f"        [시도 {attempt + 1}/{max_retries}] Gemini API 호출 중... (타임아웃: 30초)")
 
                 # Gemini API 호출 (타임아웃 30초)
@@ -250,36 +271,7 @@ class GeminiAnalyzer(BaseAnalyzer):
             return self._get_error_result(str(e))
     
     # ==================== 프롬프트 생성 ====================
-    
-    def _create_stock_analysis_prompt(
-        self,
-        stock_data: Dict[str, Any],
-        analysis_type: str
-    ) -> str:
-        """종목 분석 프롬프트 생성 (간단한 고정 템플릿)"""
-        stock_code = stock_data.get('stock_code', '')
-        stock_name = stock_data.get('stock_name', '')
-        current_price = stock_data.get('current_price', 0)
-        change_rate = stock_data.get('change_rate', 0)
-        volume = stock_data.get('volume', 0)
 
-        # 간단하고 고정된 프롬프트
-        prompt = f"""Analyze this Korean stock for day trading:
-Stock: {stock_name} ({stock_code})
-Price: {current_price} KRW
-Change: {change_rate:.2f}%
-Volume: {volume}
-
-Provide analysis in this format:
-Score: [0-10]
-Signal: [buy/sell/hold]
-Confidence: [Low/Medium/High]
-Reasons: [3 brief reasons]
-Risks: [2 brief risks]
-"""
-
-        return prompt
-    
     def _create_market_analysis_prompt(self, market_data: Dict[str, Any]) -> str:
         """시장 분석 프롬프트 생성"""
         prompt = f"""
