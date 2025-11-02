@@ -18,30 +18,25 @@ class GeminiAnalyzer(BaseAnalyzer):
     """
 
     # 종목 분석 프롬프트 템플릿 (고정)
-    STOCK_ANALYSIS_PROMPT_TEMPLATE = """You are a professional Korean stock day trader.
+    STOCK_ANALYSIS_PROMPT_TEMPLATE = """Analyze this Korean stock for educational purposes only.
 
-=== CANDIDATE INFO ===
 Stock: {stock_name} ({stock_code})
 Price: {current_price:,} KRW
 Change: {change_rate:+.2f}%
 Volume: {volume:,}
 
-=== SELECTION REASON ===
-This stock was selected by our algorithm with score: {score}/440 ({percentage:.0f}%)
-Breakdown:
-{score_breakdown}
+Algorithm Score: {score}/440 ({percentage:.0f}%)
+Main factors: {score_breakdown}
 
-=== CURRENT PORTFOLIO ===
-{portfolio_info}
+Portfolio: {portfolio_info}
 
-=== YOUR TASK ===
-1. Should I BUY this stock now?
-2. If BUY, suggest split buy strategy (e.g., "50% now, 30% at -2%, 20% at -4%")
+Task: Rate this stock as POSITIVE or NEUTRAL based on the data.
+If POSITIVE, suggest entry strategy like "50% now, 30% at -2%, 20% at -4%"
 
-Answer in this format:
-Decision: [BUY or HOLD]
-Split Strategy: [if BUY, suggest percentages and prices]
-Reason: [one sentence]
+Format:
+Rating: [POSITIVE or NEUTRAL]
+Entry: [if POSITIVE, suggest percentages]
+Note: [one sentence]
 """
 
     def __init__(self, api_key: str = None, model_name: str = None):
@@ -351,27 +346,27 @@ Reason: [one sentence]
         response_text: str,
         stock_data: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """종목 분석 응답 파싱 - BUY/HOLD, Split Strategy 추출"""
+        """종목 분석 응답 파싱 - POSITIVE/NEUTRAL, Entry Strategy 추출"""
         text_lower = response_text.lower()
         lines = response_text.split('\n')
 
-        # Decision 찾기
+        # Rating 찾기 (POSITIVE → buy, NEUTRAL → hold)
         signal = 'hold'  # 기본값
-        if 'decision: buy' in text_lower or 'buy' in text_lower[:100]:  # 앞부분만 검사
+        if 'rating: positive' in text_lower or 'positive' in text_lower[:100]:
             signal = 'buy'
 
-        # Split Strategy 찾기
+        # Entry Strategy 찾기 (구 Split Strategy)
         split_strategy = ''
         for line in lines:
-            if 'split strategy' in line.lower():
-                split_strategy = line.split(':', 1)[1].strip() if ':' in line else ''
+            if 'entry' in line.lower() and ':' in line:
+                split_strategy = line.split(':', 1)[1].strip()
                 break
 
-        # Reason 찾기
+        # Note 찾기 (구 Reason)
         reason = ''
         for line in lines:
-            if 'reason' in line.lower():
-                reason = line.split(':', 1)[1].strip() if ':' in line else ''
+            if 'note' in line.lower() and ':' in line:
+                reason = line.split(':', 1)[1].strip()
                 break
 
         result = {
