@@ -347,6 +347,16 @@ class AdvancedTradingChart {
                 return;
             }
 
+            // Update chart title and price
+            const chartStockName = document.getElementById('chart-stock-name');
+            const chartPrice = document.getElementById('chart-price');
+            if (chartStockName) {
+                chartStockName.textContent = data.name || stockCode;
+            }
+            if (chartPrice && data.current_price) {
+                chartPrice.textContent = '₩' + this.formatNumber(data.current_price);
+            }
+
             // Set main candlestick data
             this.candlestickSeries.setData(data.data);
 
@@ -482,6 +492,10 @@ class AdvancedTradingChart {
         if (this.volumeChart && volumeContainer) {
             this.volumeChart.applyOptions({ width: volumeContainer.clientWidth });
         }
+    }
+
+    formatNumber(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     }
 }
 
