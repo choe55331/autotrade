@@ -177,6 +177,7 @@ class MarketAPI:
                 "rank_end": str(limit)      # 종료순위
             }
 
+            print(f"📍 거래량 순위 조회 시작 (market={market}, limit={limit})")
             logger.info(f"거래량 순위 조회 시작 (market={market}, limit={limit})")
 
             response = self.client.request(
@@ -185,12 +186,18 @@ class MarketAPI:
                 path="rkinfo"
             )
 
+            print(f"📍 API 응답 received: return_code={response.get('return_code') if response else None}")
+
             if response and response.get('return_code') == 0:
                 # ka10031 API는 'pred_trde_qty_upper' 키에 데이터 반환
                 rank_list = response.get('pred_trde_qty_upper', [])
+                print(f"📍 rank_list 크기: {len(rank_list) if rank_list else 0}개")
 
                 if not rank_list:
-                    logger.warning("⚠️ API 호출 성공했으나 데이터가 비어있습니다 (장마감 후/주말/공휴일일 수 있음)")
+                    msg = "⚠️ API 호출 성공했으나 데이터가 비어있습니다 (장마감 후/주말/공휴일일 수 있음)"
+                    print(msg)
+                    logger.warning(msg)
+                    print(f"📍 전체 응답 키: {list(response.keys())}")
                     return []
 
                 # 데이터 정규화: API 응답 키 -> 표준 키
