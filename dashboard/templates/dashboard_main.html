@@ -21,6 +21,9 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <!-- Advanced Chart CSS -->
+    <link rel="stylesheet" href="/static/css/advanced-chart.css">
+
     <style>
         :root {
             --bg-primary: #0a0e27;
@@ -1213,6 +1216,17 @@
 
         // Initialize Chart
         function initializeChart() {
+            // Use advanced chart if available (new indicator-enabled chart)
+            if (typeof AdvancedTradingChart !== 'undefined') {
+                console.log('Using Advanced Trading Chart with indicators');
+                window.advancedChart = new AdvancedTradingChart('main-chart');
+                window.advancedChart.initialize();
+                window.advancedChart.loadData('005930');
+                return;
+            }
+
+            // Fallback to basic chart (original code)
+            console.log('Using basic chart (fallback)');
             const chartContainer = document.getElementById('main-chart');
             mainChart = LightweightCharts.createChart(chartContainer, {
                 width: chartContainer.clientWidth,
@@ -1256,6 +1270,13 @@
         // Load Chart Data from Kiwoom API
         async function loadChartData(stockCode) {
             try {
+                // If advanced chart is available, use it
+                if (window.advancedChart) {
+                    await window.advancedChart.loadData(stockCode);
+                    return;
+                }
+
+                // Fallback to basic chart
                 const response = await fetch(`/api/chart/${stockCode}`);
                 const data = await response.json();
 
@@ -2053,12 +2074,19 @@
 
         function selectStock(code, name) {
             // Load chart for selected stock
-            loadChartData(code);
+            if (window.advancedChart) {
+                advancedChart.loadData(code);
+            } else {
+                loadChartData(code);
+            }
 
             // Clear search input and hide results
             document.getElementById('stock-search-input').value = '';
             document.getElementById('stock-search-results').style.display = 'none';
         }
     </script>
+
+    <!-- Advanced Trading Chart -->
+    <script src="/static/js/advanced-chart.js"></script>
 </body>
 </html>
