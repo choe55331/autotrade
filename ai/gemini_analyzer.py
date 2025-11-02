@@ -214,15 +214,14 @@ Reason: [one sentence]
 
             except Exception as e:
                 error_msg = str(e)
-                logger.warning(f"AI 분석 시도 {attempt + 1}/{max_retries} 실패: {error_msg}")
 
-                # 마지막 시도가 아니면 재시도
+                # 마지막 시도가 아니면 재시도 (로그 억제)
                 if attempt < max_retries - 1:
                     time.sleep(retry_delay)
                     retry_delay *= 2  # 지수 백오프
                 else:
-                    # 모든 시도 실패
-                    logger.error(f"AI 분석 최종 실패: {error_msg}")
+                    # 모든 시도 실패 - 마지막만 로그 표시
+                    logger.warning(f"AI 분석 최종 실패 ({max_retries}회 시도): {error_msg}")
                     self.update_statistics(False)
                     return self._get_error_result(f"AI 분석 실패: {error_msg}")
     

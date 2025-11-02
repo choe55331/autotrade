@@ -45,6 +45,12 @@ app.config['SECRET_KEY'] = 'autotrade-pro-v4-apple-style'
 CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
+# Suppress Flask/werkzeug logs (only show warnings and errors)
+import logging
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.WARNING)
+app.logger.setLevel(logging.WARNING)
+
 # Global state
 bot_instance = None
 config_manager = None
