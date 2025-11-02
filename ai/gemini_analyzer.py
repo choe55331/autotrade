@@ -38,7 +38,7 @@ class GeminiAnalyzer(BaseAnalyzer):
 
         Args:
             api_key: Gemini API 키
-            model_name: 모델 이름 (기본: gemini-2.0-flash-exp)
+            model_name: 모델 이름 (기본: gemini-2.5-flash)
         """
         super().__init__("GeminiAnalyzer")
 
@@ -46,11 +46,10 @@ class GeminiAnalyzer(BaseAnalyzer):
         if api_key is None:
             from config import GEMINI_API_KEY, GEMINI_MODEL_NAME
             self.api_key = GEMINI_API_KEY
-            # GEMINI_MODEL_NAME이 None이면 gemini-2.0-flash-exp 사용 (안전 필터 우회)
-            self.model_name = model_name or GEMINI_MODEL_NAME or 'gemini-2.0-flash-exp'
+            self.model_name = model_name or GEMINI_MODEL_NAME or 'gemini-2.5-flash'
         else:
             self.api_key = api_key
-            self.model_name = model_name or 'gemini-2.0-flash-exp'
+            self.model_name = model_name or 'gemini-2.5-flash'
         
         self.model = None
         
@@ -151,30 +150,9 @@ class GeminiAnalyzer(BaseAnalyzer):
                     portfolio_info=portfolio_text
                 )
 
-                # Gemini API 호출 (타임아웃 30초)
-                import google.generativeai as genai
-                from google.generativeai.types import HarmCategory, HarmBlockThreshold
-
-                # 생성 설정 (temperature 낮춰서 안정성 증가)
-                generation_config = genai.types.GenerationConfig(
-                    temperature=0.3,
-                    max_output_tokens=512,
-                )
-
-                # 안전 설정 (주식 분석에 필요)
-                safety_settings = {
-                    HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
-                    HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
-                    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
-                    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
-                }
-
-                response = self.model.generate_content(
-                    prompt,
-                    generation_config=generation_config,
-                    safety_settings=safety_settings,
-                    request_options={'timeout': 30}  # 30초 타임아웃
-                )
+                # Gemini API 호출 - 사용자 예시처럼 최소한의 설정만 사용
+                # safety_settings 없이 호출 (기본값 사용)
+                response = self.model.generate_content(prompt)
 
                 # 응답 검증 (finish_reason 체크)
                 if not response.candidates:
