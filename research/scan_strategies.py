@@ -160,7 +160,8 @@ class VolumeBasedStrategy(ScanStrategy):
             self.scan_results = stock_candidates
             self.last_scan_time = time.time()
 
-            return stock_candidates[:5]  # 상위 5개만 반환
+            # 상위 20개 반환 (스코어링 시스템에서 재평가)
+            return stock_candidates[:20]
 
         except Exception as e:
             logger.error(f"❌ [{self.name}] 스캔 실패: {e}", exc_info=True)

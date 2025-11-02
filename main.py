@@ -108,6 +108,9 @@ class TradingBotV2:
         # 데이터베이스 세션
         self.db_session = None
 
+        # AI 승인 매수 후보 리스트
+        self.ai_approved_candidates = []
+
         # 초기화
         self._initialize_components()
 
@@ -560,8 +563,7 @@ class TradingBotV2:
                 logger.info("✅ 스캐닝 완료: 최종 후보 없음")
                 return
 
-            # 후보들의 점수 계산
-            print(f"\n📊 후보: {', '.join([c.name for c in final_candidates])}")
+            # 20개 모두 스코어링 시스템으로 점수 계산
             candidate_scores = {}
             for candidate in final_candidates:
                 stock_data = {
@@ -576,12 +578,20 @@ class TradingBotV2:
                 }
                 scoring_result = self.scoring_system.calculate_score(stock_data)
                 candidate_scores[candidate.code] = scoring_result
+                candidate.final_score = scoring_result.total_score
+
+            # 점수 기준 재정렬
+            final_candidates.sort(key=lambda x: x.final_score, reverse=True)
+
+            # 상위 5개만 표시 및 AI 검토
+            top5 = final_candidates[:5]
+            print(f"\n📊 상위 5개: {', '.join([f'{c.name}({c.final_score:.0f}점)' for c in top5])}")
 
             # 포트폴리오 정보
             portfolio_info = "No positions"
 
-            # AI 매수 검토
-            for idx, candidate in enumerate(final_candidates[:3], 1):
+            # AI 매수 검토 (상위 3개)
+            for idx, candidate in enumerate(top5[:3], 1):
                 print(f"\n🤖 [{idx}/3] {candidate.name}")
 
                 # 이미 계산된 점수 사용
@@ -636,6 +646,22 @@ class TradingBotV2:
                     print(f"   분할매수 제안: {split_strategy}")
                 if ai_analysis.get('reasons'):
                     print(f"   사유: {ai_analysis['reasons'][0]}")
+
+                # AI 승인 시 매수 후보 리스트에 추가
+                if ai_signal == 'buy':
+                    buy_candidate = {
+                        'stock_code': candidate.code,
+                        'stock_name': candidate.name,
+                        'current_price': candidate.price,
+                        'change_rate': candidate.rate,
+                        'score': scoring_result.total_score,
+                        'split_strategy': split_strategy,
+                        'ai_reason': ai_analysis.get('reasons', [''])[0] if ai_analysis.get('reasons') else '',
+                        'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    }
+                    # 최대 10개까지만 유지
+                    self.ai_approved_candidates.insert(0, buy_candidate)
+                    self.ai_approved_candidates = self.ai_approved_candidates[:10]
 
                 # 최종 승인 조건
                 if ai_signal == 'buy' and scoring_result.total_score >= 300:
