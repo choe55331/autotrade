@@ -282,27 +282,33 @@ class DataFetcher:
                 logger.info(f"📦 Response keys: {list(response.keys())}")
 
                 if return_code == 0:
-                    daily_data = response.get('output', [])
+                    # API returns data in 'stk_dt_pole_chart_qry' key (not 'output')
+                    daily_data = response.get('stk_dt_pole_chart_qry', [])
                     logger.info(f"✅ {stock_code} 일봉 데이터 {len(daily_data)}개 조회 완료")
 
                     # Log sample data if available
                     if daily_data and len(daily_data) > 0:
                         logger.info(f"📊 Sample data (first item): {daily_data[0]}")
                     else:
-                        logger.warning(f"⚠️ output exists but is empty or None: {daily_data}")
+                        logger.warning(f"⚠️ stk_dt_pole_chart_qry exists but is empty or None: {daily_data}")
                         logger.warning(f"⚠️ Full response: {response}")
 
                     # Convert to standard format
+                    # API uses: dt, open_pric, high_pric, low_pric, cur_prc (close), trde_qty (volume)
                     standardized_data = []
                     for item in daily_data:
-                        standardized_data.append({
-                            'date': item.get('stck_bsop_date', ''),
-                            'open': int(item.get('stck_oprc', 0)),
-                            'high': int(item.get('stck_hgpr', 0)),
-                            'low': int(item.get('stck_lwpr', 0)),
-                            'close': int(item.get('stck_clpr', 0)),
-                            'volume': int(item.get('acml_vol', 0))
-                        })
+                        try:
+                            standardized_data.append({
+                                'date': item.get('dt', ''),
+                                'open': int(item.get('open_pric', 0)),
+                                'high': int(item.get('high_pric', 0)),
+                                'low': int(item.get('low_pric', 0)),
+                                'close': int(item.get('cur_prc', 0)),  # cur_prc = current/closing price
+                                'volume': int(item.get('trde_qty', 0))  # trde_qty = trade quantity
+                            })
+                        except (ValueError, TypeError) as e:
+                            logger.warning(f"⚠️ Error parsing data item: {e}, item={item}")
+                            continue
 
                     return standardized_data
                 else:
