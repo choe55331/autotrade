@@ -96,7 +96,18 @@ class TestModeManager:
             return False
 
         # 테스트 모드 활성화
-        self.test_date = get_last_trading_date()
+        # NOTE: 시스템 날짜가 2025년으로 설정되어 있지만 실제 API 데이터는 2024년까지만 있음
+        # 따라서 하드코딩된 2024년 날짜 사용
+        calculated_date = get_last_trading_date()
+
+        # 2025년 날짜가 나오면 2024년 10월 31일(목요일)로 폴백
+        if calculated_date.startswith('2025'):
+            self.test_date = '20241031'
+            logger.info(f"⚠️ 시스템 날짜가 2025년이지만 API 데이터는 2024년까지만 존재")
+            logger.info(f"   폴백 날짜 사용: {self.test_date}")
+        else:
+            self.test_date = calculated_date
+
         logger.info(f"✅ 테스트 모드 활성화 ({reason})")
         logger.info(f"   사용할 데이터 날짜: {self.test_date}")
         logger.info(f"   현재 시간: {now.strftime('%Y-%m-%d %H:%M:%S')}")
