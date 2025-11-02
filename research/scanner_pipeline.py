@@ -139,6 +139,7 @@ class ScannerPipeline:
         Returns:
             선정된 종목 리스트
         """
+        print("⚡ Fast Scan 시작...")
         logger.info("⚡ Fast Scan 시작...")
         start_time = time.time()
 
@@ -147,15 +148,20 @@ class ScannerPipeline:
             fast_config = self.scan_config.get('fast_scan', {})
             filters = fast_config.get('filters', {})
 
+            filter_params = {
+                'min_price': filters.get('min_price', 1000),
+                'max_price': filters.get('max_price', 1000000),
+                'min_volume': filters.get('min_volume', 100000),
+                'min_rate': filters.get('min_rate', 1.0),
+                'max_rate': filters.get('max_rate', 15.0),
+                'min_market_cap': filters.get('min_market_cap', 0),
+            }
+            print(f"📍 Fast Scan 필터: {filter_params}")
+
             # 기본 필터로 종목 스크리닝
-            candidates = self.screener.screen_stocks(
-                min_price=filters.get('min_price', 1000),
-                max_price=filters.get('max_price', 1000000),
-                min_volume=filters.get('min_volume', 100000),
-                min_rate=filters.get('min_rate', 1.0),
-                max_rate=filters.get('max_rate', 15.0),
-                min_market_cap=filters.get('min_market_cap', 0),
-            )
+            print("📍 screener.screen_stocks() 호출 중...")
+            candidates = self.screener.screen_stocks(**filter_params)
+            print(f"📍 screener.screen_stocks() 결과: {len(candidates) if candidates else 0}개 종목")
 
             # 거래량 기준 정렬
             candidates = sorted(
@@ -488,26 +494,58 @@ class ScannerPipeline:
         Returns:
             최종 AI 승인 종목 리스트
         """
+        print("🚀 스캐닝 파이프라인 실행 시작")
         logger.info("🚀 스캐닝 파이프라인 실행 시작")
 
         # Fast Scan
-        if self.should_run_fast_scan():
+        should_fast = self.should_run_fast_scan()
+        print(f"📍 Fast Scan 조건: should_run={should_fast}, interval={self.fast_scan_interval}초, last_scan={self.last_fast_scan}")
+
+        if should_fast:
+            print("✅ Fast Scan 실행 중...")
             self.run_fast_scan()
+            print(f"📊 Fast Scan 결과: {len(self.fast_scan_results)}개 종목")
+        else:
+            print(f"⏭️ Fast Scan 스킵 (간격 미충족, 캐시: {len(self.fast_scan_results)}개)")
 
         # Deep Scan
-        if self.should_run_deep_scan() and self.fast_scan_results:
+        should_deep = self.should_run_deep_scan()
+        has_fast_results = len(self.fast_scan_results) > 0
+        print(f"📍 Deep Scan 조건: should_run={should_deep}, has_fast_results={has_fast_results} ({len(self.fast_scan_results)}개)")
+
+        if should_deep and has_fast_results:
+            print("✅ Deep Scan 실행 중...")
             self.run_deep_scan()
+            print(f"📊 Deep Scan 결과: {len(self.deep_scan_results)}개 종목")
+        else:
+            if not should_deep:
+                print(f"⏭️ Deep Scan 스킵 (간격 미충족, 캐시: {len(self.deep_scan_results)}개)")
+            else:
+                print(f"⏭️ Deep Scan 스킵 (Fast Scan 결과 없음)")
 
         # AI Scan
-        if self.should_run_ai_scan() and self.deep_scan_results:
-            self.run_ai_scan()
+        should_ai = self.should_run_ai_scan()
+        has_deep_results = len(self.deep_scan_results) > 0
+        print(f"📍 AI Scan 조건: should_run={should_ai}, has_deep_results={has_deep_results} ({len(self.deep_scan_results)}개)")
 
-        logger.info(
+        if should_ai and has_deep_results:
+            print("✅ AI Scan 실행 중...")
+            self.run_ai_scan()
+            print(f"📊 AI Scan 결과: {len(self.ai_scan_results)}개 종목")
+        else:
+            if not should_ai:
+                print(f"⏭️ AI Scan 스킵 (간격 미충족, 캐시: {len(self.ai_scan_results)}개)")
+            else:
+                print(f"⏭️ AI Scan 스킵 (Deep Scan 결과 없음)")
+
+        summary = (
             f"✅ 스캐닝 파이프라인 완료: "
             f"Fast={len(self.fast_scan_results)}, "
             f"Deep={len(self.deep_scan_results)}, "
             f"AI={len(self.ai_scan_results)}"
         )
+        print(summary)
+        logger.info(summary)
 
         return self.ai_scan_results
 
