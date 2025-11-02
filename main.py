@@ -454,6 +454,10 @@ class TradingBotV2:
         """매도 신호 검토"""
         logger.info("🔍 매도 신호 검토 중...")
 
+        # 테스트 모드 표시
+        if self.market_status.get('is_test_mode'):
+            logger.info("🧪 테스트 모드: 실제 보유 종목으로 매도 로직 실행 (주문은 시뮬레이션)")
+
         try:
             holdings = self.account_api.get_holdings()
 
@@ -496,6 +500,10 @@ class TradingBotV2:
     def _run_scanning_pipeline(self):
         """3단계 스캐닝 파이프라인 실행"""
         logger.info("🔍 3단계 스캐닝 파이프라인 시작")
+
+        # 테스트 모드 표시
+        if self.market_status.get('is_test_mode'):
+            logger.info("🧪 테스트 모드: 실제 시장 데이터로 탐색 실행 (주문은 시뮬레이션)")
 
         try:
             # 포지션 추가 가능 여부
@@ -579,7 +587,8 @@ class TradingBotV2:
 
             # 테스트 모드일 때 로그
             if self.market_status.get('is_test_mode'):
-                logger.info(f"🧪 테스트 모드: 종가 기준 매수 시뮬레이션")
+                logger.info(f"🧪 테스트 모드: AI 검토 완료 → 매수 로직 실행 (실제 주문 X, 시뮬레이션만)")
+                logger.info(f"   종목: {stock_name}, AI 점수: {candidate.ai_score}, 종합 점수: {scoring_result.total_score}")
 
             # 주문 실행
             order_result = self.order_api.buy(
@@ -639,7 +648,8 @@ class TradingBotV2:
 
             # 테스트 모드일 때 로그
             if self.market_status.get('is_test_mode'):
-                logger.info(f"🧪 테스트 모드: 종가 기준 매도 시뮬레이션")
+                logger.info(f"🧪 테스트 모드: 매도 조건 충족 → 매도 로직 실행 (실제 주문 X, 시뮬레이션만)")
+                logger.info(f"   종목: {stock_name}, 사유: {reason}, 손익: {profit_loss:+,}원 ({profit_loss_rate:+.2f}%)")
 
             # 주문 실행
             order_result = self.order_api.sell(
