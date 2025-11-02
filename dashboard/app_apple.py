@@ -1799,17 +1799,39 @@ def get_chart_data(stock_code: str):
 
             # Fetch data based on timeframe
             daily_data = []
+            actual_timeframe = timeframe  # Track what we actually got
 
             if timeframe.isdigit():
                 # Minute data (1, 3, 5, 10, 30, 60)
-                print(f"📊 Fetching {timeframe}-minute data")
+                print(f"📊 Attempting to fetch {timeframe}-minute data")
+
                 if hasattr(bot_instance.data_fetcher, 'get_minute_price'):
-                    daily_data = bot_instance.data_fetcher.get_minute_price(
-                        stock_code=stock_code,
-                        minute_type=timeframe
-                    )
+                    try:
+                        daily_data = bot_instance.data_fetcher.get_minute_price(
+                            stock_code=stock_code,
+                            minute_type=timeframe
+                        )
+
+                        # Check if we got valid data
+                        if not daily_data or len(daily_data) == 0:
+                            print(f"⚠️ {timeframe}-minute data not available (likely weekend/holiday), falling back to daily data")
+                            actual_timeframe = 'D'
+                            daily_data = bot_instance.data_fetcher.get_daily_price(
+                                stock_code=stock_code,
+                                start_date=start_date_str,
+                                end_date=end_date_str
+                            )
+                    except Exception as e:
+                        print(f"⚠️ Minute data fetch failed ({e}), falling back to daily data")
+                        actual_timeframe = 'D'
+                        daily_data = bot_instance.data_fetcher.get_daily_price(
+                            stock_code=stock_code,
+                            start_date=start_date_str,
+                            end_date=end_date_str
+                        )
                 else:
-                    print(f"⚠️ Minute price not available, using daily data")
+                    print(f"⚠️ Minute price method not available, using daily data")
+                    actual_timeframe = 'D'
                     daily_data = bot_instance.data_fetcher.get_daily_price(
                         stock_code=stock_code,
                         start_date=start_date_str,
@@ -1823,7 +1845,7 @@ def get_chart_data(stock_code: str):
                     end_date=end_date_str
                 )
 
-            print(f"📦 Received {len(daily_data) if daily_data else 0} data points")
+            print(f"📦 Received {len(daily_data) if daily_data else 0} data points (timeframe: {actual_timeframe})")
 
             # Get current price and stock name
             current_price = 0
@@ -1962,7 +1984,9 @@ def get_chart_data(stock_code: str):
                 'indicators': indicators,
                 'signals': signals,
                 'name': stock_name,
-                'current_price': current_price
+                'current_price': current_price,
+                'timeframe': actual_timeframe,  # Actual timeframe used (may differ from requested)
+                'requested_timeframe': timeframe  # What user requested
             })
 
         except Exception as e:
