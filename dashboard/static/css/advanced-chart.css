@@ -1,0 +1,102 @@
+/**
+ * Advanced Trading Chart Styles
+ */
+
+.chart-toolbar {
+    display: flex;
+    gap: 20px;
+    padding: 10px;
+    background: #1e2139;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.toolbar-group {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.toolbar-btn {
+    padding: 8px 12px;
+    background: #2d3250;
+    border: 1px solid #3d4361;
+    border-radius: 6px;
+    color: #9ca3af;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.toolbar-btn:hover {
+    background: #3d4361;
+    color: #fff;
+    border-color: #4d5381;
+}
+
+.toolbar-btn.active {
+    background: #3b82f6;
+    color: #fff;
+    border-color: #2563eb;
+}
+
+.toolbar-btn i {
+    font-size: 14px;
+}
+
+.chart-panel {
+    background: #1e2139;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .chart-toolbar {
+        gap: 10px;
+    }
+
+    .toolbar-btn {
+        padding: 6px 10px;
+        font-size: 11px;
+    }
+
+    .chart-panel {
+        margin-top: 5px !important;
+    }
+}
+
+/* Drawing tools cursor */
+.chart-drawing-mode {
+    cursor: crosshair !important;
+}
+
+/* Indicator legends */
+.indicator-legend {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(30, 33, 57, 0.9);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 11px;
+    color: #9ca3af;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.indicator-legend-item {
+    margin: 2px 0;
+}
+
+.indicator-legend-item .color-box {
+    display: inline-block;
+    width: 12px;
+    height: 2px;
+    margin-right: 5px;
+    vertical-align: middle;
+}
