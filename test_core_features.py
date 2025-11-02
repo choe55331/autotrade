@@ -307,6 +307,7 @@ def test_daily_price_api(secrets, api_specs):
         print_info("1단계: 토큰 발급 중...")
         token_url = f"{base_url}/oauth2/token"
         token_payload = {
+            "grant_type": "client_credentials",  # 필수!
             "appkey": appkey,
             "secretkey": secretkey
         }
