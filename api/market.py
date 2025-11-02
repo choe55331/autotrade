@@ -208,27 +208,47 @@ class MarketAPI:
                     print(f"📍 첫 번째 항목의 키: {list(rank_list[0].keys())}")
                     print(f"📍 첫 번째 항목 샘플: {rank_list[0]}")
 
+                # 정규화 후 첫 3개 샘플 출력 (디버그용 - 한 번만 실행)
+                debug_printed = False
+
                 for item in rank_list:
-                    # 현재가와 등락폭으로 등락률 계산
-                    current_price = int(item.get('cur_prc', '0').replace('+', '').replace('-', ''))
-                    change = int(item.get('pred_pre', '0').replace('+', '').replace('-', ''))
+                    # 현재가 파싱 (부호 포함 가능)
+                    cur_prc_str = item.get('cur_prc', '0')
+                    current_price = abs(int(cur_prc_str.replace('+', '').replace('-', '')))
 
-                    # 등락률 계산: (등락폭 / (현재가 - 등락폭)) * 100
-                    prev_price = current_price - change if item.get('pred_pre_sig') == '2' else current_price + change
-                    change_rate = (change / prev_price * 100) if prev_price > 0 else 0.0
+                    # 등락폭 파싱 (부호 포함 가능)
+                    pred_pre_str = item.get('pred_pre', '0')
+                    change = int(pred_pre_str.replace('+', '').replace('-', ''))
 
-                    # API 응답에 등락률 필드가 있는지 확인
+                    # 등락 부호 확인 (2: 상승, 3: 보합, 5: 하락)
+                    pred_pre_sig = item.get('pred_pre_sig', '3')
+                    is_positive = pred_pre_sig == '2' or pred_pre_str.startswith('+')
+
+                    # 전일 종가 계산
+                    if is_positive:
+                        prev_price = current_price - change
+                    else:
+                        prev_price = current_price + change
+
+                    # 등락률 계산: (등락폭 / 전일종가) * 100
+                    if prev_price > 0:
+                        change_rate = abs(change / prev_price * 100)
+                    else:
+                        change_rate = 0.0
+
+                    # API 응답에 등락률 필드가 있으면 사용
                     if 'flu_rt' in item:
-                        change_rate = float(item.get('flu_rt', '0').replace('+', '').replace('-', ''))
+                        change_rate = abs(float(item.get('flu_rt', '0').replace('+', '').replace('-', '')))
 
                     normalized_list.append({
                         'code': item.get('stk_cd', '').replace('_AL', ''),  # _AL 접미사 제거
                         'name': item.get('stk_nm', ''),
                         'price': current_price,
-                        'current_price': current_price,  # 추가
+                        'current_price': current_price,  # Screener 호환
                         'volume': int(item.get('trde_qty', '0')),
                         'change': change,
-                        'change_rate': change_rate,  # 추가!
+                        'change_rate': change_rate,  # Screener 호환
+                        'rate': change_rate,  # StockCandidate 호환
                         'change_sign': item.get('pred_pre_sig', ''),
                     })
 
