@@ -42,7 +42,7 @@ from research.scanner_pipeline import ScannerPipeline
 from strategy.scoring_system import ScoringSystem
 from strategy.dynamic_risk_manager import DynamicRiskManager
 from strategy import PortfolioManager
-from ai import get_analyzer
+from ai.mock_analyzer import MockAnalyzer  # 테스트: Mock 직접 사용
 from utils.activity_monitor import get_monitor
 
 # 로거
@@ -213,20 +213,15 @@ class TradingBotV2:
             self.data_fetcher = DataFetcher(self.client)  # 시장 데이터 조회
             logger.info("✓ API 모듈 초기화 완료")
 
-            # 4. AI 분석기
+            # 4. AI 분석기 (테스트: Mock 사용)
             logger.info("🤖 AI 분석기 초기화 중...")
             try:
-                self.analyzer = get_analyzer('gemini')
-                if self.analyzer.initialize():
-                    logger.info("✓ Gemini AI 분석기 초기화 완료")
-                else:
-                    logger.warning("Gemini AI 초기화 실패, Mock 분석기로 전환")
-                    self.analyzer = get_analyzer('mock')
-                    self.analyzer.initialize()
-            except Exception as e:
-                logger.warning(f"AI 분석기 초기화 실패: {e}, Mock 분석기 사용")
-                self.analyzer = get_analyzer('mock')
+                self.analyzer = MockAnalyzer()  # 테스트 모드: Mock 직접 사용
                 self.analyzer.initialize()
+                logger.info("✓ Mock AI 분석기 초기화 완료 (테스트 모드)")
+            except Exception as e:
+                logger.error(f"AI 분석기 초기화 실패: {e}")
+                raise
 
             # 5. 3단계 스캐닝 파이프라인 (신규)
             logger.info("🔍 3단계 스캐닝 파이프라인 초기화 중...")
