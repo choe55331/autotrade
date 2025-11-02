@@ -1036,16 +1036,7 @@ def get_virtual_trading_account(strategy_name: str):
         # Get positions details
         positions = []
         for stock_code, position in account.positions.items():
-            positions.append({
-                'stock_code': stock_code,
-                'stock_name': position.stock_name,
-                'quantity': position.quantity,
-                'avg_price': position.avg_price,
-                'current_price': position.current_price,
-                'unrealized_pnl': position.unrealized_pnl,
-                'unrealized_pnl_rate': position.unrealized_pnl_rate,
-                'days_held': position.days_held
-            })
+            positions.append(position.to_dict())
 
         return jsonify({
             'success': True,
