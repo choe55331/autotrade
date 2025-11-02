@@ -158,47 +158,66 @@ class MarketAPI:
 
         Returns:
             거래량 순위 리스트
+
+        Note:
+            이 API는 실시간 전일 데이터만 제공합니다.
+            주말/공휴일/장마감 후에는 데이터가 제공되지 않을 수 있습니다.
         """
-        # 시장 코드 변환 (successful_apis.json 검증된 값)
-        market_map = {'ALL': '000', 'KOSPI': '001', 'KOSDAQ': '101'}
-        mrkt_tp = market_map.get(market.upper(), '001')
+        try:
+            # 시장 코드 변환 (successful_apis.json 검증된 값)
+            market_map = {'ALL': '000', 'KOSPI': '001', 'KOSDAQ': '101'}
+            mrkt_tp = market_map.get(market.upper(), '001')
 
-        # 순위 범위 설정 (1위부터 limit까지)
-        body = {
-            "mrkt_tp": mrkt_tp,        # 시장구분 (000:전체, 001:KOSPI, 101:KOSDAQ)
-            "qry_tp": "1",              # 조회구분 (1:거래량, 2:거래대금) - 검증됨
-            "stex_tp": "3",             # 증권거래소 (3:전체) - 검증됨
-            "rank_strt": "1",           # 시작순위
-            "rank_end": str(limit)      # 종료순위
-        }
+            # 순위 범위 설정 (1위부터 limit까지)
+            body = {
+                "mrkt_tp": mrkt_tp,        # 시장구분 (000:전체, 001:KOSPI, 101:KOSDAQ)
+                "qry_tp": "1",              # 조회구분 (1:거래량, 2:거래대금) - 검증됨
+                "stex_tp": "3",             # 증권거래소 (3:전체) - 검증됨
+                "rank_strt": "1",           # 시작순위
+                "rank_end": str(limit)      # 종료순위
+            }
 
-        response = self.client.request(
-            api_id="ka10031",
-            body=body,
-            path="rkinfo"
-        )
+            logger.info(f"거래량 순위 조회 시작 (market={market}, limit={limit})")
 
-        if response and response.get('return_code') == 0:
-            # ka10031 API는 'pred_trde_qty_upper' 키에 데이터 반환
-            rank_list = response.get('pred_trde_qty_upper', [])
+            response = self.client.request(
+                api_id="ka10031",
+                body=body,
+                path="rkinfo"
+            )
 
-            # 데이터 정규화: API 응답 키 -> 표준 키
-            normalized_list = []
-            for item in rank_list:
-                normalized_list.append({
-                    'code': item.get('stk_cd', '').replace('_AL', ''),  # _AL 접미사 제거
-                    'name': item.get('stk_nm', ''),
-                    'price': int(item.get('cur_prc', '0').replace('+', '').replace('-', '')),
-                    'volume': int(item.get('trde_qty', '0')),
-                    'change': int(item.get('pred_pre', '0').replace('+', '').replace('-', '')),
-                    'change_sign': item.get('pred_pre_sig', ''),
-                })
+            if response and response.get('return_code') == 0:
+                # ka10031 API는 'pred_trde_qty_upper' 키에 데이터 반환
+                rank_list = response.get('pred_trde_qty_upper', [])
 
-            logger.info(f"거래량 순위 {len(normalized_list)}개 조회 완료")
-            return normalized_list
-        else:
-            logger.error(f"거래량 순위 조회 실패: {response.get('return_msg')}")
-            logger.error(f"응답 전체: {response}")
+                if not rank_list:
+                    logger.warning("⚠️ API 호출 성공했으나 데이터가 비어있습니다 (장마감 후/주말/공휴일일 수 있음)")
+                    return []
+
+                # 데이터 정규화: API 응답 키 -> 표준 키
+                normalized_list = []
+                for item in rank_list:
+                    normalized_list.append({
+                        'code': item.get('stk_cd', '').replace('_AL', ''),  # _AL 접미사 제거
+                        'name': item.get('stk_nm', ''),
+                        'price': int(item.get('cur_prc', '0').replace('+', '').replace('-', '')),
+                        'volume': int(item.get('trde_qty', '0')),
+                        'change': int(item.get('pred_pre', '0').replace('+', '').replace('-', '')),
+                        'change_sign': item.get('pred_pre_sig', ''),
+                    })
+
+                logger.info(f"✅ 거래량 순위 {len(normalized_list)}개 조회 완료")
+                return normalized_list
+            else:
+                error_msg = response.get('return_msg', 'Unknown error') if response else 'No response'
+                logger.error(f"❌ 거래량 순위 조회 실패: {error_msg}")
+                logger.error(f"Response code: {response.get('return_code') if response else 'N/A'}")
+                logger.debug(f"Full response: {response}")
+                return []
+
+        except Exception as e:
+            logger.error(f"❌ 거래량 순위 조회 중 예외 발생: {e}")
+            import traceback
+            traceback.print_exc()
             return []
     
     def get_price_change_rank(
@@ -219,56 +238,75 @@ class MarketAPI:
 
         Returns:
             등락률 순위 리스트
+
+        Note:
+            이 API는 실시간 전일 데이터만 제공합니다.
+            주말/공휴일/장마감 후에는 데이터가 제공되지 않을 수 있습니다.
         """
-        # 시장 코드 변환 (successful_apis.json 검증된 값)
-        market_map = {'ALL': '000', 'KOSPI': '001', 'KOSDAQ': '101'}
-        mrkt_tp = market_map.get(market.upper(), '001')
+        try:
+            # 시장 코드 변환 (successful_apis.json 검증된 값)
+            market_map = {'ALL': '000', 'KOSPI': '001', 'KOSDAQ': '101'}
+            mrkt_tp = market_map.get(market.upper(), '001')
 
-        # 정렬 타입 변환 (검증된 값: 1=상승률, 2=하락률로 추정)
-        sort_map = {'rise': '1', 'fall': '2'}
-        sort_tp = sort_map.get(sort.lower(), '1')
-
-        body = {
-            "mrkt_tp": mrkt_tp,          # 시장구분 (000:전체, 001:KOSPI, 101:KOSDAQ)
-            "sort_tp": sort_tp,           # 정렬구분 (1:상승률, 2:하락률)
-            "trde_qty_cnd": "0100",       # 거래량 조건 (검증된 값)
-            "stk_cnd": "1",               # 종목 조건 (검증된 값)
-            "crd_cnd": "0",               # 신용 조건 (0: 전체)
-            "updown_incls": "1",          # 상한하한 포함 (0: 제외, 1: 포함)
-            "pric_cnd": "0",              # 가격 조건 (0: 전체)
-            "trde_prica_cnd": "0",        # 거래대금 조건 (0: 전체)
-            "stex_tp": "3"                # 증권거래소 (3: 전체)
-        }
-
-        response = self.client.request(
-            api_id="ka10027",
-            body=body,
-            path="rkinfo"
-        )
-
-        if response and response.get('return_code') == 0:
-            # ka10027 API는 'pred_pre_flu_rt_upper' 키에 데이터 반환
-            rank_list = response.get('pred_pre_flu_rt_upper', [])
-
-            # 데이터 정규화: API 응답 키 -> 표준 키
-            normalized_list = []
-            for item in rank_list[:limit]:
-                normalized_list.append({
-                    'code': item.get('stk_cd', '').replace('_AL', ''),  # _AL 접미사 제거
-                    'name': item.get('stk_nm', ''),
-                    'price': int(item.get('cur_prc', '0').replace('+', '').replace('-', '')),
-                    'change_rate': float(item.get('flu_rt', '0').replace('+', '').replace('-', '')),
-                    'volume': int(item.get('now_trde_qty', '0')),
-                    'change': int(item.get('pred_pre', '0').replace('+', '').replace('-', '')),
-                    'change_sign': item.get('pred_pre_sig', ''),
-                })
+            # 정렬 타입 변환 (검증된 값: 1=상승률, 2=하락률로 추정)
+            sort_map = {'rise': '1', 'fall': '2'}
+            sort_tp = sort_map.get(sort.lower(), '1')
 
             sort_name = "상승률" if sort == 'rise' else "하락률"
-            logger.info(f"{sort_name} 순위 {len(normalized_list)}개 조회 완료")
-            return normalized_list
-        else:
-            logger.error(f"등락률 순위 조회 실패: {response.get('return_msg')}")
-            logger.error(f"응답 전체: {response}")
+            logger.info(f"{sort_name} 순위 조회 시작 (market={market}, limit={limit})")
+
+            body = {
+                "mrkt_tp": mrkt_tp,          # 시장구분 (000:전체, 001:KOSPI, 101:KOSDAQ)
+                "sort_tp": sort_tp,           # 정렬구분 (1:상승률, 2:하락률)
+                "trde_qty_cnd": "0100",       # 거래량 조건 (검증된 값)
+                "stk_cnd": "1",               # 종목 조건 (검증된 값)
+                "crd_cnd": "0",               # 신용 조건 (0: 전체)
+                "updown_incls": "1",          # 상한하한 포함 (0: 제외, 1: 포함)
+                "pric_cnd": "0",              # 가격 조건 (0: 전체)
+                "trde_prica_cnd": "0",        # 거래대금 조건 (0: 전체)
+                "stex_tp": "3"                # 증권거래소 (3: 전체)
+            }
+
+            response = self.client.request(
+                api_id="ka10027",
+                body=body,
+                path="rkinfo"
+            )
+
+            if response and response.get('return_code') == 0:
+                # ka10027 API는 'pred_pre_flu_rt_upper' 키에 데이터 반환
+                rank_list = response.get('pred_pre_flu_rt_upper', [])
+
+                if not rank_list:
+                    logger.warning("⚠️ API 호출 성공했으나 데이터가 비어있습니다 (장마감 후/주말/공휴일일 수 있음)")
+                    return []
+
+                # 데이터 정규화: API 응답 키 -> 표준 키
+                normalized_list = []
+                for item in rank_list[:limit]:
+                    normalized_list.append({
+                        'code': item.get('stk_cd', '').replace('_AL', ''),  # _AL 접미사 제거
+                        'name': item.get('stk_nm', ''),
+                        'price': int(item.get('cur_prc', '0').replace('+', '').replace('-', '')),
+                        'change_rate': float(item.get('flu_rt', '0').replace('+', '').replace('-', '')),
+                        'volume': int(item.get('now_trde_qty', '0')),
+                        'change': int(item.get('pred_pre', '0').replace('+', '').replace('-', '')),
+                        'change_sign': item.get('pred_pre_sig', ''),
+                    })
+
+                logger.info(f"✅ {sort_name} 순위 {len(normalized_list)}개 조회 완료")
+                return normalized_list
+            else:
+                error_msg = response.get('return_msg', 'Unknown error') if response else 'No response'
+                logger.error(f"❌ 등락률 순위 조회 실패: {error_msg}")
+                logger.error(f"Response code: {response.get('return_code') if response else 'N/A'}")
+                logger.debug(f"Full response: {response}")
+                return []
+
+        except Exception as e:
+            logger.error(f"❌ 등락률 순위 조회 중 예외 발생: {e}")
+            import traceback
+            traceback.print_exc()
             return []
 
     def get_trading_value_rank(
@@ -287,52 +325,72 @@ class MarketAPI:
 
         Returns:
             거래대금 순위 리스트
+
+        Note:
+            이 API는 실시간 전일 데이터만 제공합니다.
+            주말/공휴일/장마감 후에는 데이터가 제공되지 않을 수 있습니다.
         """
-        # 시장 코드 변환 (successful_apis.json 검증된 값)
-        market_map = {'ALL': '000', 'KOSPI': '001', 'KOSDAQ': '101'}
-        mrkt_tp = market_map.get(market.upper(), '001')
+        try:
+            # 시장 코드 변환 (successful_apis.json 검증된 값)
+            market_map = {'ALL': '000', 'KOSPI': '001', 'KOSDAQ': '101'}
+            mrkt_tp = market_map.get(market.upper(), '001')
 
-        body = {
-            "mrkt_tp": mrkt_tp,               # 시장구분
-            "mang_stk_incls": "1" if include_managed else "0",  # 관리종목 포함
-            "stex_tp": "3"                    # 증권거래소 (3: 전체)
-        }
+            logger.info(f"거래대금 순위 조회 시작 (market={market}, limit={limit})")
 
-        response = self.client.request(
-            api_id="ka10032",
-            body=body,
-            path="rkinfo"
-        )
+            body = {
+                "mrkt_tp": mrkt_tp,               # 시장구분
+                "mang_stk_incls": "1" if include_managed else "0",  # 관리종목 포함
+                "stex_tp": "3"                    # 증권거래소 (3: 전체)
+            }
 
-        if response and response.get('return_code') == 0:
-            # 응답 키 찾기 (자동 탐색)
-            data_keys = [k for k in response.keys() if k not in ['return_code', 'return_msg', 'api-id', 'cont-yn', 'next-key']]
+            response = self.client.request(
+                api_id="ka10032",
+                body=body,
+                path="rkinfo"
+            )
 
-            # 첫 번째 리스트 키 사용
-            rank_list = []
-            for key in data_keys:
-                val = response.get(key)
-                if isinstance(val, list) and len(val) > 0:
-                    rank_list = val
-                    break
+            if response and response.get('return_code') == 0:
+                # 응답 키 찾기 (자동 탐색)
+                data_keys = [k for k in response.keys() if k not in ['return_code', 'return_msg', 'api-id', 'cont-yn', 'next-key']]
 
-            # 데이터 정규화
-            normalized_list = []
-            for item in rank_list[:limit]:
-                normalized_list.append({
-                    'code': item.get('stk_cd', '').replace('_AL', ''),
-                    'name': item.get('stk_nm', ''),
-                    'price': int(item.get('cur_prc', '0').replace('+', '').replace('-', '')),
-                    'trading_value': int(item.get('trde_prica', '0')),  # 거래대금
-                    'volume': int(item.get('trde_qty', '0')),
-                    'change': int(item.get('pred_pre', '0').replace('+', '').replace('-', '')),
-                    'change_sign': item.get('pred_pre_sig', ''),
-                })
+                # 첫 번째 리스트 키 사용
+                rank_list = []
+                for key in data_keys:
+                    val = response.get(key)
+                    if isinstance(val, list) and len(val) > 0:
+                        rank_list = val
+                        break
 
-            logger.info(f"거래대금 순위 {len(normalized_list)}개 조회 완료")
-            return normalized_list
-        else:
-            logger.error(f"거래대금 순위 조회 실패: {response.get('return_msg')}")
+                if not rank_list:
+                    logger.warning("⚠️ API 호출 성공했으나 데이터가 비어있습니다 (장마감 후/주말/공휴일일 수 있음)")
+                    return []
+
+                # 데이터 정규화
+                normalized_list = []
+                for item in rank_list[:limit]:
+                    normalized_list.append({
+                        'code': item.get('stk_cd', '').replace('_AL', ''),
+                        'name': item.get('stk_nm', ''),
+                        'price': int(item.get('cur_pric', '0').replace('+', '').replace('-', '')),
+                        'trading_value': int(item.get('trde_prica', '0')),  # 거래대금
+                        'volume': int(item.get('trde_qty', '0')),
+                        'change': int(item.get('pred_pre', '0').replace('+', '').replace('-', '')),
+                        'change_sign': item.get('pred_pre_sig', ''),
+                    })
+
+                logger.info(f"✅ 거래대금 순위 {len(normalized_list)}개 조회 완료")
+                return normalized_list
+            else:
+                error_msg = response.get('return_msg', 'Unknown error') if response else 'No response'
+                logger.error(f"❌ 거래대금 순위 조회 실패: {error_msg}")
+                logger.error(f"Response code: {response.get('return_code') if response else 'N/A'}")
+                logger.debug(f"Full response: {response}")
+                return []
+
+        except Exception as e:
+            logger.error(f"❌ 거래대금 순위 조회 중 예외 발생: {e}")
+            import traceback
+            traceback.print_exc()
             return []
 
     def get_volume_surge_rank(

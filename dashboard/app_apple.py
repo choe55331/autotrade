@@ -2044,11 +2044,33 @@ def get_market_volume_rank():
         market = request.args.get('market', 'ALL')
         limit = int(request.args.get('limit', 20))
 
+        # Check test mode
+        test_mode_active = False
+        test_date = None
+        if bot_instance:
+            test_mode_active = getattr(bot_instance, 'test_mode_active', False)
+            test_date = getattr(bot_instance, 'test_date', None)
+
         if bot_instance and hasattr(bot_instance, 'data_fetcher'):
+            print(f"📊 거래량 순위 조회 요청 (market={market}, limit={limit}, test_mode={test_mode_active})")
+
             rank_list = bot_instance.data_fetcher.get_volume_rank(market, limit)
+
+            # If no data and in test mode, provide helpful message
+            if not rank_list and test_mode_active:
+                return jsonify({
+                    'success': False,
+                    'error': f'테스트 모드({test_date}): 시장탐색 데이터는 정규 장 시간에만 제공됩니다.',
+                    'data': [],
+                    'test_mode': True,
+                    'test_date': test_date
+                })
+
             return jsonify({
-                'success': True,
-                'data': rank_list
+                'success': True if rank_list else False,
+                'data': rank_list,
+                'test_mode': test_mode_active,
+                'test_date': test_date
             })
         else:
             return jsonify({
@@ -2057,7 +2079,9 @@ def get_market_volume_rank():
                 'data': []
             })
     except Exception as e:
-        print(f"Volume rank API error: {e}")
+        print(f"❌ Volume rank API error: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'error': str(e), 'data': []})
 
 
@@ -2069,11 +2093,33 @@ def get_market_price_change_rank():
         sort = request.args.get('sort', 'rise')  # 'rise' or 'fall'
         limit = int(request.args.get('limit', 20))
 
+        # Check test mode
+        test_mode_active = False
+        test_date = None
+        if bot_instance:
+            test_mode_active = getattr(bot_instance, 'test_mode_active', False)
+            test_date = getattr(bot_instance, 'test_date', None)
+
         if bot_instance and hasattr(bot_instance, 'data_fetcher'):
+            print(f"📊 등락률 순위 조회 요청 (market={market}, sort={sort}, limit={limit}, test_mode={test_mode_active})")
+
             rank_list = bot_instance.data_fetcher.get_price_change_rank(market, sort, limit)
+
+            # If no data and in test mode, provide helpful message
+            if not rank_list and test_mode_active:
+                return jsonify({
+                    'success': False,
+                    'error': f'테스트 모드({test_date}): 시장탐색 데이터는 정규 장 시간에만 제공됩니다.',
+                    'data': [],
+                    'test_mode': True,
+                    'test_date': test_date
+                })
+
             return jsonify({
-                'success': True,
-                'data': rank_list
+                'success': True if rank_list else False,
+                'data': rank_list,
+                'test_mode': test_mode_active,
+                'test_date': test_date
             })
         else:
             return jsonify({
@@ -2082,7 +2128,9 @@ def get_market_price_change_rank():
                 'data': []
             })
     except Exception as e:
-        print(f"Price change rank API error: {e}")
+        print(f"❌ Price change rank API error: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'error': str(e), 'data': []})
 
 
@@ -2093,11 +2141,33 @@ def get_market_trading_value_rank():
         market = request.args.get('market', 'ALL')
         limit = int(request.args.get('limit', 20))
 
+        # Check test mode
+        test_mode_active = False
+        test_date = None
+        if bot_instance:
+            test_mode_active = getattr(bot_instance, 'test_mode_active', False)
+            test_date = getattr(bot_instance, 'test_date', None)
+
         if bot_instance and hasattr(bot_instance, 'data_fetcher'):
+            print(f"📊 거래대금 순위 조회 요청 (market={market}, limit={limit}, test_mode={test_mode_active})")
+
             rank_list = bot_instance.data_fetcher.get_trading_value_rank(market, limit)
+
+            # If no data and in test mode, provide helpful message
+            if not rank_list and test_mode_active:
+                return jsonify({
+                    'success': False,
+                    'error': f'테스트 모드({test_date}): 시장탐색 데이터는 정규 장 시간에만 제공됩니다.',
+                    'data': [],
+                    'test_mode': True,
+                    'test_date': test_date
+                })
+
             return jsonify({
-                'success': True,
-                'data': rank_list
+                'success': True if rank_list else False,
+                'data': rank_list,
+                'test_mode': test_mode_active,
+                'test_date': test_date
             })
         else:
             return jsonify({
@@ -2106,7 +2176,9 @@ def get_market_trading_value_rank():
                 'data': []
             })
     except Exception as e:
-        print(f"Trading value rank API error: {e}")
+        print(f"❌ Trading value rank API error: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'error': str(e), 'data': []})
 
 
