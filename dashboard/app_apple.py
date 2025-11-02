@@ -960,9 +960,9 @@ def get_paper_trading_account(strategy_name: str):
     try:
         from features.paper_trading import get_paper_trading_engine
         from dataclasses import asdict
-        
+
         engine = get_paper_trading_engine()
-        
+
         if strategy_name in engine.accounts:
             account = engine.accounts[strategy_name]
             return jsonify({
@@ -973,6 +973,118 @@ def get_paper_trading_account(strategy_name: str):
             return jsonify({'success': False, 'message': 'Strategy not found'})
     except Exception as e:
         print(f"Paper trading account API error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+# ============================================================================
+# VIRTUAL TRADING API
+# ============================================================================
+
+@app.route('/api/virtual_trading/status')
+def get_virtual_trading_status():
+    """Get virtual trading status and performance"""
+    try:
+        if not bot_instance or not hasattr(bot_instance, 'virtual_trader'):
+            return jsonify({
+                'success': False,
+                'message': 'Virtual trading not initialized',
+                'enabled': False
+            })
+
+        virtual_trader = bot_instance.virtual_trader
+        if not virtual_trader:
+            return jsonify({
+                'success': False,
+                'message': 'Virtual trading not enabled',
+                'enabled': False
+            })
+
+        # Get all account summaries
+        summaries = virtual_trader.get_all_summaries()
+
+        # Get best strategy
+        best_strategy = virtual_trader.get_best_strategy()
+
+        return jsonify({
+            'success': True,
+            'enabled': True,
+            'strategies': summaries,
+            'best_strategy': best_strategy
+        })
+    except Exception as e:
+        print(f"Virtual trading status API error: {e}")
+        return jsonify({'success': False, 'message': str(e), 'enabled': False})
+
+
+@app.route('/api/virtual_trading/account/<strategy_name>')
+def get_virtual_trading_account(strategy_name: str):
+    """Get virtual trading account details for specific strategy"""
+    try:
+        if not bot_instance or not hasattr(bot_instance, 'virtual_trader'):
+            return jsonify({'success': False, 'message': 'Virtual trading not initialized'})
+
+        virtual_trader = bot_instance.virtual_trader
+        if not virtual_trader:
+            return jsonify({'success': False, 'message': 'Virtual trading not enabled'})
+
+        if strategy_name not in virtual_trader.accounts:
+            return jsonify({'success': False, 'message': 'Strategy not found'})
+
+        account = virtual_trader.accounts[strategy_name]
+        summary = account.get_summary()
+
+        # Get positions details
+        positions = []
+        for stock_code, position in account.positions.items():
+            positions.append({
+                'stock_code': stock_code,
+                'stock_name': position.stock_name,
+                'quantity': position.quantity,
+                'avg_price': position.avg_price,
+                'current_price': position.current_price,
+                'unrealized_pnl': position.unrealized_pnl,
+                'unrealized_pnl_rate': position.unrealized_pnl_rate,
+                'days_held': position.days_held
+            })
+
+        return jsonify({
+            'success': True,
+            'strategy_name': strategy_name,
+            'summary': summary,
+            'positions': positions
+        })
+    except Exception as e:
+        print(f"Virtual trading account API error: {e}")
+        return jsonify({'success': False, 'message': str(e)})
+
+
+@app.route('/api/virtual_trading/trades')
+def get_virtual_trading_trades():
+    """Get virtual trading trade history"""
+    try:
+        if not bot_instance or not hasattr(bot_instance, 'trade_logger'):
+            return jsonify({'success': False, 'message': 'Trade logger not initialized'})
+
+        trade_logger = bot_instance.trade_logger
+        if not trade_logger:
+            return jsonify({'success': False, 'message': 'Trade logger not enabled'})
+
+        # Get recent trades
+        limit = request.args.get('limit', default=20, type=int)
+        strategy = request.args.get('strategy', default=None, type=str)
+
+        recent_trades = trade_logger.get_recent_trades(limit=limit, strategy=strategy)
+
+        # Get trade analysis
+        analysis = trade_logger.get_trade_analysis(strategy=strategy)
+
+        return jsonify({
+            'success': True,
+            'trades': recent_trades,
+            'analysis': analysis
+        })
+    except Exception as e:
+        print(f"Virtual trading trades API error: {e}")
         return jsonify({'success': False, 'message': str(e)})
 
 
