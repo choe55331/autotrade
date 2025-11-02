@@ -8,10 +8,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 
-try:
-    from utils.logger_new import get_logger
-except ImportError:
-    from utils.logger import get_logger
+from utils.logger_new import get_logger
 
 from config.config_manager import get_config
 

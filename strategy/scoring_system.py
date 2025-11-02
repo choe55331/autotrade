@@ -5,10 +5,7 @@ strategy/scoring_system.py
 from typing import Dict, Any, List
 from dataclasses import dataclass, field
 
-try:
-    from utils.logger_new import get_logger
-except ImportError:
-    from utils.logger import get_logger
+from utils.logger_new import get_logger
 
 from config.config_manager import get_config
 
