@@ -202,13 +202,6 @@ class MarketAPI:
 
                 # 데이터 정규화: API 응답 키 -> 표준 키
                 normalized_list = []
-
-                # 첫 번째 항목의 모든 키 확인 (디버그)
-                if rank_list:
-                    print(f"📍 첫 번째 항목의 키: {list(rank_list[0].keys())}")
-                    print(f"📍 첫 번째 항목 샘플: {rank_list[0]}")
-
-                # 정규화 후 첫 3개 샘플 출력 (디버그용 - 한 번만 실행)
                 debug_printed = False
 
                 for item in rank_list:
