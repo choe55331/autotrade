@@ -420,12 +420,12 @@ class TradingBotV2:
             # 1. 삼성전자 현재가 조회
             logger.info(f"📊 {samsung_name} 현재가 조회 중...")
             try:
-                quote = self.market_api.get_current_price(samsung_code)
+                quote = self.market_api.get_stock_price(samsung_code)
                 if not quote:
                     logger.error("현재가 조회 실패")
                     return
 
-                current_price = int(quote.get('stck_prpr', 0))
+                current_price = int(quote.get('current_price', 0))
                 logger.info(f"✓ {samsung_name} 현재가: {current_price:,}원")
 
             except Exception as e:
@@ -480,9 +480,9 @@ class TradingBotV2:
 
             # 최신 현재가 재조회
             try:
-                quote = self.market_api.get_current_price(samsung_code)
+                quote = self.market_api.get_stock_price(samsung_code)
                 if quote:
-                    sell_price = int(quote.get('stck_prpr', 0))
+                    sell_price = int(quote.get('current_price', 0))
                     logger.info(f"✓ {samsung_name} 현재가 (매도): {sell_price:,}원")
                 else:
                     sell_price = current_price  # 조회 실패시 이전 가격 사용
@@ -1192,9 +1192,9 @@ class TradingBotV2:
             for stock_code in all_stock_codes:
                 try:
                     # 현재가 조회
-                    quote = self.market_api.get_current_price(stock_code)
+                    quote = self.market_api.get_stock_price(stock_code)
                     if quote:
-                        price_data[stock_code] = int(quote.get('stck_prpr', 0))
+                        price_data[stock_code] = int(quote.get('current_price', 0))
                 except Exception as e:
                     logger.warning(f"가격 조회 실패 ({stock_code}): {e}")
                     continue
