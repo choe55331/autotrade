@@ -869,6 +869,49 @@
             </div>
         </div>
 
+        <!-- 실시간 매수 진행 상황 -->
+        <div class="card fade-in" style="animation-delay: 0.5s;">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-search-dollar"></i>
+                    실시간 매수 진행 상황
+                </h3>
+            </div>
+            <div id="scan-progress-container" style="padding: 20px;">
+                <div style="margin-bottom: 15px;">
+                    <strong>현재 스캔:</strong> <span id="scan-strategy">대기 중...</span>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <strong>발견 후보:</strong> <span id="scan-total">0개</span> |
+                    <strong>AI 검토 중:</strong> <span id="scan-reviewing">-</span>
+                </div>
+
+                <!-- 상위 후보 -->
+                <div style="margin-bottom: 15px;">
+                    <strong>📊 상위 후보:</strong>
+                    <div id="scan-top-candidates" style="margin-left: 20px; margin-top: 5px; font-size: 0.9em;">
+                        대기 중...
+                    </div>
+                </div>
+
+                <!-- 탈락 종목 -->
+                <div style="margin-bottom: 15px;">
+                    <strong>❌ 탈락:</strong>
+                    <div id="scan-rejected" style="margin-left: 20px; margin-top: 5px; font-size: 0.9em; color: var(--color-danger);">
+                        없음
+                    </div>
+                </div>
+
+                <!-- 승인 종목 -->
+                <div>
+                    <strong>✅ 승인 (분할매수 예정):</strong>
+                    <div id="scan-approved" style="margin-left: 20px; margin-top: 5px; font-size: 0.9em; color: var(--color-success);">
+                        없음
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Two Column Layout -->
         <div class="grid grid-2">
             <!-- Top Candidates -->
@@ -1056,11 +1099,12 @@
         async function loadData() {
             try {
                 // Load all data in parallel
-                const [status, account, positions, candidates, activities, performance] = await Promise.all([
+                const [status, account, positions, candidates, scanProgress, activities, performance] = await Promise.all([
                     fetch('/api/status').then(r => r.json()),
                     fetch('/api/account').then(r => r.json()),
                     fetch('/api/positions').then(r => r.json()),
                     fetch('/api/candidates').then(r => r.json()),
+                    fetch('/api/scan-progress').then(r => r.json()),
                     fetch('/api/activities').then(r => r.json()),
                     fetch('/api/performance').then(r => r.json())
                 ]);
@@ -1069,10 +1113,52 @@
                 updateAccount(account);
                 updatePositions(positions);
                 updateCandidates(candidates);
+                updateScanProgress(scanProgress);
                 updateActivities(activities);
                 updatePerformanceChart(performance);
             } catch (error) {
                 console.error('Error loading data:', error);
+            }
+        }
+
+        function updateScanProgress(data) {
+            // 현재 스캔 전략
+            document.getElementById('scan-strategy').textContent = data.current_strategy || '대기 중...';
+
+            // 발견 후보 수
+            document.getElementById('scan-total').textContent = data.total_candidates + '개';
+
+            // AI 검토 중
+            document.getElementById('scan-reviewing').textContent = data.reviewing || '-';
+
+            // 상위 후보
+            const topDiv = document.getElementById('scan-top-candidates');
+            if (data.top_candidates && data.top_candidates.length > 0) {
+                topDiv.innerHTML = data.top_candidates.map(c =>
+                    `${c.rank}. ${c.name} - ${c.score.toFixed(0)}점 (${c.percentage.toFixed(0)}%) [${c.breakdown}]`
+                ).join('<br>');
+            } else {
+                topDiv.textContent = '대기 중...';
+            }
+
+            // 탈락 종목
+            const rejectedDiv = document.getElementById('scan-rejected');
+            if (data.rejected && data.rejected.length > 0) {
+                rejectedDiv.innerHTML = data.rejected.map(r =>
+                    `${r.name} - ${r.reason}`
+                ).join('<br>');
+            } else {
+                rejectedDiv.textContent = '없음';
+            }
+
+            // 승인 종목
+            const approvedDiv = document.getElementById('scan-approved');
+            if (data.approved && data.approved.length > 0) {
+                approvedDiv.innerHTML = data.approved.map(a =>
+                    `${a.name} @ ${a.price.toLocaleString()}원 - ${a.strategy}`
+                ).join('<br>');
+            } else {
+                approvedDiv.textContent = '없음';
             }
         }
 
