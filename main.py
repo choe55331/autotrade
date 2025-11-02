@@ -570,52 +570,85 @@ class TradingBotV2:
 
     def _run_scanning_pipeline(self):
         """3단계 스캐닝 파이프라인 실행"""
+        print("🔍 3단계 스캐닝 파이프라인 시작")
         logger.info("🔍 3단계 스캐닝 파이프라인 시작")
 
         # 테스트 모드 표시
         if self.market_status.get('is_test_mode'):
+            print("🧪 테스트 모드: 실제 API로 탐색, AI 검토, 주문 실행 (서버에서 거절 예상)")
             logger.info("🧪 테스트 모드: 실제 API로 탐색, AI 검토, 주문 실행 (서버에서 거절 예상)")
 
         try:
             # 포지션 추가 가능 여부
-            if not self.portfolio_manager.can_add_position():
+            can_add = self.portfolio_manager.can_add_position()
+            positions = self.portfolio_manager.get_positions()
+            print(f"📍 포지션 체크: can_add_position={can_add}, 현재 포지션 수={len(positions)}")
+
+            if not can_add:
+                print("⚠️  최대 포지션 수 도달 - 스캐닝 생략")
                 logger.info("⚠️  최대 포지션 수 도달")
                 return
 
             # 동적 리스크 관리 확인
-            current_positions = len(self.portfolio_manager.get_positions())
-            if not self.dynamic_risk_manager.should_open_position(current_positions):
+            current_positions = len(positions)
+            should_open = self.dynamic_risk_manager.should_open_position(current_positions)
+            risk_mode = self.dynamic_risk_manager.current_mode.value
+            print(f"📍 리스크 체크: should_open_position={should_open}, 리스크 모드={risk_mode}, 현재 포지션={current_positions}")
+
+            if not should_open:
+                print(f"⚠️  리스크 관리: 포지션 진입 불가 (모드: {risk_mode})")
                 logger.info("⚠️  리스크 관리: 포지션 진입 불가")
                 return
 
+            print("✅ 포지션 및 리스크 체크 통과 - 스캐닝 시작")
+
             # 전체 파이프라인 실행
+            print("📍 scanner_pipeline.run_full_pipeline() 호출 중...")
             final_candidates = self.scanner_pipeline.run_full_pipeline()
+            print(f"📍 스캐닝 완료: {len(final_candidates) if final_candidates else 0}개 최종 후보")
 
             if not final_candidates:
+                print("✅ 스캐닝 완료: 최종 후보 없음")
                 logger.info("✅ 스캐닝 완료: 최종 후보 없음")
                 return
 
             # 최종 후보 매수 처리
-            for candidate in final_candidates[:3]:  # 최대 3개
+            print(f"📊 최종 후보 분석 중... (최대 3개)")
+            for idx, candidate in enumerate(final_candidates[:3], 1):
+                print(f"📍 [{idx}/{min(3, len(final_candidates))}] {candidate.name} ({candidate.code}) 분석 중...")
+
                 # 스코어링 시스템으로 추가 검증
                 stock_data = candidate.to_dict()
                 scoring_result = self.scoring_system.calculate_score(stock_data)
 
-                logger.info(
+                score_msg = (
                     f"📊 {candidate.name} 스코어: {scoring_result.total_score:.1f}/440 "
                     f"({scoring_result.percentage:.1f}%) - {self.scoring_system.get_grade(scoring_result.total_score)}등급"
                 )
+                print(score_msg)
+                logger.info(score_msg)
 
                 # 최종 승인 조건
+                ai_approved = self.dynamic_risk_manager.should_approve_ai_signal(candidate.ai_score, candidate.ai_confidence)
+                print(f"   AI 신호: {candidate.ai_signal}, 점수: {scoring_result.total_score:.1f}, AI 승인: {ai_approved}")
+
                 if (candidate.ai_signal == 'buy' and
                     scoring_result.total_score >= 300 and  # 300점 이상
-                    self.dynamic_risk_manager.should_approve_ai_signal(candidate.ai_score, candidate.ai_confidence)):
+                    ai_approved):
 
+                    print(f"✅ {candidate.name} 매수 조건 충족 - 주문 실행")
                     self._execute_buy(candidate, scoring_result)
                     break  # 1회 사이클에 1개만
+                else:
+                    print(f"❌ {candidate.name} 매수 조건 미충족 (신호:{candidate.ai_signal}, 점수:{scoring_result.total_score:.1f}, AI승인:{ai_approved})")
+
+            print("📍 스캐닝 파이프라인 완료")
 
         except Exception as e:
             logger.error(f"스캐닝 파이프라인 실패: {e}", exc_info=True)
+            print(f"❌ 스캐닝 파이프라인 오류: {e}")
+            import traceback
+            traceback.print_exc()
 
     def _execute_buy(self, candidate, scoring_result):
         """매수 실행 (NXT 시장 규칙 적용)"""
