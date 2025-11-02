@@ -2196,7 +2196,8 @@ def get_system_connections():
         if bot_instance and hasattr(bot_instance, 'websocket_client'):
             try:
                 ws_client = bot_instance.websocket_client
-                connections['websocket'] = getattr(ws_client, 'connected', False)
+                # 속성 이름은 'is_connected' (not 'connected')
+                connections['websocket'] = getattr(ws_client, 'is_connected', False)
             except:
                 pass
 
@@ -2212,6 +2213,11 @@ def get_system_connections():
                     # Mock이 아니고 Gemini analyzer인지 확인
                     is_mock = 'Mock' in analyzer_type or 'mock' in analyzer_module.lower()
                     is_gemini = 'Gemini' in analyzer_type or 'gemini' in analyzer_module.lower()
+
+                    # EnsembleAnalyzer의 경우 내부 analyzers 확인
+                    if analyzer_type == 'EnsembleAnalyzer' and hasattr(analyzer, 'analyzers'):
+                        from ai.ensemble_analyzer import AIModel
+                        is_gemini = AIModel.GEMINI in analyzer.analyzers
 
                     connections['gemini'] = is_gemini and not is_mock
 
