@@ -644,12 +644,19 @@ class TradingBotV2:
                 # 스코어링 시스템으로 추가 검증
                 scoring_result = self.scoring_system.calculate_score(stock_data)
 
-                score_msg = (
-                    f"📊 {candidate.name} 스코어: {scoring_result.total_score:.1f}/440 "
-                    f"({scoring_result.percentage:.1f}%) - {self.scoring_system.get_grade(scoring_result.total_score)}등급"
-                )
-                print(score_msg)
-                logger.info(score_msg)
+                # 상세 점수 출력
+                print(f"📊 {candidate.name} 스코어: {scoring_result.total_score:.1f}/440 ({scoring_result.percentage:.1f}%) - {self.scoring_system.get_grade(scoring_result.total_score)}등급")
+                print(f"   ├─ 거래량 급증: {scoring_result.volume_surge_score:.0f}/60")
+                print(f"   ├─ 가격 모멘텀: {scoring_result.price_momentum_score:.0f}/60")
+                print(f"   ├─ 기관 매수세: {scoring_result.institutional_buying_score:.0f}/60")
+                print(f"   ├─ 매수 호가 강도: {scoring_result.bid_strength_score:.0f}/40")
+                print(f"   ├─ 체결 강도: {scoring_result.execution_intensity_score:.0f}/40")
+                print(f"   ├─ 증권사 활동: {scoring_result.broker_activity_score:.0f}/40")
+                print(f"   ├─ 프로그램 매매: {scoring_result.program_trading_score:.0f}/40")
+                print(f"   ├─ 기술적 지표: {scoring_result.technical_indicators_score:.0f}/40")
+                print(f"   ├─ 테마/뉴스: {scoring_result.theme_news_score:.0f}/40")
+                print(f"   └─ 변동성 패턴: {scoring_result.volatility_pattern_score:.0f}/40")
+                logger.info(f"{candidate.name} 총점: {scoring_result.total_score:.1f}/440")
 
                 # 최종 승인 조건
                 ai_approved = self.dynamic_risk_manager.should_approve_ai_signal(candidate.ai_score, candidate.ai_confidence)

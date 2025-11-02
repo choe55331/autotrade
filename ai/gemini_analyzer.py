@@ -156,6 +156,19 @@ Risks: [2 brief risks]
                 api_elapsed = time.time() - api_start
                 print(f"        [시도 {attempt + 1}/{max_retries}] Gemini API 응답 완료 ({api_elapsed:.2f}초)")
 
+                # 응답 검증 (finish_reason 체크)
+                if not response.candidates:
+                    raise ValueError("Gemini API returned no candidates")
+
+                candidate = response.candidates[0]
+                finish_reason = candidate.finish_reason
+
+                # finish_reason: 1=STOP(정상), 2=SAFETY(안전필터), 3=MAX_TOKENS, 4=RECITATION, 5=OTHER
+                if finish_reason != 1:  # 1 = STOP (정상 완료)
+                    reason_map = {2: "SAFETY", 3: "MAX_TOKENS", 4: "RECITATION", 5: "OTHER"}
+                    reason_name = reason_map.get(finish_reason, f"UNKNOWN({finish_reason})")
+                    raise ValueError(f"Gemini blocked response: finish_reason={reason_name}")
+
                 # 응답 파싱
                 print(f"        [시도 {attempt + 1}/{max_retries}] 응답 파싱 중...")
                 result = self._parse_stock_analysis_response(response.text, stock_data)

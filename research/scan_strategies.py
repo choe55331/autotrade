@@ -118,21 +118,37 @@ class VolumeBasedStrategy(ScanStrategy):
                     rate=stock['change_rate']
                 )
 
-                # 간단한 점수 계산
+                # 점수 계산 (상세 breakdown 포함)
+                breakdown = {}
                 score = 0.0
+
+                # 1. 거래대금 (최대 40점)
                 trading_value = candidate.price * candidate.volume
                 if trading_value > 1_000_000_000:
+                    breakdown['거래대금'] = 40
                     score += 40
                 elif trading_value > 500_000_000:
+                    breakdown['거래대금'] = 30
                     score += 30
+                else:
+                    breakdown['거래대금'] = 0
 
+                # 2. 상승률 (최대 30점)
                 if 2.0 <= candidate.rate <= 10.0:
+                    breakdown['상승률'] = 30
                     score += 30
+                else:
+                    breakdown['상승률'] = 0
 
+                # 3. 거래량 (최대 30점)
                 if candidate.volume > 1_000_000:
+                    breakdown['거래량'] = 30
                     score += 30
+                else:
+                    breakdown['거래량'] = 0
 
                 candidate.fast_scan_score = score
+                candidate.fast_scan_breakdown = breakdown
                 candidate.fast_scan_time = datetime.now()
                 stock_candidates.append(candidate)
 
