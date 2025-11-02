@@ -552,31 +552,19 @@ class ScannerPipeline:
             else:
                 print(f"⏭️ Deep Scan 스킵 (Fast Scan 결과 없음)")
 
-        # AI Scan
-        should_ai = self.should_run_ai_scan()
-        has_deep_results = len(self.deep_scan_results) > 0
-        print(f"📍 AI Scan 조건: should_run={should_ai}, has_deep_results={has_deep_results} ({len(self.deep_scan_results)}개)")
-
-        if should_ai and has_deep_results:
-            print("✅ AI Scan 실행 중...")
-            self.run_ai_scan()
-            print(f"📊 AI Scan 결과: {len(self.ai_scan_results)}개 종목")
-        else:
-            if not should_ai:
-                print(f"⏭️ AI Scan 스킵 (간격 미충족, 캐시: {len(self.ai_scan_results)}개)")
-            else:
-                print(f"⏭️ AI Scan 스킵 (Deep Scan 결과 없음)")
+        # AI는 매수 결정 시점에만 사용 (별도 스캔 단계 없음)
+        print(f"ℹ️  AI 분석: 매수 시점에서 최종 후보에 대해서만 실행")
 
         summary = (
             f"✅ 스캐닝 파이프라인 완료: "
             f"Fast={len(self.fast_scan_results)}, "
-            f"Deep={len(self.deep_scan_results)}, "
-            f"AI={len(self.ai_scan_results)}"
+            f"Deep={len(self.deep_scan_results)} (최종 후보)"
         )
         print(summary)
         logger.info(summary)
 
-        return self.ai_scan_results
+        # Deep Scan 결과를 최종 후보로 반환
+        return self.deep_scan_results
 
     def get_scan_summary(self) -> Dict[str, Any]:
         """스캔 결과 요약"""

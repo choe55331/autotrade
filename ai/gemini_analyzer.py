@@ -102,8 +102,10 @@ class GeminiAnalyzer(BaseAnalyzer):
 
         for attempt in range(max_retries):
             try:
+                print(f"        [시도 {attempt + 1}/{max_retries}] 프롬프트 생성 중...")
                 # 프롬프트 생성
                 prompt = self._create_stock_analysis_prompt(stock_data, analysis_type)
+                print(f"        [시도 {attempt + 1}/{max_retries}] Gemini API 호출 중... (타임아웃: 30초)")
 
                 # Gemini API 호출 (타임아웃 30초)
                 import google.generativeai as genai
@@ -114,14 +116,19 @@ class GeminiAnalyzer(BaseAnalyzer):
                     max_output_tokens=2048,
                 )
 
+                api_start = time.time()
                 response = self.model.generate_content(
                     prompt,
                     generation_config=generation_config,
                     request_options={'timeout': 30}  # 30초 타임아웃
                 )
+                api_elapsed = time.time() - api_start
+                print(f"        [시도 {attempt + 1}/{max_retries}] Gemini API 응답 완료 ({api_elapsed:.2f}초)")
 
                 # 응답 파싱
+                print(f"        [시도 {attempt + 1}/{max_retries}] 응답 파싱 중...")
                 result = self._parse_stock_analysis_response(response.text, stock_data)
+                print(f"        [시도 {attempt + 1}/{max_retries}] 파싱 완료: score={result.get('score')}, signal={result.get('signal')}")
 
                 # 통계 업데이트
                 elapsed_time = time.time() - start_time
@@ -136,15 +143,20 @@ class GeminiAnalyzer(BaseAnalyzer):
 
             except Exception as e:
                 error_msg = str(e)
+                print(f"        [시도 {attempt + 1}/{max_retries}] ❌ 에러 발생: {error_msg}")
+                import traceback
+                traceback.print_exc()
                 logger.warning(f"종목 분석 시도 {attempt + 1}/{max_retries} 실패: {error_msg}")
 
                 # 마지막 시도가 아니면 재시도
                 if attempt < max_retries - 1:
+                    print(f"        {retry_delay}초 후 재시도...")
                     logger.info(f"{retry_delay}초 후 재시도...")
                     time.sleep(retry_delay)
                     retry_delay *= 2  # 지수 백오프
                 else:
                     # 모든 시도 실패
+                    print(f"        ❌ 모든 시도 실패: {error_msg}")
                     logger.error(f"종목 분석 최종 실패: {error_msg}")
                     self.update_statistics(False)
                     return self._get_error_result(f"최대 재시도 초과: {error_msg}")

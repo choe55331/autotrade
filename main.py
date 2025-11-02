@@ -38,7 +38,7 @@ from core import KiwoomRESTClient
 from core.websocket_client import WebSocketClient
 from api import AccountAPI, MarketAPI, OrderAPI
 from research import Screener, DataFetcher
-from research.scanner_pipeline import ScannerPipeline
+from research.strategy_manager import StrategyManager
 from strategy.scoring_system import ScoringSystem
 from strategy.dynamic_risk_manager import DynamicRiskManager
 from strategy import PortfolioManager
@@ -94,7 +94,7 @@ class TradingBotV2:
         self.data_fetcher = None  # 시장 데이터 조회용
 
         # 새로운 시스템
-        self.scanner_pipeline = None
+        self.strategy_manager = None
         self.scoring_system = None
         self.dynamic_risk_manager = None
 
@@ -246,15 +246,16 @@ class TradingBotV2:
                 self.analyzer.initialize()
                 logger.warning("✓ Mock AI 분석기로 폴백")
 
-            # 5. 3단계 스캐닝 파이프라인 (신규)
-            logger.info("🔍 3단계 스캐닝 파이프라인 초기화 중...")
+            # 5. 3가지 스캔 전략 매니저 (신규)
+            logger.info("🎯 3가지 스캔 전략 매니저 초기화 중...")
             screener = Screener(self.client)
-            self.scanner_pipeline = ScannerPipeline(
+            self.strategy_manager = StrategyManager(
                 market_api=self.market_api,
                 screener=screener,
-                ai_analyzer=self.analyzer
+                ai_analyzer=self.analyzer,
+                config=get_config().get('scan_strategies', {})
             )
-            logger.info("✓ 3단계 스캐닝 파이프라인 초기화 완료")
+            logger.info("✓ 3가지 스캔 전략 매니저 초기화 완료")
 
             # 6. 10가지 스코어링 시스템 (신규)
             logger.info("📊 10가지 스코어링 시스템 초기화 중...")
@@ -602,23 +603,45 @@ class TradingBotV2:
 
             print("✅ 포지션 및 리스크 체크 통과 - 스캐닝 시작")
 
-            # 전체 파이프라인 실행
-            print("📍 scanner_pipeline.run_full_pipeline() 호출 중...")
-            final_candidates = self.scanner_pipeline.run_full_pipeline()
-            print(f"📍 스캐닝 완료: {len(final_candidates) if final_candidates else 0}개 최종 후보")
+            # 현재 전략 실행 (3가지 전략 순환)
+            print("📍 strategy_manager.run_current_strategy() 호출 중...")
+            final_candidates = self.strategy_manager.run_current_strategy()
+            print(f"📍 스캔 완료: {len(final_candidates) if final_candidates else 0}개 최종 후보")
 
             if not final_candidates:
                 print("✅ 스캐닝 완료: 최종 후보 없음")
                 logger.info("✅ 스캐닝 완료: 최종 후보 없음")
                 return
 
-            # 최종 후보 매수 처리
-            print(f"📊 최종 후보 분석 중... (최대 3개)")
+            # 최종 후보 매수 처리 (AI 분석은 이 시점에만 실행)
+            print(f"📊 최종 후보 {len(final_candidates)}개 - AI 분석 시작 (최대 3개)")
             for idx, candidate in enumerate(final_candidates[:3], 1):
-                print(f"📍 [{idx}/{min(3, len(final_candidates))}] {candidate.name} ({candidate.code}) 분석 중...")
+                print(f"\n📍 [{idx}/{min(3, len(final_candidates))}] {candidate.name} ({candidate.code}) AI 매수 분석 중...")
+
+                # AI 분석 실행 (이 종목을 지금 매수해야 하는가?)
+                stock_data = {
+                    'stock_code': candidate.code,
+                    'stock_name': candidate.name,
+                    'current_price': candidate.price,
+                    'volume': candidate.volume,
+                    'change_rate': candidate.rate,
+                    'institutional_net_buy': candidate.institutional_net_buy,
+                    'foreign_net_buy': candidate.foreign_net_buy,
+                    'bid_ask_ratio': candidate.bid_ask_ratio,
+                }
+
+                print(f"    🤖 AI에게 매수 여부 문의 중...")
+                ai_analysis = self.analyzer.analyze_stock(stock_data)
+                print(f"    🤖 AI 응답: 신호={ai_analysis.get('signal')}, 점수={ai_analysis.get('score')}, 신뢰도={ai_analysis.get('confidence')}")
+
+                # AI 분석 결과를 candidate에 저장
+                candidate.ai_score = ai_analysis.get('score', 0)
+                candidate.ai_signal = ai_analysis.get('signal', 'hold')
+                candidate.ai_confidence = ai_analysis.get('confidence', 'Low')
+                candidate.ai_reasons = ai_analysis.get('reasons', [])
+                candidate.ai_risks = ai_analysis.get('risks', [])
 
                 # 스코어링 시스템으로 추가 검증
-                stock_data = candidate.to_dict()
                 scoring_result = self.scoring_system.calculate_score(stock_data)
 
                 score_msg = (
@@ -642,11 +665,11 @@ class TradingBotV2:
                 else:
                     print(f"❌ {candidate.name} 매수 조건 미충족 (신호:{candidate.ai_signal}, 점수:{scoring_result.total_score:.1f}, AI승인:{ai_approved})")
 
-            print("📍 스캐닝 파이프라인 완료")
+            print("📍 스캔 전략 완료")
 
         except Exception as e:
-            logger.error(f"스캐닝 파이프라인 실패: {e}", exc_info=True)
-            print(f"❌ 스캐닝 파이프라인 오류: {e}")
+            logger.error(f"스캔 전략 실패: {e}", exc_info=True)
+            print(f"❌ 스캔 전략 오류: {e}")
             import traceback
             traceback.print_exc()
 
