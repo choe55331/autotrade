@@ -612,13 +612,35 @@ class TradingBotV2:
                 logger.info("✅ 스캐닝 완료: 최종 후보 없음")
                 return
 
-            # 최종 후보 매수 처리
-            print(f"📊 최종 후보 분석 중... (최대 3개)")
+            # 최종 후보 매수 처리 (AI 분석은 이 시점에만 실행)
+            print(f"📊 최종 후보 {len(final_candidates)}개 - AI 분석 시작 (최대 3개)")
             for idx, candidate in enumerate(final_candidates[:3], 1):
-                print(f"📍 [{idx}/{min(3, len(final_candidates))}] {candidate.name} ({candidate.code}) 분석 중...")
+                print(f"\n📍 [{idx}/{min(3, len(final_candidates))}] {candidate.name} ({candidate.code}) AI 매수 분석 중...")
+
+                # AI 분석 실행 (이 종목을 지금 매수해야 하는가?)
+                stock_data = {
+                    'stock_code': candidate.code,
+                    'stock_name': candidate.name,
+                    'current_price': candidate.price,
+                    'volume': candidate.volume,
+                    'change_rate': candidate.rate,
+                    'institutional_net_buy': candidate.institutional_net_buy,
+                    'foreign_net_buy': candidate.foreign_net_buy,
+                    'bid_ask_ratio': candidate.bid_ask_ratio,
+                }
+
+                print(f"    🤖 AI에게 매수 여부 문의 중...")
+                ai_analysis = self.analyzer.analyze_stock(stock_data)
+                print(f"    🤖 AI 응답: 신호={ai_analysis.get('signal')}, 점수={ai_analysis.get('score')}, 신뢰도={ai_analysis.get('confidence')}")
+
+                # AI 분석 결과를 candidate에 저장
+                candidate.ai_score = ai_analysis.get('score', 0)
+                candidate.ai_signal = ai_analysis.get('signal', 'hold')
+                candidate.ai_confidence = ai_analysis.get('confidence', 'Low')
+                candidate.ai_reasons = ai_analysis.get('reasons', [])
+                candidate.ai_risks = ai_analysis.get('risks', [])
 
                 # 스코어링 시스템으로 추가 검증
-                stock_data = candidate.to_dict()
                 scoring_result = self.scoring_system.calculate_score(stock_data)
 
                 score_msg = (
