@@ -17,19 +17,15 @@ class GeminiAnalyzer(BaseAnalyzer):
     Gemini API를 사용한 종목/시장 분석
     """
 
-    # 종목 분석 프롬프트 템플릿 (고정)
-    STOCK_ANALYSIS_PROMPT_TEMPLATE = """Analyze this Korean stock for day trading:
-Stock: {stock_name} ({stock_code})
-Price: {current_price} KRW
-Change: {change_rate:.2f}%
-Volume: {volume}
+    # 종목 분석 프롬프트 템플릿 (고정) - 매수 여부만 질문
+    STOCK_ANALYSIS_PROMPT_TEMPLATE = """Should I buy this stock right now?
 
-Provide analysis in this format:
-Score: [0-10]
-Signal: [buy/sell/hold]
-Confidence: [Low/Medium/High]
-Reasons: [3 brief reasons]
-Risks: [2 brief risks]
+Stock: {stock_name} ({stock_code})
+Current Price: {current_price} KRW
+Change Today: {change_rate:.2f}%
+
+Answer with: BUY or HOLD
+Brief reason: (one sentence)
 """
 
     def __init__(self, api_key: str = None, model_name: str = None):
@@ -117,7 +113,6 @@ Risks: [2 brief risks]
 
         for attempt in range(max_retries):
             try:
-                print(f"        [시도 {attempt + 1}/{max_retries}] 프롬프트 준비 중...")
                 # 프롬프트 템플릿 사용 (클래스 상수)
                 prompt = self.STOCK_ANALYSIS_PROMPT_TEMPLATE.format(
                     stock_name=stock_data.get('stock_name', ''),
@@ -126,7 +121,6 @@ Risks: [2 brief risks]
                     change_rate=stock_data.get('change_rate', 0.0),
                     volume=stock_data.get('volume', 0)
                 )
-                print(f"        [시도 {attempt + 1}/{max_retries}] Gemini API 호출 중... (타임아웃: 30초)")
 
                 # Gemini API 호출 (타임아웃 30초)
                 import google.generativeai as genai
@@ -146,15 +140,12 @@ Risks: [2 brief risks]
                     HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
                 }
 
-                api_start = time.time()
                 response = self.model.generate_content(
                     prompt,
                     generation_config=generation_config,
                     safety_settings=safety_settings,
                     request_options={'timeout': 30}  # 30초 타임아웃
                 )
-                api_elapsed = time.time() - api_start
-                print(f"        [시도 {attempt + 1}/{max_retries}] Gemini API 응답 완료 ({api_elapsed:.2f}초)")
 
                 # 응답 검증 (finish_reason 체크)
                 if not response.candidates:
@@ -167,12 +158,10 @@ Risks: [2 brief risks]
                 if finish_reason != 1:  # 1 = STOP (정상 완료)
                     reason_map = {2: "SAFETY", 3: "MAX_TOKENS", 4: "RECITATION", 5: "OTHER"}
                     reason_name = reason_map.get(finish_reason, f"UNKNOWN({finish_reason})")
-                    raise ValueError(f"Gemini blocked response: finish_reason={reason_name}")
+                    raise ValueError(f"Gemini blocked: {reason_name}")
 
                 # 응답 파싱
-                print(f"        [시도 {attempt + 1}/{max_retries}] 응답 파싱 중...")
                 result = self._parse_stock_analysis_response(response.text, stock_data)
-                print(f"        [시도 {attempt + 1}/{max_retries}] 파싱 완료: score={result.get('score')}, signal={result.get('signal')}")
 
                 # 통계 업데이트
                 elapsed_time = time.time() - start_time
@@ -187,23 +176,17 @@ Risks: [2 brief risks]
 
             except Exception as e:
                 error_msg = str(e)
-                print(f"        [시도 {attempt + 1}/{max_retries}] ❌ 에러 발생: {error_msg}")
-                import traceback
-                traceback.print_exc()
-                logger.warning(f"종목 분석 시도 {attempt + 1}/{max_retries} 실패: {error_msg}")
+                logger.warning(f"AI 분석 시도 {attempt + 1}/{max_retries} 실패: {error_msg}")
 
                 # 마지막 시도가 아니면 재시도
                 if attempt < max_retries - 1:
-                    print(f"        {retry_delay}초 후 재시도...")
-                    logger.info(f"{retry_delay}초 후 재시도...")
                     time.sleep(retry_delay)
                     retry_delay *= 2  # 지수 백오프
                 else:
                     # 모든 시도 실패
-                    print(f"        ❌ 모든 시도 실패: {error_msg}")
-                    logger.error(f"종목 분석 최종 실패: {error_msg}")
+                    logger.error(f"AI 분석 최종 실패: {error_msg}")
                     self.update_statistics(False)
-                    return self._get_error_result(f"최대 재시도 초과: {error_msg}")
+                    return self._get_error_result(f"AI 분석 실패: {error_msg}")
     
     def analyze_market(self, market_data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -331,47 +314,28 @@ Risks: [2 brief risks]
         response_text: str,
         stock_data: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """종목 분석 응답 파싱"""
-        # 간단한 파싱 (실제로는 더 정교한 파싱 필요)
-        lines = response_text.strip().split('\n')
-        
+        """종목 분석 응답 파싱 - BUY/HOLD만 추출"""
+        text_lower = response_text.lower()
+
+        # BUY 또는 HOLD 찾기
+        signal = 'hold'  # 기본값
+        if 'buy' in text_lower or '매수' in response_text:
+            signal = 'buy'
+
         result = {
-            'score': 7.0,
-            'signal': 'hold',
+            'score': 0,  # AI는 점수 안 줌 (scoring_system이 계산)
+            'signal': signal,
             'confidence': 'Medium',
-            'recommendation': '보유 추천',
-            'reasons': [],
+            'recommendation': signal,
+            'reasons': [response_text.strip()],  # AI 답변 전체
             'risks': [],
             'target_price': int(stock_data.get('current_price', 0) * 1.1),
             'stop_loss_price': int(stock_data.get('current_price', 0) * 0.95),
             'analysis_text': response_text,
         }
-        
-        # 키워드 기반 파싱
-        for line in lines:
-            line_lower = line.lower()
-            
-            if '점수:' in line or 'score:' in line_lower:
-                try:
-                    score = float(''.join(filter(str.isdigit, line.split(':')[1][:3])))
-                    result['score'] = min(max(score, 0), 10)
-                except:
-                    pass
-            
-            elif '신호:' in line or 'signal:' in line_lower:
-                if 'buy' in line_lower or '매수' in line:
-                    result['signal'] = 'buy'
-                elif 'sell' in line_lower or '매도' in line:
-                    result['signal'] = 'sell'
-            
-            elif '신뢰도:' in line or 'confidence:' in line_lower:
-                if 'high' in line_lower or '높음' in line:
-                    result['confidence'] = 'High'
-                elif 'low' in line_lower or '낮음' in line:
-                    result['confidence'] = 'Low'
-        
-        logger.debug(f"분석 결과 파싱: 점수={result['score']}, 신호={result['signal']}")
-        
+
+        logger.debug(f"AI 매수 여부: {result['signal']}")
+
         return result
     
     def _parse_market_analysis_response(self, response_text: str) -> Dict[str, Any]:

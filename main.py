@@ -614,9 +614,9 @@ class TradingBotV2:
                 return
 
             # 최종 후보 매수 처리 (AI 분석은 이 시점에만 실행)
-            print(f"📊 최종 후보 {len(final_candidates)}개 - AI 분석 시작 (최대 3개)")
+            print(f"\n📊 최종 후보 {len(final_candidates)}개 - AI 매수 검토")
             for idx, candidate in enumerate(final_candidates[:3], 1):
-                print(f"\n📍 [{idx}/{min(3, len(final_candidates))}] {candidate.name} ({candidate.code}) AI 매수 분석 중...")
+                print(f"\n[{idx}/{min(3, len(final_candidates))}] {candidate.name} ({candidate.code})")
 
                 # AI 분석 실행 (이 종목을 지금 매수해야 하는가?)
                 stock_data = {
@@ -630,47 +630,28 @@ class TradingBotV2:
                     'bid_ask_ratio': candidate.bid_ask_ratio,
                 }
 
-                print(f"    🤖 AI에게 매수 여부 문의 중...")
-                ai_analysis = self.analyzer.analyze_stock(stock_data)
-                print(f"    🤖 AI 응답: 신호={ai_analysis.get('signal')}, 점수={ai_analysis.get('score')}, 신뢰도={ai_analysis.get('confidence')}")
-
-                # AI 분석 결과를 candidate에 저장
-                candidate.ai_score = ai_analysis.get('score', 0)
-                candidate.ai_signal = ai_analysis.get('signal', 'hold')
-                candidate.ai_confidence = ai_analysis.get('confidence', 'Low')
-                candidate.ai_reasons = ai_analysis.get('reasons', [])
-                candidate.ai_risks = ai_analysis.get('risks', [])
-
-                # 스코어링 시스템으로 추가 검증
+                # 스코어링 시스템으로 점수 계산
                 scoring_result = self.scoring_system.calculate_score(stock_data)
 
-                # 상세 점수 출력
-                print(f"📊 {candidate.name} 스코어: {scoring_result.total_score:.1f}/440 ({scoring_result.percentage:.1f}%) - {self.scoring_system.get_grade(scoring_result.total_score)}등급")
-                print(f"   ├─ 거래량 급증: {scoring_result.volume_surge_score:.0f}/60")
-                print(f"   ├─ 가격 모멘텀: {scoring_result.price_momentum_score:.0f}/60")
-                print(f"   ├─ 기관 매수세: {scoring_result.institutional_buying_score:.0f}/60")
-                print(f"   ├─ 매수 호가 강도: {scoring_result.bid_strength_score:.0f}/40")
-                print(f"   ├─ 체결 강도: {scoring_result.execution_intensity_score:.0f}/40")
-                print(f"   ├─ 증권사 활동: {scoring_result.broker_activity_score:.0f}/40")
-                print(f"   ├─ 프로그램 매매: {scoring_result.program_trading_score:.0f}/40")
-                print(f"   ├─ 기술적 지표: {scoring_result.technical_indicators_score:.0f}/40")
-                print(f"   ├─ 테마/뉴스: {scoring_result.theme_news_score:.0f}/40")
-                print(f"   └─ 변동성 패턴: {scoring_result.volatility_pattern_score:.0f}/40")
-                logger.info(f"{candidate.name} 총점: {scoring_result.total_score:.1f}/440")
+                # AI에게 매수 여부만 질문
+                ai_analysis = self.analyzer.analyze_stock(stock_data)
+                ai_signal = ai_analysis.get('signal', 'hold')
 
-                # 최종 승인 조건
-                ai_approved = self.dynamic_risk_manager.should_approve_ai_signal(candidate.ai_score, candidate.ai_confidence)
-                print(f"   AI 신호: {candidate.ai_signal}, 점수: {scoring_result.total_score:.1f}, AI 승인: {ai_approved}")
+                # AI 분석 결과 저장
+                candidate.ai_signal = ai_signal
+                candidate.ai_reasons = ai_analysis.get('reasons', [])
 
-                if (candidate.ai_signal == 'buy' and
-                    scoring_result.total_score >= 300 and  # 300점 이상
-                    ai_approved):
+                # 결과 출력 (간단하게)
+                print(f"   점수: {scoring_result.total_score:.0f}/440 ({scoring_result.percentage:.0f}%) {self.scoring_system.get_grade(scoring_result.total_score)}등급 | AI: {ai_signal.upper()}")
 
-                    print(f"✅ {candidate.name} 매수 조건 충족 - 주문 실행")
+                # 최종 승인 조건 (간단하게)
+                if ai_signal == 'buy' and scoring_result.total_score >= 300:
+                    print(f"✅ 매수 조건 충족 - 주문 실행")
                     self._execute_buy(candidate, scoring_result)
                     break  # 1회 사이클에 1개만
                 else:
-                    print(f"❌ {candidate.name} 매수 조건 미충족 (신호:{candidate.ai_signal}, 점수:{scoring_result.total_score:.1f}, AI승인:{ai_approved})")
+                    reason = f"AI={ai_signal}, 점수={scoring_result.total_score:.0f}"
+                    print(f"❌ 매수 조건 미충족 ({reason})")
 
             print("📍 스캔 전략 완료")
 
