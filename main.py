@@ -419,18 +419,39 @@ class TradingBotV2:
 
             # 1. 삼성전자 현재가 조회
             logger.info(f"📊 {samsung_name} 현재가 조회 중...")
-            try:
-                quote = self.market_api.get_stock_price(samsung_code)
-                if not quote:
-                    logger.error("현재가 조회 실패")
-                    return
+            current_price = 70000  # 기본값 (장외시간 대비)
 
-                current_price = int(quote.get('current_price', 0))
-                logger.info(f"✓ {samsung_name} 현재가: {current_price:,}원")
+            try:
+                # 먼저 현재가 API 시도
+                quote = self.market_api.get_stock_price(samsung_code)
+                if quote and quote.get('current_price', 0) > 0:
+                    current_price = int(quote.get('current_price', 0))
+                    logger.info(f"✓ {samsung_name} 현재가: {current_price:,}원")
+                else:
+                    # 현재가 조회 실패 시 호가 조회로 대체
+                    logger.warning(f"⚠️ 현재가 조회 실패 - 호가 조회 시도 중...")
+                    orderbook = self.market_api.get_orderbook(samsung_code)
+                    if orderbook:
+                        # 매도1호가와 매수1호가의 중간값 사용
+                        sell_price = int(orderbook.get('sell_hoga', [{}])[0].get('price', 0)) if orderbook.get('sell_hoga') else 0
+                        buy_price = int(orderbook.get('buy_hoga', [{}])[0].get('price', 0)) if orderbook.get('buy_hoga') else 0
+
+                        if sell_price > 0 and buy_price > 0:
+                            current_price = (sell_price + buy_price) // 2
+                            logger.info(f"✓ {samsung_name} 호가 기준 현재가: {current_price:,}원 (매도1: {sell_price:,}, 매수1: {buy_price:,})")
+                        elif sell_price > 0:
+                            current_price = sell_price
+                            logger.info(f"✓ {samsung_name} 매도1호가 사용: {current_price:,}원")
+                        elif buy_price > 0:
+                            current_price = buy_price
+                            logger.info(f"✓ {samsung_name} 매수1호가 사용: {current_price:,}원")
+                        else:
+                            logger.warning(f"⚠️ 호가 조회 실패 - 고정가격 사용: {current_price:,}원")
+                    else:
+                        logger.warning(f"⚠️ 호가 조회 실패 - 고정가격 사용: {current_price:,}원")
 
             except Exception as e:
-                logger.error(f"현재가 조회 실패: {e}")
-                return
+                logger.warning(f"⚠️ 가격 조회 실패: {e} - 고정가격 사용: {current_price:,}원")
 
             # 2. 매수 주문 실행
             quantity = 1  # 1주
@@ -479,18 +500,38 @@ class TradingBotV2:
             logger.info(f"📤 {samsung_name} 매도 주문 실행 중...")
 
             # 최신 현재가 재조회
+            sell_price = current_price  # 기본값: 매수가 사용
             try:
+                # 먼저 현재가 API 시도
                 quote = self.market_api.get_stock_price(samsung_code)
-                if quote:
+                if quote and quote.get('current_price', 0) > 0:
                     sell_price = int(quote.get('current_price', 0))
                     logger.info(f"✓ {samsung_name} 현재가 (매도): {sell_price:,}원")
                 else:
-                    sell_price = current_price  # 조회 실패시 이전 가격 사용
-                    logger.warning("현재가 재조회 실패 - 이전 가격 사용")
+                    # 현재가 조회 실패 시 호가 조회로 대체
+                    logger.warning(f"⚠️ 현재가 재조회 실패 - 호가 조회 시도 중...")
+                    orderbook = self.market_api.get_orderbook(samsung_code)
+                    if orderbook:
+                        # 매도1호가와 매수1호가의 중간값 사용
+                        sell_hoga = int(orderbook.get('sell_hoga', [{}])[0].get('price', 0)) if orderbook.get('sell_hoga') else 0
+                        buy_hoga = int(orderbook.get('buy_hoga', [{}])[0].get('price', 0)) if orderbook.get('buy_hoga') else 0
+
+                        if sell_hoga > 0 and buy_hoga > 0:
+                            sell_price = (sell_hoga + buy_hoga) // 2
+                            logger.info(f"✓ {samsung_name} 호가 기준 현재가: {sell_price:,}원 (매도1: {sell_hoga:,}, 매수1: {buy_hoga:,})")
+                        elif buy_hoga > 0:
+                            sell_price = buy_hoga
+                            logger.info(f"✓ {samsung_name} 매수1호가 사용: {sell_price:,}원")
+                        elif sell_hoga > 0:
+                            sell_price = sell_hoga
+                            logger.info(f"✓ {samsung_name} 매도1호가 사용: {sell_price:,}원")
+                        else:
+                            logger.warning(f"⚠️ 호가 조회 실패 - 매수가 사용: {sell_price:,}원")
+                    else:
+                        logger.warning(f"⚠️ 호가 조회 실패 - 매수가 사용: {sell_price:,}원")
 
             except Exception as e:
-                sell_price = current_price
-                logger.warning(f"현재가 재조회 실패: {e} - 이전 가격 사용")
+                logger.warning(f"⚠️ 가격 재조회 실패: {e} - 매수가 사용: {sell_price:,}원")
 
             try:
                 sell_result = self.order_api.sell(
