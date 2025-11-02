@@ -424,13 +424,13 @@ class ScannerPipeline:
                     print(f"📍 [{idx}/{len(candidates)}] AI 분석 중: {candidate.name} ({candidate.code})")
                     logger.info(f"🤖 AI 분석 중: {candidate.name} ({candidate.code})")
 
-                    # 종목 데이터 준비
+                    # 종목 데이터 준비 (AI Analyzer 필수 필드: stock_code, current_price, change_rate)
                     stock_data = {
-                        'code': candidate.code,
-                        'name': candidate.name,
-                        'price': candidate.price,
+                        'stock_code': candidate.code,
+                        'stock_name': candidate.name,
+                        'current_price': candidate.price,
                         'volume': candidate.volume,
-                        'rate': candidate.rate,
+                        'change_rate': candidate.rate,
                         'institutional_net_buy': candidate.institutional_net_buy,
                         'foreign_net_buy': candidate.foreign_net_buy,
                         'bid_ask_ratio': candidate.bid_ask_ratio,
