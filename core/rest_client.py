@@ -535,8 +535,15 @@ class KiwoomRESTClient:
             if body_override:
                 body = {**body, **body_override}
 
-            logger.info(f"검증된 API 호출: {api_id} (variant {variant_idx}) - {api_spec.get('api_name')}")
-            return self.request(api_id, body, path)
+            logger.info(f"🔍 검증된 API 호출: {api_id} (variant {variant_idx}) - {api_spec.get('api_name')}")
+            logger.info(f"   Path: {path}")
+            logger.info(f"   Body: {body}")
+
+            result = self.request(api_id, body, path)
+
+            logger.info(f"📨 API 응답 받음: return_code={result.get('return_code') if result else None}")
+
+            return result
 
         except ImportError as e:
             logger.error(f"API 로더를 가져올 수 없습니다: {e}")

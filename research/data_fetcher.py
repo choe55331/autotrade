@@ -258,36 +258,54 @@ class DataFetcher:
         if not end_date:
             end_date = datetime.now().strftime('%Y%m%d')
 
-        # Use verified API: ka10081 (주식일봉차트조회요청)
-        response = self.client.call_verified_api(
-            api_id="ka10081",
-            variant_idx=1,
-            body_override={
-                "stk_cd": stock_code,
-                "base_dt": end_date,  # 조회 기준일
-                "upd_stkpc_tp": "1"    # 수정주가 반영
-            }
-        )
+        logger.info(f"📞 Calling ka10081 API for {stock_code} (base_dt: {end_date})")
 
-        if response and response.get('return_code') == 0:
-            daily_data = response.get('output', [])
-            logger.info(f"{stock_code} 일봉 데이터 {len(daily_data)}개 조회 완료")
+        try:
+            # Use verified API: ka10081 (주식일봉차트조회요청)
+            response = self.client.call_verified_api(
+                api_id="ka10081",
+                variant_idx=1,
+                body_override={
+                    "stk_cd": stock_code,
+                    "base_dt": end_date,  # 조회 기준일
+                    "upd_stkpc_tp": "1"    # 수정주가 반영
+                }
+            )
 
-            # Convert to standard format
-            standardized_data = []
-            for item in daily_data:
-                standardized_data.append({
-                    'date': item.get('stck_bsop_date', ''),
-                    'open': int(item.get('stck_oprc', 0)),
-                    'high': int(item.get('stck_hgpr', 0)),
-                    'low': int(item.get('stck_lwpr', 0)),
-                    'close': int(item.get('stck_clpr', 0)),
-                    'volume': int(item.get('acml_vol', 0))
-                })
+            logger.info(f"📥 API Response received: {response is not None}")
 
-            return standardized_data
-        else:
-            logger.error(f"일봉 조회 실패: {response.get('return_msg')}")
+            if response:
+                return_code = response.get('return_code')
+                logger.info(f"📊 Return code: {return_code}")
+
+                if return_code == 0:
+                    daily_data = response.get('output', [])
+                    logger.info(f"✅ {stock_code} 일봉 데이터 {len(daily_data)}개 조회 완료")
+
+                    # Convert to standard format
+                    standardized_data = []
+                    for item in daily_data:
+                        standardized_data.append({
+                            'date': item.get('stck_bsop_date', ''),
+                            'open': int(item.get('stck_oprc', 0)),
+                            'high': int(item.get('stck_hgpr', 0)),
+                            'low': int(item.get('stck_lwpr', 0)),
+                            'close': int(item.get('stck_clpr', 0)),
+                            'volume': int(item.get('acml_vol', 0))
+                        })
+
+                    return standardized_data
+                else:
+                    logger.error(f"❌ 일봉 조회 실패 (return_code={return_code}): {response.get('return_msg')}")
+                    return []
+            else:
+                logger.error(f"❌ API 응답 없음 (response is None)")
+                return []
+
+        except Exception as e:
+            logger.error(f"❌ 일봉 조회 중 예외 발생: {e}")
+            import traceback
+            traceback.print_exc()
             return []
     
     def get_minute_price(
