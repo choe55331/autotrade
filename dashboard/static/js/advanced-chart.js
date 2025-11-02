@@ -731,23 +731,35 @@ class AdvancedTradingChart {
             console.log(`🔄 Changing timeframe to: ${timeframe}`);
             this.showLoading();
 
-            // Update button states
-            document.querySelectorAll('[data-timeframe]').forEach(btn => {
-                if (btn.getAttribute('data-timeframe') === timeframe) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
+            // For D/W/M timeframes, ensure we have daily data first
+            if (timeframe === 'D' || timeframe === 'W' || timeframe === 'M') {
+                // If we don't have raw daily data, fetch it first
+                if (!this.rawData) {
+                    console.log('📡 Fetching daily data for conversion');
+                    const url = `/api/chart/${this.currentStockCode}?timeframe=D`;
+                    const response = await fetch(url);
+                    const data = await response.json();
+
+                    if (data.success && data.data && data.data.length > 0) {
+                        this.rawData = data;
+                        console.log(`✅ Loaded ${data.data.length} daily candles for conversion`);
+                    } else {
+                        console.error('❌ Failed to load daily data');
+                        this.showError('일봉 데이터를 불러올 수 없습니다.');
+                        return;
+                    }
                 }
-            });
 
-            this.currentTimeframe = timeframe;
-
-            // If we have raw data, just convert it
-            if (this.rawData && (timeframe === 'D' || timeframe === 'W' || timeframe === 'M')) {
+                // Now convert to the desired timeframe
                 console.log(`📈 Converting ${this.rawData.data.length} daily candles to ${timeframe}`);
                 const processedData = this.convertTimeframe(this.rawData.data, timeframe);
                 console.log(`✅ Converted to ${processedData.length} ${timeframe} candles`);
+
+                // Update button states
+                this.updateButtonStates(timeframe);
+                this.currentTimeframe = timeframe;
                 this.updateChartWithData(processedData, this.rawData);
+
             } else if (timeframe.match(/^\d+$/)) {
                 // Minute data - fetch from server
                 console.log(`📡 Fetching ${timeframe}-minute data from server`);
@@ -755,21 +767,34 @@ class AdvancedTradingChart {
                 const response = await fetch(url);
                 const data = await response.json();
 
-                if (data.success && data.data) {
+                if (data.success && data.data && data.data.length > 0) {
                     console.log(`📦 Received ${data.data.length} data points`);
-                    this.updateChartWithData(data.data, data);
 
-                    // Show warning if fallback occurred
-                    if (data.timeframe !== timeframe) {
+                    // Check if fallback occurred (server returned different timeframe)
+                    const actualTimeframe = data.timeframe || timeframe;
+                    if (actualTimeframe !== timeframe) {
+                        console.warn(`⚠️ Requested ${timeframe}min but got ${actualTimeframe}`);
                         this.showWarning(`${timeframe}분봉 데이터를 사용할 수 없어 일봉을 표시합니다.`);
+
+                        // Update to the actual timeframe returned
+                        this.updateButtonStates(actualTimeframe);
+                        this.currentTimeframe = actualTimeframe;
+
+                        // Store as rawData if it's daily data
+                        if (actualTimeframe === 'D') {
+                            this.rawData = data;
+                        }
+                    } else {
+                        // Successfully got minute data
+                        this.updateButtonStates(timeframe);
+                        this.currentTimeframe = timeframe;
                     }
+
+                    this.updateChartWithData(data.data, data);
                 } else {
                     console.error('❌ No data received from server');
+                    this.showError('차트 데이터를 불러올 수 없습니다.');
                 }
-            } else {
-                // Re-fetch data
-                console.log('📡 Re-fetching data from server');
-                await this.loadData(this.currentStockCode, timeframe);
             }
 
         } catch (error) {
@@ -778,6 +803,17 @@ class AdvancedTradingChart {
         } finally {
             this.hideLoading();
         }
+    }
+
+    updateButtonStates(timeframe) {
+        // Update button states
+        document.querySelectorAll('[data-timeframe]').forEach(btn => {
+            if (btn.getAttribute('data-timeframe') === timeframe) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
     }
 
     setDrawingMode(mode) {
