@@ -111,6 +111,16 @@ class TradingBotV2:
         # AI 승인 매수 후보 리스트
         self.ai_approved_candidates = []
 
+        # 스캔 진행 상황 추적
+        self.scan_progress = {
+            'current_strategy': '',  # 현재 스캔 전략
+            'total_candidates': 0,   # 발견된 후보 수
+            'top_candidates': [],    # 상위 후보 (이름, 점수)
+            'reviewing': '',         # 현재 검토 중인 종목
+            'rejected': [],          # 탈락 종목 (이름, 이유)
+            'approved': [],          # 승인 종목 (이름, 가격, 전략)
+        }
+
         # 초기화
         self._initialize_components()
 
@@ -558,6 +568,13 @@ class TradingBotV2:
             # 현재 전략 실행 (3가지 전략 순환)
             final_candidates = self.strategy_manager.run_current_strategy()
 
+            # 스캔 진행 상황 업데이트
+            strategy_name = self.strategy_manager.get_current_strategy_name() if hasattr(self.strategy_manager, 'get_current_strategy_name') else '시장 스캔'
+            self.scan_progress['current_strategy'] = strategy_name
+            self.scan_progress['total_candidates'] = len(final_candidates)
+            self.scan_progress['rejected'] = []
+            self.scan_progress['approved'] = []
+
             if not final_candidates:
                 print("✅ 스캐닝 완료: 최종 후보 없음")
                 logger.info("✅ 스캐닝 완료: 최종 후보 없음")
@@ -586,6 +603,10 @@ class TradingBotV2:
             # 상위 5개만 표시 및 AI 검토
             top5 = final_candidates[:5]
             print(f"\n📊 상위 5개 후보:")
+
+            # scan_progress 업데이트 - 상위 후보
+            self.scan_progress['top_candidates'] = []
+
             for rank, c in enumerate(top5, 1):
                 score_result = candidate_scores[c.code]
                 # 주요 점수 카테고리 (0점 초과인 것만)
@@ -604,11 +625,24 @@ class TradingBotV2:
                 percentage = (c.final_score / 440) * 100
                 print(f"   {rank}. {c.name} - {c.final_score:.0f}점 ({percentage:.0f}%) [{breakdown_str}]")
 
+                # scan_progress에 추가
+                self.scan_progress['top_candidates'].append({
+                    'rank': rank,
+                    'name': c.name,
+                    'code': c.code,
+                    'score': c.final_score,
+                    'percentage': percentage,
+                    'breakdown': breakdown_str
+                })
+
             # 포트폴리오 정보
             portfolio_info = "No positions"
 
             # AI 매수 검토 (상위 3개)
             for idx, candidate in enumerate(top5[:3], 1):
+                # scan_progress 업데이트 - 현재 검토 중
+                self.scan_progress['reviewing'] = f"{candidate.name} ({idx}/3)"
+
                 print(f"\n🤖 [{idx}/3] {candidate.name}")
 
                 # 이미 계산된 점수 사용
@@ -688,13 +722,31 @@ class TradingBotV2:
                 # 최종 승인 조건
                 if ai_signal == 'buy' and scoring_result.total_score >= 300:
                     print(f"✅ 매수 조건 충족 - 주문 실행")
+
+                    # scan_progress 업데이트 - 승인
+                    self.scan_progress['approved'].append({
+                        'name': candidate.name,
+                        'price': candidate.price,
+                        'strategy': split_strategy,
+                        'score': scoring_result.total_score
+                    })
+
                     # TODO: split_strategy에 따라 분할 매수 실행
                     self._execute_buy(candidate, scoring_result)
                     break  # 1회 사이클에 1개만
                 else:
-                    reason = f"AI={ai_signal}, 점수={scoring_result.total_score:.0f}"
-                    print(f"❌ 매수 조건 미충족 ({reason})")
+                    reason_text = f"AI={ai_signal}, 점수={scoring_result.total_score:.0f}"
+                    print(f"❌ 매수 조건 미충족 ({reason_text})")
 
+                    # scan_progress 업데이트 - 탈락
+                    self.scan_progress['rejected'].append({
+                        'name': candidate.name,
+                        'reason': reason_text,
+                        'score': scoring_result.total_score
+                    })
+
+            # 검토 완료
+            self.scan_progress['reviewing'] = ''
             print("📍 스캔 전략 완료")
 
         except Exception as e:

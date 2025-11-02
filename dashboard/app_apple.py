@@ -348,6 +348,32 @@ def get_candidates():
         return jsonify([])
 
 
+@app.route('/api/scan-progress')
+def get_scan_progress():
+    """Get real-time scan progress"""
+    try:
+        if bot_instance and hasattr(bot_instance, 'scan_progress'):
+            return jsonify(bot_instance.scan_progress)
+        return jsonify({
+            'current_strategy': '',
+            'total_candidates': 0,
+            'top_candidates': [],
+            'reviewing': '',
+            'rejected': [],
+            'approved': []
+        })
+    except Exception as e:
+        print(f"Error getting scan progress: {e}")
+        return jsonify({
+            'current_strategy': '',
+            'total_candidates': 0,
+            'top_candidates': [],
+            'reviewing': '',
+            'rejected': [],
+            'approved': []
+        })
+
+
 @app.route('/api/activities')
 def get_activities():
     """Get recent activities from activity monitor (real-time, no hardcoding)"""
