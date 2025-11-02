@@ -330,8 +330,12 @@ class TradingBotV2:
         """봇 시작"""
         if not self.is_initialized:
             logger.error("봇이 초기화되지 않았습니다")
+            print("❌ 오류: 봇이 초기화되지 않았습니다")
             return
 
+        print("\n" + "="*60)
+        print("🚀 AutoTrade Pro v2.0 메인 루프 시작")
+        print("="*60)
         logger.info("="*60)
         logger.info("🚀 AutoTrade Pro v2.0 실행 시작")
         logger.info("="*60)
@@ -342,8 +346,12 @@ class TradingBotV2:
             self._main_loop()
         except KeyboardInterrupt:
             logger.info("사용자에 의한 중단")
+            print("\n사용자에 의한 중단")
         except Exception as e:
             logger.error(f"메인 루프 오류: {e}", exc_info=True)
+            print(f"\n❌ 메인 루프 오류: {e}")
+            import traceback
+            traceback.print_exc()
         finally:
             self.stop()
 
@@ -362,6 +370,7 @@ class TradingBotV2:
 
     def _main_loop(self):
         """메인 루프"""
+        print("📍 _main_loop() 진입")
         cycle_count = 0
         # Backward compatibility: handle both Pydantic (object) and old config (dict)
         try:
@@ -373,6 +382,8 @@ class TradingBotV2:
             logger.warning(f"Config 로드 실패, 기본값 사용: {e}")
             sleep_seconds = 60
 
+        print(f"📍 메인 루프 시작 (sleep_seconds={sleep_seconds}, is_running={self.is_running})")
+
         while self.is_running:
             cycle_count += 1
 
@@ -381,8 +392,12 @@ class TradingBotV2:
                 logger.info(f"⏳ {sleep_seconds}초 대기...\n")
                 time.sleep(sleep_seconds)
             else:
+                print(f"🚀 첫 사이클 #{cycle_count} - 즉시 시작")
                 logger.info("🚀 첫 사이클 - 즉시 시작\n")
 
+            print(f"\n{'='*60}")
+            print(f"🔄 메인 사이클 #{cycle_count}")
+            print(f"{'='*60}")
             logger.info(f"\n{'='*60}")
             logger.info(f"🔄 메인 사이클 #{cycle_count}")
             logger.info(f"{'='*60}")
