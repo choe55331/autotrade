@@ -8,6 +8,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 
 from utils.logger_new import get_logger
+from utils.stock_filter import is_etf
 from research.scanner_pipeline import StockCandidate
 
 logger = get_logger()
@@ -100,9 +101,15 @@ class VolumeBasedStrategy(ScanStrategy):
                 limit=100
             )
 
-            # StockCandidate 객체로 변환
+            # StockCandidate 객체로 변환 (ETF 제외)
             stock_candidates = []
-            for stock in candidates[:20]:  # 상위 20개
+            etf_count = 0
+            for stock in candidates[:40]:  # ETF 제외 고려하여 더 많이 조회
+                # ETF 필터링
+                if is_etf(stock['name'], stock['code']):
+                    etf_count += 1
+                    continue
+
                 candidate = StockCandidate(
                     code=stock['code'],
                     name=stock['name'],
@@ -128,6 +135,12 @@ class VolumeBasedStrategy(ScanStrategy):
                 candidate.fast_scan_score = score
                 candidate.fast_scan_time = datetime.now()
                 stock_candidates.append(candidate)
+
+                if len(stock_candidates) >= 20:  # 20개 확보되면 종료
+                    break
+
+            if etf_count > 0:
+                print(f"   ℹ️  ETF/지수 {etf_count}개 제외됨")
 
             # 점수 기준 정렬
             stock_candidates.sort(key=lambda x: x.fast_scan_score, reverse=True)
@@ -193,9 +206,15 @@ class PriceChangeStrategy(ScanStrategy):
             # 필터링 조건
             conditions = self.get_filter_conditions()
 
-            # 필터링 및 StockCandidate 변환
+            # 필터링 및 StockCandidate 변환 (ETF 제외)
             stock_candidates = []
+            etf_count = 0
             for stock in rank_list:
+                # ETF 필터링
+                if is_etf(stock['name'], stock['code']):
+                    etf_count += 1
+                    continue
+
                 # 조건 체크
                 if not (conditions['min_price'] <= stock['price'] <= conditions['max_price']):
                     continue
@@ -230,6 +249,9 @@ class PriceChangeStrategy(ScanStrategy):
                 candidate.fast_scan_score = score
                 candidate.fast_scan_time = datetime.now()
                 stock_candidates.append(candidate)
+
+            if etf_count > 0:
+                print(f"   ℹ️  ETF/지수 {etf_count}개 제외됨")
 
             # 점수 기준 정렬
             stock_candidates.sort(key=lambda x: x.fast_scan_score, reverse=True)
@@ -305,9 +327,15 @@ class AIDrivenStrategy(ScanStrategy):
                 limit=100
             )
 
-            # StockCandidate 변환
+            # StockCandidate 변환 (ETF 제외)
             stock_candidates = []
-            for stock in candidates[:20]:
+            etf_count = 0
+            for stock in candidates[:40]:  # ETF 제외 고려
+                # ETF 필터링
+                if is_etf(stock['name'], stock['code']):
+                    etf_count += 1
+                    continue
+
                 candidate = StockCandidate(
                     code=stock['code'],
                     name=stock['name'],
@@ -321,6 +349,12 @@ class AIDrivenStrategy(ScanStrategy):
                 candidate.fast_scan_score = score
                 candidate.fast_scan_time = datetime.now()
                 stock_candidates.append(candidate)
+
+                if len(stock_candidates) >= 20:
+                    break
+
+            if etf_count > 0:
+                print(f"   ℹ️  ETF/지수 {etf_count}개 제외됨")
 
             elapsed = time.time() - start_time
             print(f"✅ [{self.name}] 스캔 완료: {len(stock_candidates)}개 후보 (소요: {elapsed:.2f}초)")
