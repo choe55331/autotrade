@@ -28,6 +28,7 @@ class StockCandidate:
     # Fast Scan 데이터
     fast_scan_score: float = 0.0
     fast_scan_time: Optional[datetime] = None
+    fast_scan_breakdown: Dict[str, float] = field(default_factory=dict)  # 점수 상세
 
     # Deep Scan 데이터
     institutional_net_buy: int = 0
@@ -35,6 +36,7 @@ class StockCandidate:
     bid_ask_ratio: float = 0.0
     deep_scan_score: float = 0.0
     deep_scan_time: Optional[datetime] = None
+    deep_scan_breakdown: Dict[str, float] = field(default_factory=dict)  # 점수 상세
 
     # AI Scan 데이터
     ai_score: float = 0.0
