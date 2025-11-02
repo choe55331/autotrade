@@ -42,7 +42,8 @@ class LoguruLogger:
         except ImportError:
             # 기본 설정 사용
             log_config = {
-                'level': 'INFO',
+                'level': 'INFO',  # 파일 로그 레벨
+                'console_level': 'WARNING',  # 콘솔 로그 레벨 (cmd 창 스팸 방지)
                 'file_path': 'logs/bot.log',
                 'max_file_size': 10485760,  # 10MB
                 'backup_count': 30,
@@ -55,12 +56,13 @@ class LoguruLogger:
         # 기존 핸들러 제거
         logger.remove()
 
-        # 콘솔 핸들러 (컬러 출력)
+        # 콘솔 핸들러 (컬러 출력) - WARNING 이상만 출력 (cmd 창 스팸 방지)
         if log_config.get('console_output', True):
+            console_level = log_config.get('console_level', 'WARNING')  # 기본값: WARNING
             logger.add(
                 sys.stdout,
                 format=log_config.get('format'),
-                level=log_config.get('level', 'INFO'),
+                level=console_level,  # 콘솔은 WARNING 이상만
                 colorize=log_config.get('colored_output', True),
                 backtrace=True,
                 diagnose=True,
