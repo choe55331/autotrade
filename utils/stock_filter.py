@@ -4,7 +4,7 @@ utils/stock_filter.py
 """
 
 
-# ETF 제외 키워드
+# ETF/지수 제외 키워드 (모두 대문자로 통일)
 ETF_KEYWORDS = [
     'KODEX',
     'TIGER',
@@ -15,12 +15,14 @@ ETF_KEYWORDS = [
     'HANARO',
     'KBSTAR',
     'SMARTBETA',
-    '인버스',
-    '레버리지',
     'INVERSE',
     'LEVERAGE',
     'ETF',
     'ETN',
+    '인버스',
+    '레버리지',
+    '곱버스',
+    '인덱스',
 ]
 
 
