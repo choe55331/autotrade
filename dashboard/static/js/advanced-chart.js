@@ -557,12 +557,16 @@ class AdvancedTradingChart {
         const firstCandle = candles[0];
         const lastCandle = candles[candles.length - 1];
 
+        // Sum up volume if it exists
+        const totalVolume = candles.reduce((sum, c) => sum + (c.volume || 0), 0);
+
         return {
             time: lastCandle.time, // Use last candle's time
             open: firstCandle.open,
             high: Math.max(...candles.map(c => c.high)),
             low: Math.min(...candles.map(c => c.low)),
             close: lastCandle.close,
+            volume: totalVolume
         };
     }
 
@@ -575,6 +579,8 @@ class AdvancedTradingChart {
     }
 
     updateChartWithData(chartData, originalData) {
+        console.log(`📊 Updating chart with ${chartData.length} candles, timeframe: ${this.currentTimeframe}`);
+
         // Update chart title and price
         const chartStockName = document.getElementById('chart-stock-name');
         const chartPrice = document.getElementById('chart-price');
@@ -588,7 +594,40 @@ class AdvancedTradingChart {
         // Set candlestick data
         this.candlestickSeries.setData(chartData);
 
-        // Set indicator data
+        // For weekly/monthly, create volume data from aggregated candles
+        if (this.currentTimeframe === 'W' || this.currentTimeframe === 'M') {
+            // Generate volume data from chartData
+            const volumeData = chartData.map(candle => ({
+                time: candle.time,
+                value: candle.volume || 0,
+                color: candle.close >= candle.open ? 'rgba(34, 197, 94, 0.5)' : 'rgba(239, 68, 68, 0.5)'
+            }));
+
+            if (this.series.volume) {
+                this.series.volume.setData(volumeData);
+            }
+
+            // Clear indicators for weekly/monthly (they're based on daily data)
+            if (this.series.ma5) this.series.ma5.setData([]);
+            if (this.series.ma20) this.series.ma20.setData([]);
+            if (this.series.ma60) this.series.ma60.setData([]);
+            if (this.series.bb_upper) {
+                this.series.bb_upper.setData([]);
+                this.series.bb_middle.setData([]);
+                this.series.bb_lower.setData([]);
+            }
+            if (this.series.rsi) this.series.rsi.setData([]);
+            if (this.series.macd_line) {
+                this.series.macd_line.setData([]);
+                this.series.macd_signal.setData([]);
+                this.series.macd_histogram.setData([]);
+            }
+
+            console.log('📊 Weekly/Monthly mode: Indicators hidden, volume aggregated');
+            return;
+        }
+
+        // Set indicator data (only for daily and minute charts)
         const indicators = originalData.indicators || {};
 
         if (indicators.ma5 && this.series.ma5) {
@@ -639,7 +678,7 @@ class AdvancedTradingChart {
             this.series.volume.setData(indicators.volume);
         }
 
-        console.log('Chart updated successfully');
+        console.log('✅ Chart updated successfully with indicators');
     }
 
     toggleIndicator(indicator) {
@@ -689,6 +728,7 @@ class AdvancedTradingChart {
 
     async changeTimeframe(timeframe) {
         try {
+            console.log(`🔄 Changing timeframe to: ${timeframe}`);
             this.showLoading();
 
             // Update button states
@@ -704,29 +744,36 @@ class AdvancedTradingChart {
 
             // If we have raw data, just convert it
             if (this.rawData && (timeframe === 'D' || timeframe === 'W' || timeframe === 'M')) {
+                console.log(`📈 Converting ${this.rawData.data.length} daily candles to ${timeframe}`);
                 const processedData = this.convertTimeframe(this.rawData.data, timeframe);
+                console.log(`✅ Converted to ${processedData.length} ${timeframe} candles`);
                 this.updateChartWithData(processedData, this.rawData);
             } else if (timeframe.match(/^\d+$/)) {
                 // Minute data - fetch from server
+                console.log(`📡 Fetching ${timeframe}-minute data from server`);
                 const url = `/api/chart/${this.currentStockCode}?timeframe=${timeframe}`;
                 const response = await fetch(url);
                 const data = await response.json();
 
                 if (data.success && data.data) {
+                    console.log(`📦 Received ${data.data.length} data points`);
                     this.updateChartWithData(data.data, data);
 
                     // Show warning if fallback occurred
                     if (data.timeframe !== timeframe) {
                         this.showWarning(`${timeframe}분봉 데이터를 사용할 수 없어 일봉을 표시합니다.`);
                     }
+                } else {
+                    console.error('❌ No data received from server');
                 }
             } else {
                 // Re-fetch data
+                console.log('📡 Re-fetching data from server');
                 await this.loadData(this.currentStockCode, timeframe);
             }
 
         } catch (error) {
-            console.error('Timeframe change error:', error);
+            console.error('❌ Timeframe change error:', error);
             this.showError('시간봉 변경 실패');
         } finally {
             this.hideLoading();
