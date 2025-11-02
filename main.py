@@ -45,6 +45,9 @@ from strategy import PortfolioManager
 from ai.mock_analyzer import MockAnalyzer  # 테스트: Mock 직접 사용
 from utils.activity_monitor import get_monitor
 
+# 가상 매매 시스템
+from virtual_trading import VirtualTrader, TradeLogger
+
 # 로거
 logger = get_logger()
 
@@ -101,6 +104,10 @@ class TradingBotV2:
         # 기존 시스템
         self.portfolio_manager = None
         self.analyzer = None
+
+        # 가상 매매 시스템
+        self.virtual_trader = None
+        self.trade_logger = None
 
         # 활동 모니터
         self.monitor = get_monitor()
@@ -286,10 +293,36 @@ class TradingBotV2:
             self.portfolio_manager = PortfolioManager(self.client)
             logger.info("✓ 포트폴리오 관리자 초기화 완료")
 
-            # 9. 제어 파일
+            # 9. 가상 매매 시스템
+            logger.info("📝 가상 매매 시스템 초기화 중...")
+            try:
+                # 가상 매매 초기 자본 (기본 1000만원)
+                virtual_initial_cash = 10_000_000
+
+                # VirtualTrader 초기화 (3가지 전략: 공격적, 보수적, 균형)
+                self.virtual_trader = VirtualTrader(initial_cash=virtual_initial_cash)
+
+                # TradeLogger 초기화
+                self.trade_logger = TradeLogger()
+
+                # 과거 7일 로그 불러오기
+                loaded_count = self.trade_logger.load_historical_trades(days=7)
+                if loaded_count > 0:
+                    logger.info(f"✓ 과거 거래 로그 {loaded_count}건 불러옴")
+
+                # 가상 계좌 상태 복원
+                self.virtual_trader.load_all_states()
+
+                logger.info("✅ 가상 매매 시스템 초기화 완료 (3가지 전략 운영)")
+            except Exception as e:
+                logger.warning(f"⚠️  가상 매매 시스템 초기화 실패: {e}")
+                self.virtual_trader = None
+                self.trade_logger = None
+
+            # 10. 제어 파일
             self._initialize_control_file()
 
-            # 10. 이전 상태 복원
+            # 11. 이전 상태 복원
             self._restore_state()
 
             self.is_initialized = True
@@ -374,6 +407,22 @@ class TradingBotV2:
         logger.info("AutoTrade Pro v2.0 종료 중...")
         self.is_running = False
 
+        # 가상 매매 상태 저장
+        if self.virtual_trader:
+            try:
+                logger.info("📝 가상 매매 상태 저장 중...")
+                self.virtual_trader.save_all_states()
+                logger.info("✓ 가상 매매 상태 저장 완료")
+            except Exception as e:
+                logger.warning(f"가상 매매 상태 저장 실패: {e}")
+
+        # 가상 매매 로그 요약 출력
+        if self.trade_logger:
+            try:
+                self.trade_logger.print_summary()
+            except Exception as e:
+                logger.warning(f"가상 매매 로그 요약 출력 실패: {e}")
+
         if self.db_session:
             self.db_session.close()
 
@@ -417,6 +466,19 @@ class TradingBotV2:
                     continue
 
                 self._update_account_info()
+
+                # 가상 매매 가격 업데이트 및 매도 검토
+                if self.virtual_trader:
+                    try:
+                        # 가상 계좌의 모든 포지션 가격 업데이트
+                        price_data = self._get_virtual_trading_prices()
+                        if price_data:
+                            self.virtual_trader.update_all_prices(price_data)
+
+                        # 가상 매매 매도 조건 확인
+                        self.virtual_trader.check_sell_conditions(price_data)
+                    except Exception as e:
+                        logger.warning(f"가상 매매 업데이트 실패: {e}")
 
                 # 매도 검토
                 if not self.pause_sell:
@@ -741,8 +803,30 @@ class TradingBotV2:
                         'score': scoring_result.total_score
                     })
 
-                    # TODO: split_strategy에 따라 분할 매수 실행
+                    # 실제 매수 실행
                     self._execute_buy(candidate, scoring_result)
+
+                    # 가상 매매 시스템에도 매수 신호 전달
+                    if self.virtual_trader:
+                        try:
+                            stock_data = {
+                                'stock_code': candidate.code,
+                                'stock_name': candidate.name,
+                                'current_price': candidate.price,
+                                'change_rate': candidate.rate,
+                                'volume': getattr(candidate, 'volume', 0),
+                            }
+                            ai_analysis_data = {
+                                'signal': ai_signal,
+                                'split_strategy': split_strategy,
+                                'reasons': ai_analysis.get('reasons', []),
+                                'score': scoring_result.total_score,
+                            }
+                            self.virtual_trader.process_buy_signal(stock_data, ai_analysis_data)
+                            print(f"   📝 가상 매매: 3가지 전략으로 매수 시그널 처리 완료")
+                        except Exception as e:
+                            logger.warning(f"가상 매매 매수 처리 실패: {e}")
+
                     break  # 1회 사이클에 1개만
                 else:
                     reason_text = f"AI={ai_signal}, 점수={scoring_result.total_score:.0f}"
@@ -930,6 +1014,38 @@ class TradingBotV2:
         except Exception as e:
             logger.error(f"포트폴리오 스냅샷 저장 실패: {e}")
 
+    def _get_virtual_trading_prices(self) -> dict:
+        """가상 매매용 현재 가격 조회"""
+        try:
+            if not self.virtual_trader:
+                return {}
+
+            # 모든 가상 계좌의 포지션에서 종목 코드 추출
+            all_stock_codes = set()
+            for account in self.virtual_trader.accounts.values():
+                all_stock_codes.update(account.positions.keys())
+
+            if not all_stock_codes:
+                return {}
+
+            # 각 종목의 현재가 조회
+            price_data = {}
+            for stock_code in all_stock_codes:
+                try:
+                    # 현재가 조회
+                    quote = self.market_api.get_current_price(stock_code)
+                    if quote:
+                        price_data[stock_code] = int(quote.get('stck_prpr', 0))
+                except Exception as e:
+                    logger.warning(f"가격 조회 실패 ({stock_code}): {e}")
+                    continue
+
+            return price_data
+
+        except Exception as e:
+            logger.error(f"가상 매매 가격 조회 실패: {e}")
+            return {}
+
     def _print_statistics(self):
         """통계 출력"""
         try:
@@ -954,6 +1070,16 @@ class TradingBotV2:
             logger.info(f"🔍 Fast Scan: {scan_summary['fast_scan']['count']}종목")
             logger.info(f"🔬 Deep Scan: {scan_summary['deep_scan']['count']}종목")
             logger.info(f"🤖 AI Scan: {scan_summary['ai_scan']['count']}종목")
+
+            # 가상 매매 성과
+            if self.virtual_trader:
+                try:
+                    logger.info("\n" + "-"*60)
+                    logger.info("📝 가상 매매 성과 (3가지 전략)")
+                    logger.info("-"*60)
+                    self.virtual_trader.print_performance()
+                except Exception as e:
+                    logger.warning(f"가상 매매 성과 출력 실패: {e}")
 
             logger.info("="*60 + "\n")
 
