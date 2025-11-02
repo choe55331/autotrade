@@ -17,19 +17,38 @@ class GeminiAnalyzer(BaseAnalyzer):
     Gemini API를 사용한 종목/시장 분석
     """
 
-    # 종목 분석 프롬프트 템플릿 (SAFETY 회피용 초간결 버전)
-    STOCK_ANALYSIS_PROMPT_TEMPLATE = """종목 데이터:
-{stock_name} ({stock_code})
-현재가: {current_price:,}원 ({change_rate:+.2f}%)
+    # 종목 분석 프롬프트 템플릿
+    STOCK_ANALYSIS_PROMPT_TEMPLATE = """[종목 정보]
+종목명: {stock_name} ({stock_code})
+현재가: {current_price:,}원 (등락률: {change_rate:+.2f}%)
 거래량: {volume:,}주
-점수: {score}/440 ({percentage:.0f}%)
-요인: {score_breakdown}
+종합 점수: {score}/440점 ({percentage:.1f}%)
 
-다음 형식으로 답변:
+[10가지 세부 점수]
+{score_breakdown_detailed}
+
+[투자자 동향]
+기관 순매수: {institutional_net_buy:,}원
+외국인 순매수: {foreign_net_buy:,}원
+매수호가강도: {bid_ask_ratio:.2f}
+
+[현재 포트폴리오]
+{portfolio_info}
+
+[분석 요청]
+위 데이터를 종합하여 다음을 분석해주세요:
+
+1. 종합 점수 {percentage:.1f}%의 타당성 (10가지 세부 점수 고려)
+2. 투자자 동향이 보여주는 시그널
+3. 단기 급등 vs 추세 전환 판단
+4. 주요 리스크 요인
+
+[응답 형식]
 관심도: [높음/보통]
-접근: [단계 제안 또는 없음]
-근거: [1줄]
-경고: [1줄]
+분할매수: [높음이면 구체적으로 3단계로 제시]
+  예시) 1차 40% 현재가, 2차 30% -2%, 3차 20% -4%
+근거: [2-3줄, 점수와 투자자 동향 언급]
+경고: [1-2줄, 구체적 리스크]
 """
 
     def __init__(self, api_key: str = None, model_name: str = None):
@@ -126,16 +145,22 @@ class GeminiAnalyzer(BaseAnalyzer):
                     score = score_info.get('score', 0)
                     percentage = score_info.get('percentage', 0)
                     breakdown = score_info.get('breakdown', {})
-                    # 0점이 아닌 주요 요소만 표시 (간결하게)
-                    main_factors = [k for k, v in breakdown.items() if v > 0]
-                    score_breakdown_text = ", ".join(main_factors[:3]) if main_factors else "기타"
+                    # 10가지 세부 점수 상세 표시
+                    score_breakdown_detailed = "\n".join([
+                        f"  {k}: {v:.1f}점" for k, v in breakdown.items() if v >= 0
+                    ])
                 else:
                     score = 0
                     percentage = 0
-                    score_breakdown_text = "N/A"
+                    score_breakdown_detailed = "  점수 정보 없음"
 
                 # 포트폴리오 정보 (없으면 기본 메시지)
-                portfolio_text = portfolio_info or "No positions currently held"
+                portfolio_text = portfolio_info or "보유 종목 없음"
+
+                # 투자자 동향 데이터
+                institutional_net_buy = stock_data.get('institutional_net_buy', 0)
+                foreign_net_buy = stock_data.get('foreign_net_buy', 0)
+                bid_ask_ratio = stock_data.get('bid_ask_ratio', 1.0)
 
                 # 프롬프트 템플릿 사용
                 prompt = self.STOCK_ANALYSIS_PROMPT_TEMPLATE.format(
@@ -146,7 +171,10 @@ class GeminiAnalyzer(BaseAnalyzer):
                     volume=stock_data.get('volume', 0),
                     score=score,
                     percentage=percentage,
-                    score_breakdown=score_breakdown_text,
+                    score_breakdown_detailed=score_breakdown_detailed,
+                    institutional_net_buy=institutional_net_buy,
+                    foreign_net_buy=foreign_net_buy,
+                    bid_ask_ratio=bid_ask_ratio,
                     portfolio_info=portfolio_text
                 )
 
@@ -320,7 +348,7 @@ class GeminiAnalyzer(BaseAnalyzer):
         response_text: str,
         stock_data: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """종목 분석 응답 파싱 - 관심도 높음/보통, 접근 전략, 근거, 경고 추출"""
+        """종목 분석 응답 파싱 - 관심도, 분할매수, 근거, 경고 추출"""
         lines = response_text.split('\n')
 
         # 관심도 찾기 (높음 → buy, 보통 → hold)
@@ -337,29 +365,71 @@ class GeminiAnalyzer(BaseAnalyzer):
                     signal = 'buy'
                 break
 
-        # 접근 전략 찾기 (진입 전략)
-        split_strategy = ''
+        # 분할매수 전략 찾기 (여러 줄 가능)
+        split_strategy_lines = []
+        in_split_section = False
         for line in lines:
-            line_lower = line.lower()
-            if ('접근:' in line or '접근 :' in line or '진입:' in line or 'entry:' in line_lower) and ':' in line:
-                split_strategy = line.split(':', 1)[1].strip()
-                break
+            if '분할매수:' in line or '분할매수 :' in line:
+                in_split_section = True
+                # 첫 줄의 콜론 뒤 내용도 추가
+                if ':' in line:
+                    first_part = line.split(':', 1)[1].strip()
+                    if first_part:
+                        split_strategy_lines.append(first_part)
+                continue
+            if in_split_section:
+                # 다음 필드가 나오면 중단
+                if '근거:' in line or '경고:' in line or line.strip().startswith('['):
+                    break
+                # 공백이 아닌 줄만 추가
+                if line.strip():
+                    split_strategy_lines.append(line.strip())
 
-        # 근거 찾기 (이유)
-        reason = ''
-        for line in lines:
-            line_lower = line.lower()
-            if ('근거:' in line or '근거 :' in line or '이유:' in line or 'note:' in line_lower) and ':' in line:
-                reason = line.split(':', 1)[1].strip()
-                break
+        split_strategy = '\n'.join(split_strategy_lines) if split_strategy_lines else ''
 
-        # 경고 찾기 (리스크)
-        warning = ''
+        # 근거 찾기 (여러 줄 가능)
+        reason_lines = []
+        in_reason_section = False
         for line in lines:
-            line_lower = line.lower()
-            if ('경고:' in line or '경고 :' in line or 'warning:' in line_lower or 'risk:' in line_lower) and ':' in line:
-                warning = line.split(':', 1)[1].strip()
-                break
+            if '근거:' in line or '근거 :' in line or '이유:' in line:
+                in_reason_section = True
+                # 첫 줄의 콜론 뒤 내용도 추가
+                if ':' in line:
+                    first_part = line.split(':', 1)[1].strip()
+                    if first_part:
+                        reason_lines.append(first_part)
+                continue
+            if in_reason_section:
+                # 다음 필드가 나오면 중단
+                if '경고:' in line or line.strip().startswith('['):
+                    break
+                # 공백이 아닌 줄만 추가
+                if line.strip():
+                    reason_lines.append(line.strip())
+
+        reason = ' '.join(reason_lines) if reason_lines else ''
+
+        # 경고 찾기 (여러 줄 가능)
+        warning_lines = []
+        in_warning_section = False
+        for line in lines:
+            if '경고:' in line or '경고 :' in line:
+                in_warning_section = True
+                # 첫 줄의 콜론 뒤 내용도 추가
+                if ':' in line:
+                    first_part = line.split(':', 1)[1].strip()
+                    if first_part:
+                        warning_lines.append(first_part)
+                continue
+            if in_warning_section:
+                # 다음 필드가 나오면 중단
+                if line.strip().startswith('['):
+                    break
+                # 공백이 아닌 줄만 추가
+                if line.strip():
+                    warning_lines.append(line.strip())
+
+        warning = ' '.join(warning_lines) if warning_lines else ''
 
         result = {
             'score': 0,  # AI는 점수 안 줌 (scoring_system이 계산)
@@ -374,7 +444,7 @@ class GeminiAnalyzer(BaseAnalyzer):
             'analysis_text': response_text,
         }
 
-        logger.debug(f"AI 결정: {signal}, 분할매수: {split_strategy}, 경고: {warning[:30] if warning else 'N/A'}")
+        logger.debug(f"AI 결정: {signal}, 분할매수: {split_strategy[:50]}..., 경고: {warning[:30] if warning else 'N/A'}")
 
         return result
     
