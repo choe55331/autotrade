@@ -77,10 +77,6 @@ class StrategyManager:
         """
         strategy = self.get_current_strategy()
 
-        print(f"\n{'#'*60}")
-        print(f"🎯 사이클 #{self.cycle_count + 1} - 전략 {self.current_strategy_index + 1}/3")
-        print(f"{'#'*60}")
-
         # 전략 실행
         candidates = strategy.scan()
 
