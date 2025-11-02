@@ -355,6 +355,7 @@ class ScoringSystem:
     def _score_technical_indicators(self, stock_data: Dict[str, Any]) -> float:
         """
         8. 기술적 지표 점수 (40점)
+        RSI, MACD, BB, MA 등 기술지표 반영
 
         Args:
             stock_data: 종목 데이터
@@ -368,35 +369,53 @@ class ScoringSystem:
         # RSI (15점)
         rsi = stock_data.get('rsi', None)
         if rsi is not None:
-            if 30 <= rsi <= 70:
+            if 30 <= rsi <= 70:  # 과매도/과매수 아님
                 score += max_score * 0.375
         else:
-            # RSI 없으면 상승률 기준 (강화)
+            # RSI 없으면 상승률로 추정 (강화)
             change_rate = stock_data.get('change_rate', 0)
-            if 1.0 <= change_rate <= 15.0:  # 과열 아닌 적정 상승
-                score += max_score * 0.3
+            if 0.5 <= change_rate <= 20.0:  # 상승 중이면서 과열 아님
+                # 상승률에 비례한 점수 (3% = 최고점)
+                score_ratio = min(change_rate / 10.0, 1.0)
+                score += max_score * 0.375 * score_ratio
+            elif change_rate > 0:
+                score += max_score * 0.25  # 최소 점수
 
         # MACD (15점)
         macd_bullish = stock_data.get('macd_bullish_crossover', False)
-        if macd_bullish:
+        macd = stock_data.get('macd', None)
+        if macd_bullish or (macd is not None and macd > 0):
             score += max_score * 0.375
         else:
-            # MACD 없으면 상승 지속성 기준
+            # MACD 없으면 거래량+상승률로 추정 (강화)
             change_rate = stock_data.get('change_rate', 0)
-            if change_rate > 0:  # 상승 중
+            volume = stock_data.get('volume', 0)
+            if change_rate > 0 and volume > 500_000:  # 거래량 동반 상승
+                score += max_score * 0.3
+            elif change_rate > 0:
                 score += max_score * 0.2
 
-        # 이동평균 (10점)
+        # 볼린저밴드 (BB) (5점)
+        bb_position = stock_data.get('bb_position', None)
+        if bb_position is not None and 0.2 <= bb_position <= 0.8:  # 중간 위치
+            score += max_score * 0.125
+        else:
+            # BB 없으면 변동성 기준
+            change_rate = stock_data.get('change_rate', 0)
+            if abs(change_rate) < 15:  # 과도한 변동 아님
+                score += max_score * 0.1
+
+        # 이동평균 (MA) (5점)
         ma5 = stock_data.get('ma5', None)
         ma20 = stock_data.get('ma20', None)
+        current_price = stock_data.get('current_price', 0)
 
         if ma5 and ma20 and ma5 > ma20:
-            score += max_score * 0.25
-        else:
-            # MA 없으면 가격 위치 기준
-            current_price = stock_data.get('current_price', 0)
-            if current_price > 1000:  # 최소 기준
-                score += max_score * 0.15
+            score += max_score * 0.125
+        elif current_price > 0:
+            # MA 없으면 가격 건전성으로 추정
+            if current_price >= 1000:  # 최소 가격 기준
+                score += max_score * 0.1
 
         return score
 

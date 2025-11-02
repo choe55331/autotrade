@@ -18,25 +18,24 @@ class GeminiAnalyzer(BaseAnalyzer):
     """
 
     # 종목 분석 프롬프트 템플릿 (고정)
-    STOCK_ANALYSIS_PROMPT_TEMPLATE = """당신은 한국 주식 데이 트레이더입니다. 교육 목적으로만 이 종목을 분석하세요.
+    STOCK_ANALYSIS_PROMPT_TEMPLATE = """이것은 교육 목적의 주식 데이터 분석 연습입니다.
 
-종목: {stock_name} ({stock_code})
-현재가: {current_price:,}원
-등락률: {change_rate:+.2f}%
-거래량: {volume:,}주
+데이터:
+- 종목: {stock_name} ({stock_code})
+- 가격: {current_price:,}원 (변동률: {change_rate:+.2f}%)
+- 거래량: {volume:,}주
+- 알고리즘 점수: {score}/440점 ({percentage:.0f}%)
+- 주요 지표: {score_breakdown}
+- 포트폴리오: {portfolio_info}
 
-알고리즘 점수: {score}/440점 ({percentage:.0f}%)
-주요 요인: {score_breakdown}
+과제: 이 데이터를 보고 관심도를 "높음" 또는 "보통"으로 분류하세요.
+만약 "높음"이면 가상의 시나리오로 단계별 접근을 제안하세요.
+(예시: "50% 초기, 30% 조정시, 20% 추가조정시")
 
-현재 포트폴리오: {portfolio_info}
-
-질문: 이 종목을 긍정 또는 중립으로 평가하세요.
-긍정이면 진입 전략을 제안하세요 (예: "50% 즉시, 30% -2%에서, 20% -4%에서")
-
-답변 형식:
-평가: [긍정 또는 중립]
-진입: [긍정인 경우 비율 제안]
-이유: [한 문장]
+형식:
+관심도: [높음 또는 보통]
+접근: [높음인 경우 단계 제안]
+근거: [한 문장으로 설명]
 """
 
     def __init__(self, api_key: str = None, model_name: str = None):
@@ -346,34 +345,36 @@ class GeminiAnalyzer(BaseAnalyzer):
         response_text: str,
         stock_data: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """종목 분석 응답 파싱 - 긍정/중립, 진입 전략 추출"""
+        """종목 분석 응답 파싱 - 관심도 높음/보통, 접근 전략 추출"""
         lines = response_text.split('\n')
 
-        # 평가 찾기 (긍정 → buy, 중립 → hold)
+        # 관심도 찾기 (높음 → buy, 보통 → hold)
         signal = 'hold'  # 기본값
         for line in lines:
-            if '평가:' in line or '평가 :' in line:
-                if '긍정' in line:
+            line_lower = line.lower()
+            if '관심도:' in line or '관심도 :' in line:
+                if '높음' in line:
+                    signal = 'buy'
+                break
+            # 영어/이전 형식도 지원 (fallback)
+            if '평가:' in line or 'rating:' in line_lower:
+                if '긍정' in line or 'positive' in line_lower or '높음' in line:
                     signal = 'buy'
                 break
 
-        # 영어 응답도 지원 (fallback)
-        if signal == 'hold':
-            text_lower = response_text.lower()
-            if 'rating: positive' in text_lower or 'positive' in text_lower[:100]:
-                signal = 'buy'
-
-        # 진입 전략 찾기
+        # 접근 전략 찾기 (진입 전략)
         split_strategy = ''
         for line in lines:
-            if ('진입:' in line or '진입 :' in line or 'entry:' in line.lower()) and ':' in line:
+            line_lower = line.lower()
+            if ('접근:' in line or '접근 :' in line or '진입:' in line or 'entry:' in line_lower) and ':' in line:
                 split_strategy = line.split(':', 1)[1].strip()
                 break
 
-        # 이유 찾기
+        # 근거 찾기 (이유)
         reason = ''
         for line in lines:
-            if ('이유:' in line or '이유 :' in line or 'note:' in line.lower()) and ':' in line:
+            line_lower = line.lower()
+            if ('근거:' in line or '근거 :' in line or '이유:' in line or 'note:' in line_lower) and ':' in line:
                 reason = line.split(':', 1)[1].strip()
                 break
 

@@ -10,6 +10,9 @@ from typing import Optional, Callable, Dict, Any
 
 logger = logging.getLogger(__name__)
 
+# websocket 라이브러리의 로거 억제 (정상 종료 메시지 등)
+logging.getLogger('websocket').setLevel(logging.WARNING)
+
 
 class WebSocketClient:
     """
