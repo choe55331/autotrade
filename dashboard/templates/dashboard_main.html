@@ -740,39 +740,6 @@
                     </div>
                     <div id="main-chart"></div>
                 </div>
-
-                <!-- Holdings & Candidates -->
-                <div class="grid-2">
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-title">
-                                <i class="fas fa-briefcase"></i>
-                                보유 종목
-                            </div>
-                        </div>
-                        <div id="holdings-list">
-                            <div class="loading">
-                                <div class="spinner"></div>
-                                <p>데이터 로딩 중...</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-title">
-                                <i class="fas fa-clock"></i>
-                                실시간 매매 활동
-                            </div>
-                        </div>
-                        <div id="trading-activity">
-                            <div class="loading">
-                                <div class="spinner"></div>
-                                <p>활동 내역 불러오는 중...</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <!-- Tab 2: AI Analysis -->
@@ -1172,10 +1139,10 @@
 
         <!-- Right Panel: 3-Column Grid -->
         <aside class="right-panel">
-            <!-- Portfolio Section -->
+            <!-- Holdings Section -->
             <div class="right-panel-section">
                 <div class="section-title">
-                    <i class="fas fa-chart-pie"></i> 포트폴리오
+                    <i class="fas fa-briefcase"></i> 보유현황
                 </div>
                 <div id="portfolio-summary" class="compact-card">
                     <div class="loading">
@@ -1408,9 +1375,7 @@
                 ]);
 
                 updateAccount(account);
-                updatePositions(positions);
                 updateStatus(status);
-                updateTradingActivity(activity);
                 updateConnectionStatus(connections);
 
                 // Update compact right panel sections
