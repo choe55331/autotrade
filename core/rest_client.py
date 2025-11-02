@@ -395,12 +395,16 @@ class KiwoomRESTClient:
 
             # 에러 상태 코드일 경우 상세 로그
             if res.status_code >= 400:
-                logger.error(f"API 에러 응답 ({api_id}):")
-                logger.error(f"  URL: {url}")
-                logger.error(f"  상태 코드: {res.status_code}")
-                logger.error(f"  요청 본문: {body}")
-                logger.error(f"  응답 헤더: {dict(res.headers)}")
-                logger.error(f"  응답 본문: {res.text[:1000]}")
+                # 분봉 API 500 에러는 주말/공휴일에 정상 - DEBUG로 낮춤
+                if api_id == "DOSK_0001" and res.status_code == 500:
+                    logger.debug(f"분봉 API 조회 불가 (장 마감/주말) - {api_id}")
+                else:
+                    logger.error(f"API 에러 응답 ({api_id}):")
+                    logger.error(f"  URL: {url}")
+                    logger.error(f"  상태 코드: {res.status_code}")
+                    logger.error(f"  요청 본문: {body}")
+                    logger.error(f"  응답 헤더: {dict(res.headers)}")
+                    logger.error(f"  응답 본문: {res.text[:1000]}")
 
             # 401 에러 처리 (토큰 갱신 후 재시도)
             if res.status_code == 401 and retry_on_auth:
