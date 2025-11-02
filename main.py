@@ -596,8 +596,13 @@ class TradingBotV2:
                     breakdown_parts.append(f"가격:{score_result.price_momentum_score:.0f}")
                 if score_result.institutional_buying_score > 0:
                     breakdown_parts.append(f"기관:{score_result.institutional_buying_score:.0f}")
+                if score_result.bid_strength_score > 0:
+                    breakdown_parts.append(f"호가:{score_result.bid_strength_score:.0f}")
+                if score_result.technical_indicators_score > 0:
+                    breakdown_parts.append(f"기술:{score_result.technical_indicators_score:.0f}")
                 breakdown_str = ", ".join(breakdown_parts) if breakdown_parts else "기타"
-                print(f"   {rank}. {c.name} - {c.final_score:.0f}점 ({breakdown_str})")
+                percentage = (c.final_score / 440) * 100
+                print(f"   {rank}. {c.name} - {c.final_score:.0f}점 ({percentage:.0f}%) [{breakdown_str}]")
 
             # 포트폴리오 정보
             portfolio_info = "No positions"
@@ -651,6 +656,11 @@ class TradingBotV2:
                 # AI 분석 결과 저장
                 candidate.ai_signal = ai_signal
                 candidate.ai_reasons = ai_analysis.get('reasons', [])
+
+                # AI 원본 응답 디버그 출력
+                if ai_analysis.get('analysis_text'):
+                    print(f"   [AI 원본 응답]")
+                    print(f"   {ai_analysis['analysis_text'][:200]}...")
 
                 # 결과 출력
                 print(f"   AI 결정: {ai_signal.upper()}")
