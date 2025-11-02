@@ -296,8 +296,23 @@ class TradingBotV2:
             # 9. 가상 매매 시스템
             logger.info("📝 가상 매매 시스템 초기화 중...")
             try:
-                # 가상 매매 초기 자본 (기본 1000만원)
-                virtual_initial_cash = 10_000_000
+                # 가상 매매 초기 자본: 실제 계좌 잔고 기준
+                deposit = self.account_api.get_deposit()
+                if deposit:
+                    # 실제 주문 가능 금액
+                    real_available_cash = int(deposit.get('ord_alow_amt', 0))
+                    # 총 평가 금액
+                    total_assets = int(deposit.get('tot_evlu_amt', 0))
+
+                    # 가상 매매는 실제 총 자산 기준으로 시작
+                    virtual_initial_cash = total_assets if total_assets > 0 else real_available_cash
+
+                    logger.info(f"   실제 총 자산: {total_assets:,}원")
+                    logger.info(f"   가상 매매 초기 자본: {virtual_initial_cash:,}원")
+                else:
+                    # API 조회 실패 시 기본값 (1000만원)
+                    virtual_initial_cash = 10_000_000
+                    logger.warning(f"   계좌 정보 조회 실패 - 기본값 사용: {virtual_initial_cash:,}원")
 
                 # VirtualTrader 초기화 (3가지 전략: 공격적, 보수적, 균형)
                 self.virtual_trader = VirtualTrader(initial_cash=virtual_initial_cash)

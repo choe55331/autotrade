@@ -31,6 +31,11 @@ class VirtualPosition:
         if self.entry_price > 0:
             self.unrealized_pnl_rate = ((current_price - self.entry_price) / self.entry_price) * 100
 
+    @property
+    def days_held(self) -> int:
+        """보유 일수"""
+        return (datetime.now() - self.entry_time).days
+
     def to_dict(self):
         """딕셔너리 변환"""
         return {
@@ -43,6 +48,7 @@ class VirtualPosition:
             'current_price': self.current_price,
             'unrealized_pnl': self.unrealized_pnl,
             'unrealized_pnl_rate': self.unrealized_pnl_rate,
+            'days_held': self.days_held,
         }
 
 

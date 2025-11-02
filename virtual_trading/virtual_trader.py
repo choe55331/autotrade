@@ -36,8 +36,8 @@ class TradingStrategy:
 
     def should_buy(self, stock_data: Dict, ai_analysis: Dict, account: VirtualAccount) -> bool:
         """매수 조건 확인"""
-        # 점수 확인
-        score = stock_data.get('score', 0)
+        # 점수 확인 (stock_data 또는 ai_analysis에서 가져오기)
+        score = stock_data.get('score', ai_analysis.get('score', 0))
         if score < self.min_score:
             return False
 
