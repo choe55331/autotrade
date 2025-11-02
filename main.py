@@ -413,14 +413,14 @@ class TradingBotV2:
         # 시장 상태 저장 (다른 메서드에서 사용)
         self.market_status = market_status
 
-        # 테스트 모드: API 없이도 항상 실행
+        # 테스트 모드: 장 운영 시간이 아니어도 실제 API 호출로 탐색/분석/주문 실행
         if not market_status['is_trading_hours']:
             logger.info(f"⏸️  장 운영 시간 아님: {market_status['market_status']}")
-            logger.info(f"🧪 테스트: 강제로 테스트 모드 활성화")
+            logger.info(f"🧪 테스트 모드 활성화 - 실제 API 호출 실행 (서버에서 주문 거절 예상)")
             # 테스트 모드로 강제 설정
             self.market_status['is_trading_hours'] = True
             self.market_status['is_test_mode'] = True
-            self.market_status['market_type'] = '테스트 모드 (강제)'
+            self.market_status['market_type'] = '테스트 모드'
             # return False  # 주석 처리: 항상 실행
 
         # 시장 상태 로그
@@ -461,7 +461,7 @@ class TradingBotV2:
 
         # 테스트 모드 표시
         if self.market_status.get('is_test_mode'):
-            logger.info("🧪 테스트 모드: 실제 보유 종목으로 매도 로직 실행 (주문은 시뮬레이션)")
+            logger.info("🧪 테스트 모드: 실제 보유 종목으로 매도 로직 실행 (API 호출, 서버에서 거절 예상)")
 
         try:
             holdings = self.account_api.get_holdings()
@@ -508,7 +508,7 @@ class TradingBotV2:
 
         # 테스트 모드 표시
         if self.market_status.get('is_test_mode'):
-            logger.info("🧪 테스트 모드: 실제 시장 데이터로 탐색 실행 (주문은 시뮬레이션)")
+            logger.info("🧪 테스트 모드: 실제 API로 탐색, AI 검토, 주문 실행 (서버에서 거절 예상)")
 
         try:
             # 포지션 추가 가능 여부
@@ -592,7 +592,7 @@ class TradingBotV2:
 
             # 테스트 모드일 때 로그
             if self.market_status.get('is_test_mode'):
-                logger.info(f"🧪 테스트 모드: AI 검토 완료 → 매수 로직 실행 (실제 주문 X, 시뮬레이션만)")
+                logger.info(f"🧪 테스트 모드: AI 검토 완료 → 실제 매수 API 호출 (서버에서 거절 예상)")
                 logger.info(f"   종목: {stock_name}, AI 점수: {candidate.ai_score}, 종합 점수: {scoring_result.total_score}")
 
             # 주문 실행
@@ -653,7 +653,7 @@ class TradingBotV2:
 
             # 테스트 모드일 때 로그
             if self.market_status.get('is_test_mode'):
-                logger.info(f"🧪 테스트 모드: 매도 조건 충족 → 매도 로직 실행 (실제 주문 X, 시뮬레이션만)")
+                logger.info(f"🧪 테스트 모드: 매도 조건 충족 → 실제 매도 API 호출 (서버에서 거절 예상)")
                 logger.info(f"   종목: {stock_name}, 사유: {reason}, 손익: {profit_loss:+,}원 ({profit_loss_rate:+.2f}%)")
 
             # 주문 실행

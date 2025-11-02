@@ -20,13 +20,13 @@ class OrderAPI:
     - DRY RUN 모드 지원 (실제 주문 없이 시뮬레이션)
     """
 
-    def __init__(self, client, dry_run=True):
+    def __init__(self, client, dry_run=False):
         """
         OrderAPI 초기화
 
         Args:
             client: KiwoomRESTClient 인스턴스
-            dry_run: True면 실제 주문 없이 시뮬레이션만 수행
+            dry_run: True면 실제 주문 없이 시뮬레이션만 수행 (기본값: False - 실제 주문 실행)
         """
         self.client = client
         self.dry_run = dry_run
@@ -37,6 +37,8 @@ class OrderAPI:
 
         if dry_run:
             logger.warning("⚠️  DRY RUN 모드 활성화 - 실제 주문이 실행되지 않습니다")
+        else:
+            logger.info("✅ LIVE 모드 활성화 - 실제 주문이 API로 전송됩니다")
 
     def buy(
         self,
@@ -62,9 +64,64 @@ class OrderAPI:
         if self.dry_run:
             return self._simulate_buy(stock_code, quantity, price, order_type)
 
-        # 실제 주문 로직 (API ID가 확인되면 활성화)
-        logger.warning("실제 주문 API가 아직 구현되지 않았습니다")
-        return None
+        # 실제 매수 주문 API 호출 (kt10000: 주식매수주문)
+        logger.info(f"🔵 실제 매수 주문 실행: {stock_code} {quantity}주 @ {price:,}원")
+
+        try:
+            # 주문 파라미터 구성
+            # trde_tp: 거래유형 (00: 지정가, 01: 시장가, 03: 조건부지정가 등)
+            # order_type을 trde_tp로 매핑 ('02' -> '00')
+            trde_tp = '00' if order_type in ['00', '02'] else '01'
+
+            body_params = {
+                "dmst_stex_tp": "KRX",  # 시장구분 (KRX, NXT, SOR)
+                "stk_cd": stock_code,
+                "ord_qty": str(quantity),
+                "ord_uv": str(price),
+                "trde_tp": trde_tp
+            }
+
+            # API 호출
+            result = self.client.request(
+                api_id='kt10000',
+                body=body_params,
+                path='/api/dostk/ordr'
+            )
+
+            if result and result.get('return_code') == 0:
+                order_no = result.get('ord_no', 'N/A')
+                logger.info(f"✅ 매수 주문 성공: 주문번호 {order_no}")
+                return {
+                    'order_no': order_no,
+                    'stock_code': stock_code,
+                    'quantity': quantity,
+                    'price': price,
+                    'status': 'ordered',
+                    'result': result
+                }
+            else:
+                error_msg = result.get('return_msg', '알 수 없는 오류') if result else '응답 없음'
+                logger.error(f"❌ 매수 주문 실패: {error_msg}")
+                return {
+                    'order_no': None,
+                    'stock_code': stock_code,
+                    'quantity': quantity,
+                    'price': price,
+                    'status': 'failed',
+                    'error': error_msg,
+                    'result': result
+                }
+
+        except Exception as e:
+            logger.error(f"매수 주문 예외 발생: {e}", exc_info=True)
+            return {
+                'order_no': None,
+                'stock_code': stock_code,
+                'quantity': quantity,
+                'price': price,
+                'status': 'error',
+                'error': str(e)
+            }
 
     def sell(
         self,
@@ -90,9 +147,64 @@ class OrderAPI:
         if self.dry_run:
             return self._simulate_sell(stock_code, quantity, price, order_type)
 
-        # 실제 주문 로직 (API ID가 확인되면 활성화)
-        logger.warning("실제 주문 API가 아직 구현되지 않았습니다")
-        return None
+        # 실제 매도 주문 API 호출 (kt10001: 주식매도주문)
+        logger.info(f"🔴 실제 매도 주문 실행: {stock_code} {quantity}주 @ {price:,}원")
+
+        try:
+            # 주문 파라미터 구성
+            # trde_tp: 거래유형 (00: 지정가, 01: 시장가, 03: 조건부지정가 등)
+            # order_type을 trde_tp로 매핑 ('02' -> '00')
+            trde_tp = '00' if order_type in ['00', '02'] else '01'
+
+            body_params = {
+                "dmst_stex_tp": "KRX",  # 시장구분 (KRX, NXT, SOR)
+                "stk_cd": stock_code,
+                "ord_qty": str(quantity),
+                "ord_uv": str(price),
+                "trde_tp": trde_tp
+            }
+
+            # API 호출
+            result = self.client.request(
+                api_id='kt10001',
+                body=body_params,
+                path='/api/dostk/ordr'
+            )
+
+            if result and result.get('return_code') == 0:
+                order_no = result.get('ord_no', 'N/A')
+                logger.info(f"✅ 매도 주문 성공: 주문번호 {order_no}")
+                return {
+                    'order_no': order_no,
+                    'stock_code': stock_code,
+                    'quantity': quantity,
+                    'price': price,
+                    'status': 'ordered',
+                    'result': result
+                }
+            else:
+                error_msg = result.get('return_msg', '알 수 없는 오류') if result else '응답 없음'
+                logger.error(f"❌ 매도 주문 실패: {error_msg}")
+                return {
+                    'order_no': None,
+                    'stock_code': stock_code,
+                    'quantity': quantity,
+                    'price': price,
+                    'status': 'failed',
+                    'error': error_msg,
+                    'result': result
+                }
+
+        except Exception as e:
+            logger.error(f"매도 주문 예외 발생: {e}", exc_info=True)
+            return {
+                'order_no': None,
+                'stock_code': stock_code,
+                'quantity': quantity,
+                'price': price,
+                'status': 'error',
+                'error': str(e)
+            }
 
     def modify(
         self,
