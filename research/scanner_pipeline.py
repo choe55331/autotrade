@@ -7,10 +7,7 @@ from typing import List, Dict, Any, Optional, Tuple
 from dataclasses import dataclass, field
 from datetime import datetime
 
-try:
-    from utils.logger_new import get_logger
-except ImportError:
-    from utils.logger import get_logger
+from utils.logger_new import get_logger
 
 from config.config_manager import get_config
 

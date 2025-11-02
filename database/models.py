@@ -20,10 +20,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from pathlib import Path
 
-try:
-    from utils.logger_new import get_logger
-except ImportError:
-    from utils.logger import get_logger
+from utils.logger_new import get_logger
 
 from config.config_manager import get_config
 
