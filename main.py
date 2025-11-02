@@ -691,17 +691,25 @@ class TradingBotV2:
                 candidate.ai_signal = ai_signal
                 candidate.ai_reasons = ai_analysis.get('reasons', [])
 
-                # AI 원본 응답 디버그 출력
+                # AI 원본 응답 전체 출력
                 if ai_analysis.get('analysis_text'):
                     print(f"   [AI 원본 응답]")
-                    print(f"   {ai_analysis['analysis_text'][:200]}...")
+                    for line in ai_analysis['analysis_text'].split('\n'):
+                        if line.strip():
+                            print(f"   {line}")
 
                 # 결과 출력
-                print(f"   AI 결정: {ai_signal.upper()}")
+                print(f"\n   ✅ AI 결정: {ai_signal.upper()}")
+
                 if ai_signal == 'buy' and split_strategy:
-                    print(f"   분할매수 제안: {split_strategy}")
+                    print(f"   📊 분할매수 전략:")
+                    for line in split_strategy.split('\n'):
+                        if line.strip():
+                            print(f"      {line}")
+
                 if ai_analysis.get('reasons'):
-                    print(f"   사유: {ai_analysis['reasons'][0]}")
+                    print(f"   💡 사유: {ai_analysis['reasons'][0]}")
+
                 if ai_analysis.get('risks') and ai_analysis['risks']:
                     print(f"   ⚠️  경고: {ai_analysis['risks'][0]}")
 
