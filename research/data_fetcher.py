@@ -234,49 +234,58 @@ class DataFetcher:
         end_date: str = None
     ) -> List[Dict[str, Any]]:
         """
-        일봉 데이터 조회
-        
+        일봉 데이터 조회 (검증된 API 사용: ka10081)
+
         Args:
             stock_code: 종목코드
-            start_date: 시작일 (YYYYMMDD)
-            end_date: 종료일 (YYYYMMDD)
-        
+            start_date: 시작일 (YYYYMMDD) - 사용되지 않음 (base_dt만 사용)
+            end_date: 종료일 (YYYYMMDD) - base_dt로 사용
+
         Returns:
             일봉 데이터 리스트
             [
                 {
-                    'date': '20250130',
-                    'open': 71000,
-                    'high': 72500,
-                    'low': 70500,
-                    'close': 72000,
-                    'volume': 10000000
+                    'stck_bsop_date': '20251101',
+                    'stck_oprc': 71000,
+                    'stck_hgpr': 72500,
+                    'stck_lwpr': 70500,
+                    'stck_clpr': 72000,
+                    'acml_vol': 10000000
                 },
                 ...
             ]
         """
-        if not start_date:
-            start_date = datetime.now().strftime('%Y%m%d')
         if not end_date:
             end_date = datetime.now().strftime('%Y%m%d')
-        
-        body = {
-            "stock_code": stock_code,
-            "period_code": "D",  # D: 일봉
-            "start_date": start_date,
-            "end_date": end_date
-        }
-        
-        response = self.client.request(
-            api_id="DOSK_0001",
-            body=body,
-            path="/api/dostk/inquire/dailyprice"
+
+        # Use verified API: ka10081 (주식일봉차트조회요청)
+        response = self.client.call_verified_api(
+            api_id="ka10081",
+            variant_idx=1,
+            body_override={
+                "stk_cd": stock_code,
+                "base_dt": end_date,  # 조회 기준일
+                "upd_stkpc_tp": "1"    # 수정주가 반영
+            }
         )
-        
+
         if response and response.get('return_code') == 0:
             daily_data = response.get('output', [])
             logger.info(f"{stock_code} 일봉 데이터 {len(daily_data)}개 조회 완료")
-            return daily_data
+
+            # Convert to standard format
+            standardized_data = []
+            for item in daily_data:
+                standardized_data.append({
+                    'date': item.get('stck_bsop_date', ''),
+                    'open': int(item.get('stck_oprc', 0)),
+                    'high': int(item.get('stck_hgpr', 0)),
+                    'low': int(item.get('stck_lwpr', 0)),
+                    'close': int(item.get('stck_clpr', 0)),
+                    'volume': int(item.get('acml_vol', 0))
+                })
+
+            return standardized_data
         else:
             logger.error(f"일봉 조회 실패: {response.get('return_msg')}")
             return []

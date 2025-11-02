@@ -850,17 +850,24 @@ def get_paper_trading_status():
     """Get paper trading engine status"""
     try:
         from features.paper_trading import get_paper_trading_engine
-        
+
         engine = get_paper_trading_engine(
             getattr(bot_instance, 'market_api', None),
             None  # Will integrate with AI agent later
         )
-        
+
         data = engine.get_dashboard_data()
         return jsonify(data)
+    except ModuleNotFoundError as e:
+        # Missing dependencies (numpy, pandas, etc.)
+        return jsonify({
+            'success': False,
+            'message': 'Paper trading requires numpy. Install: pip install numpy pandas',
+            'enabled': False
+        })
     except Exception as e:
         print(f"Paper trading status API error: {e}")
-        return jsonify({'success': False, 'message': str(e)})
+        return jsonify({'success': False, 'message': str(e), 'enabled': False})
 
 
 @app.route('/api/paper_trading/start', methods=['POST'])
