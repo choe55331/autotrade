@@ -177,15 +177,13 @@ class TradingBotV2:
             # 2-1. WebSocket 클라이언트 (실시간 데이터 수신)
             try:
                 logger.info("🔌 WebSocket 클라이언트 초기화 중...")
-                # 설정에서 WebSocket URL과 토큰 가져오기
-                from config import get_config
-                config = get_config()
+                # 설정에서 WebSocket URL 가져오기
+                from config import KIWOOM_WEBSOCKET_URL
 
                 # WebSocket 설정이 있으면 연결
-                ws_url = getattr(config, 'websocket_url', None)
-                if ws_url and self.client.token:
+                if KIWOOM_WEBSOCKET_URL and self.client.token:
                     self.websocket_client = WebSocketClient(
-                        url=ws_url,
+                        url=KIWOOM_WEBSOCKET_URL,
                         token=self.client.token
                     )
 
