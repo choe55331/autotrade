@@ -156,29 +156,34 @@ class ScoringSystem:
         Returns:
             점수 (0~60)
         """
-        config = self.criteria_config.get('volume_surge', {})
-        max_score = config.get('weight', 60)
+        max_score = 60
 
         volume = stock_data.get('volume', 0)
-        avg_volume = stock_data.get('avg_volume', volume)  # 평균 거래량
+        avg_volume = stock_data.get('avg_volume', None)
 
-        if avg_volume == 0:
-            return 0.0
+        # avg_volume이 있으면 비율 계산
+        if avg_volume and avg_volume > 0:
+            volume_ratio = volume / avg_volume
+            if volume_ratio >= 5.0:
+                return max_score
+            elif volume_ratio >= 3.0:
+                return max_score * 0.75
+            elif volume_ratio >= 2.0:
+                return max_score * 0.5
+            elif volume_ratio >= 1.0:
+                return max_score * 0.25
 
-        volume_ratio = volume / avg_volume
+        # avg_volume이 없으면 절대값 기준 (강화)
+        if volume >= 5_000_000:  # 500만주 이상
+            return max_score * 0.8
+        elif volume >= 2_000_000:  # 200만주
+            return max_score * 0.6
+        elif volume >= 1_000_000:  # 100만주
+            return max_score * 0.4
+        elif volume >= 500_000:  # 50만주
+            return max_score * 0.2
 
-        thresholds = config.get('thresholds', {})
-
-        if volume_ratio >= thresholds.get('excellent', 5.0):
-            return max_score
-        elif volume_ratio >= thresholds.get('good', 3.0):
-            return max_score * 0.75
-        elif volume_ratio >= thresholds.get('fair', 2.0):
-            return max_score * 0.5
-        elif volume_ratio >= thresholds.get('poor', 1.0):
-            return max_score * 0.25
-        else:
-            return 0.0
+        return 0.0
 
     def _score_price_momentum(self, stock_data: Dict[str, Any]) -> float:
         """
@@ -190,20 +195,23 @@ class ScoringSystem:
         Returns:
             점수 (0~60)
         """
-        config = self.criteria_config.get('price_momentum', {})
-        max_score = config.get('weight', 60)
+        max_score = 60
 
-        rate = stock_data.get('rate', 0.0) / 100  # 등락률 (%)
+        # change_rate를 % 단위로 받음 (예: 3.5는 3.5%)
+        change_rate = stock_data.get('change_rate', stock_data.get('rate', 0.0))
 
-        thresholds = config.get('thresholds', {})
-
-        if rate >= thresholds.get('excellent', 0.05):
+        # 상승률 기준 점수 (강화)
+        if change_rate >= 10.0:  # 10% 이상
             return max_score
-        elif rate >= thresholds.get('good', 0.03):
-            return max_score * 0.75
-        elif rate >= thresholds.get('fair', 0.02):
-            return max_score * 0.5
-        elif rate >= thresholds.get('poor', 0.01):
+        elif change_rate >= 7.0:  # 7% 이상
+            return max_score * 0.85
+        elif change_rate >= 5.0:  # 5% 이상
+            return max_score * 0.7
+        elif change_rate >= 3.0:  # 3% 이상
+            return max_score * 0.55
+        elif change_rate >= 2.0:  # 2% 이상
+            return max_score * 0.4
+        elif change_rate >= 1.0:  # 1% 이상
             return max_score * 0.25
         else:
             return 0.0
@@ -354,31 +362,41 @@ class ScoringSystem:
         Returns:
             점수 (0~40)
         """
-        config = self.criteria_config.get('technical_indicators', {})
-        max_score = config.get('weight', 40)
-
+        max_score = 40
         score = 0.0
 
         # RSI (15점)
-        rsi = stock_data.get('rsi', 50)
-        rsi_config = config.get('rsi', {})
-        rsi_min = rsi_config.get('min', 30)
-        rsi_max = rsi_config.get('max', 70)
-
-        if rsi_min <= rsi <= rsi_max:
-            score += max_score * 0.375
+        rsi = stock_data.get('rsi', None)
+        if rsi is not None:
+            if 30 <= rsi <= 70:
+                score += max_score * 0.375
+        else:
+            # RSI 없으면 상승률 기준 (강화)
+            change_rate = stock_data.get('change_rate', 0)
+            if 1.0 <= change_rate <= 15.0:  # 과열 아닌 적정 상승
+                score += max_score * 0.3
 
         # MACD (15점)
         macd_bullish = stock_data.get('macd_bullish_crossover', False)
         if macd_bullish:
             score += max_score * 0.375
+        else:
+            # MACD 없으면 상승 지속성 기준
+            change_rate = stock_data.get('change_rate', 0)
+            if change_rate > 0:  # 상승 중
+                score += max_score * 0.2
 
         # 이동평균 (10점)
-        ma5 = stock_data.get('ma5', 0)
-        ma20 = stock_data.get('ma20', 0)
+        ma5 = stock_data.get('ma5', None)
+        ma20 = stock_data.get('ma20', None)
 
-        if ma5 > ma20 and ma5 > 0:
+        if ma5 and ma20 and ma5 > ma20:
             score += max_score * 0.25
+        else:
+            # MA 없으면 가격 위치 기준
+            current_price = stock_data.get('current_price', 0)
+            if current_price > 1000:  # 최소 기준
+                score += max_score * 0.15
 
         return score
 

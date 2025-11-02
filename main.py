@@ -108,6 +108,9 @@ class TradingBotV2:
         # 데이터베이스 세션
         self.db_session = None
 
+        # AI 승인 매수 후보 리스트
+        self.ai_approved_candidates = []
+
         # 초기화
         self._initialize_components()
 
@@ -371,7 +374,6 @@ class TradingBotV2:
 
     def _main_loop(self):
         """메인 루프"""
-        print("📍 _main_loop() 진입")
         cycle_count = 0
         # Backward compatibility: handle both Pydantic (object) and old config (dict)
         try:
@@ -383,8 +385,6 @@ class TradingBotV2:
             logger.warning(f"Config 로드 실패, 기본값 사용: {e}")
             sleep_seconds = 60
 
-        print(f"📍 메인 루프 시작 (sleep_seconds={sleep_seconds}, is_running={self.is_running})")
-
         while self.is_running:
             cycle_count += 1
 
@@ -392,65 +392,32 @@ class TradingBotV2:
             if cycle_count > 1:
                 logger.info(f"⏳ {sleep_seconds}초 대기...\n")
                 time.sleep(sleep_seconds)
-            else:
-                print(f"🚀 첫 사이클 #{cycle_count} - 즉시 시작")
-                logger.info("🚀 첫 사이클 - 즉시 시작\n")
 
             print(f"\n{'='*60}")
-            print(f"🔄 메인 사이클 #{cycle_count}")
+            print(f"🔄 사이클 #{cycle_count}")
             print(f"{'='*60}")
-            logger.info(f"\n{'='*60}")
-            logger.info(f"🔄 메인 사이클 #{cycle_count}")
-            logger.info(f"{'='*60}")
 
             try:
-                # 1. 제어 파일 확인
-                print("📍 [1/7] 제어 파일 확인 중...")
                 self._read_control_file()
-                print(f"📍 제어 파일 확인 완료 (is_running={self.is_running}, pause_buy={self.pause_buy}, pause_sell={self.pause_sell})")
-
                 if not self.is_running:
-                    print("⚠️ is_running=False, 루프 종료")
                     break
 
-                # 2. 거래 시간 확인
-                print("📍 [2/7] 거래 시간 확인 중...")
                 trading_hours_ok = self._check_trading_hours()
-                print(f"📍 거래 시간 확인 완료 (result={trading_hours_ok})")
                 if not trading_hours_ok:
-                    print("⚠️ 거래 시간 아님, 다음 사이클로 이동")
                     continue
 
-                # 3. 계좌 정보 업데이트
-                print("📍 [3/7] 계좌 정보 업데이트 중...")
                 self._update_account_info()
-                print("📍 계좌 정보 업데이트 완료")
 
-                # 4. 매도 검토
-                print(f"📍 [4/7] 매도 검토 중... (pause_sell={self.pause_sell})")
+                # 매도 검토
                 if not self.pause_sell:
                     self._check_sell_signals()
-                    print("📍 매도 검토 완료")
-                else:
-                    print("⚠️ 매도 일시정지됨")
 
-                # 5. 매수 검토 (3단계 스캐닝)
-                print(f"📍 [5/7] 매수 검토 중... (pause_buy={self.pause_buy})")
+                # 매수 검토
                 if not self.pause_buy:
                     self._run_scanning_pipeline()
-                    print("📍 매수 검토 완료")
-                else:
-                    print("⚠️ 매수 일시정지됨")
 
-                # 6. 포트폴리오 스냅샷 저장
-                print("📍 [6/7] 포트폴리오 스냅샷 저장 중...")
                 self._save_portfolio_snapshot()
-                print("📍 포트폴리오 스냅샷 저장 완료")
-
-                # 7. 통계 출력
-                print("📍 [7/7] 통계 출력 중...")
                 self._print_statistics()
-                print("📍 통계 출력 완료")
 
             except Exception as e:
                 logger.error(f"메인 루프 오류: {e}", exc_info=True)
@@ -571,37 +538,22 @@ class TradingBotV2:
 
     def _run_scanning_pipeline(self):
         """3단계 스캐닝 파이프라인 실행"""
-        print("🔍 3단계 스캐닝 파이프라인 시작")
-        logger.info("🔍 3단계 스캐닝 파이프라인 시작")
-
-        # 테스트 모드 표시
-        if self.market_status.get('is_test_mode'):
-            print("🧪 테스트 모드: 실제 API로 탐색, AI 검토, 주문 실행 (서버에서 거절 예상)")
-            logger.info("🧪 테스트 모드: 실제 API로 탐색, AI 검토, 주문 실행 (서버에서 거절 예상)")
 
         try:
             # 포지션 추가 가능 여부
             can_add = self.portfolio_manager.can_add_position()
             positions = self.portfolio_manager.get_positions()
-            print(f"📍 포지션 체크: can_add_position={can_add}, 현재 포지션 수={len(positions)}")
-
             if not can_add:
-                print("⚠️  최대 포지션 수 도달 - 스캐닝 생략")
                 logger.info("⚠️  최대 포지션 수 도달")
                 return
 
             # 동적 리스크 관리 확인
             current_positions = len(positions)
             should_open = self.dynamic_risk_manager.should_open_position(current_positions)
-            risk_mode = self.dynamic_risk_manager.current_mode.value
-            print(f"📍 리스크 체크: should_open_position={should_open}, 리스크 모드={risk_mode}, 현재 포지션={current_positions}")
 
             if not should_open:
-                print(f"⚠️  리스크 관리: 포지션 진입 불가 (모드: {risk_mode})")
                 logger.info("⚠️  리스크 관리: 포지션 진입 불가")
                 return
-
-            print("✅ 포지션 및 리스크 체크 통과 - 스캐닝 시작")
 
             # 현재 전략 실행 (3가지 전략 순환)
             final_candidates = self.strategy_manager.run_current_strategy()
@@ -611,10 +563,9 @@ class TradingBotV2:
                 logger.info("✅ 스캐닝 완료: 최종 후보 없음")
                 return
 
-            # 후보들의 점수 먼저 계산 (AI 검토 전)
-            print(f"\n📊 매수 후보 {len(final_candidates)}개 선정됨:")
-            candidate_scores = {}  # 점수 저장용
-            for idx, candidate in enumerate(final_candidates, 1):
+            # 20개 모두 스코어링 시스템으로 점수 계산
+            candidate_scores = {}
+            for candidate in final_candidates:
                 stock_data = {
                     'stock_code': candidate.code,
                     'stock_name': candidate.name,
@@ -626,27 +577,22 @@ class TradingBotV2:
                     'bid_ask_ratio': candidate.bid_ask_ratio,
                 }
                 scoring_result = self.scoring_system.calculate_score(stock_data)
-                candidate_scores[candidate.code] = scoring_result  # 저장
+                candidate_scores[candidate.code] = scoring_result
+                candidate.final_score = scoring_result.total_score
 
-                print(f"   {idx}. {candidate.name:10s} ({candidate.code}) | "
-                      f"가격: {candidate.price:>7,}원 | "
-                      f"상승률: {candidate.rate:>5.1f}% | "
-                      f"점수: {scoring_result.total_score:>3.0f}/440 ({scoring_result.percentage:.0f}%)")
+            # 점수 기준 재정렬
+            final_candidates.sort(key=lambda x: x.final_score, reverse=True)
 
-            # 포트폴리오 정보 생성
-            positions = self.account_manager.get_positions()
-            if positions:
-                portfolio_lines = [f"Current holdings: {len(positions)} stocks"]
-                for pos in positions[:3]:  # 최대 3개만
-                    portfolio_lines.append(f"- {pos.get('stock_name')} ({pos.get('stock_code')}): {pos.get('quantity')} shares, P/L: {pos.get('profit_loss_rate', 0):+.1f}%")
-                portfolio_info = "\n".join(portfolio_lines)
-            else:
-                portfolio_info = "No positions currently held"
+            # 상위 5개만 표시 및 AI 검토
+            top5 = final_candidates[:5]
+            print(f"\n📊 상위 5개: {', '.join([f'{c.name}({c.final_score:.0f}점)' for c in top5])}")
 
-            # AI 매수 검토
-            print(f"\n🤖 AI 매수 검토 시작 (상위 3개)")
-            for idx, candidate in enumerate(final_candidates[:3], 1):
-                print(f"\n[{idx}/{min(3, len(final_candidates))}] {candidate.name} ({candidate.code})")
+            # 포트폴리오 정보
+            portfolio_info = "No positions"
+
+            # AI 매수 검토 (상위 3개)
+            for idx, candidate in enumerate(top5[:3], 1):
+                print(f"\n🤖 [{idx}/3] {candidate.name}")
 
                 # 이미 계산된 점수 사용
                 scoring_result = candidate_scores[candidate.code]
@@ -700,6 +646,22 @@ class TradingBotV2:
                     print(f"   분할매수 제안: {split_strategy}")
                 if ai_analysis.get('reasons'):
                     print(f"   사유: {ai_analysis['reasons'][0]}")
+
+                # AI 승인 시 매수 후보 리스트에 추가
+                if ai_signal == 'buy':
+                    buy_candidate = {
+                        'stock_code': candidate.code,
+                        'stock_name': candidate.name,
+                        'current_price': candidate.price,
+                        'change_rate': candidate.rate,
+                        'score': scoring_result.total_score,
+                        'split_strategy': split_strategy,
+                        'ai_reason': ai_analysis.get('reasons', [''])[0] if ai_analysis.get('reasons') else '',
+                        'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    }
+                    # 최대 10개까지만 유지
+                    self.ai_approved_candidates.insert(0, buy_candidate)
+                    self.ai_approved_candidates = self.ai_approved_candidates[:10]
 
                 # 최종 승인 조건
                 if ai_signal == 'buy' and scoring_result.total_score >= 300:

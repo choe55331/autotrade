@@ -886,7 +886,7 @@
                                 <th>Stock</th>
                                 <th>Price</th>
                                 <th>Score</th>
-                                <th>Signal</th>
+                                <th>Split Buy</th>
                             </tr>
                         </thead>
                         <tbody id="candidates-table">
@@ -934,7 +934,7 @@
                             <th>Qty</th>
                             <th>Avg Price</th>
                             <th>Current</th>
-                            <th>P/L</th>
+                            <th>Stop Loss</th>
                             <th>P/L %</th>
                             <th>Value</th>
                         </tr>
@@ -1111,21 +1111,27 @@
                 return;
             }
 
-            tbody.innerHTML = positions.map(p => `
-                <tr>
-                    <td><strong>${p.name}</strong><br><small style="color: var(--text-secondary);">${p.code}</small></td>
-                    <td>${p.quantity}</td>
-                    <td>₩${formatNumber(p.avg_price)}</td>
-                    <td>₩${formatNumber(p.current_price)}</td>
-                    <td style="color: ${p.profit_loss >= 0 ? 'var(--color-success)' : 'var(--color-danger)'}">
-                        ${p.profit_loss >= 0 ? '+' : ''}₩${formatNumber(p.profit_loss)}
-                    </td>
-                    <td style="color: ${p.profit_loss_percent >= 0 ? 'var(--color-success)' : 'var(--color-danger)'}">
-                        ${p.profit_loss_percent >= 0 ? '+' : ''}${p.profit_loss_percent.toFixed(2)}%
-                    </td>
-                    <td>₩${formatNumber(p.value)}</td>
-                </tr>
-            `).join('');
+            tbody.innerHTML = positions.map(p => {
+                const stopLossPrice = p.stop_loss_price || (p.avg_price * 0.95);
+                const stopLossPercent = ((stopLossPrice - p.avg_price) / p.avg_price * 100).toFixed(1);
+
+                return `
+                    <tr>
+                        <td><strong>${p.name}</strong><br><small style="color: var(--text-secondary);">${p.code}</small></td>
+                        <td>${p.quantity}</td>
+                        <td>₩${formatNumber(p.avg_price)}</td>
+                        <td>₩${formatNumber(p.current_price)}</td>
+                        <td style="color: var(--color-danger); font-size: 0.9em;">
+                            ₩${formatNumber(stopLossPrice)}<br>
+                            <small>(${stopLossPercent}%)</small>
+                        </td>
+                        <td style="color: ${p.profit_loss_percent >= 0 ? 'var(--color-success)' : 'var(--color-danger)'}">
+                            ${p.profit_loss_percent >= 0 ? '+' : ''}${p.profit_loss_percent.toFixed(2)}%
+                        </td>
+                        <td>₩${formatNumber(p.value)}</td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         function updateCandidates(candidates) {
@@ -1136,14 +1142,23 @@
                 return;
             }
 
-            tbody.innerHTML = candidates.map(c => `
-                <tr>
-                    <td><strong>${c.name}</strong><br><small style="color: var(--text-secondary);">${c.code}</small></td>
-                    <td>₩${formatNumber(c.price)}</td>
-                    <td><span class="badge success">${c.ai_score.toFixed(1)}</span></td>
-                    <td><span class="badge ${c.signal === 'BUY' ? 'success' : 'info'}">${c.signal}</span></td>
-                </tr>
-            `).join('');
+            tbody.innerHTML = candidates.map(c => {
+                const changeColor = c.change_rate >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
+                const splitStrategy = c.split_strategy || 'No split';
+
+                return `
+                    <tr>
+                        <td>
+                            <strong>${c.name}</strong><br>
+                            <small style="color: var(--text-secondary);">${c.code}</small>
+                            <small style="color: ${changeColor};"> (${c.change_rate >= 0 ? '+' : ''}${c.change_rate.toFixed(1)}%)</small>
+                        </td>
+                        <td>₩${formatNumber(c.price)}</td>
+                        <td><span class="badge ${c.ai_score >= 300 ? 'success' : 'warning'}">${c.ai_score.toFixed(0)}/440</span></td>
+                        <td style="font-size: 0.85em; color: var(--text-secondary);">${splitStrategy}</td>
+                    </tr>
+                `;
+            }).join('');
         }
 
         function updateActivities(activities) {

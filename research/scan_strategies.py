@@ -81,21 +81,11 @@ class VolumeBasedStrategy(ScanStrategy):
         Returns:
             매수 후보 종목 리스트
         """
-        logger.info(f"🔍 [{self.name}] 스캔 시작")
-        print(f"\n{'='*60}")
-        print(f"🔍 전략 1: {self.name} 스캔")
-        print(f"{'='*60}")
+        print(f"\n🔍 {self.name} 스캔")
 
         try:
             start_time = time.time()
-
-            # 필터링 조건
             conditions = self.get_filter_conditions()
-            print(f"📋 필터 조건:")
-            print(f"   - 거래량: {conditions['min_volume']:,}주 이상")
-            print(f"   - 가격: {conditions['min_price']:,}원 ~ {conditions['max_price']:,}원")
-            print(f"   - 상승률: {conditions['min_rate']:.1f}% ~ {conditions['max_rate']:.1f}%")
-            print(f"   - ETF/지수 제외")
 
             # 거래량 순위 조회
             candidates = self.screener.screen_combined(
@@ -165,18 +155,13 @@ class VolumeBasedStrategy(ScanStrategy):
             # 점수 기준 정렬
             stock_candidates.sort(key=lambda x: x.fast_scan_score, reverse=True)
 
-            elapsed = time.time() - start_time
-            print(f"\n📊 필터링 결과:")
-            print(f"   - 총 조회: {len(candidates)}개")
-            print(f"   - ETF 제외: {etf_count}개")
-            print(f"   - 조건 통과: {len(stock_candidates)}개")
-            print(f"✅ 스캔 완료 (소요: {elapsed:.2f}초)")
-            logger.info(f"✅ [{self.name}] 스캔 완료: {len(stock_candidates)}개 후보")
+            print(f"✅ 후보 {len(stock_candidates)}개 선정 (ETF {etf_count}개 제외)")
 
             self.scan_results = stock_candidates
             self.last_scan_time = time.time()
 
-            return stock_candidates[:5]  # 상위 5개만 반환
+            # 상위 20개 반환 (스코어링 시스템에서 재평가)
+            return stock_candidates[:20]
 
         except Exception as e:
             logger.error(f"❌ [{self.name}] 스캔 실패: {e}", exc_info=True)

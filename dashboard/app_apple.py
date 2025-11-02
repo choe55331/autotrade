@@ -284,6 +284,12 @@ def get_positions():
                 profit_loss = value - (avg_price * quantity)
                 profit_loss_percent = ((current_price - avg_price) / avg_price * 100) if avg_price > 0 else 0
 
+                # 손절가 계산 (dynamic_risk_manager 사용)
+                stop_loss_price = avg_price
+                if bot_instance and hasattr(bot_instance, 'dynamic_risk_manager'):
+                    thresholds = bot_instance.dynamic_risk_manager.get_exit_thresholds(avg_price)
+                    stop_loss_price = thresholds.get('stop_loss', avg_price)
+
                 positions.append({
                     'code': code,
                     'name': name,
@@ -292,7 +298,8 @@ def get_positions():
                     'current_price': current_price,
                     'profit_loss': profit_loss,
                     'profit_loss_percent': profit_loss_percent,
-                    'value': value
+                    'value': value,
+                    'stop_loss_price': stop_loss_price
                 })
 
             return jsonify(positions)
@@ -305,31 +312,33 @@ def get_positions():
 
 @app.route('/api/candidates')
 def get_candidates():
-    """Get AI candidate stocks from scanner pipeline"""
+    """Get AI-approved buy candidates with split buy strategy"""
     try:
-        if bot_instance and hasattr(bot_instance, 'scanner_pipeline'):
-            # 스캐너 파이프라인에서 후보 가져오기
-            scanner = bot_instance.scanner_pipeline
+        if bot_instance and hasattr(bot_instance, 'ai_approved_candidates'):
+            # AI 승인 매수 후보 가져오기
+            approved = bot_instance.ai_approved_candidates
 
-            # AI 스캔 결과가 있으면 사용
-            if hasattr(scanner, 'final_candidates') and scanner.final_candidates:
-                candidates = []
-                for candidate in scanner.final_candidates[:10]:  # 상위 10개
-                    candidates.append({
-                        'code': candidate.code,
-                        'name': candidate.name,
-                        'price': candidate.price,
-                        'ai_score': candidate.final_score,
-                        'confidence': getattr(candidate, 'ai_confidence', 0.0),
-                        'signal': getattr(candidate, 'ai_signal', 'BUY'),
-                        'reason': getattr(candidate, 'ai_reason', '분석 중')
-                    })
-                return jsonify(candidates)
+            candidates = []
+            for cand in approved:
+                candidates.append({
+                    'code': cand['stock_code'],
+                    'name': cand['stock_name'],
+                    'price': cand['current_price'],
+                    'change_rate': cand['change_rate'],
+                    'ai_score': cand['score'],
+                    'signal': 'BUY',
+                    'split_strategy': cand.get('split_strategy', ''),
+                    'reason': cand.get('ai_reason', ''),
+                    'timestamp': cand.get('timestamp', '')
+                })
+            return jsonify(candidates)
 
         # 데이터가 없으면 빈 배열
         return jsonify([])
     except Exception as e:
         print(f"Error getting candidates: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify([])
 
 
