@@ -1817,26 +1817,34 @@ def get_chart_data(stock_code: str):
             # Convert daily data to chart format
             if daily_data:
                 print(f"🔄 Converting {len(daily_data[:100])} data points to chart format")
-                for item in daily_data[:100]:  # Limit to 100 most recent days
+
+                # Take last 100 days and reverse to get chronological order (oldest to newest)
+                recent_data = daily_data[:100]
+                recent_data.reverse()  # Reverse to get oldest first
+
+                for item in recent_data:
                     try:
-                        # Parse date string to timestamp
+                        # Parse date string
                         date_str = item.get('date', item.get('stck_bsop_date', ''))
                         if date_str:
+                            # Convert YYYYMMDD to YYYY-MM-DD format for LightweightCharts
                             date_obj = datetime.strptime(date_str, '%Y%m%d')
-                            timestamp = int(date_obj.timestamp())
+                            formatted_date = date_obj.strftime('%Y-%m-%d')
 
                             chart_data.append({
-                                'time': timestamp,
-                                'open': int(item.get('open', item.get('stck_oprc', 0))),
-                                'high': int(item.get('high', item.get('stck_hgpr', 0))),
-                                'low': int(item.get('low', item.get('stck_lwpr', 0))),
-                                'close': int(item.get('close', item.get('stck_clpr', 0)))
+                                'time': formatted_date,  # Use date string instead of timestamp
+                                'open': float(item.get('open', item.get('stck_oprc', 0))),
+                                'high': float(item.get('high', item.get('stck_hgpr', 0))),
+                                'low': float(item.get('low', item.get('stck_lwpr', 0))),
+                                'close': float(item.get('close', item.get('stck_clpr', 0)))
                             })
                     except Exception as e:
                         print(f"⚠️ Error parsing chart data item: {e}, item={item}")
                         continue
 
                 print(f"✅ Chart data ready: {len(chart_data)} points")
+                if len(chart_data) > 0:
+                    print(f"📊 Date range: {chart_data[0]['time']} to {chart_data[-1]['time']}")
             else:
                 print(f"⚠️ No daily data received from API")
 
