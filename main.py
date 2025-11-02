@@ -744,20 +744,36 @@ class TradingBotV2:
 
         # 실시간 데이터 구독 시작
         try:
+            # 주말/휴일 체크
+            import datetime
+            now = datetime.datetime.now()
+            is_weekend = now.weekday() >= 5  # 토요일(5), 일요일(6)
+
+            if is_weekend:
+                logger.info("⚠️ 주말/휴일: 실시간 시장 데이터 없음 (서버가 연결을 끊을 수 있습니다)")
+                return
+
             # 보유 종목에 대한 실시간 가격 구독
             if self.portfolio_manager and hasattr(self.portfolio_manager, 'get_positions'):
                 positions = self.portfolio_manager.get_positions()
+                if not positions:
+                    logger.info("보유 종목 없음 - 구독 생략")
+                    return
+
                 for position in positions:
                     stock_code = position.get('stock_code')
                     if stock_code and self.websocket_client:
-                        # 실시간 가격 구독 요청
+                        # TODO: Kiwoom API의 실제 구독 메시지 형식으로 교체 필요
+                        # 현재는 테스트 형식 (실제 API 문서 확인 필요)
                         self.websocket_client.subscribe({
                             'type': 'price',
                             'stock_code': stock_code
                         })
-                        logger.debug(f"실시간 가격 구독: {stock_code}")
+                        logger.debug(f"실시간 가격 구독 요청: {stock_code}")
 
-            logger.info("✓ 실시간 데이터 구독 완료")
+                logger.info("✓ 실시간 데이터 구독 완료")
+            else:
+                logger.info("보유 종목 없음 - 구독 생략")
         except Exception as e:
             logger.warning(f"실시간 데이터 구독 중 오류: {e}")
 
@@ -796,13 +812,25 @@ class TradingBotV2:
 
     def _on_ws_close(self, close_status_code, close_msg):
         """WebSocket 연결 종료 콜백"""
-        logger.warning(f"🔌 WebSocket 연결 종료 (코드: {close_status_code}, 메시지: {close_msg})")
-        logger.info("🔄 자동 재연결 시도 중...")
-        self.monitor.log_activity(
-            'system',
-            f'⚠️ WebSocket 연결 종료 - 재연결 시도 중',
-            level='warning'
-        )
+        # 주말/휴일 체크
+        import datetime
+        now = datetime.datetime.now()
+        is_weekend = now.weekday() >= 5  # 토요일(5), 일요일(6)
+
+        if is_weekend:
+            logger.info(f"🔌 WebSocket 연결 종료 (주말/휴일 - 정상)")
+            logger.debug(f"종료 코드: {close_status_code}, 메시지: {close_msg}")
+            # 주말에는 재연결 시도하지 않음 (어차피 서버가 끊음)
+            if self.websocket_client:
+                self.websocket_client.should_reconnect = False
+        else:
+            logger.warning(f"🔌 WebSocket 연결 종료 (코드: {close_status_code}, 메시지: {close_msg})")
+            logger.info("🔄 자동 재연결 시도 중...")
+            self.monitor.log_activity(
+                'system',
+                f'⚠️ WebSocket 연결 종료 - 재연결 시도 중',
+                level='warning'
+            )
 
 
 def signal_handler(signum, frame):

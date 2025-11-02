@@ -1813,9 +1813,18 @@ def get_chart_data(stock_code: str):
 
             except Exception as e:
                 error_msg = str(e)
-                print(f"Chart data fetch error: {error_msg}")
+                print(f"❌ Chart data fetch error for {stock_code}: {error_msg}")
                 import traceback
                 traceback.print_exc()
+
+                # Log to activity monitor
+                if bot_instance and hasattr(bot_instance, 'monitor'):
+                    bot_instance.monitor.log_activity(
+                        'error',
+                        f'차트 로드 실패 ({stock_code}): {error_msg}',
+                        level='error'
+                    )
+
                 # Return error response with message
                 return jsonify({
                     'success': False,
