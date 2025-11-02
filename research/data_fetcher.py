@@ -332,11 +332,11 @@ class DataFetcher:
     ) -> List[Dict[str, Any]]:
         """
         분봉 데이터 조회
-        
+
         Args:
             stock_code: 종목코드
             minute_type: 분봉 타입 ('1', '3', '5', '10', '30', '60')
-        
+
         Returns:
             분봉 데이터 리스트
         """
@@ -344,19 +344,61 @@ class DataFetcher:
             "stock_code": stock_code,
             "period_code": minute_type
         }
-        
+
         response = self.client.request(
             api_id="DOSK_0001",
             body=body,
             path="/api/dostk/inquire/minuteprice"
         )
-        
+
+        # Debug: Log full response to understand structure
+        logger.warning(f"📊 분봉 API 전체 응답: {response}")
+
         if response and response.get('return_code') == 0:
-            minute_data = response.get('output', [])
-            logger.info(f"{stock_code} {minute_type}분봉 데이터 {len(minute_data)}개 조회 완료")
-            return minute_data
+            # Try different possible keys
+            minute_data = None
+
+            # Try 'output' first
+            if response.get('output'):
+                minute_data = response.get('output', [])
+                logger.info(f"✓ 'output' 키로 {len(minute_data)}개 데이터 발견")
+
+            # Try other possible keys
+            for key in response.keys():
+                if key not in ['return_code', 'return_msg'] and isinstance(response[key], list):
+                    minute_data = response[key]
+                    logger.warning(f"✓ '{key}' 키로 {len(minute_data)}개 데이터 발견")
+                    break
+
+            if minute_data and len(minute_data) > 0:
+                # Log first item to see field structure
+                logger.warning(f"📋 분봉 데이터 첫 항목: {minute_data[0]}")
+
+                # Convert to our standard format
+                converted_data = []
+                for item in minute_data:
+                    try:
+                        converted_item = {
+                            'date': item.get('dt') or item.get('stck_bsop_date'),
+                            'time': item.get('time') or item.get('stck_cntg_hour'),
+                            'open': int(item.get('open_pric') or item.get('stck_oprc') or 0),
+                            'high': int(item.get('high_pric') or item.get('stck_hgpr') or 0),
+                            'low': int(item.get('low_pric') or item.get('stck_lwpr') or 0),
+                            'close': int(item.get('cur_pric') or item.get('stck_clpr') or 0),
+                            'volume': int(item.get('trde_qty') or item.get('acml_vol') or 0)
+                        }
+                        converted_data.append(converted_item)
+                    except Exception as e:
+                        logger.error(f"분봉 데이터 변환 실패: {e}, item: {item}")
+                        continue
+
+                logger.info(f"{stock_code} {minute_type}분봉 데이터 {len(converted_data)}개 조회 완료")
+                return converted_data
+            else:
+                logger.warning(f"⚠️ output exists but is empty or None: {minute_data}")
+                return []
         else:
-            logger.error(f"분봉 조회 실패: {response.get('return_msg')}")
+            logger.error(f"분봉 조회 실패: {response.get('return_msg') if response else 'No response'}")
             return []
     
     # ==================== 종목 검색/순위 ====================
