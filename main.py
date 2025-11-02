@@ -213,15 +213,38 @@ class TradingBotV2:
             self.data_fetcher = DataFetcher(self.client)  # 시장 데이터 조회
             logger.info("✓ API 모듈 초기화 완료")
 
-            # 4. AI 분석기 (테스트: Mock 사용)
+            # 4. AI 분석기 (Gemini API 키가 있으면 실제 사용, 없으면 Mock)
             logger.info("🤖 AI 분석기 초기화 중...")
             try:
-                self.analyzer = MockAnalyzer()  # 테스트 모드: Mock 직접 사용
-                self.analyzer.initialize()
-                logger.info("✓ Mock AI 분석기 초기화 완료 (테스트 모드)")
+                from config import GEMINI_API_KEY
+
+                # Gemini API 키 확인
+                if GEMINI_API_KEY and GEMINI_API_KEY.strip() and GEMINI_API_KEY != "your-gemini-api-key-here":
+                    # 실제 Gemini 사용
+                    from ai.gemini_analyzer import GeminiAnalyzer
+                    self.analyzer = GeminiAnalyzer()
+                    if self.analyzer.initialize():
+                        logger.info("✅ Gemini AI 분석기 초기화 완료 (실제 AI 사용)")
+                    else:
+                        logger.warning("Gemini 초기화 실패 - Mock으로 대체")
+                        from ai.mock_analyzer import MockAnalyzer
+                        self.analyzer = MockAnalyzer()
+                        self.analyzer.initialize()
+                        logger.info("✓ Mock AI 분석기 초기화 완료 (대체)")
+                else:
+                    # Gemini API 키 없음 - Mock 사용
+                    from ai.mock_analyzer import MockAnalyzer
+                    self.analyzer = MockAnalyzer()
+                    self.analyzer.initialize()
+                    logger.info("✓ Mock AI 분석기 초기화 완료 (Gemini API 키 없음)")
+
             except Exception as e:
                 logger.error(f"AI 분석기 초기화 실패: {e}")
-                raise
+                # 폴백: Mock 사용
+                from ai.mock_analyzer import MockAnalyzer
+                self.analyzer = MockAnalyzer()
+                self.analyzer.initialize()
+                logger.warning("✓ Mock AI 분석기로 폴백")
 
             # 5. 3단계 스캐닝 파이프라인 (신규)
             logger.info("🔍 3단계 스캐닝 파이프라인 초기화 중...")
@@ -352,6 +375,14 @@ class TradingBotV2:
 
         while self.is_running:
             cycle_count += 1
+
+            # 첫 사이클이 아니면 대기
+            if cycle_count > 1:
+                logger.info(f"⏳ {sleep_seconds}초 대기...\n")
+                time.sleep(sleep_seconds)
+            else:
+                logger.info("🚀 첫 사이클 - 즉시 시작\n")
+
             logger.info(f"\n{'='*60}")
             logger.info(f"🔄 메인 사이클 #{cycle_count}")
             logger.info(f"{'='*60}")
@@ -365,7 +396,6 @@ class TradingBotV2:
 
                 # 2. 거래 시간 확인
                 if not self._check_trading_hours():
-                    time.sleep(sleep_seconds)
                     continue
 
                 # 3. 계좌 정보 업데이트
@@ -387,9 +417,6 @@ class TradingBotV2:
 
             except Exception as e:
                 logger.error(f"메인 루프 오류: {e}", exc_info=True)
-
-            logger.info(f"⏳ {sleep_seconds}초 대기...\n")
-            time.sleep(sleep_seconds)
 
     def _read_control_file(self):
         """제어 파일 읽기"""
