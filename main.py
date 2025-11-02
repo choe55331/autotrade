@@ -747,17 +747,24 @@ class TradingBotV2:
             # 보유 종목에 대한 실시간 가격 구독
             if self.portfolio_manager and hasattr(self.portfolio_manager, 'get_positions'):
                 positions = self.portfolio_manager.get_positions()
+                if not positions:
+                    logger.info("보유 종목 없음 - 구독 생략")
+                    return
+
                 for position in positions:
                     stock_code = position.get('stock_code')
                     if stock_code and self.websocket_client:
-                        # 실시간 가격 구독 요청
+                        # TODO: Kiwoom API의 실제 구독 메시지 형식으로 교체 필요
+                        # 현재는 테스트 형식 (실제 API 문서 확인 필요)
                         self.websocket_client.subscribe({
                             'type': 'price',
                             'stock_code': stock_code
                         })
-                        logger.debug(f"실시간 가격 구독: {stock_code}")
+                        logger.debug(f"실시간 가격 구독 요청: {stock_code}")
 
-            logger.info("✓ 실시간 데이터 구독 완료")
+                logger.info("✓ 실시간 데이터 구독 완료")
+            else:
+                logger.info("보유 종목 없음 - 구독 생략")
         except Exception as e:
             logger.warning(f"실시간 데이터 구독 중 오류: {e}")
 

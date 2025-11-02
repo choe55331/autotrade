@@ -1745,90 +1745,124 @@ def search_stocks():
 def get_chart_data(stock_code: str):
     """Get real chart data from Kiwoom API"""
     try:
-        if bot_instance and hasattr(bot_instance, 'data_fetcher'):
-            # Get real OHLCV data from Kiwoom
-            chart_data = []
+        print(f"\n📊 Chart request for {stock_code}")
 
+        if not bot_instance:
+            print(f"❌ bot_instance is None")
+            return jsonify({
+                'success': False,
+                'error': 'Trading bot not initialized',
+                'data': [],
+                'signals': [],
+                'name': stock_code,
+                'current_price': 0
+            })
+
+        if not hasattr(bot_instance, 'data_fetcher'):
+            print(f"❌ bot_instance has no data_fetcher")
+            return jsonify({
+                'success': False,
+                'error': 'Data fetcher not available',
+                'data': [],
+                'signals': [],
+                'name': stock_code,
+                'current_price': 0
+            })
+
+        print(f"✓ bot_instance and data_fetcher available")
+
+        # Get real OHLCV data from Kiwoom
+        chart_data = []
+
+        try:
+            from datetime import datetime, timedelta
+
+            # Calculate date range for last 100 trading days
+            # Request more days to account for weekends/holidays
+            end_date = datetime.now()
+            start_date = end_date - timedelta(days=150)  # ~100 trading days
+
+            # Format dates as YYYYMMDD
+            start_date_str = start_date.strftime('%Y%m%d')
+            end_date_str = end_date.strftime('%Y%m%d')
+
+            print(f"📅 Fetching data from {start_date_str} to {end_date_str}")
+
+            # Get daily price data from Kiwoom API
+            daily_data = bot_instance.data_fetcher.get_daily_price(
+                stock_code=stock_code,
+                start_date=start_date_str,
+                end_date=end_date_str
+            )
+
+            print(f"📦 Received {len(daily_data) if daily_data else 0} data points")
+
+            # Get current price and stock name
+            current_price = 0
+            stock_name = stock_code
             try:
-                from datetime import datetime, timedelta
+                price_info = bot_instance.market_api.get_current_price(stock_code)
+                if price_info:
+                    current_price = int(price_info.get('prpr', 0))
+                    stock_name = price_info.get('prdt_name', stock_code)
+            except:
+                pass
 
-                # Calculate date range for last 100 trading days
-                # Request more days to account for weekends/holidays
-                end_date = datetime.now()
-                start_date = end_date - timedelta(days=150)  # ~100 trading days
+            # Convert daily data to chart format
+            if daily_data:
+                print(f"🔄 Converting {len(daily_data[:100])} data points to chart format")
+                for item in daily_data[:100]:  # Limit to 100 most recent days
+                    try:
+                        # Parse date string to timestamp
+                        date_str = item.get('date', item.get('stck_bsop_date', ''))
+                        if date_str:
+                            date_obj = datetime.strptime(date_str, '%Y%m%d')
+                            timestamp = int(date_obj.timestamp())
 
-                # Format dates as YYYYMMDD
-                start_date_str = start_date.strftime('%Y%m%d')
-                end_date_str = end_date.strftime('%Y%m%d')
+                            chart_data.append({
+                                'time': timestamp,
+                                'open': int(item.get('open', item.get('stck_oprc', 0))),
+                                'high': int(item.get('high', item.get('stck_hgpr', 0))),
+                                'low': int(item.get('low', item.get('stck_lwpr', 0))),
+                                'close': int(item.get('close', item.get('stck_clpr', 0)))
+                            })
+                    except Exception as e:
+                        print(f"⚠️ Error parsing chart data item: {e}, item={item}")
+                        continue
 
-                # Get daily price data from Kiwoom API
-                daily_data = bot_instance.data_fetcher.get_daily_price(
-                    stock_code=stock_code,
-                    start_date=start_date_str,
-                    end_date=end_date_str
-                )
+                print(f"✅ Chart data ready: {len(chart_data)} points")
+            else:
+                print(f"⚠️ No daily data received from API")
 
-                # Get current price and stock name
-                current_price = 0
-                stock_name = stock_code
-                try:
-                    price_info = bot_instance.market_api.get_current_price(stock_code)
-                    if price_info:
-                        current_price = int(price_info.get('prpr', 0))
-                        stock_name = price_info.get('prdt_name', stock_code)
-                except:
-                    pass
+            # Generate AI trading signals (placeholder - would come from real AI analysis)
+            signals = []
 
-                # Convert daily data to chart format
-                if daily_data:
-                    for item in daily_data[:100]:  # Limit to 100 most recent days
-                        try:
-                            # Parse date string to timestamp
-                            date_str = item.get('date', item.get('stck_bsop_date', ''))
-                            if date_str:
-                                date_obj = datetime.strptime(date_str, '%Y%m%d')
-                                timestamp = int(date_obj.timestamp())
-
-                                chart_data.append({
-                                    'time': timestamp,
-                                    'open': int(item.get('open', item.get('stck_oprc', 0))),
-                                    'high': int(item.get('high', item.get('stck_hgpr', 0))),
-                                    'low': int(item.get('low', item.get('stck_lwpr', 0))),
-                                    'close': int(item.get('close', item.get('stck_clpr', 0)))
-                                })
-                        except Exception as e:
-                            print(f"Error parsing chart data item: {e}")
-                            continue
-
-                # Generate AI trading signals (placeholder - would come from real AI analysis)
-                signals = []
-
-                return jsonify({
-                    'success': True,
-                    'data': chart_data,
-                    'signals': signals,
-                    'name': stock_name,
-                    'current_price': current_price
-                })
-
-            except Exception as e:
-                error_msg = str(e)
-                print(f"Chart data fetch error: {error_msg}")
-                import traceback
-                traceback.print_exc()
-                # Return error response with message
-                return jsonify({
-                    'success': False,
-                    'error': f'차트 데이터를 가져올 수 없습니다: {error_msg}',
-                    'data': [],
-                    'signals': [],
-                    'name': stock_code,
-                    'current_price': 0
-                })
-        else:
-            # No bot instance - return empty
             return jsonify({
                 'success': True,
+                'data': chart_data,
+                'signals': signals,
+                'name': stock_name,
+                'current_price': current_price
+            })
+
+        except Exception as e:
+            error_msg = str(e)
+            print(f"❌ Chart data fetch error for {stock_code}: {error_msg}")
+            import traceback
+            traceback.print_exc()
+
+            # Log to activity monitor
+            if bot_instance and hasattr(bot_instance, 'monitor'):
+                bot_instance.monitor.log_activity(
+                    'error',
+                    f'차트 로드 실패 ({stock_code}): {error_msg}',
+                    level='error'
+                )
+
+            # Return error response with message
+            return jsonify({
+                'success': False,
+                'error': f'차트 데이터를 가져올 수 없습니다: {error_msg}',
                 'data': [],
                 'signals': [],
                 'name': stock_code,
@@ -1836,7 +1870,9 @@ def get_chart_data(stock_code: str):
             })
 
     except Exception as e:
-        print(f"Chart API error: {e}")
+        print(f"📊 Chart API outer error: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)})
 
 
