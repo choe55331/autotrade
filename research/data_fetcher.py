@@ -331,7 +331,7 @@ class DataFetcher:
         minute_type: str = '1'
     ) -> List[Dict[str, Any]]:
         """
-        분봉 데이터 조회
+        분봉 데이터 조회 (과거 데이터 포함, 검증된 API 사용: ka10080)
 
         Args:
             stock_code: 종목코드
@@ -340,68 +340,76 @@ class DataFetcher:
         Returns:
             분봉 데이터 리스트
         """
-        body = {
-            "stock_code": stock_code,
-            "period_code": minute_type
-        }
+        # Get current date as base_dt
+        base_dt = datetime.now().strftime('%Y%m%d')
 
-        response = self.client.request(
-            api_id="DOSK_0001",
-            body=body,
-            path="/api/dostk/inquire/minuteprice"
-        )
+        logger.info(f"📞 Calling ka10080 API for {stock_code} (minute_type: {minute_type}, base_dt: {base_dt})")
 
-        # Check if API returned error
-        if not response or response.get('return_code') != 0:
-            # 500 error on weekend is normal - don't spam logs
-            if response and response.get('return_code') == -500:
-                logger.debug(f"ℹ️ {minute_type}분봉 데이터 조회 불가 (장 마감/주말/공휴일)")
+        try:
+            # Use verified API: ka10080 (주식 분봉 차트)
+            response = self.client.call_verified_api(
+                api_id="ka10080",
+                variant_idx=1,
+                body_override={
+                    "stk_cd": stock_code,
+                    "base_dt": base_dt,        # 조회 기준일
+                    "chart_tp": minute_type,   # 분봉 타입 (1, 3, 5, 10, 30, 60)
+                    "upd_stkpc_tp": "1"        # 수정주가 반영
+                }
+            )
+
+            logger.info(f"📥 API Response received: {response is not None}")
+
+            if response:
+                return_code = response.get('return_code')
+                return_msg = response.get('return_msg', 'No message')
+                logger.info(f"📊 Return code: {return_code}")
+                logger.info(f"📊 Return message: {return_msg}")
+                logger.info(f"📦 Response keys: {list(response.keys())}")
+
+                if return_code == 0:
+                    # API returns data in 'stk_dt_pole_chart_qry' key (same as daily chart)
+                    minute_data = response.get('stk_dt_pole_chart_qry', [])
+                    logger.info(f"✅ {stock_code} {minute_type}분봉 데이터 {len(minute_data)}개 조회 완료")
+
+                    # Log sample data if available
+                    if minute_data and len(minute_data) > 0:
+                        logger.info(f"📊 Sample data (first item): {minute_data[0]}")
+                    else:
+                        logger.warning(f"⚠️ stk_dt_pole_chart_qry exists but is empty or None: {minute_data}")
+                        logger.warning(f"⚠️ Full response: {response}")
+
+                    # Convert to standard format
+                    # API uses: dt (date), time, open_pric, high_pric, low_pric, cur_prc (close), trde_qty (volume)
+                    converted_data = []
+                    for item in minute_data:
+                        try:
+                            converted_data.append({
+                                'date': item.get('dt', ''),
+                                'time': item.get('time', ''),
+                                'open': int(item.get('open_pric', 0)),
+                                'high': int(item.get('high_pric', 0)),
+                                'low': int(item.get('low_pric', 0)),
+                                'close': int(item.get('cur_pric', 0)),  # cur_pric = current/closing price
+                                'volume': int(item.get('trde_qty', 0))  # trde_qty = trade quantity
+                            })
+                        except (ValueError, TypeError) as e:
+                            logger.warning(f"⚠️ Error parsing data item: {e}, item={item}")
+                            continue
+
+                    return converted_data
+                else:
+                    logger.error(f"❌ 분봉 조회 실패 (return_code={return_code}): {return_msg}")
+                    logger.error(f"❌ Full response: {response}")
+                    return []
             else:
-                logger.error(f"분봉 조회 실패: {response.get('return_msg') if response else 'No response'}")
-            return []
+                logger.error(f"❌ API 응답 없음 (response is None)")
+                return []
 
-        # Try different possible keys for the response data
-        minute_data = None
-
-        # Try 'output' first
-        if response.get('output'):
-            minute_data = response.get('output', [])
-            logger.debug(f"✓ 'output' 키로 {len(minute_data)}개 데이터 발견")
-
-        # Try other possible keys
-        if not minute_data:
-            for key in response.keys():
-                if key not in ['return_code', 'return_msg', 'error_detail'] and isinstance(response[key], list):
-                    minute_data = response[key]
-                    logger.info(f"✓ '{key}' 키로 {len(minute_data)}개 데이터 발견")
-                    break
-
-        if minute_data and len(minute_data) > 0:
-            # Log first item to see field structure (only first time)
-            logger.debug(f"📋 분봉 데이터 첫 항목: {minute_data[0]}")
-
-            # Convert to our standard format
-            converted_data = []
-            for item in minute_data:
-                try:
-                    converted_item = {
-                        'date': item.get('dt') or item.get('stck_bsop_date'),
-                        'time': item.get('time') or item.get('stck_cntg_hour'),
-                        'open': int(item.get('open_pric') or item.get('stck_oprc') or 0),
-                        'high': int(item.get('high_pric') or item.get('stck_hgpr') or 0),
-                        'low': int(item.get('low_pric') or item.get('stck_lwpr') or 0),
-                        'close': int(item.get('cur_pric') or item.get('stck_clpr') or 0),
-                        'volume': int(item.get('trde_qty') or item.get('acml_vol') or 0)
-                    }
-                    converted_data.append(converted_item)
-                except Exception as e:
-                    logger.error(f"분봉 데이터 변환 실패: {e}, item: {item}")
-                    continue
-
-            logger.info(f"{stock_code} {minute_type}분봉 데이터 {len(converted_data)}개 조회 완료")
-            return converted_data
-        else:
-            logger.debug(f"⚠️ 분봉 데이터가 비어있음")
+        except Exception as e:
+            logger.error(f"❌ 분봉 조회 중 예외 발생: {e}")
+            import traceback
+            traceback.print_exc()
             return []
     
     # ==================== 종목 검색/순위 ====================
