@@ -146,7 +146,7 @@ class SuccessfulAPITester:
             traceback.print_exc()
             return False
 
-    def check_response_has_data(self, response: Dict[str, Any]) -> bool:
+    def check_response_has_data(self, response: Dict[str, Any], debug: bool = False) -> tuple:
         """
         응답에 실제 데이터가 있는지 확인
 
@@ -156,38 +156,42 @@ class SuccessfulAPITester:
 
         Args:
             response: API 응답
+            debug: 디버그 모드 (응답 키 출력)
 
         Returns:
-            데이터가 있으면 True, 없으면 False
+            (데이터 있음, 데이터 키, 데이터 샘플) 튜플
         """
         if not response:
-            return False
+            return (False, None, None)
 
         # return_code 확인
         if response.get('return_code') != 0:
-            return False
+            return (False, None, response.get('return_msg'))
 
-        # 데이터 확인
-        # 가능한 데이터 키들
-        data_keys = ['output', 'output1', 'output2', 'pred_trde_qty_upper',
-                     'pred_pre_flu_rt_upper', 'pred_trde_amt_upper']
+        # return_code, return_msg를 제외한 모든 키 확인
+        exclude_keys = {'return_code', 'return_msg', 'msg_cd', 'msg1', 'msg_code', 'message'}
 
-        for key in data_keys:
-            data = response.get(key)
-            if data:
+        for key, value in response.items():
+            if key in exclude_keys:
+                continue
+
+            if value is not None:
                 # 리스트인 경우 빈 리스트가 아닌지 확인
-                if isinstance(data, list):
-                    if len(data) > 0:
-                        return True
+                if isinstance(value, list):
+                    if len(value) > 0:
+                        sample = f"{len(value)} items"
+                        return (True, key, sample)
                 # 딕셔너리인 경우 빈 딕셔너리가 아닌지 확인
-                elif isinstance(data, dict):
-                    if len(data) > 0:
-                        return True
-                # 그 외의 경우 값이 있으면 True
-                else:
-                    return True
+                elif isinstance(value, dict):
+                    if len(value) > 0:
+                        sample = f"dict with {len(value)} keys"
+                        return (True, key, sample)
+                # 문자열이나 숫자 등
+                elif isinstance(value, (str, int, float)):
+                    sample = str(value)[:50]  # 처음 50자만
+                    return (True, key, sample)
 
-        return False
+        return (False, None, "No data keys found")
 
     def test_api_variant(
         self,
@@ -211,6 +215,8 @@ class SuccessfulAPITester:
             'return_code': None,
             'return_msg': None,
             'has_data': False,
+            'data_key': None,
+            'data_sample': None,
             'error': None
         }
 
@@ -230,13 +236,17 @@ class SuccessfulAPITester:
                 result['return_msg'] = response.get('return_msg', '')
 
                 # 데이터 확인
-                result['has_data'] = self.check_response_has_data(response)
+                has_data, data_key, data_sample = self.check_response_has_data(response)
+                result['has_data'] = has_data
+                result['data_key'] = data_key
+                result['data_sample'] = data_sample
 
                 # 성공 여부 판단: return_code == 0 AND 데이터 있음
                 if result['return_code'] == 0 and result['has_data']:
                     result['status'] = 'success'
                 elif result['return_code'] == 0 and not result['has_data']:
                     result['status'] = 'no_data'
+                    result['error'] = data_sample  # "No data keys found" 등
                 else:
                     result['status'] = 'failed'
             else:
@@ -286,7 +296,9 @@ class SuccessfulAPITester:
             # 통계 업데이트
             if variant_result['status'] == 'success':
                 results['successful_variants'] += 1
-                print(f"  {GREEN}✓{RESET} Variant {variant_idx}: Success")
+                data_key = variant_result.get('data_key', '')
+                data_sample = variant_result.get('data_sample', '')
+                print(f"  {GREEN}✓{RESET} Variant {variant_idx}: Success [{data_key}: {data_sample}]")
             else:
                 results['failed_variants'] += 1
                 msg = variant_result.get('return_msg', variant_result.get('error', 'Unknown'))
