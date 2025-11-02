@@ -42,7 +42,7 @@ from research.scanner_pipeline import ScannerPipeline
 from strategy.scoring_system import ScoringSystem
 from strategy.dynamic_risk_manager import DynamicRiskManager
 from strategy import PortfolioManager
-from ai import get_analyzer
+from ai.mock_analyzer import MockAnalyzer  # 테스트: Mock 직접 사용
 from utils.activity_monitor import get_monitor
 
 # 로거
@@ -213,20 +213,15 @@ class TradingBotV2:
             self.data_fetcher = DataFetcher(self.client)  # 시장 데이터 조회
             logger.info("✓ API 모듈 초기화 완료")
 
-            # 4. AI 분석기
+            # 4. AI 분석기 (테스트: Mock 사용)
             logger.info("🤖 AI 분석기 초기화 중...")
             try:
-                self.analyzer = get_analyzer('gemini')
-                if self.analyzer.initialize():
-                    logger.info("✓ Gemini AI 분석기 초기화 완료")
-                else:
-                    logger.warning("Gemini AI 초기화 실패, Mock 분석기로 전환")
-                    self.analyzer = get_analyzer('mock')
-                    self.analyzer.initialize()
-            except Exception as e:
-                logger.warning(f"AI 분석기 초기화 실패: {e}, Mock 분석기 사용")
-                self.analyzer = get_analyzer('mock')
+                self.analyzer = MockAnalyzer()  # 테스트 모드: Mock 직접 사용
                 self.analyzer.initialize()
+                logger.info("✓ Mock AI 분석기 초기화 완료 (테스트 모드)")
+            except Exception as e:
+                logger.error(f"AI 분석기 초기화 실패: {e}")
+                raise
 
             # 5. 3단계 스캐닝 파이프라인 (신규)
             logger.info("🔍 3단계 스캐닝 파이프라인 초기화 중...")
@@ -346,10 +341,14 @@ class TradingBotV2:
         """메인 루프"""
         cycle_count = 0
         # Backward compatibility: handle both Pydantic (object) and old config (dict)
-        if hasattr(self.config.main_cycle, 'sleep_seconds'):
-            sleep_seconds = self.config.main_cycle.sleep_seconds
-        else:
-            sleep_seconds = self.config.main_cycle.get('sleep_seconds', 60)
+        try:
+            if hasattr(self.config.main_cycle, 'sleep_seconds'):
+                sleep_seconds = self.config.main_cycle.sleep_seconds
+            else:
+                sleep_seconds = self.config.main_cycle.get('sleep_seconds', 60)
+        except Exception as e:
+            logger.warning(f"Config 로드 실패, 기본값 사용: {e}")
+            sleep_seconds = 60
 
         while self.is_running:
             cycle_count += 1
@@ -414,9 +413,15 @@ class TradingBotV2:
         # 시장 상태 저장 (다른 메서드에서 사용)
         self.market_status = market_status
 
+        # 테스트 모드: API 없이도 항상 실행
         if not market_status['is_trading_hours']:
             logger.info(f"⏸️  장 운영 시간 아님: {market_status['market_status']}")
-            return False
+            logger.info(f"🧪 테스트: 강제로 테스트 모드 활성화")
+            # 테스트 모드로 강제 설정
+            self.market_status['is_trading_hours'] = True
+            self.market_status['is_test_mode'] = True
+            self.market_status['market_type'] = '테스트 모드 (강제)'
+            # return False  # 주석 처리: 항상 실행
 
         # 시장 상태 로그
         if market_status.get('is_test_mode'):
