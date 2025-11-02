@@ -1776,15 +1776,21 @@ def get_chart_data(stock_code: str):
 
         try:
             from datetime import datetime, timedelta
+            from utils.trading_date import get_last_trading_date
 
-            # Calculate date range for last 100 trading days
-            # Request more days to account for weekends/holidays
-            end_date = datetime.now()
-            start_date = end_date - timedelta(days=150)  # ~100 trading days
+            # Get proper trading date (handles weekends and test mode)
+            # If bot is in test mode, use test_date; otherwise use last trading date
+            if bot_instance and hasattr(bot_instance, 'test_mode_active') and bot_instance.test_mode_active:
+                end_date_str = getattr(bot_instance, 'test_date', get_last_trading_date())
+                print(f"🧪 Test mode active, using test_date: {end_date_str}")
+            else:
+                end_date_str = get_last_trading_date()
+                print(f"📆 Using last trading date: {end_date_str}")
 
-            # Format dates as YYYYMMDD
+            # Calculate start date (150 days back for ~100 trading days)
+            end_date = datetime.strptime(end_date_str, '%Y%m%d')
+            start_date = end_date - timedelta(days=150)
             start_date_str = start_date.strftime('%Y%m%d')
-            end_date_str = end_date.strftime('%Y%m%d')
 
             print(f"📅 Fetching data from {start_date_str} to {end_date_str}")
 
