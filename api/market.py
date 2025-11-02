@@ -202,13 +202,33 @@ class MarketAPI:
 
                 # 데이터 정규화: API 응답 키 -> 표준 키
                 normalized_list = []
+
+                # 첫 번째 항목의 모든 키 확인 (디버그)
+                if rank_list:
+                    print(f"📍 첫 번째 항목의 키: {list(rank_list[0].keys())}")
+                    print(f"📍 첫 번째 항목 샘플: {rank_list[0]}")
+
                 for item in rank_list:
+                    # 현재가와 등락폭으로 등락률 계산
+                    current_price = int(item.get('cur_prc', '0').replace('+', '').replace('-', ''))
+                    change = int(item.get('pred_pre', '0').replace('+', '').replace('-', ''))
+
+                    # 등락률 계산: (등락폭 / (현재가 - 등락폭)) * 100
+                    prev_price = current_price - change if item.get('pred_pre_sig') == '2' else current_price + change
+                    change_rate = (change / prev_price * 100) if prev_price > 0 else 0.0
+
+                    # API 응답에 등락률 필드가 있는지 확인
+                    if 'flu_rt' in item:
+                        change_rate = float(item.get('flu_rt', '0').replace('+', '').replace('-', ''))
+
                     normalized_list.append({
                         'code': item.get('stk_cd', '').replace('_AL', ''),  # _AL 접미사 제거
                         'name': item.get('stk_nm', ''),
-                        'price': int(item.get('cur_prc', '0').replace('+', '').replace('-', '')),
+                        'price': current_price,
+                        'current_price': current_price,  # 추가
                         'volume': int(item.get('trde_qty', '0')),
-                        'change': int(item.get('pred_pre', '0').replace('+', '').replace('-', '')),
+                        'change': change,
+                        'change_rate': change_rate,  # 추가!
                         'change_sign': item.get('pred_pre_sig', ''),
                     })
 
