@@ -187,8 +187,11 @@ class WebSocketClient:
     
     def _on_error(self, ws, error):
         """에러 핸들러"""
-        logger.error(f"WebSocket 오류: {error}")
-        
+        # "Bye" 메시지는 정상 종료이므로 로그 억제
+        error_str = str(error)
+        if 'Bye' not in error_str:
+            logger.error(f"WebSocket 오류: {error}")
+
         if self.on_error_callback:
             try:
                 self.on_error_callback(error)

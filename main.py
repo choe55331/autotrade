@@ -585,7 +585,19 @@ class TradingBotV2:
 
             # 상위 5개만 표시 및 AI 검토
             top5 = final_candidates[:5]
-            print(f"\n📊 상위 5개: {', '.join([f'{c.name}({c.final_score:.0f}점)' for c in top5])}")
+            print(f"\n📊 상위 5개 후보:")
+            for rank, c in enumerate(top5, 1):
+                score_result = candidate_scores[c.code]
+                # 주요 점수 카테고리 (0점 초과인 것만)
+                breakdown_parts = []
+                if score_result.volume_surge_score > 0:
+                    breakdown_parts.append(f"거래량:{score_result.volume_surge_score:.0f}")
+                if score_result.price_momentum_score > 0:
+                    breakdown_parts.append(f"가격:{score_result.price_momentum_score:.0f}")
+                if score_result.institutional_buying_score > 0:
+                    breakdown_parts.append(f"기관:{score_result.institutional_buying_score:.0f}")
+                breakdown_str = ", ".join(breakdown_parts) if breakdown_parts else "기타"
+                print(f"   {rank}. {c.name} - {c.final_score:.0f}점 ({breakdown_str})")
 
             # 포트폴리오 정보
             portfolio_info = "No positions"
@@ -939,22 +951,27 @@ class TradingBotV2:
 
     def _on_ws_error(self, error):
         """WebSocket 에러 콜백"""
-        logger.error(f"🔌 WebSocket 오류: {error}")
-        self.monitor.log_activity(
-            'system',
-            f'⚠️ WebSocket 오류: {error}',
-            level='error'
-        )
+        # "Bye" 메시지는 정상 종료이므로 로그 억제
+        error_str = str(error)
+        if 'Bye' not in error_str:
+            logger.error(f"🔌 WebSocket 오류: {error}")
+            self.monitor.log_activity(
+                'system',
+                f'⚠️ WebSocket 오류: {error}',
+                level='error'
+            )
 
     def _on_ws_close(self, close_status_code, close_msg):
         """WebSocket 연결 종료 콜백"""
-        logger.warning(f"🔌 WebSocket 연결 종료 (코드: {close_status_code}, 메시지: {close_msg})")
-        logger.info("🔄 자동 재연결 시도 중...")
-        self.monitor.log_activity(
-            'system',
-            f'⚠️ WebSocket 연결 종료 - 재연결 시도 중',
-            level='warning'
-        )
+        # 정상 종료(1000)는 로그 억제
+        if close_status_code and close_status_code != 1000:
+            logger.warning(f"🔌 WebSocket 연결 종료 (코드: {close_status_code}, 메시지: {close_msg})")
+            logger.info("🔄 자동 재연결 시도 중...")
+            self.monitor.log_activity(
+                'system',
+                f'⚠️ WebSocket 연결 종료 - 재연결 시도 중',
+                level='warning'
+            )
 
 
 def signal_handler(signum, frame):
