@@ -702,6 +702,8 @@ class TradingBotV2:
                     print(f"   분할매수 제안: {split_strategy}")
                 if ai_analysis.get('reasons'):
                     print(f"   사유: {ai_analysis['reasons'][0]}")
+                if ai_analysis.get('risks') and ai_analysis['risks']:
+                    print(f"   ⚠️  경고: {ai_analysis['risks'][0]}")
 
                 # AI 승인 시 매수 후보 리스트에 추가
                 if ai_signal == 'buy':

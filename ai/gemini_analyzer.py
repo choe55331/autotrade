@@ -18,24 +18,51 @@ class GeminiAnalyzer(BaseAnalyzer):
     """
 
     # 종목 분석 프롬프트 템플릿 (고정)
-    STOCK_ANALYSIS_PROMPT_TEMPLATE = """이것은 교육 목적의 주식 데이터 분석 연습입니다.
+    STOCK_ANALYSIS_PROMPT_TEMPLATE = """당신은 금융 데이터 분석 연구원입니다. (교육 목적)
 
-데이터:
-- 종목: {stock_name} ({stock_code})
-- 가격: {current_price:,}원 (변동률: {change_rate:+.2f}%)
-- 거래량: {volume:,}주
-- 알고리즘 점수: {score}/440점 ({percentage:.0f}%)
-- 주요 지표: {score_breakdown}
-- 포트폴리오: {portfolio_info}
+[역할]
+알고리즘이 기술적 지표로 선정한 종목을 다각도로 검증하고, 잠재적 위험과 기회를 균형있게 평가하는 것이 임무입니다.
 
-과제: 이 데이터를 보고 관심도를 "높음" 또는 "보통"으로 분류하세요.
-만약 "높음"이면 가상의 시나리오로 단계별 접근을 제안하세요.
-(예시: "50% 초기, 30% 조정시, 20% 추가조정시")
+[분석 대상]
+종목: {stock_name} ({stock_code})
+현재가: {current_price:,}원 | 등락: {change_rate:+.2f}% | 거래량: {volume:,}주
+알고리즘 평가: {score}/440점 ({percentage:.0f}%)
+주요 신호: {score_breakdown}
+포트폴리오: {portfolio_info}
 
-형식:
+[검증 프레임워크]
+1. 기술적 신호 검증
+   - 거래량과 가격 변동의 관계는 건강한가?
+   - 단기 급등인가, 지속 가능한 추세인가?
+   - 과열 신호(과매수)는 없는가?
+
+2. 재무적 관점 검토
+   - 알고리즘 점수가 {percentage:.0f}%인 이유는 타당한가?
+   - 점수가 낮다면 어떤 요소가 부족한가?
+   - 기술적 신호만 믿기엔 위험한 요소는?
+
+3. 리스크 체크리스트
+   - 단기 변동성이 과도하지 않은가?
+   - 거래량이 일시적 이벤트 때문은 아닌가?
+   - 섹터/시장 전체 흐름과 괴리는 없는가?
+
+4. 반대 관점 탐색
+   - 이 신호에도 불구하고 보류해야 할 이유는?
+   - 더 나은 진입 시점이 올 가능성은?
+   - 놓쳤을 수 있는 경고 신호는?
+
+[최종 판단]
+위 4가지 관점을 종합하여:
+- 관심도: "높음" (근거 충분) 또는 "보통" (신중 필요)
+- 접근 전략: 높음인 경우만 단계별 시나리오 제안
+  (예: "40% 초기 + 30% 조정시 추가 + 30% 확인 후")
+- 핵심 근거: 판단의 결정적 이유 1-2가지
+
+[응답 형식]
 관심도: [높음 또는 보통]
-접근: [높음인 경우 단계 제안]
-근거: [한 문장으로 설명]
+접근: [높음인 경우 구체적 단계 제안]
+근거: [핵심 판단 이유 2문장 이내]
+경고: [주의해야 할 리스크 1가지]
 """
 
     def __init__(self, api_key: str = None, model_name: str = None):
@@ -345,7 +372,7 @@ class GeminiAnalyzer(BaseAnalyzer):
         response_text: str,
         stock_data: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """종목 분석 응답 파싱 - 관심도 높음/보통, 접근 전략 추출"""
+        """종목 분석 응답 파싱 - 관심도 높음/보통, 접근 전략, 근거, 경고 추출"""
         lines = response_text.split('\n')
 
         # 관심도 찾기 (높음 → buy, 보통 → hold)
@@ -378,6 +405,14 @@ class GeminiAnalyzer(BaseAnalyzer):
                 reason = line.split(':', 1)[1].strip()
                 break
 
+        # 경고 찾기 (리스크)
+        warning = ''
+        for line in lines:
+            line_lower = line.lower()
+            if ('경고:' in line or '경고 :' in line or 'warning:' in line_lower or 'risk:' in line_lower) and ':' in line:
+                warning = line.split(':', 1)[1].strip()
+                break
+
         result = {
             'score': 0,  # AI는 점수 안 줌 (scoring_system이 계산)
             'signal': signal,
@@ -385,13 +420,13 @@ class GeminiAnalyzer(BaseAnalyzer):
             'confidence': 'Medium',
             'recommendation': signal,
             'reasons': [reason or response_text.strip()],
-            'risks': [],
+            'risks': [warning] if warning else [],
             'target_price': int(stock_data.get('current_price', 0) * 1.1),
             'stop_loss_price': int(stock_data.get('current_price', 0) * 0.95),
             'analysis_text': response_text,
         }
 
-        logger.debug(f"AI 결정: {signal}, 분할매수: {split_strategy}")
+        logger.debug(f"AI 결정: {signal}, 분할매수: {split_strategy}, 경고: {warning[:30] if warning else 'N/A'}")
 
         return result
     
