@@ -276,11 +276,21 @@ class DataFetcher:
 
             if response:
                 return_code = response.get('return_code')
+                return_msg = response.get('return_msg', 'No message')
                 logger.info(f"📊 Return code: {return_code}")
+                logger.info(f"📊 Return message: {return_msg}")
+                logger.info(f"📦 Response keys: {list(response.keys())}")
 
                 if return_code == 0:
                     daily_data = response.get('output', [])
                     logger.info(f"✅ {stock_code} 일봉 데이터 {len(daily_data)}개 조회 완료")
+
+                    # Log sample data if available
+                    if daily_data and len(daily_data) > 0:
+                        logger.info(f"📊 Sample data (first item): {daily_data[0]}")
+                    else:
+                        logger.warning(f"⚠️ output exists but is empty or None: {daily_data}")
+                        logger.warning(f"⚠️ Full response: {response}")
 
                     # Convert to standard format
                     standardized_data = []
@@ -296,7 +306,8 @@ class DataFetcher:
 
                     return standardized_data
                 else:
-                    logger.error(f"❌ 일봉 조회 실패 (return_code={return_code}): {response.get('return_msg')}")
+                    logger.error(f"❌ 일봉 조회 실패 (return_code={return_code}): {return_msg}")
+                    logger.error(f"❌ Full response: {response}")
                     return []
             else:
                 logger.error(f"❌ API 응답 없음 (response is None)")
