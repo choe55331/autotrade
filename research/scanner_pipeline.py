@@ -393,6 +393,7 @@ class ScannerPipeline:
         Returns:
             선정된 종목 리스트
         """
+        print("📍 run_ai_scan() 메서드 진입")
         logger.info("🤖 AI Scan 시작...")
         start_time = time.time()
 
@@ -400,7 +401,10 @@ class ScannerPipeline:
             if candidates is None:
                 candidates = self.deep_scan_results
 
+            print(f"📍 AI Scan candidates: {len(candidates)}개")
+
             if not candidates:
+                print("⚠️  candidates 비어있음 - 종료")
                 logger.warning("AI Scan 대상 종목 없음")
                 return []
 
@@ -409,11 +413,15 @@ class ScannerPipeline:
             min_score = ai_config.get('min_analysis_score', 7.0)
             min_confidence = ai_config.get('min_confidence', 'Medium')
 
+            print(f"📍 AI 분석기 타입: {type(self.ai_analyzer).__name__}")
+            print(f"📍 AI 분석 시작 - {len(candidates)}개 종목 처리 예정")
+
             # AI 분석 수행
             ai_approved = []
 
-            for candidate in candidates:
+            for idx, candidate in enumerate(candidates, 1):
                 try:
+                    print(f"📍 [{idx}/{len(candidates)}] AI 분석 중: {candidate.name} ({candidate.code})")
                     logger.info(f"🤖 AI 분석 중: {candidate.name} ({candidate.code})")
 
                     # 종목 데이터 준비
@@ -429,7 +437,9 @@ class ScannerPipeline:
                     }
 
                     # AI 분석 실행
+                    print(f"    📍 analyze_stock() 호출 중...")
                     analysis = self.ai_analyzer.analyze_stock(stock_data)
+                    print(f"    📍 analyze_stock() 완료: {analysis}")
 
                     # 결과 저장
                     candidate.ai_score = analysis.get('score', 0)
@@ -469,7 +479,10 @@ class ScannerPipeline:
                     time.sleep(1)  # AI API 호출 간격
 
                 except Exception as e:
-                    logger.error(f"종목 {candidate.code} AI 분석 실패: {e}")
+                    print(f"    ❌ AI 분석 중 에러 발생: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    logger.error(f"종목 {candidate.code} AI 분석 실패: {e}", exc_info=True)
                     continue
 
             # 최종 점수 기준 정렬
