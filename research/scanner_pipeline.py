@@ -437,6 +437,11 @@ class ScannerPipeline:
                     }
 
                     # AI 분석 실행
+                    print(f"    📍 stock_data 준비 완료:")
+                    print(f"       - stock_code: {stock_data.get('stock_code')}")
+                    print(f"       - current_price: {stock_data.get('current_price')}")
+                    print(f"       - change_rate: {stock_data.get('change_rate')}")
+                    print(f"       - 전체 키: {list(stock_data.keys())}")
                     print(f"    📍 analyze_stock() 호출 중...")
                     analysis = self.ai_analyzer.analyze_stock(stock_data)
                     print(f"    📍 analyze_stock() 완료: {analysis}")
