@@ -1913,28 +1913,45 @@ def get_chart_data(stock_code: str):
 
                 for idx, item in enumerate(recent_data):
                     try:
-                        # Parse date string
+                        # Parse date and time
                         date_str = item.get('date', item.get('stck_bsop_date', ''))
+                        time_str = item.get('time', item.get('stck_cntg_hour', ''))
+
                         if date_str:
-                            # Convert YYYYMMDD to YYYY-MM-DD format for LightweightCharts
-                            date_obj = datetime.strptime(date_str, '%Y%m%d')
-                            formatted_date = date_obj.strftime('%Y-%m-%d')
+                            # For minute data, combine date and time
+                            if timeframe.isdigit() and time_str:
+                                # Minute data: YYYYMMDD + HHMMSS -> UNIX timestamp
+                                datetime_str = f"{date_str}{time_str}"
+                                try:
+                                    dt_obj = datetime.strptime(datetime_str, '%Y%m%d%H%M%S')
+                                    timestamp = int(dt_obj.timestamp())
+                                    time_value = timestamp
+                                except:
+                                    # Fallback to date only
+                                    date_obj = datetime.strptime(date_str, '%Y%m%d')
+                                    formatted_date = date_obj.strftime('%Y-%m-%d')
+                                    time_value = formatted_date
+                            else:
+                                # Daily data: YYYYMMDD -> YYYY-MM-DD
+                                date_obj = datetime.strptime(date_str, '%Y%m%d')
+                                formatted_date = date_obj.strftime('%Y-%m-%d')
+                                time_value = formatted_date
 
                             chart_data.append({
-                                'time': formatted_date,  # Use date string instead of timestamp
+                                'time': time_value,
                                 'open': float(item.get('open', item.get('stck_oprc', 0))),
                                 'high': float(item.get('high', item.get('stck_hgpr', 0))),
                                 'low': float(item.get('low', item.get('stck_lwpr', 0))),
                                 'close': float(item.get('close', item.get('stck_clpr', 0)))
                             })
 
-                            # Add indicator data
+                            # Add indicator data (use time_value for both daily and minute data)
                             if not pd.isna(rsi_values.iloc[idx]):
-                                indicators['rsi'].append({'time': formatted_date, 'value': float(rsi_values.iloc[idx])})
+                                indicators['rsi'].append({'time': time_value, 'value': float(rsi_values.iloc[idx])})
 
                             if not pd.isna(macd_line.iloc[idx]):
                                 indicators['macd'].append({
-                                    'time': formatted_date,
+                                    'time': time_value,
                                     'macd': float(macd_line.iloc[idx]),
                                     'signal': float(signal_line.iloc[idx]),
                                     'histogram': float(histogram.iloc[idx])
@@ -1942,28 +1959,28 @@ def get_chart_data(stock_code: str):
 
                             # Volume
                             indicators['volume'].append({
-                                'time': formatted_date,
+                                'time': time_value,
                                 'value': float(item.get('volume', 0)),
                                 'color': '#10b981' if float(item.get('close', 0)) >= float(item.get('open', 0)) else '#ef4444'
                             })
 
                             # Moving Averages (only add if not NaN)
                             if not pd.isna(sma_5.iloc[idx]):
-                                indicators['ma5'].append({'time': formatted_date, 'value': float(sma_5.iloc[idx])})
+                                indicators['ma5'].append({'time': time_value, 'value': float(sma_5.iloc[idx])})
                             if not pd.isna(sma_20.iloc[idx]):
-                                indicators['ma20'].append({'time': formatted_date, 'value': float(sma_20.iloc[idx])})
+                                indicators['ma20'].append({'time': time_value, 'value': float(sma_20.iloc[idx])})
                             if not pd.isna(sma_60.iloc[idx]):
-                                indicators['ma60'].append({'time': formatted_date, 'value': float(sma_60.iloc[idx])})
+                                indicators['ma60'].append({'time': time_value, 'value': float(sma_60.iloc[idx])})
                             if not pd.isna(ema_12.iloc[idx]):
-                                indicators['ema12'].append({'time': formatted_date, 'value': float(ema_12.iloc[idx])})
+                                indicators['ema12'].append({'time': time_value, 'value': float(ema_12.iloc[idx])})
                             if not pd.isna(ema_26.iloc[idx]):
-                                indicators['ema26'].append({'time': formatted_date, 'value': float(ema_26.iloc[idx])})
+                                indicators['ema26'].append({'time': time_value, 'value': float(ema_26.iloc[idx])})
 
                             # Bollinger Bands
                             if not pd.isna(bb_upper.iloc[idx]):
-                                indicators['bb_upper'].append({'time': formatted_date, 'value': float(bb_upper.iloc[idx])})
-                                indicators['bb_middle'].append({'time': formatted_date, 'value': float(bb_middle.iloc[idx])})
-                                indicators['bb_lower'].append({'time': formatted_date, 'value': float(bb_lower.iloc[idx])})
+                                indicators['bb_upper'].append({'time': time_value, 'value': float(bb_upper.iloc[idx])})
+                                indicators['bb_middle'].append({'time': time_value, 'value': float(bb_middle.iloc[idx])})
+                                indicators['bb_lower'].append({'time': time_value, 'value': float(bb_lower.iloc[idx])})
 
                     except Exception as e:
                         print(f"⚠️ Error parsing chart data item: {e}, item={item}")
