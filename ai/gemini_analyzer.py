@@ -109,17 +109,27 @@ class GeminiAnalyzer(BaseAnalyzer):
 
                 # Gemini API 호출 (타임아웃 30초)
                 import google.generativeai as genai
+                from google.generativeai.types import HarmCategory, HarmBlockThreshold
 
-                # 생성 설정 (타임아웃 및 안정성 설정)
+                # 생성 설정
                 generation_config = genai.types.GenerationConfig(
                     temperature=0.7,
-                    max_output_tokens=2048,
+                    max_output_tokens=1024,
                 )
+
+                # 안전 설정 (주식 분석에 필요)
+                safety_settings = {
+                    HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+                    HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+                    HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+                    HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+                }
 
                 api_start = time.time()
                 response = self.model.generate_content(
                     prompt,
                     generation_config=generation_config,
+                    safety_settings=safety_settings,
                     request_options={'timeout': 30}  # 30초 타임아웃
                 )
                 api_elapsed = time.time() - api_start
@@ -246,42 +256,28 @@ class GeminiAnalyzer(BaseAnalyzer):
         stock_data: Dict[str, Any],
         analysis_type: str
     ) -> str:
-        """종목 분석 프롬프트 생성"""
+        """종목 분석 프롬프트 생성 (간단한 고정 템플릿)"""
         stock_code = stock_data.get('stock_code', '')
         stock_name = stock_data.get('stock_name', '')
         current_price = stock_data.get('current_price', 0)
         change_rate = stock_data.get('change_rate', 0)
         volume = stock_data.get('volume', 0)
-        
-        prompt = f"""
-당신은 전문 주식 애널리스트입니다. 다음 종목을 분석해주세요.
 
-**종목 정보:**
-- 종목코드: {stock_code}
-- 종목명: {stock_name}
-- 현재가: {current_price:,}원
-- 등락률: {change_rate:+.2f}%
-- 거래량: {volume:,}주
+        # 간단하고 고정된 프롬프트
+        prompt = f"""Analyze this Korean stock for day trading:
+Stock: {stock_name} ({stock_code})
+Price: {current_price} KRW
+Change: {change_rate:.2f}%
+Volume: {volume}
 
-**기술적 지표:**
-{self._format_technical_data(stock_data.get('technical', {}))}
-
-**투자자 동향:**
-{self._format_investor_data(stock_data.get('investor', {}))}
-
-**분석 요청:**
-다음 형식으로 분석 결과를 제공해주세요:
-
-점수: [0~10점 사이의 투자 점수]
-신호: [buy/sell/hold 중 하나]
-신뢰도: [Low/Medium/High 중 하나]
-추천: [한 줄 추천 문구]
-이유: [매수/매도/보유 이유 3가지, 각각 한 줄로]
-리스크: [주요 리스크 2가지, 각각 한 줄로]
-목표가: [예상 목표가격]
-손절가: [권장 손절가격]
+Provide analysis in this format:
+Score: [0-10]
+Signal: [buy/sell/hold]
+Confidence: [Low/Medium/High]
+Reasons: [3 brief reasons]
+Risks: [2 brief risks]
 """
-        
+
         return prompt
     
     def _create_market_analysis_prompt(self, market_data: Dict[str, Any]) -> str:
