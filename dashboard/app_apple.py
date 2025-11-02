@@ -1743,9 +1743,11 @@ def search_stocks():
 
 @app.route('/api/chart/<stock_code>')
 def get_chart_data(stock_code: str):
-    """Get real chart data from Kiwoom API"""
+    """Get real chart data from Kiwoom API with timeframe support"""
     try:
-        print(f"\n📊 Chart request for {stock_code}")
+        from flask import request
+        timeframe = request.args.get('timeframe', 'D')  # D=일봉, W=주봉, M=월봉, 숫자=분봉
+        print(f"\n📊 Chart request for {stock_code} (timeframe: {timeframe})")
 
         if not bot_instance:
             print(f"❌ bot_instance is None")
@@ -1795,12 +1797,31 @@ def get_chart_data(stock_code: str):
 
             print(f"📅 Fetching data from {start_date_str} to {end_date_str}")
 
-            # Get daily price data from Kiwoom API
-            daily_data = bot_instance.data_fetcher.get_daily_price(
-                stock_code=stock_code,
-                start_date=start_date_str,
-                end_date=end_date_str
-            )
+            # Fetch data based on timeframe
+            daily_data = []
+
+            if timeframe.isdigit():
+                # Minute data (1, 3, 5, 10, 30, 60)
+                print(f"📊 Fetching {timeframe}-minute data")
+                if hasattr(bot_instance.data_fetcher, 'get_minute_price'):
+                    daily_data = bot_instance.data_fetcher.get_minute_price(
+                        stock_code=stock_code,
+                        minute_type=timeframe
+                    )
+                else:
+                    print(f"⚠️ Minute price not available, using daily data")
+                    daily_data = bot_instance.data_fetcher.get_daily_price(
+                        stock_code=stock_code,
+                        start_date=start_date_str,
+                        end_date=end_date_str
+                    )
+            else:
+                # Daily, Weekly, Monthly data
+                daily_data = bot_instance.data_fetcher.get_daily_price(
+                    stock_code=stock_code,
+                    start_date=start_date_str,
+                    end_date=end_date_str
+                )
 
             print(f"📦 Received {len(daily_data) if daily_data else 0} data points")
 

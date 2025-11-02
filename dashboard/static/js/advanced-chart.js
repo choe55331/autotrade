@@ -11,6 +11,12 @@ class AdvancedTradingChart {
         this.rsiChart = null;
         this.macdChart = null;
         this.volumeChart = null;
+        this.canvas = null;
+        this.ctx = null;
+
+        // Current state
+        this.currentStockCode = '005930';
+        this.currentTimeframe = 'D'; // D=일봉, W=주봉, M=월봉, 숫자=분봉
 
         // Series for indicators
         this.series = {
@@ -33,6 +39,8 @@ class AdvancedTradingChart {
         this.drawingMode = null;
         this.drawings = [];
         this.currentDrawing = null;
+        this.isDrawing = false;
+        this.startPoint = null;
 
         // Indicator visibility
         this.indicatorsVisible = {
@@ -77,10 +85,23 @@ class AdvancedTradingChart {
         container.innerHTML = `
             <div class="chart-toolbar" id="chart-toolbar">
                 <div class="toolbar-group">
-                    <button class="toolbar-btn" onclick="advancedChart.toggleIndicator('ma5')" title="SMA 5">
+                    <label style="color: #9ca3af; font-size: 11px; margin-right: 5px;">시간:</label>
+                    <button class="toolbar-btn timeframe-btn" data-timeframe="1" onclick="advancedChart.changeTimeframe('1')" title="1분봉">1분</button>
+                    <button class="toolbar-btn timeframe-btn" data-timeframe="3" onclick="advancedChart.changeTimeframe('3')" title="3분봉">3분</button>
+                    <button class="toolbar-btn timeframe-btn" data-timeframe="5" onclick="advancedChart.changeTimeframe('5')" title="5분봉">5분</button>
+                    <button class="toolbar-btn timeframe-btn" data-timeframe="10" onclick="advancedChart.changeTimeframe('10')" title="10분봉">10분</button>
+                    <button class="toolbar-btn timeframe-btn" data-timeframe="30" onclick="advancedChart.changeTimeframe('30')" title="30분봉">30분</button>
+                    <button class="toolbar-btn timeframe-btn" data-timeframe="60" onclick="advancedChart.changeTimeframe('60')" title="60분봉">1시간</button>
+                    <button class="toolbar-btn timeframe-btn active" data-timeframe="D" onclick="advancedChart.changeTimeframe('D')" title="일봉">일봉</button>
+                    <button class="toolbar-btn timeframe-btn" data-timeframe="W" onclick="advancedChart.changeTimeframe('W')" title="주봉">주봉</button>
+                    <button class="toolbar-btn timeframe-btn" data-timeframe="M" onclick="advancedChart.changeTimeframe('M')" title="월봉">월봉</button>
+                </div>
+                <div class="toolbar-group">
+                    <label style="color: #9ca3af; font-size: 11px; margin-right: 5px;">지표:</label>
+                    <button class="toolbar-btn active" onclick="advancedChart.toggleIndicator('ma5')" title="SMA 5">
                         <i class="fas fa-chart-line"></i> MA5
                     </button>
-                    <button class="toolbar-btn" onclick="advancedChart.toggleIndicator('ma20')" title="SMA 20">
+                    <button class="toolbar-btn active" onclick="advancedChart.toggleIndicator('ma20')" title="SMA 20">
                         <i class="fas fa-chart-line"></i> MA20
                     </button>
                     <button class="toolbar-btn" onclick="advancedChart.toggleIndicator('ma60')" title="SMA 60">
@@ -91,14 +112,15 @@ class AdvancedTradingChart {
                     </button>
                 </div>
                 <div class="toolbar-group">
+                    <label style="color: #9ca3af; font-size: 11px; margin-right: 5px;">그리기:</label>
                     <button class="toolbar-btn" onclick="advancedChart.setDrawingMode('trendline')" title="추세선">
                         <i class="fas fa-slash"></i>
                     </button>
                     <button class="toolbar-btn" onclick="advancedChart.setDrawingMode('horizontal')" title="수평선">
                         <i class="fas fa-minus"></i>
                     </button>
-                    <button class="toolbar-btn" onclick="advancedChart.setDrawingMode('vertical')" title="수직선">
-                        <i class="fas fa-grip-lines-vertical"></i>
+                    <button class="toolbar-btn" onclick="advancedChart.setDrawingMode('ray')" title="Ray (수평 연장선)">
+                        <i class="fas fa-arrow-right"></i>
                     </button>
                     <button class="toolbar-btn" onclick="advancedChart.clearDrawings()" title="그리기 지우기">
                         <i class="fas fa-eraser"></i>
@@ -106,10 +128,13 @@ class AdvancedTradingChart {
                 </div>
             </div>
 
-            <div id="main-chart-container" class="chart-panel" style="height: 400px;"></div>
-            <div id="rsi-chart-container" class="chart-panel" style="height: 120px; margin-top: 10px;"></div>
-            <div id="macd-chart-container" class="chart-panel" style="height: 150px; margin-top: 10px;"></div>
-            <div id="volume-chart-container" class="chart-panel" style="height: 100px; margin-top: 10px;"></div>
+            <div style="position: relative;">
+                <canvas id="drawing-canvas" style="position: absolute; top: 0; left: 0; z-index: 10; pointer-events: auto;"></canvas>
+                <div id="main-chart-container" class="chart-panel" style="height: 300px; position: relative;"></div>
+            </div>
+            <div id="rsi-chart-container" class="chart-panel" style="height: 80px; margin-top: 5px;"></div>
+            <div id="macd-chart-container" class="chart-panel" style="height: 100px; margin-top: 5px;"></div>
+            <div id="volume-chart-container" class="chart-panel" style="height: 70px; margin-top: 5px;"></div>
         `;
     }
 
@@ -118,7 +143,7 @@ class AdvancedTradingChart {
 
         this.mainChart = LightweightCharts.createChart(container, {
             width: container.clientWidth,
-            height: 400,
+            height: 300,
             layout: {
                 background: { color: '#1e2139' },
                 textColor: '#9ca3af',
@@ -197,7 +222,7 @@ class AdvancedTradingChart {
 
         this.rsiChart = LightweightCharts.createChart(container, {
             width: container.clientWidth,
-            height: 120,
+            height: 80,
             layout: {
                 background: { color: '#1e2139' },
                 textColor: '#9ca3af',
@@ -252,7 +277,7 @@ class AdvancedTradingChart {
 
         this.macdChart = LightweightCharts.createChart(container, {
             width: container.clientWidth,
-            height: 150,
+            height: 100,
             layout: {
                 background: { color: '#1e2139' },
                 textColor: '#9ca3af',
@@ -304,7 +329,7 @@ class AdvancedTradingChart {
 
         this.volumeChart = LightweightCharts.createChart(container, {
             width: container.clientWidth,
-            height: 100,
+            height: 70,
             layout: {
                 background: { color: '#1e2139' },
                 textColor: '#9ca3af',
@@ -337,9 +362,15 @@ class AdvancedTradingChart {
         });
     }
 
-    async loadData(stockCode) {
+    async loadData(stockCode, timeframe = null) {
         try {
-            const response = await fetch(`/api/chart/${stockCode}`);
+            this.currentStockCode = stockCode;
+            if (timeframe) {
+                this.currentTimeframe = timeframe;
+            }
+
+            const url = `/api/chart/${stockCode}?timeframe=${this.currentTimeframe}`;
+            const response = await fetch(url);
             const data = await response.json();
 
             if (!data.success || !data.data || data.data.length === 0) {
@@ -443,35 +474,155 @@ class AdvancedTradingChart {
         }
     }
 
+    async changeTimeframe(timeframe) {
+        this.currentTimeframe = timeframe;
+
+        // Update button states
+        document.querySelectorAll('.timeframe-btn').forEach(btn => {
+            if (btn.getAttribute('data-timeframe') === timeframe) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+
+        // Reload data with new timeframe
+        await this.loadData(this.currentStockCode, timeframe);
+    }
+
     setDrawingMode(mode) {
         this.drawingMode = this.drawingMode === mode ? null : mode;
 
         // Update button states
         document.querySelectorAll('.toolbar-btn').forEach(btn => {
             const btnMode = btn.getAttribute('onclick')?.match(/setDrawingMode\('(.+?)'\)/)?.[1];
-            if (btnMode === mode) {
-                btn.classList.toggle('active');
+            if (btnMode && btnMode === mode) {
+                if (this.drawingMode) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
             }
         });
 
-        // TODO: Implement actual drawing functionality
-        // This requires additional canvas overlay or custom plugin
         if (this.drawingMode) {
             console.log('Drawing mode activated:', mode);
-            alert(`그리기 모드: ${mode}\n\n차트를 클릭하여 그리기를 시작하세요.\n(이 기능은 추가 개발이 필요합니다)`);
+            this.canvas.style.cursor = 'crosshair';
+        } else {
+            this.canvas.style.cursor = 'default';
         }
     }
 
     clearDrawings() {
         this.drawings = [];
+        this.redrawCanvas();
         console.log('All drawings cleared');
-        // TODO: Implement actual clearing
     }
 
     setupDrawingTools() {
-        // TODO: Implement drawing tools
-        // This requires creating a canvas overlay on top of the chart
-        // or using a plugin system
+        this.canvas = document.getElementById('drawing-canvas');
+        if (!this.canvas) return;
+
+        const mainContainer = document.getElementById('main-chart-container');
+        this.canvas.width = mainContainer.clientWidth;
+        this.canvas.height = mainContainer.offsetHeight;
+        this.ctx = this.canvas.getContext('2d');
+
+        // Mouse events
+        this.canvas.addEventListener('mousedown', (e) => this.onMouseDown(e));
+        this.canvas.addEventListener('mousemove', (e) => this.onMouseMove(e));
+        this.canvas.addEventListener('mouseup', (e) => this.onMouseUp(e));
+        this.canvas.addEventListener('mouseleave', (e) => this.onMouseUp(e));
+    }
+
+    onMouseDown(e) {
+        if (!this.drawingMode) return;
+
+        const rect = this.canvas.getBoundingClientRect();
+        this.isDrawing = true;
+        this.startPoint = {
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top
+        };
+    }
+
+    onMouseMove(e) {
+        if (!this.isDrawing || !this.drawingMode) return;
+
+        const rect = this.canvas.getBoundingClientRect();
+        const currentPoint = {
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top
+        };
+
+        // Redraw all existing drawings
+        this.redrawCanvas();
+
+        // Draw current line being created
+        this.ctx.strokeStyle = '#3b82f6';
+        this.ctx.lineWidth = 2;
+        this.ctx.beginPath();
+
+        if (this.drawingMode === 'trendline') {
+            this.ctx.moveTo(this.startPoint.x, this.startPoint.y);
+            this.ctx.lineTo(currentPoint.x, currentPoint.y);
+        } else if (this.drawingMode === 'horizontal') {
+            this.ctx.moveTo(0, this.startPoint.y);
+            this.ctx.lineTo(this.canvas.width, this.startPoint.y);
+        } else if (this.drawingMode === 'ray') {
+            this.ctx.moveTo(this.startPoint.x, this.startPoint.y);
+            this.ctx.lineTo(this.canvas.width, this.startPoint.y);
+        }
+
+        this.ctx.stroke();
+    }
+
+    onMouseUp(e) {
+        if (!this.isDrawing || !this.drawingMode) return;
+
+        const rect = this.canvas.getBoundingClientRect();
+        const endPoint = {
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top
+        };
+
+        // Save the drawing
+        this.drawings.push({
+            type: this.drawingMode,
+            start: this.startPoint,
+            end: endPoint,
+            color: '#3b82f6'
+        });
+
+        this.isDrawing = false;
+        this.redrawCanvas();
+    }
+
+    redrawCanvas() {
+        if (!this.ctx) return;
+
+        // Clear canvas
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        // Redraw all saved drawings
+        this.drawings.forEach(drawing => {
+            this.ctx.strokeStyle = drawing.color;
+            this.ctx.lineWidth = 2;
+            this.ctx.beginPath();
+
+            if (drawing.type === 'trendline') {
+                this.ctx.moveTo(drawing.start.x, drawing.start.y);
+                this.ctx.lineTo(drawing.end.x, drawing.end.y);
+            } else if (drawing.type === 'horizontal') {
+                this.ctx.moveTo(0, drawing.start.y);
+                this.ctx.lineTo(this.canvas.width, drawing.start.y);
+            } else if (drawing.type === 'ray') {
+                this.ctx.moveTo(drawing.start.x, drawing.start.y);
+                this.ctx.lineTo(this.canvas.width, drawing.start.y);
+            }
+
+            this.ctx.stroke();
+        });
     }
 
     handleResize() {
@@ -491,6 +642,13 @@ class AdvancedTradingChart {
         }
         if (this.volumeChart && volumeContainer) {
             this.volumeChart.applyOptions({ width: volumeContainer.clientWidth });
+        }
+
+        // Resize canvas
+        if (this.canvas && mainContainer) {
+            this.canvas.width = mainContainer.clientWidth;
+            this.canvas.height = mainContainer.offsetHeight;
+            this.redrawCanvas();
         }
     }
 
