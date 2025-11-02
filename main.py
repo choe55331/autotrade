@@ -388,6 +388,146 @@ class TradingBotV2:
         except Exception as e:
             logger.warning(f"상태 복원 실패: {e}")
 
+    def _test_samsung_trade(self):
+        """삼성전자 테스트 매매 (연결 직후 1주 매수 → 10초 후 매도)"""
+        try:
+            logger.info("="*60)
+            logger.info("🧪 삼성전자 테스트 매매 시작")
+            logger.info("="*60)
+
+            samsung_code = "005930"  # 삼성전자
+            samsung_name = "삼성전자"
+
+            # 현재 시간 확인 및 거래 유형 결정
+            now = datetime.now()
+            current_hour = now.hour
+            current_minute = now.minute
+
+            market_type = ""
+            order_type = "00"  # 지정가
+
+            # 시간대별 거래 유형 판단
+            if 8 <= current_hour < 9:
+                market_type = "NXT 프리마켓"
+                logger.info(f"⏰ 현재 시간: {now.strftime('%H:%M:%S')} - {market_type}")
+            elif 9 <= current_hour < 15 or (current_hour == 15 and current_minute < 30):
+                market_type = "일반시장"
+                logger.info(f"⏰ 현재 시간: {now.strftime('%H:%M:%S')} - {market_type}")
+            else:
+                market_type = "장외시간"
+                logger.warning(f"⏰ 현재 시간: {now.strftime('%H:%M:%S')} - {market_type} (테스트 주문 시도, 서버에서 거절 예상)")
+
+            # 1. 삼성전자 현재가 조회
+            logger.info(f"📊 {samsung_name} 현재가 조회 중...")
+            try:
+                quote = self.market_api.get_current_price(samsung_code)
+                if not quote:
+                    logger.error("현재가 조회 실패")
+                    return
+
+                current_price = int(quote.get('stck_prpr', 0))
+                logger.info(f"✓ {samsung_name} 현재가: {current_price:,}원")
+
+            except Exception as e:
+                logger.error(f"현재가 조회 실패: {e}")
+                return
+
+            # 2. 매수 주문 실행
+            quantity = 1  # 1주
+            logger.info(f"📥 {samsung_name} 매수 주문 실행 중...")
+            logger.info(f"   종목코드: {samsung_code}")
+            logger.info(f"   수량: {quantity}주")
+            logger.info(f"   가격: {current_price:,}원")
+            logger.info(f"   총액: {current_price * quantity:,}원")
+            logger.info(f"   거래유형: {market_type}")
+
+            try:
+                buy_result = self.order_api.buy(
+                    stock_code=samsung_code,
+                    quantity=quantity,
+                    price=current_price,
+                    order_type=order_type
+                )
+
+                if buy_result:
+                    order_no = buy_result.get('order_no', 'N/A')
+                    logger.info(f"✅ {samsung_name} 매수 주문 성공!")
+                    logger.info(f"   주문번호: {order_no}")
+
+                    # 활동 로그
+                    self.monitor.log_activity(
+                        'test_buy',
+                        f'🧪 테스트: {samsung_name} 매수 {quantity}주 @ {current_price:,}원',
+                        level='success'
+                    )
+                else:
+                    logger.error("매수 주문 실패")
+                    return
+
+            except Exception as e:
+                logger.error(f"매수 주문 실패: {e}")
+                return
+
+            # 3. 10초 대기
+            logger.info("⏳ 10초 대기 중...")
+            for i in range(10, 0, -1):
+                print(f"   {i}초 남음...", end='\r')
+                time.sleep(1)
+            print()
+
+            # 4. 매도 주문 실행
+            logger.info(f"📤 {samsung_name} 매도 주문 실행 중...")
+
+            # 최신 현재가 재조회
+            try:
+                quote = self.market_api.get_current_price(samsung_code)
+                if quote:
+                    sell_price = int(quote.get('stck_prpr', 0))
+                    logger.info(f"✓ {samsung_name} 현재가 (매도): {sell_price:,}원")
+                else:
+                    sell_price = current_price  # 조회 실패시 이전 가격 사용
+                    logger.warning("현재가 재조회 실패 - 이전 가격 사용")
+
+            except Exception as e:
+                sell_price = current_price
+                logger.warning(f"현재가 재조회 실패: {e} - 이전 가격 사용")
+
+            try:
+                sell_result = self.order_api.sell(
+                    stock_code=samsung_code,
+                    quantity=quantity,
+                    price=sell_price,
+                    order_type=order_type
+                )
+
+                if sell_result:
+                    order_no = sell_result.get('order_no', 'N/A')
+                    profit_loss = (sell_price - current_price) * quantity
+                    logger.info(f"✅ {samsung_name} 매도 주문 성공!")
+                    logger.info(f"   주문번호: {order_no}")
+                    logger.info(f"   매수가: {current_price:,}원")
+                    logger.info(f"   매도가: {sell_price:,}원")
+                    logger.info(f"   손익: {profit_loss:+,}원")
+
+                    # 활동 로그
+                    self.monitor.log_activity(
+                        'test_sell',
+                        f'🧪 테스트: {samsung_name} 매도 {quantity}주 @ {sell_price:,}원 (손익: {profit_loss:+,}원)',
+                        level='success' if profit_loss >= 0 else 'warning'
+                    )
+                else:
+                    logger.error("매도 주문 실패")
+
+            except Exception as e:
+                logger.error(f"매도 주문 실패: {e}")
+
+            logger.info("="*60)
+            logger.info("✅ 삼성전자 테스트 매매 완료")
+            logger.info("="*60)
+
+        except Exception as e:
+            logger.error(f"테스트 매매 중 오류: {e}", exc_info=True)
+
     def start(self):
         """봇 시작"""
         if not self.is_initialized:
@@ -405,6 +545,10 @@ class TradingBotV2:
         self.is_running = True
 
         try:
+            # 🧪 삼성전자 테스트 매매 실행
+            self._test_samsung_trade()
+
+            # 메인 루프 시작
             self._main_loop()
         except KeyboardInterrupt:
             logger.info("사용자에 의한 중단")
