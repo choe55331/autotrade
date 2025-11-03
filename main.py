@@ -195,35 +195,34 @@ class TradingBotV2:
             logger.info("✓ REST API 클라이언트 초기화 완료")
 
             # 2-1. WebSocket 클라이언트 (실시간 데이터 수신)
-            try:
-                logger.info("🔌 WebSocket 클라이언트 초기화 중...")
-                # 설정에서 WebSocket URL 가져오기
-                from config import KIWOOM_WEBSOCKET_URL
+            # NOTE: WebSocket은 현재 비활성화 (서버가 주기적으로 연결 종료하여 불필요한 재연결 부하 발생)
+            # 실시간 데이터가 필요한 경우에만 재활성화
+            logger.info("🔌 WebSocket: 비활성화 (REST API로 동작)")
+            self.websocket_client = None
 
-                # WebSocket 설정이 있으면 연결
-                if KIWOOM_WEBSOCKET_URL and self.client.token:
-                    self.websocket_client = WebSocketClient(
-                        url=KIWOOM_WEBSOCKET_URL,
-                        token=self.client.token
-                    )
-
-                    # 콜백 등록
-                    self.websocket_client.register_callbacks(
-                        on_open=self._on_ws_open,
-                        on_message=self._on_ws_message,
-                        on_error=self._on_ws_error,
-                        on_close=self._on_ws_close
-                    )
-
-                    # 연결 시작
-                    self.websocket_client.connect()
-                    logger.info("✓ WebSocket 클라이언트 초기화 완료 (자동 재연결 활성화)")
-                else:
-                    self.websocket_client = None
-                    logger.info("⚠️  WebSocket 설정 없음 - REST API로 동작")
-            except Exception as e:
-                logger.warning(f"⚠️  WebSocket 초기화 실패: {e} - REST API로 동작")
-                self.websocket_client = None
+            # WebSocket 활성화가 필요한 경우 아래 코드 주석 해제
+            # try:
+            #     logger.info("🔌 WebSocket 클라이언트 초기화 중...")
+            #     from config import KIWOOM_WEBSOCKET_URL
+            #     if KIWOOM_WEBSOCKET_URL and self.client.token:
+            #         self.websocket_client = WebSocketClient(
+            #             url=KIWOOM_WEBSOCKET_URL,
+            #             token=self.client.token
+            #         )
+            #         self.websocket_client.register_callbacks(
+            #             on_open=self._on_ws_open,
+            #             on_message=self._on_ws_message,
+            #             on_error=self._on_ws_error,
+            #             on_close=self._on_ws_close
+            #         )
+            #         self.websocket_client.connect()
+            #         logger.info("✓ WebSocket 클라이언트 초기화 완료")
+            #     else:
+            #         self.websocket_client = None
+            #         logger.info("⚠️  WebSocket 설정 없음 - REST API로 동작")
+            # except Exception as e:
+            #     logger.warning(f"⚠️  WebSocket 초기화 실패: {e} - REST API로 동작")
+            #     self.websocket_client = None
 
             # 3. API 모듈
             logger.info("📡 API 모듈 초기화 중...")
@@ -409,18 +408,25 @@ class TradingBotV2:
             current_minute = now.minute
 
             market_type = ""
-            order_type = "00"  # 지정가
+            order_type = "00"  # 기본값: 지정가
 
             # 시간대별 거래 유형 판단
             if 8 <= current_hour < 9:
                 market_type = "NXT 프리마켓"
+                order_type = "00"  # 지정가
                 logger.info(f"⏰ 현재 시간: {now.strftime('%H:%M:%S')} - {market_type}")
             elif 9 <= current_hour < 15 or (current_hour == 15 and current_minute < 30):
                 market_type = "일반시장"
+                order_type = "00"  # 지정가
                 logger.info(f"⏰ 현재 시간: {now.strftime('%H:%M:%S')} - {market_type}")
+            elif 16 <= current_hour < 20:
+                market_type = "NXT 시간외 단일가"
+                order_type = "62"  # 시간외단일가
+                logger.info(f"⏰ 현재 시간: {now.strftime('%H:%M:%S')} - {market_type} (주문유형: 시간외단일가)")
             else:
                 market_type = "장외시간"
-                logger.warning(f"⏰ 현재 시간: {now.strftime('%H:%M:%S')} - {market_type} (테스트 주문 시도, 서버에서 거절 예상)")
+                logger.warning(f"⏰ 현재 시간: {now.strftime('%H:%M:%S')} - {market_type} (주문 불가)")
+                return  # 장외시간에는 주문하지 않음
 
             # 1. 삼성전자 현재가 조회
             logger.info(f"📊 {samsung_name} 현재가 조회 중...")
