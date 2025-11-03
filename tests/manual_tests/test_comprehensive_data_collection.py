@@ -5,10 +5,24 @@
 1. 스코어링에 필요한 데이터를 다양한 API 조합으로 수집 테스트
 2. WebSocket 연결 조건을 다양한 조합으로 테스트
 
+✅ 검증 완료된 API (Production Ready):
+  - ka10081: 일봉차트조회 (path=chart) ← 평균거래량/변동성
+  - ka10047: 체결강도추이 (path=mrkcond) ← 체결강도
+  - ka90013: 프로그램매매추이 (path=mrkcond) ← 프로그램순매수
+  - ka10078: 증권사별매매동향 (path=mrkcond) ← 증권사 순매수
+  - ka10045: 기관매매추이 (path=mrkcond) ← 기관 트렌드
+  - ka10059: 투자자별매매 (path=stkinfo) ← 기관/외국인 순매수
+  - ka10004: 주식호가 (path=mrkcond) ← 호가비율
+
 실행 방법:
     python tests/manual_tests/test_comprehensive_data_collection.py
 
-주의: 실제 API 호출이 발생하며, 결과는 자동으로 저장됩니다.
+결과:
+    - 각 API별 성공/실패 상태
+    - 샘플 데이터 (JSON)
+    - 자동으로 _test_results/ 디렉토리에 저장
+
+주의: 실제 API 호출이 발생하며, 시간이 다소 소요될 수 있습니다.
 """
 
 import sys
@@ -445,6 +459,94 @@ class ComprehensiveDataTester:
                 },
                 path="mrkcond"
             )
+
+        # ===== 테스트 케이스 11: 일봉차트조회 (ka10081) ✅ VERIFIED =====
+        print("\n" + "=" * 80)
+        print("✅ 테스트 케이스 11: 일봉차트조회 (ka10081) - 검증 완료!")
+        print("=" * 80)
+
+        self.test_scoring_api(
+            test_name="Case 11-1: 일봉차트조회 - 기본 (path=chart)",
+            api_id="ka10081",
+            body={
+                "stk_cd": self.test_stock,
+                "base_dt": today,
+                "upd_stkpc_tp": "1"  # 수정주가 반영
+            },
+            path="chart"  # ⚠️ 중요: chart 경로 사용!
+        )
+
+        self.test_scoring_api(
+            test_name="Case 11-2: 일봉차트조회 - 과거 날짜",
+            api_id="ka10081",
+            body={
+                "stk_cd": self.test_stock,
+                "base_dt": start_dt_10,  # 3일 전
+                "upd_stkpc_tp": "1"
+            },
+            path="chart"
+        )
+
+        # ===== 테스트 케이스 12: 체결강도추이 (ka10047) ✅ VERIFIED =====
+        print("\n" + "=" * 80)
+        print("✅ 테스트 케이스 12: 체결강도추이 (ka10047) - 검증 완료!")
+        print("=" * 80)
+
+        self.test_scoring_api(
+            test_name="Case 12-1: 체결강도추이 - 기본",
+            api_id="ka10047",
+            body={
+                "stk_cd": self.test_stock
+            },
+            path="mrkcond"
+        )
+
+        self.test_scoring_api(
+            test_name="Case 12-2: 체결강도추이 - 다른 종목 (SK하이닉스)",
+            api_id="ka10047",
+            body={
+                "stk_cd": "000660"
+            },
+            path="mrkcond"
+        )
+
+        # ===== 테스트 케이스 13: 프로그램매매추이 (ka90013) ✅ VERIFIED =====
+        print("\n" + "=" * 80)
+        print("✅ 테스트 케이스 13: 프로그램매매추이 (ka90013) - 검증 완료!")
+        print("=" * 80)
+
+        self.test_scoring_api(
+            test_name="Case 13-1: 프로그램매매추이 - 금액 기준",
+            api_id="ka90013",
+            body={
+                "stk_cd": self.test_stock,
+                "amt_qty_tp": "1",  # 1: 금액
+                "date": ""
+            },
+            path="mrkcond"
+        )
+
+        self.test_scoring_api(
+            test_name="Case 13-2: 프로그램매매추이 - 수량 기준",
+            api_id="ka90013",
+            body={
+                "stk_cd": self.test_stock,
+                "amt_qty_tp": "2",  # 2: 수량
+                "date": ""
+            },
+            path="mrkcond"
+        )
+
+        self.test_scoring_api(
+            test_name="Case 13-3: 프로그램매매추이 - 특정 날짜",
+            api_id="ka90013",
+            body={
+                "stk_cd": self.test_stock,
+                "amt_qty_tp": "1",
+                "date": today
+            },
+            path="mrkcond"
+        )
 
         print("\n" + "=" * 80)
         print(f"✅ 스코어링 API 테스트 완료: 총 {len(self.test_results['scoring_apis'])}개")
