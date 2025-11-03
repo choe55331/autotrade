@@ -173,8 +173,10 @@ class RealtimeMinuteChart:
             else:
                 now = now.replace(second=0, microsecond=0)
 
-            # 장외 시간 필터링 (09:00 ~ 15:30)
-            if now.hour < 9 or (now.hour == 15 and now.minute > 30) or now.hour > 15:
+            # 장외 시간 필터링 (08:00 ~ 20:00)
+            # 한국 정규 장: 09:00-15:30
+            # 확장 시간: 08:00-20:00 (프리마켓/애프터마켓 포함)
+            if now.hour < 8 or now.hour >= 20:
                 return
 
             # 분봉 업데이트
