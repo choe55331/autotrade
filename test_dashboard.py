@@ -14,7 +14,6 @@ import os
 # 프로젝트 루트를 Python 경로에 추가
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from config.config_manager import get_config
 from core.rest_client import KiwoomRESTClient
 from api.market import MarketAPI
 from api.account import AccountAPI
@@ -26,18 +25,8 @@ def init_apis():
     print("🔧 API 초기화 중...")
 
     try:
-        # Config 로드
-        config = get_config()
-
-        # API 설정 가져오기 (딕셔너리)
-        api_config = config.api
-
-        # REST Client 초기화
-        client = KiwoomRESTClient(
-            app_key=api_config['app_key'],
-            app_secret=api_config['app_secret'],
-            account_no=api_config['account_no']
-        )
+        # REST Client 초기화 (내부에서 자동으로 설정 로드)
+        client = KiwoomRESTClient()
 
         # API 초기화
         market_api = MarketAPI(client)
