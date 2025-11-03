@@ -419,7 +419,7 @@ class TradingBotV2:
                 market_type = "일반시장"
                 order_type = "00"  # 지정가
                 logger.info(f"⏰ 현재 시간: {now.strftime('%H:%M:%S')} - {market_type}")
-            elif 16 <= current_hour < 18:
+            elif 16 <= current_hour < 20:
                 market_type = "NXT 시간외 단일가"
                 order_type = "62"  # 시간외단일가
                 logger.info(f"⏰ 현재 시간: {now.strftime('%H:%M:%S')} - {market_type} (주문유형: 시간외단일가)")
