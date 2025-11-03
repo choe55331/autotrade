@@ -96,8 +96,8 @@ class DataCollectionTester:
     def _test_volume_volatility(self, stock_code: str):
         """평균 거래량 & 변동성 테스트 (여러 방법)"""
 
-        # 방법 1: get_daily_chart() 사용
-        print("\n   방법 1: market_api.get_daily_chart()")
+        # 방법 1: get_daily_chart() 사용 (ka10081)
+        print("\n   방법 1: market_api.get_daily_chart() [ka10081]")
         try:
             daily_data = self.market_api.get_daily_chart(stock_code, period=20)
             if daily_data and len(daily_data) > 1:
@@ -127,15 +127,55 @@ class DataCollectionTester:
                     volatility = None
                     print(f"      ❌ 변동성 계산 실패")
 
-                return avg_volume, volatility, "get_daily_chart"
+                return avg_volume, volatility, "get_daily_chart[ka10081]"
             else:
                 print(f"      ❌ 일봉 데이터 없음")
         except Exception as e:
             print(f"      ❌ 실패: {e}")
 
-        # 방법 2: 다른 API 시도 (있다면)
-        print("\n   방법 2: 대안 API 탐색")
-        print(f"      ⚠️  다른 일봉 API 없음")
+        # 방법 2: 직접 ka10081 호출
+        print("\n   방법 2: 직접 ka10081 호출")
+        try:
+            from utils.trading_date import get_last_trading_date
+
+            response = self.client.request(
+                api_id="ka10081",
+                body={
+                    "stk_cd": stock_code,
+                    "base_dt": get_last_trading_date(),
+                    "upd_stkpc_tp": "1"
+                },
+                path="mrkcond"
+            )
+
+            if response and response.get('return_code') == 0:
+                daily_data = response.get('stk_dt_pole_chart_qry', [])
+                if daily_data and len(daily_data) > 1:
+                    # 평균 거래량
+                    volumes = [int(d.get('trde_qty', 0)) for d in daily_data[:20] if d.get('trde_qty')]
+                    if volumes:
+                        avg_volume = sum(volumes) / len(volumes)
+                        print(f"      ✅ 평균거래량 (직접): {avg_volume:,.0f}주")
+
+                        # 변동성
+                        rates = []
+                        for d in daily_data[:20]:
+                            close = int(d.get('cur_prc', 0))
+                            open_price = int(d.get('open_pric', 0))
+                            if open_price and open_price > 0:
+                                rate = ((close - open_price) / open_price) * 100
+                                rates.append(rate)
+
+                        if len(rates) > 1:
+                            volatility = statistics.stdev(rates)
+                            print(f"      ✅ 변동성 (직접): {volatility:.2f}%")
+                            return avg_volume, volatility, "direct_ka10081"
+
+                print(f"      ❌ 데이터 파싱 실패")
+            else:
+                print(f"      ❌ API 응답 실패")
+        except Exception as e:
+            print(f"      ❌ 실패: {e}")
 
         return None, None, "NONE"
 
@@ -377,10 +417,10 @@ class DataCollectionTester:
         print("💡 실제 코드 적용 가이드")
         print("="*80)
 
-        if results['methods_used']['volume_volatility'] == 'get_daily_chart':
+        if 'ka10081' in results['methods_used']['volume_volatility']:
             print("\n1. 평균거래량/변동성:")
             print("   daily_data = self.market_api.get_daily_chart(candidate.code, period=20)")
-            print("   # get_daily_price() → get_daily_chart()로 변경!")
+            print("   # ka10081 API 사용 (path='mrkcond') ✅")
 
         if results['methods_used']['broker_trading'] == 'individual_firm_query':
             print("\n2. 증권사별매매:")
