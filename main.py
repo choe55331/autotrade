@@ -423,7 +423,7 @@ class TradingBotV2:
                 market_type = "장후 시간외 종가"
                 order_type = "81"  # 장마감후시간외
                 logger.info(f"⏰ 현재 시간: {now.strftime('%H:%M:%S')} - {market_type} (주문유형: 장마감후시간외)")
-            elif 16 <= current_hour < 18:
+            elif 16 <= current_hour < 20:
                 market_type = "시간외 단일가"
                 order_type = "62"  # 시간외단일가
                 logger.info(f"⏰ 현재 시간: {now.strftime('%H:%M:%S')} - {market_type} (주문유형: 시간외단일가)")
