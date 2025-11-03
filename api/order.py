@@ -95,15 +95,23 @@ class OrderAPI:
             else:
                 dmst_stex_tp = 'KRX'
 
+            # ord_uv(주문단가): 시장가(3) 또는 시간외 거래(61,62,81)는 빈 문자열
+            # 단일가 매매는 시스템이 자동으로 가격 결정
+            if trde_tp in ['3', '61', '62', '81']:
+                ord_uv_value = ""
+                logger.info(f"⚠️ {trde_tp} 거래유형은 가격 지정 없음 (단일가/시장가)")
+            else:
+                ord_uv_value = str(price)
+
             body_params = {
                 "dmst_stex_tp": dmst_stex_tp,
                 "stk_cd": stock_code,
                 "ord_qty": str(quantity),
-                "ord_uv": str(price),
+                "ord_uv": ord_uv_value,
                 "trde_tp": trde_tp
             }
 
-            logger.info(f"📋 주문 파라미터: order_type={order_type} → trde_tp={trde_tp}, dmst_stex_tp={dmst_stex_tp}, price={price}")
+            logger.info(f"📋 주문 파라미터: order_type={order_type} → trde_tp={trde_tp}, dmst_stex_tp={dmst_stex_tp}, ord_uv={ord_uv_value}")
             print(f"📋 DEBUG: body_params={body_params}")
 
             # API 호출
@@ -203,15 +211,23 @@ class OrderAPI:
             else:
                 dmst_stex_tp = 'KRX'
 
+            # ord_uv(주문단가): 시장가(3) 또는 시간외 거래(61,62,81)는 빈 문자열
+            # 단일가 매매는 시스템이 자동으로 가격 결정
+            if trde_tp in ['3', '61', '62', '81']:
+                ord_uv_value = ""
+                logger.info(f"⚠️ {trde_tp} 거래유형은 가격 지정 없음 (단일가/시장가)")
+            else:
+                ord_uv_value = str(price)
+
             body_params = {
                 "dmst_stex_tp": dmst_stex_tp,
                 "stk_cd": stock_code,
                 "ord_qty": str(quantity),
-                "ord_uv": str(price),
+                "ord_uv": ord_uv_value,
                 "trde_tp": trde_tp
             }
 
-            logger.info(f"📋 주문 파라미터: order_type={order_type} → trde_tp={trde_tp}, dmst_stex_tp={dmst_stex_tp}, price={price}")
+            logger.info(f"📋 주문 파라미터: order_type={order_type} → trde_tp={trde_tp}, dmst_stex_tp={dmst_stex_tp}, ord_uv={ord_uv_value}")
             print(f"📋 DEBUG: body_params={body_params}")
 
             # API 호출
