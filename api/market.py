@@ -1637,6 +1637,20 @@ class MarketAPI:
                 # 응답 키 자동 탐색
                 data_keys = [k for k in response.keys() if k not in ['return_code', 'return_msg', 'api-id', 'cont-yn', 'next-key']]
 
+                # 디버깅: raw response 출력 (첫 번째 호출만)
+                if not hasattr(self, '_firm_trading_debug_shown'):
+                    logger.debug(f"[증권사 API] raw response keys: {list(response.keys())}")
+                    logger.debug(f"[증권사 API] data_keys: {data_keys}")
+                    for key in data_keys[:2]:  # 처음 2개만
+                        val = response.get(key)
+                        if isinstance(val, list):
+                            logger.debug(f"[증권사 API] {key} = list({len(val)} items)")
+                            if len(val) > 0:
+                                logger.debug(f"[증권사 API] first item: {val[0]}")
+                        else:
+                            logger.debug(f"[증권사 API] {key} = {type(val)}")
+                    self._firm_trading_debug_shown = True
+
                 trading_list = []
                 for key in data_keys:
                     val = response.get(key)
@@ -1645,7 +1659,7 @@ class MarketAPI:
                         break
 
                 if not trading_list:
-                    logger.warning(f"증권사({firm_code}) {stock_code} 매매동향 데이터 없음")
+                    logger.warning(f"증권사({firm_code}) {stock_code} 매매동향 데이터 없음 (빈 응답)")
                     return None
 
                 # 데이터 정규화
