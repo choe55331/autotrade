@@ -335,49 +335,101 @@ class ComprehensiveDataTester:
 
         # ===== 테스트 케이스 7: 장중 투자자별 매매 (ka10063) =====
         self.test_scoring_api(
-            test_name="Case 7-1: 장중 투자자별매매",
+            test_name="Case 7-1: 장중 투자자별매매 - 코스피",
             api_id="ka10063",
             body={
                 "stk_cd": self.test_stock,
-                "dt": today
+                "dt": today,
+                "mrkt_tp": "001"  # 필수: 001=코스피, 101=코스닥
+            },
+            path="mrkcond"
+        )
+
+        self.test_scoring_api(
+            test_name="Case 7-2: 장중 투자자별매매 - 코스닥",
+            api_id="ka10063",
+            body={
+                "stk_cd": "000660",  # SK하이닉스 (코스닥 예시)
+                "dt": today,
+                "mrkt_tp": "101"
             },
             path="mrkcond"
         )
 
         # ===== 테스트 케이스 8: 장마감후 투자자별 매매 (ka10066) =====
         self.test_scoring_api(
-            test_name="Case 8-1: 장마감후 투자자별매매",
+            test_name="Case 8-1: 장마감후 투자자별매매 - 코스피",
             api_id="ka10066",
             body={
                 "stk_cd": self.test_stock,
-                "dt": today
+                "dt": today,
+                "mrkt_tp": "001"  # 필수: 001=코스피, 101=코스닥
+            },
+            path="mrkcond"
+        )
+
+        self.test_scoring_api(
+            test_name="Case 8-2: 장마감후 투자자별매매 - 코스닥",
+            api_id="ka10066",
+            body={
+                "stk_cd": "000660",
+                "dt": today,
+                "mrkt_tp": "101"
             },
             path="mrkcond"
         )
 
         # ===== 테스트 케이스 9: 종목별 기관매매추이 (ka10045) =====
+        # 날짜 범위 계산 (최근 5일)
+        from datetime import datetime, timedelta
+        end_date = datetime.strptime(today, "%Y%m%d")
+        start_date = end_date - timedelta(days=5)
+        start_dt_str = start_date.strftime("%Y%m%d")
+
         self.test_scoring_api(
-            test_name="Case 9-1: 종목별 기관매매추이",
+            test_name="Case 9-1: 종목별 기관매매추이 - 5일",
             api_id="ka10045",
             body={
                 "stk_cd": self.test_stock,
-                "qry_tp": "1",      # 조회구분
-                "dt": today
+                "qry_tp": "1",       # 조회구분
+                "strt_dt": start_dt_str,  # 필수: 시작일자
+                "end_dt": today      # 필수: 종료일자
+            },
+            path="mrkcond"
+        )
+
+        self.test_scoring_api(
+            test_name="Case 9-2: 종목별 기관매매추이 - 1일",
+            api_id="ka10045",
+            body={
+                "stk_cd": self.test_stock,
+                "qry_tp": "1",
+                "strt_dt": today,
+                "end_dt": today
             },
             path="mrkcond"
         )
 
         # ===== 테스트 케이스 10: 증권사별 종목매매동향 (ka10078) =====
-        self.test_scoring_api(
-            test_name="Case 10-1: 증권사별 종목매매동향",
-            api_id="ka10078",
-            body={
-                "stk_cd": self.test_stock,
-                "dt": today,
-                "sort_tp": "1"      # 정렬구분
-            },
-            path="mrkcond"
-        )
+        # 주요 증권사 코드 예시
+        securities_firms = [
+            ("040", "KB증권"),
+            ("039", "교보증권"),
+            ("001", "한국투자증권")
+        ]
+
+        for firm_code, firm_name in securities_firms[:2]:  # 처음 2개만 테스트
+            self.test_scoring_api(
+                test_name=f"Case 10-{securities_firms.index((firm_code, firm_name)) + 1}: 증권사별 종목매매동향 - {firm_name}",
+                api_id="ka10078",
+                body={
+                    "stk_cd": self.test_stock,
+                    "dt": today,
+                    "sort_tp": "1",      # 정렬구분
+                    "mmcm_cd": firm_code  # 필수: 증권회사코드
+                },
+                path="mrkcond"
+            )
 
         print("\n" + "=" * 80)
         print(f"✅ 스코어링 API 테스트 완료: 총 {len(self.test_results['scoring_apis'])}개")
@@ -422,14 +474,13 @@ class ComprehensiveDataTester:
         }
 
         try:
-            # WebSocket 연결
-            headers = {
-                'authorization': f'Bearer {self.access_token}'
-            }
-
+            # WebSocket 연결 - Python 3.13+ 호환
+            # additional_headers 또는 직접 URL에 토큰 전달
             async with websockets.connect(
                 self.ws_url,
-                extra_headers=headers,
+                additional_headers={
+                    'authorization': f'Bearer {self.access_token}'
+                },
                 ping_interval=20,
                 ping_timeout=10
             ) as websocket:
