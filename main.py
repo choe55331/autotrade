@@ -751,11 +751,12 @@ class TradingBotV2:
                 return
 
             for holding in holdings:
-                stock_code = holding.get('pdno')
-                stock_name = holding.get('prdt_name')
-                current_price = int(holding.get('prpr', 0))
-                quantity = int(holding.get('hldg_qty', 0))
-                buy_price = int(holding.get('pchs_avg_pric', 0))
+                # 키움증권 API 필드명 (kt00004)
+                stock_code = holding.get('stk_cd')  # 종목코드
+                stock_name = holding.get('stk_nm')  # 종목명
+                current_price = int(holding.get('cur_prc', 0))  # 현재가
+                quantity = int(holding.get('rmnd_qty', 0))  # 보유수량
+                buy_price = int(holding.get('avg_prc', 0))  # 평균단가
 
                 # 수익률 계산
                 profit_loss = (current_price - buy_price) * quantity
