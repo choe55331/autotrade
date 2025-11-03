@@ -13,11 +13,16 @@ logger = logging.getLogger(__name__)
 class DataFetcher:
     """
     키움증권 REST API 데이터 수집 클래스
-    
+
+    ⚠️ 중요: DOSK API ID는 키움증권 내부 API ID입니다
+    - DOSK_XXXX는 한국투자증권이 아님!
+    - 실제 요청은 키움증권 API 서버로 전송됨 (/api/dostk/...)
+    - 모두 키움증권 REST API입니다
+
     주요 기능:
     - 계좌 정보 조회
-    - 시세 데이터 조회
-    - 종목 검색
+    - 시세 데이터 조회 (DOSK API)
+    - 종목 검색 (DOSK API)
     - 순위 정보 조회
     """
     
