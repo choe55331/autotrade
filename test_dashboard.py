@@ -53,6 +53,7 @@ def test_account_balance(account_api):
 
     try:
         from tests.manual_tests.patches.fix_account_balance import AccountBalanceFix
+        import json
 
         print("📍 예수금 조회 중...")
         deposit = account_api.get_deposit()
@@ -67,6 +68,11 @@ def test_account_balance(account_api):
         if holdings is None:
             print("❌ 보유종목 조회 실패\n")
             return False
+
+        # 디버깅: 실제 API 응답 확인
+        print("\n🔍 [디버깅] deposit API 응답 필드:")
+        print(json.dumps({k: v for k, v in list(deposit.items())[:10]}, indent=2, ensure_ascii=False))
+        print()
 
         print("📍 계좌 잔고 계산 중...\n")
 
@@ -95,6 +101,21 @@ def test_account_balance(account_api):
         print("⚠️  [기존 방식] 인출가능액 사용")
         print(f"   인출가능액: {old_cash:,}원")
         print(f"   차이: {result1['cash'] - old_cash:,}원")
+
+        # 실제 예수금 확인
+        print("\n🔍 [디버깅] 예수금 관련 필드 확인:")
+        for key in deposit.keys():
+            if any(keyword in key.lower() for keyword in ['dps', 'amt', 'cash', 'deposit', '예수금']):
+                print(f"   {key}: {deposit.get(key)}")
+
+        # 보유종목 확인
+        if holdings and len(holdings) > 0:
+            print("\n🔍 [디버깅] 보유종목 첫 번째 항목 필드:")
+            import json
+            first_holding = holdings[0]
+            print(json.dumps({k: v for k, v in list(first_holding.items())[:15]}, indent=2, ensure_ascii=False))
+        else:
+            print("\n🔍 [디버깅] 보유종목 없음")
 
         print()
         return True
@@ -149,6 +170,11 @@ def test_nxt_price(market_api, account_api):
                 print(f"   💰 현재가: {price_info['price']:,}원")
                 print(f"   출처: {price_info['source']}")
                 print(f"   시도한 소스: {', '.join(price_info.get('sources_tried', []))}")
+
+                # 시간외인데 market_api로 조회된 경우 확인
+                if not is_regular and not is_nxt and price_info['source'] == 'market_api':
+                    print(f"   ⚠️  시간외인데 market_api로 조회됨 (API가 전일 종가 반환했을 가능성)")
+
                 success_count += 1
             else:
                 print(f"❌ 가격 조회 실패")
