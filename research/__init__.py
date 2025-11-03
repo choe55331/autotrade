@@ -38,7 +38,10 @@ class Research:
     
     def get_daily_price(self, stock_code, start_date=None, end_date=None):
         return self.fetcher.get_daily_price(stock_code, start_date, end_date)
-    
+
+    def get_minute_price(self, stock_code, minute_type='1'):
+        return self.fetcher.get_minute_price(stock_code, minute_type)
+
     def search_stock(self, keyword):
         return self.fetcher.search_stock(keyword)
     
