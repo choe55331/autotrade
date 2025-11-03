@@ -157,11 +157,48 @@ class VolumeBasedStrategy(ScanStrategy):
 
             print(f"✅ 후보 {len(stock_candidates)}개 선정 (ETF {etf_count}개 제외)")
 
-            self.scan_results = stock_candidates
+            # Deep Scan 실행 (투자자 매매 & 호가 데이터 수집)
+            print(f"\n🔬 Deep Scan 실행 중 (상위 {min(len(stock_candidates), 20)}개)...")
+            top_candidates = stock_candidates[:20]
+
+            for idx, candidate in enumerate(top_candidates, 1):
+                try:
+                    print(f"   [{idx}/{len(top_candidates)}] {candidate.name} ({candidate.code})")
+
+                    # 기관/외국인 매매 데이터 조회
+                    investor_data = self.market_api.get_investor_data(candidate.code)
+                    if investor_data:
+                        candidate.institutional_net_buy = investor_data.get('기관_순매수', 0)
+                        candidate.foreign_net_buy = investor_data.get('외국인_순매수', 0)
+                        print(f"      기관={candidate.institutional_net_buy:,}, 외국인={candidate.foreign_net_buy:,}")
+                    else:
+                        candidate.institutional_net_buy = 0
+                        candidate.foreign_net_buy = 0
+
+                    # 호가 데이터 조회
+                    bid_ask_data = self.market_api.get_bid_ask(candidate.code)
+                    if bid_ask_data:
+                        bid_total = bid_ask_data.get('매수_총잔량', 1)
+                        ask_total = bid_ask_data.get('매도_총잔량', 1)
+                        candidate.bid_ask_ratio = bid_total / ask_total if ask_total > 0 else 0
+                        print(f"      호가비율={candidate.bid_ask_ratio:.2f}")
+                    else:
+                        candidate.bid_ask_ratio = 0
+
+                    time.sleep(0.1)  # API 호출 간격
+
+                except Exception as e:
+                    print(f"      ❌ Deep Scan 오류: {e}")
+                    logger.error(f"종목 {candidate.code} Deep Scan 실패: {e}", exc_info=True)
+                    candidate.institutional_net_buy = 0
+                    candidate.foreign_net_buy = 0
+                    candidate.bid_ask_ratio = 0
+
+            self.scan_results = top_candidates
             self.last_scan_time = time.time()
 
-            # 상위 20개 반환 (스코어링 시스템에서 재평가)
-            return stock_candidates[:20]
+            # 상위 20개 반환 (이제 Deep Scan 데이터 포함)
+            return top_candidates
 
         except Exception as e:
             logger.error(f"❌ [{self.name}] 스캔 실패: {e}", exc_info=True)
