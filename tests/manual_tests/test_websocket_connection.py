@@ -10,7 +10,7 @@ import time
 import threading
 from datetime import datetime
 from core.websocket_client import WebSocketClient
-from core.rest_client import RestClient
+from core.rest_client import KiwoomRESTClient
 import logging
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -21,7 +21,7 @@ class WebSocketTester:
     """WebSocket 연결을 다양한 방법으로 테스트"""
 
     def __init__(self):
-        self.rest_client = RestClient()
+        self.rest_client = KiwoomRESTClient()
         self.test_results = []
 
         logger.info(f"🔧 초기화 완료")
