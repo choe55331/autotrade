@@ -59,58 +59,77 @@ class MarketAPI:
     
     def get_stock_price(self, stock_code: str) -> Optional[Dict[str, Any]]:
         """
-        종목 현재가 조회
-        
+        종목 시세 정보 조회 (키움증권 API)
+
         Args:
             stock_code: 종목코드
-        
+
         Returns:
-            현재가 정보
+            시세 정보
         """
         body = {
-            "stock_code": stock_code
+            "stk_cd": stock_code
         }
-        
+
         response = self.client.request(
-            api_id="DOSK_0002",
+            api_id="ka10007",
             body=body,
-            path="inquire/price"
+            path="mrkcond"
         )
-        
+
         if response and response.get('return_code') == 0:
+            # ka10007 응답 구조 확인 필요 - output 키 확인
             price_info = response.get('output', {})
-            logger.info(f"{stock_code} 현재가: {price_info.get('current_price', 0):,}원")
-            return price_info
+            if not price_info:
+                # 다른 응답 키 시도
+                price_info = response.get('stk_quot_tab_prsn', {})
+
+            # 응답 데이터 정규화
+            if price_info:
+                # 현재가 필드명 확인 필요
+                current_price = int(price_info.get('cur_prc', price_info.get('current_price', 0)))
+                logger.info(f"{stock_code} 현재가: {current_price:,}원")
+                # current_price 필드 추가 (하위 호환성)
+                price_info['current_price'] = current_price
+                return price_info
+            else:
+                logger.error(f"현재가 조회 실패: 응답 데이터 없음")
+                return None
         else:
-            logger.error(f"현재가 조회 실패: {response.get('return_msg')}")
+            logger.error(f"현재가 조회 실패: {response.get('return_msg') if response else 'No response'}")
             return None
     
     def get_orderbook(self, stock_code: str) -> Optional[Dict[str, Any]]:
         """
-        호가 조회
-        
+        호가 조회 (키움증권 API)
+
         Args:
             stock_code: 종목코드
-        
+
         Returns:
             호가 정보
         """
         body = {
-            "stock_code": stock_code
+            "stk_cd": stock_code
         }
-        
+
         response = self.client.request(
-            api_id="DOSK_0003",
+            api_id="ka10004",
             body=body,
-            path="inquire/orderbook"
+            path="mrkcond"
         )
-        
+
         if response and response.get('return_code') == 0:
+            # ka10004 응답 구조 확인
             orderbook = response.get('output', {})
+            if not orderbook:
+                # 다른 응답 키 시도
+                orderbook = response.get('stk_hoga', {})
+
             logger.info(f"{stock_code} 호가 조회 완료")
             return orderbook
         else:
-            logger.error(f"호가 조회 실패: {response.get('return_msg')}")
+            logger.error(f"호가 조회 실패: {response.get('return_msg') if response else 'No response'}")
             return None
     
     def get_market_index(self, market_code: str = '001') -> Optional[Dict[str, Any]]:
