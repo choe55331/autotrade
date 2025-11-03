@@ -188,22 +188,19 @@ def get_status():
         'deep_scan': {'count': 0, 'last_run': 'N/A'},
         'ai_scan': {'count': 0, 'last_run': 'N/A'}
     }
-    if bot_instance and hasattr(bot_instance, 'scanner_pipeline'):
+
+    # scan_progress에서 정보 가져오기 (scanner_pipeline 대신)
+    if bot_instance and hasattr(bot_instance, 'scan_progress'):
         try:
-            scan_summary = bot_instance.scanner_pipeline.get_scan_summary()
+            scan_progress = bot_instance.scan_progress
+            total_candidates = len(scan_progress.get('top_candidates', []))
+            ai_reviewed = len(scan_progress.get('approved', [])) + len(scan_progress.get('rejected', []))
+            pending = len(scan_progress.get('approved', []))
+
             scanning_info = {
-                'fast_scan': {
-                    'count': scan_summary['fast_scan']['count'],
-                    'last_run': scan_summary['fast_scan'].get('last_run', 'N/A')
-                },
-                'deep_scan': {
-                    'count': scan_summary['deep_scan']['count'],
-                    'last_run': scan_summary['deep_scan'].get('last_run', 'N/A')
-                },
-                'ai_scan': {
-                    'count': scan_summary['ai_scan']['count'],
-                    'last_run': scan_summary['ai_scan'].get('last_run', 'N/A')
-                }
+                'fast_scan': {'count': total_candidates, 'last_run': 'N/A'},  # 스캐닝 종목
+                'deep_scan': {'count': ai_reviewed, 'last_run': 'N/A'},  # AI 분석 완료
+                'ai_scan': {'count': pending, 'last_run': 'N/A'}  # 매수 대기
             }
         except Exception as e:
             print(f"Error getting scanning info: {e}")
