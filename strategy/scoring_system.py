@@ -311,6 +311,8 @@ class ScoringSystem:
         """
         5. 체결 강도 점수 (40점)
 
+        execution_intensity 데이터가 없으면 거래량과 상승률로 추정
+
         Args:
             stock_data: 종목 데이터
 
@@ -320,7 +322,24 @@ class ScoringSystem:
         config = self.criteria_config.get('execution_intensity', {})
         max_score = config.get('weight', 40)
 
-        execution_intensity = stock_data.get('execution_intensity', 100)
+        execution_intensity = stock_data.get('execution_intensity')
+
+        # execution_intensity가 None이면 거래량과 상승률로 추정
+        if execution_intensity is None:
+            volume = stock_data.get('volume', 0)
+            change_rate = stock_data.get('change_rate', 0)
+
+            # 거래량이 많고 상승률이 높으면 체결 강도가 높다고 추정
+            if volume >= 2_000_000 and change_rate >= 3.0:
+                return max_score * 0.6  # 최대 60%
+            elif volume >= 1_000_000 and change_rate >= 2.0:
+                return max_score * 0.4
+            elif volume >= 500_000 and change_rate >= 1.0:
+                return max_score * 0.2
+            else:
+                return 0.0
+
+        # execution_intensity가 있으면 기존 로직 사용
         min_value = config.get('min_value', 120)
 
         if execution_intensity >= min_value * 1.5:
@@ -480,6 +499,8 @@ class ScoringSystem:
         """
         10. 변동성 패턴 점수 (20점)
 
+        volatility 데이터가 없으면 change_rate로 추정
+
         Args:
             stock_data: 종목 데이터
 
@@ -489,10 +510,28 @@ class ScoringSystem:
         config = self.criteria_config.get('volatility_pattern', {})
         max_score = config.get('weight', 20)
 
-        volatility = stock_data.get('volatility', 0.0)
+        volatility = stock_data.get('volatility')
         min_volatility = config.get('min_volatility', 0.02)
         max_volatility = config.get('max_volatility', 0.15)
 
+        # volatility가 None이면 change_rate로 추정
+        if volatility is None:
+            change_rate = stock_data.get('change_rate', 0)
+            abs_rate = abs(change_rate)
+
+            # 적정 변동성: 2~15% 범위
+            if 2.0 <= abs_rate <= 15.0:
+                # 중간값(8.5%)에 가까울수록 높은 점수
+                mid_rate = 8.5
+                distance_from_mid = abs(abs_rate - mid_rate)
+                max_distance = 6.5
+
+                score_ratio = 1 - (distance_from_mid / max_distance)
+                return max_score * score_ratio * 0.7  # 추정값이므로 70%만 부여
+            else:
+                return 0.0
+
+        # volatility가 있으면 기존 로직 사용
         # 적정 변동성 범위
         if min_volatility <= volatility <= max_volatility:
             # 중간값에 가까울수록 높은 점수
