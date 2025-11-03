@@ -36,6 +36,7 @@ except ImportError:
 # 핵심 모듈
 from core import KiwoomRESTClient
 from core.websocket_client import WebSocketClient
+from core.websocket_manager import WebSocketManager
 from api import AccountAPI, MarketAPI, OrderAPI
 from research import Screener, DataFetcher
 from research.strategy_manager import StrategyManager
@@ -90,7 +91,8 @@ class TradingBotV2:
 
         # 컴포넌트
         self.client = None
-        self.websocket_client = None  # WebSocket 클라이언트
+        self.websocket_client = None  # 구 WebSocket 클라이언트 (비활성화)
+        self.websocket_manager = None  # 신 WebSocketManager (ka10045 검증 완료)
         self.account_api = None
         self.market_api = None
         self.order_api = None
@@ -195,34 +197,52 @@ class TradingBotV2:
             logger.info("✓ REST API 클라이언트 초기화 완료")
 
             # 2-1. WebSocket 클라이언트 (실시간 데이터 수신)
-            # NOTE: WebSocket은 현재 비활성화 (서버가 주기적으로 연결 종료하여 불필요한 재연결 부하 발생)
-            # 실시간 데이터가 필요한 경우에만 재활성화
-            logger.info("🔌 WebSocket: 비활성화 (REST API로 동작)")
+            # NOTE: 구 WebSocket은 현재 비활성화 (서버가 주기적으로 연결 종료하여 불필요한 재연결 부하 발생)
+            # 신 WebSocketManager로 대체
+            logger.info("🔌 구 WebSocket: 비활성화")
             self.websocket_client = None
 
-            # WebSocket 활성화가 필요한 경우 아래 코드 주석 해제
-            # try:
-            #     logger.info("🔌 WebSocket 클라이언트 초기화 중...")
-            #     from config import KIWOOM_WEBSOCKET_URL
-            #     if KIWOOM_WEBSOCKET_URL and self.client.token:
-            #         self.websocket_client = WebSocketClient(
-            #             url=KIWOOM_WEBSOCKET_URL,
-            #             token=self.client.token
-            #         )
-            #         self.websocket_client.register_callbacks(
-            #             on_open=self._on_ws_open,
-            #             on_message=self._on_ws_message,
-            #             on_error=self._on_ws_error,
-            #             on_close=self._on_ws_close
-            #         )
-            #         self.websocket_client.connect()
-            #         logger.info("✓ WebSocket 클라이언트 초기화 완료")
-            #     else:
-            #         self.websocket_client = None
-            #         logger.info("⚠️  WebSocket 설정 없음 - REST API로 동작")
-            # except Exception as e:
-            #     logger.warning(f"⚠️  WebSocket 초기화 실패: {e} - REST API로 동작")
-            #     self.websocket_client = None
+            # 2-2. 신 WebSocketManager 초기화 (LOGIN 패턴 검증 완료)
+            try:
+                logger.info("🔌 WebSocketManager 초기화 중...")
+                if self.client.token:
+                    self.websocket_manager = WebSocketManager(
+                        access_token=self.client.token,
+                        base_url=self.client.base_url
+                    )
+
+                    # 실시간 데이터 콜백 등록
+                    async def on_price_update(data):
+                        """실시간 체결 데이터 콜백"""
+                        try:
+                            stock_code = data.get('item', '')
+                            values = data.get('values', {})
+                            price = int(values.get('10', '0'))  # 현재가
+                            logger.debug(f"📈 실시간 체결: {stock_code} = {price:,}원")
+                        except Exception as e:
+                            logger.error(f"체결 데이터 처리 오류: {e}")
+
+                    async def on_orderbook_update(data):
+                        """실시간 호가 데이터 콜백"""
+                        try:
+                            stock_code = data.get('item', '')
+                            values = data.get('values', {})
+                            sell_price = int(values.get('27', '0'))  # 매도호가
+                            buy_price = int(values.get('28', '0'))   # 매수호가
+                            logger.debug(f"📊 실시간 호가: {stock_code} 매도={sell_price:,}원 매수={buy_price:,}원")
+                        except Exception as e:
+                            logger.error(f"호가 데이터 처리 오류: {e}")
+
+                    self.websocket_manager.register_callback('0B', on_price_update)      # 주식체결
+                    self.websocket_manager.register_callback('0D', on_orderbook_update)  # 주식호가잔량
+
+                    logger.info("✓ WebSocketManager 초기화 완료 (연결은 필요 시 수동 실행)")
+                else:
+                    self.websocket_manager = None
+                    logger.info("⚠️  토큰 없음 - WebSocketManager 비활성화")
+            except Exception as e:
+                logger.warning(f"⚠️  WebSocketManager 초기화 실패: {e}")
+                self.websocket_manager = None
 
             # 3. API 모듈
             logger.info("📡 API 모듈 초기화 중...")
@@ -626,6 +646,15 @@ class TradingBotV2:
             except Exception as e:
                 logger.warning(f"가상 매매 로그 요약 출력 실패: {e}")
 
+        # WebSocketManager 종료
+        if self.websocket_manager:
+            try:
+                import asyncio
+                asyncio.run(self.websocket_manager.disconnect())
+                logger.info("✓ WebSocketManager 연결 종료")
+            except Exception as e:
+                logger.warning(f"WebSocketManager 종료 실패: {e}")
+
         if self.db_session:
             self.db_session.close()
 
@@ -868,6 +897,7 @@ class TradingBotV2:
                     'institutional_net_buy': candidate.institutional_net_buy,
                     'foreign_net_buy': candidate.foreign_net_buy,
                     'bid_ask_ratio': candidate.bid_ask_ratio,
+                    'institutional_trend': getattr(candidate, 'institutional_trend', None),  # ka10045 기관매매추이 데이터
 
                     # 추가 필드 (현재 수집 안 됨 - 기본값 0)
                     'execution_intensity': 100,  # 체결 강도 (기본값 100)
@@ -944,6 +974,7 @@ class TradingBotV2:
                     'institutional_net_buy': candidate.institutional_net_buy,
                     'foreign_net_buy': candidate.foreign_net_buy,
                     'bid_ask_ratio': candidate.bid_ask_ratio,
+                    'institutional_trend': getattr(candidate, 'institutional_trend', None),  # ka10045 기관매매추이 데이터
                 }
 
                 # 점수 breakdown 생성
