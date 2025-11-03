@@ -15,7 +15,7 @@ from pathlib import Path
 import json
 import time as time_module
 from collections import deque
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 
 logger = logging.getLogger(__name__)
 

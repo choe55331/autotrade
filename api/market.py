@@ -1811,12 +1811,20 @@ class MarketAPI:
 
                         # 프로그램순매수금액 추출
                         program_net_buy = recent.get('prm_netprps_amt', '0')
+
+                        # [DEBUG] API 응답값 확인
+                        logger.debug(f"[프로그램매매 API] {stock_code}: prm_netprps_amt = '{program_net_buy}' (raw)")
+
                         try:
                             # '+', '-' 부호와 쉼표 제거 후 숫자로 변환
                             program_net_buy_value = int(program_net_buy.replace(',', '').replace('+', '').replace('-', ''))
                             # 부호 처리 (원래 문자열에 '-'가 있으면 음수)
                             if str(program_net_buy).startswith('-'):
                                 program_net_buy_value = -program_net_buy_value
+
+                            # ⚠️ API가 "천원" 단위로 반환하므로 1000배
+                            program_net_buy_value = program_net_buy_value * 1000
+                            logger.debug(f"[프로그램매매 API] {stock_code}: 천원 단위 적용 → {program_net_buy_value:,}원")
                         except (ValueError, AttributeError):
                             program_net_buy_value = 0
 
