@@ -390,10 +390,15 @@ class TradingBotV2:
 
     def _test_samsung_trade(self):
         """삼성전자 테스트 매매 (연결 직후 1주 매수 → 10초 후 매도)"""
+        print("\n" + "="*60)
+        print("🧪 DEBUG: _test_samsung_trade() 호출됨")
+        print("="*60)
+
         try:
             logger.info("="*60)
             logger.info("🧪 삼성전자 테스트 매매 시작")
             logger.info("="*60)
+            print("🧪 삼성전자 테스트 매매 시작")
 
             samsung_code = "005930"  # 삼성전자
             samsung_name = "삼성전자"
@@ -419,11 +424,14 @@ class TradingBotV2:
 
             # 1. 삼성전자 현재가 조회
             logger.info(f"📊 {samsung_name} 현재가 조회 중...")
+            print(f"📊 DEBUG: {samsung_name} 현재가 조회 시작")
             current_price = None
 
             try:
                 # ka10003 체결정보요청으로 현재가 조회
+                print(f"📊 DEBUG: get_stock_price() 호출 중...")
                 quote = self.market_api.get_stock_price(samsung_code)
+                print(f"📊 DEBUG: quote 결과: {quote}")
                 if quote and quote.get('current_price', 0) > 0:
                     current_price = int(quote.get('current_price', 0))
                     logger.info(f"✓ {samsung_name} 현재가: {current_price:,}원 (체결정보)")
@@ -542,6 +550,9 @@ class TradingBotV2:
 
         except Exception as e:
             logger.error(f"테스트 매매 중 오류: {e}", exc_info=True)
+            print(f"❌ DEBUG: 테스트 매매 중 오류 발생: {e}")
+            import traceback
+            traceback.print_exc()
 
     def start(self):
         """봇 시작"""
@@ -752,11 +763,18 @@ class TradingBotV2:
 
             for holding in holdings:
                 # 키움증권 API 필드명 (kt00004)
-                stock_code = holding.get('stk_cd')  # 종목코드
+                stock_code = holding.get('stk_cd', '')  # 종목코드
+
+                # A 접두사 제거 (키움증권 API에서 A005930 형식으로 올 수 있음)
+                if stock_code.startswith('A'):
+                    stock_code = stock_code[1:]
+
                 stock_name = holding.get('stk_nm')  # 종목명
                 current_price = int(holding.get('cur_prc', 0))  # 현재가
                 quantity = int(holding.get('rmnd_qty', 0))  # 보유수량
                 buy_price = int(holding.get('avg_prc', 0))  # 평균단가
+
+                logger.info(f"보유종목: {stock_name}({stock_code}) {quantity}주 @ {current_price:,}원")
 
                 # 수익률 계산
                 profit_loss = (current_price - buy_price) * quantity
@@ -821,14 +839,27 @@ class TradingBotV2:
             candidate_scores = {}
             for candidate in final_candidates:
                 stock_data = {
+                    # 기본 정보
                     'stock_code': candidate.code,
                     'stock_name': candidate.name,
                     'current_price': candidate.price,
                     'volume': candidate.volume,
                     'change_rate': candidate.rate,
+
+                    # 투자자 매매 정보 (Deep Scan에서 수집됨)
                     'institutional_net_buy': candidate.institutional_net_buy,
                     'foreign_net_buy': candidate.foreign_net_buy,
                     'bid_ask_ratio': candidate.bid_ask_ratio,
+
+                    # 추가 필드 (현재 수집 안 됨 - 기본값 0)
+                    'execution_intensity': 100,  # 체결 강도 (기본값 100)
+                    'top_broker_buy_count': 0,   # 증권사 활동 (미구현)
+                    'program_net_buy': 0,        # 프로그램 매매 (미구현)
+                    'is_trending_theme': False,  # 테마 여부 (미구현)
+                    'has_positive_news': False,  # 긍정 뉴스 (미구현)
+                    'volatility': 0.0,           # 변동성 (미구현)
+
+                    # 기술적 지표는 없지만 가격/거래량 데이터로 추정 가능 (scoring_system에서 처리)
                 }
                 scoring_result = self.scoring_system.calculate_score(stock_data)
                 candidate_scores[candidate.code] = scoring_result
