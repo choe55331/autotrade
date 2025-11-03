@@ -46,7 +46,8 @@ class OrderAPI:
         quantity: int,
         price: int,
         order_type: str = '02',  # 02: 지정가
-        account_number: str = None
+        account_number: str = None,
+        exchange: str = None  # None: 자동 선택, 'KRX', 'NXT', 'SOR'
     ) -> Optional[Dict[str, Any]]:
         """
         매수 주문
@@ -55,8 +56,9 @@ class OrderAPI:
             stock_code: 종목코드
             quantity: 주문수량
             price: 주문가격 (시장가는 0)
-            order_type: 주문유형 ('01': 시장가, '02': 지정가)
+            order_type: 주문유형 ('01': 시장가, '02': 지정가, '0': 보통지정가)
             account_number: 계좌번호
+            exchange: 거래소 선택 (None: 자동, 'KRX': 일반, 'NXT': 시간외)
 
         Returns:
             주문 결과
@@ -89,18 +91,27 @@ class OrderAPI:
             else:
                 trde_tp = order_type  # 그대로 사용
 
-            # dmst_stex_tp: 시간외 거래(61,62,81)는 NXT, 일반 거래는 KRX
-            if trde_tp in ['61', '62', '81']:
+            # dmst_stex_tp: 거래소 선택
+            # ✅ 테스트 결과: 시간외 거래 시 NXT 거래소에서 trde_tp=0 (보통지정가) 사용
+            if exchange:
+                # 명시적으로 거래소가 지정된 경우 (main.py에서 지정)
+                dmst_stex_tp = exchange
+                logger.info(f"📍 거래소 명시: {exchange}")
+            elif trde_tp in ['61', '62', '81']:
+                # 시간외 거래 타입인 경우 NXT
                 dmst_stex_tp = 'NXT'
             else:
+                # 기본값: KRX
                 dmst_stex_tp = 'KRX'
 
-            # ord_uv(주문단가): 시장가(3) 또는 시간외 거래(61,62,81)는 빈 문자열
-            # 단일가 매매는 시스템이 자동으로 가격 결정
-            if trde_tp in ['3', '61', '62', '81']:
+            # ord_uv(주문단가): 시장가(3)만 빈 문자열, 나머지는 가격 지정
+            # ✅ 테스트 결과: NXT 거래소는 trde_tp=0에도 가격 지정 필요
+            if trde_tp == '3':
+                # 시장가만 빈 문자열
                 ord_uv_value = ""
-                logger.info(f"⚠️ {trde_tp} 거래유형은 가격 지정 없음 (단일가/시장가)")
+                logger.info(f"⚠️ 시장가 주문: 가격 지정 없음")
             else:
+                # 나머지는 모두 가격 지정
                 ord_uv_value = str(price)
 
             body_params = {
@@ -170,7 +181,8 @@ class OrderAPI:
         quantity: int,
         price: int,
         order_type: str = '02',  # 02: 지정가
-        account_number: str = None
+        account_number: str = None,
+        exchange: str = None  # None: 자동 선택, 'KRX', 'NXT', 'SOR'
     ) -> Optional[Dict[str, Any]]:
         """
         매도 주문
@@ -179,8 +191,9 @@ class OrderAPI:
             stock_code: 종목코드
             quantity: 주문수량
             price: 주문가격 (시장가는 0)
-            order_type: 주문유형 ('01': 시장가, '02': 지정가)
+            order_type: 주문유형 ('01': 시장가, '02': 지정가, '0': 보통지정가)
             account_number: 계좌번호
+            exchange: 거래소 선택 (None: 자동, 'KRX': 일반, 'NXT': 시간외)
 
         Returns:
             주문 결과
@@ -213,18 +226,27 @@ class OrderAPI:
             else:
                 trde_tp = order_type  # 그대로 사용
 
-            # dmst_stex_tp: 시간외 거래(61,62,81)는 NXT, 일반 거래는 KRX
-            if trde_tp in ['61', '62', '81']:
+            # dmst_stex_tp: 거래소 선택
+            # ✅ 테스트 결과: 시간외 거래 시 NXT 거래소에서 trde_tp=0 (보통지정가) 사용
+            if exchange:
+                # 명시적으로 거래소가 지정된 경우 (main.py에서 지정)
+                dmst_stex_tp = exchange
+                logger.info(f"📍 거래소 명시: {exchange}")
+            elif trde_tp in ['61', '62', '81']:
+                # 시간외 거래 타입인 경우 NXT
                 dmst_stex_tp = 'NXT'
             else:
+                # 기본값: KRX
                 dmst_stex_tp = 'KRX'
 
-            # ord_uv(주문단가): 시장가(3) 또는 시간외 거래(61,62,81)는 빈 문자열
-            # 단일가 매매는 시스템이 자동으로 가격 결정
-            if trde_tp in ['3', '61', '62', '81']:
+            # ord_uv(주문단가): 시장가(3)만 빈 문자열, 나머지는 가격 지정
+            # ✅ 테스트 결과: NXT 거래소는 trde_tp=0에도 가격 지정 필요
+            if trde_tp == '3':
+                # 시장가만 빈 문자열
                 ord_uv_value = ""
-                logger.info(f"⚠️ {trde_tp} 거래유형은 가격 지정 없음 (단일가/시장가)")
+                logger.info(f"⚠️ 시장가 주문: 가격 지정 없음")
             else:
+                # 나머지는 모두 가격 지정
                 ord_uv_value = str(price)
 
             body_params = {

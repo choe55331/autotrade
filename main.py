@@ -411,22 +411,28 @@ class TradingBotV2:
             order_type = "00"  # 기본값: 지정가
 
             # 시간대별 거래 유형 판단
+            # ✅ 테스트 결과: NXT 거래소는 모든 시간대에 trde_tp=0 (보통 지정가) 사용
+            exchange = "KRX"  # 기본값: 정규장
             if 8 <= current_hour < 9:
-                market_type = "장시작전 시간외"
-                order_type = "61"  # 장시작전시간외
-                logger.info(f"⏰ 현재 시간: {now.strftime('%H:%M:%S')} - {market_type} (주문유형: 장시작전시간외)")
+                market_type = "NXT 장시작전 시간외"
+                order_type = "0"  # 보통 지정가 (NXT 거래소)
+                exchange = "NXT"
+                logger.info(f"⏰ 현재 시간: {now.strftime('%H:%M:%S')} - {market_type} (주문유형: 보통지정가)")
             elif 9 <= current_hour < 15 or (current_hour == 15 and current_minute < 30):
                 market_type = "정규장"
-                order_type = "00"  # 지정가
+                order_type = "0"  # 보통 지정가
+                exchange = "KRX"
                 logger.info(f"⏰ 현재 시간: {now.strftime('%H:%M:%S')} - {market_type} (주문유형: 지정가)")
             elif current_hour == 15 and 40 <= current_minute < 60:
-                market_type = "장후 시간외 종가"
-                order_type = "81"  # 장마감후시간외
-                logger.info(f"⏰ 현재 시간: {now.strftime('%H:%M:%S')} - {market_type} (주문유형: 장마감후시간외)")
+                market_type = "NXT 장후 시간외"
+                order_type = "0"  # 보통 지정가 (NXT 거래소)
+                exchange = "NXT"
+                logger.info(f"⏰ 현재 시간: {now.strftime('%H:%M:%S')} - {market_type} (주문유형: 보통지정가)")
             elif 16 <= current_hour < 20:
-                market_type = "시간외 단일가"
-                order_type = "62"  # 시간외단일가
-                logger.info(f"⏰ 현재 시간: {now.strftime('%H:%M:%S')} - {market_type} (주문유형: 시간외단일가)")
+                market_type = "NXT 시간외 단일가"
+                order_type = "0"  # 보통 지정가 (NXT 거래소) ✅ 테스트 검증됨!
+                exchange = "NXT"
+                logger.info(f"⏰ 현재 시간: {now.strftime('%H:%M:%S')} - {market_type} (주문유형: 보통지정가)")
             else:
                 market_type = "장외시간"
                 logger.warning(f"⏰ 현재 시간: {now.strftime('%H:%M:%S')} - {market_type} (주문 불가)")
@@ -480,7 +486,8 @@ class TradingBotV2:
                     stock_code=samsung_code,
                     quantity=quantity,
                     price=current_price,
-                    order_type=order_type
+                    order_type=order_type,
+                    exchange=exchange  # ✅ 테스트 결과 반영: 시간외는 NXT
                 )
 
                 if buy_result:
@@ -530,7 +537,8 @@ class TradingBotV2:
                     stock_code=samsung_code,
                     quantity=quantity,
                     price=sell_price,
-                    order_type=order_type
+                    order_type=order_type,
+                    exchange=exchange  # ✅ 테스트 결과 반영: 시간외는 NXT
                 )
 
                 if sell_result:
