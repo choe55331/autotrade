@@ -157,7 +157,7 @@ class VolumeBasedStrategy(ScanStrategy):
 
             print(f"✅ 후보 {len(stock_candidates)}개 선정 (ETF {etf_count}개 제외)")
 
-            # Deep Scan 실행 (투자자 매매 & 호가 데이터 수집)
+            # Deep Scan 실행 (투자자 매매 & 호가 데이터 & 기관매매추이 수집)
             print(f"\n🔬 Deep Scan 실행 중 (상위 {min(len(stock_candidates), 20)}개)...")
             top_candidates = stock_candidates[:20]
 
@@ -165,17 +165,17 @@ class VolumeBasedStrategy(ScanStrategy):
                 try:
                     print(f"   [{idx}/{len(top_candidates)}] {candidate.name} ({candidate.code})")
 
-                    # 기관/외국인 매매 데이터 조회
+                    # 1. 기관/외국인 매매 데이터 조회 (ka10059)
                     investor_data = self.market_api.get_investor_data(candidate.code)
                     if investor_data:
                         candidate.institutional_net_buy = investor_data.get('기관_순매수', 0)
                         candidate.foreign_net_buy = investor_data.get('외국인_순매수', 0)
-                        print(f"      기관={candidate.institutional_net_buy:,}, 외국인={candidate.foreign_net_buy:,}")
+                        print(f"      일별 - 기관={candidate.institutional_net_buy:,}, 외국인={candidate.foreign_net_buy:,}")
                     else:
                         candidate.institutional_net_buy = 0
                         candidate.foreign_net_buy = 0
 
-                    # 호가 데이터 조회
+                    # 2. 호가 데이터 조회 (ka10004)
                     bid_ask_data = self.market_api.get_bid_ask(candidate.code)
                     if bid_ask_data:
                         bid_total = bid_ask_data.get('매수_총잔량', 1)
@@ -185,7 +185,21 @@ class VolumeBasedStrategy(ScanStrategy):
                     else:
                         candidate.bid_ask_ratio = 0
 
-                    time.sleep(0.1)  # API 호출 간격
+                    # 3. 기관매매추이 조회 (ka10045) - 5일 트렌드
+                    trend_data = self.market_api.get_institutional_trading_trend(
+                        candidate.code,
+                        days=5,
+                        price_type='buy'
+                    )
+                    if trend_data:
+                        # 트렌드 데이터가 있으면 추가 점수 부여 가능
+                        # 현재는 데이터 수집만 하고 향후 스코어링에 활용
+                        print(f"      기관추이: 5일 데이터 수집 완료")
+                        # 향후 활용: candidate.institutional_trend = trend_data
+                    else:
+                        print(f"      기관추이: 데이터 없음")
+
+                    time.sleep(0.15)  # API 호출 간격 (3개 API 호출)
 
                 except Exception as e:
                     print(f"      ❌ Deep Scan 오류: {e}")
