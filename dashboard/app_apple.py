@@ -2647,8 +2647,8 @@ def get_system_connections():
 
                     connections['gemini'] = is_gemini and not is_mock
 
-                    # 디버깅용 로그
-                    print(f"[DEBUG] Analyzer type: {analyzer_type}, module: {analyzer_module}, is_gemini: {is_gemini}, is_mock: {is_mock}")
+                    # 디버깅용 로그 (필요시 활성화)
+                    # print(f"[DEBUG] Analyzer type: {analyzer_type}, module: {analyzer_module}, is_gemini: {is_gemini}, is_mock: {is_mock}")
                 else:
                     connections['gemini'] = False
             except Exception as e:

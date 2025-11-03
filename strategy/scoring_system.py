@@ -296,7 +296,7 @@ class ScoringSystem:
         max_score = config.get('weight', 40)
 
         bid_ask_ratio = stock_data.get('bid_ask_ratio', 0.0)
-        min_ratio = config.get('min_ratio', 0.8)  # 1.2 → 0.8로 낮춤
+        min_ratio = config.get('min_ratio', 0.8) if config.get('min_ratio') is not None else 0.8  # 기본값 0.8
 
         if bid_ask_ratio >= min_ratio * 1.875:  # 1.5
             return max_score
@@ -336,7 +336,7 @@ class ScoringSystem:
             return 0.0
 
         # 체결강도 기준 점수 계산
-        min_value = config.get('min_value', 50)  # 120 → 50으로 낮춤
+        min_value = config.get('min_value', 50) if config.get('min_value') is not None else 50  # 기본값 50
         print(f"[DEBUG 체결강도] {stock_code}: min_value={min_value}, config에서 로드={config.get('min_value')}")
 
         if execution_intensity >= min_value * 3.0:  # 150 이상
@@ -406,7 +406,7 @@ class ScoringSystem:
             print(f"[DEBUG 프로그램] {stock_code}: 데이터 없음 → 0점")
             return 0.0
 
-        min_net_buy = config.get('min_net_buy', 100_000)  # 500만원 → 10만원으로 낮춤
+        min_net_buy = config.get('min_net_buy', 100_000) if config.get('min_net_buy') is not None else 100_000  # 기본값 100,000
         print(f"[DEBUG 프로그램] {stock_code}: min_net_buy={min_net_buy}, config에서 로드={config.get('min_net_buy')}")
 
         # 양수(순매수)만 점수, 음수(순매도)는 0점
