@@ -135,6 +135,14 @@ class OrderAPI:
             else:
                 error_msg = result.get('return_msg', '알 수 없는 오류') if result else '응답 없음'
                 logger.error(f"❌ 매수 주문 실패: {error_msg}")
+                logger.error(f"   서버: {self.client.base_url}")
+                logger.error(f"   파라미터: trde_tp={trde_tp}, dmst_stex_tp={dmst_stex_tp}")
+
+                # NXT 시간외 거래 실패 시 추가 안내
+                if dmst_stex_tp == 'NXT' and 'mockapi' in self.client.base_url:
+                    logger.error(f"   ⚠️ 모의투자 서버는 NXT 시간외 거래를 지원하지 않습니다!")
+                    logger.error(f"   ⚠️ 실제 운영 서버(api.kiwoom.com)로 변경하세요.")
+
                 return {
                     'order_no': None,
                     'stock_code': stock_code,
@@ -251,6 +259,14 @@ class OrderAPI:
             else:
                 error_msg = result.get('return_msg', '알 수 없는 오류') if result else '응답 없음'
                 logger.error(f"❌ 매도 주문 실패: {error_msg}")
+                logger.error(f"   서버: {self.client.base_url}")
+                logger.error(f"   파라미터: trde_tp={trde_tp}, dmst_stex_tp={dmst_stex_tp}")
+
+                # NXT 시간외 거래 실패 시 추가 안내
+                if dmst_stex_tp == 'NXT' and 'mockapi' in self.client.base_url:
+                    logger.error(f"   ⚠️ 모의투자 서버는 NXT 시간외 거래를 지원하지 않습니다!")
+                    logger.error(f"   ⚠️ 실제 운영 서버(api.kiwoom.com)로 변경하세요.")
+
                 return {
                     'order_no': None,
                     'stock_code': stock_code,
