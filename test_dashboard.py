@@ -29,11 +29,14 @@ def init_apis():
         # Config 로드
         config = get_config()
 
+        # API 설정 가져오기 (딕셔너리)
+        api_config = config.api
+
         # REST Client 초기화
         client = KiwoomRESTClient(
-            app_key=config.api.app_key,
-            app_secret=config.api.app_secret,
-            account_no=config.api.account_no
+            app_key=api_config['app_key'],
+            app_secret=api_config['app_secret'],
+            account_no=api_config['account_no']
         )
 
         # API 초기화
