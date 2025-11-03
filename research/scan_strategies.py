@@ -213,13 +213,13 @@ class VolumeBasedStrategy(ScanStrategy):
                             close = d.get('close', 0)
                             open_price = d.get('open', 0)
                             if open_price and open_price > 0:
-                                rate = ((close - open_price) / open_price) * 100
+                                rate = (close - open_price) / open_price  # 소수로 저장 (0.052 = 5.2%)
                                 rates.append(rate)
 
                         if len(rates) > 1:
                             import statistics
                             candidate.volatility = statistics.stdev(rates)
-                            print(f"      일봉: 변동성={candidate.volatility:.2f}%")
+                            print(f"      일봉: 변동성={candidate.volatility*100:.2f}%")  # 출력만 %로
                     else:
                         print(f"      일봉: 데이터 없음")
 
