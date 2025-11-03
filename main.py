@@ -403,9 +403,18 @@ class TradingBotV2:
         try:
             deposit = self.account_api.get_deposit()
             if deposit:
-                return int(deposit.get('d_ord_aval_cash', 10_000_000))
+                # 실제 주문 가능 금액 (ord_alow_amt) 또는 총 평가 금액 (tot_evlu_amt) 사용
+                available = int(deposit.get('ord_alow_amt', 0))
+                total = int(deposit.get('tot_evlu_amt', 0))
+
+                # 둘 중 더 큰 값 사용 (보유 주식이 있으면 total이 큼)
+                capital = max(available, total) if available > 0 or total > 0 else 10_000_000
+
+                logger.info(f"💰 초기 자본금: {capital:,}원 (주문가능: {available:,}, 총평가: {total:,})")
+                return capital
             return 10_000_000  # 기본값 1천만원
-        except:
+        except Exception as e:
+            logger.warning(f"⚠️ 초기 자본금 조회 실패, 기본값 사용: {e}")
             return 10_000_000
 
     def _initialize_control_file(self):
