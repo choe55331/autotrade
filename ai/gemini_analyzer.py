@@ -178,9 +178,16 @@ class GeminiAnalyzer(BaseAnalyzer):
                     portfolio_info=portfolio_text
                 )
 
-                # Gemini API 호출 - 사용자 예시처럼 최소한의 설정만 사용
+                # Gemini API 호출 - 타임아웃 30초 설정
                 # safety_settings 없이 호출 (기본값 사용)
-                response = self.model.generate_content(prompt)
+                try:
+                    response = self.model.generate_content(
+                        prompt,
+                        request_options={'timeout': 30}  # 30초 타임아웃
+                    )
+                except Exception as timeout_error:
+                    # 타임아웃이나 API 에러 발생 시 재시도
+                    raise ValueError(f"Gemini API timeout or error: {timeout_error}")
 
                 # 응답 검증 (finish_reason 체크)
                 if not response.candidates:
@@ -212,13 +219,16 @@ class GeminiAnalyzer(BaseAnalyzer):
             except Exception as e:
                 error_msg = str(e)
 
-                # 마지막 시도가 아니면 재시도 (로그 억제)
+                # 재시도 로그 (모든 시도 표시)
                 if attempt < max_retries - 1:
+                    logger.warning(f"AI 분석 실패 (시도 {attempt+1}/{max_retries}), {retry_delay}초 후 재시도: {error_msg}")
+                    print(f"   ⚠️ AI 응답 지연 또는 에러 (시도 {attempt+1}/{max_retries}), {retry_delay}초 후 재시도...")
                     time.sleep(retry_delay)
                     retry_delay *= 2  # 지수 백오프
                 else:
-                    # 모든 시도 실패 - 마지막만 로그 표시
-                    logger.warning(f"AI 분석 최종 실패 ({max_retries}회 시도): {error_msg}")
+                    # 모든 시도 실패 - 최종 에러
+                    logger.error(f"AI 분석 최종 실패 ({max_retries}회 시도): {error_msg}")
+                    print(f"   ❌ AI 분석 최종 실패: {error_msg}")
                     self.update_statistics(False)
                     return self._get_error_result(f"AI 분석 실패: {error_msg}")
     

@@ -514,11 +514,37 @@ class ScoringSystem:
         is_trending_theme = stock_data.get('is_trending_theme', False)
         if is_trending_theme:
             score += max_score * 0.5
+        else:
+            # 테마 데이터 없으면 거래량+상승률로 추정 (원시 데이터 사용)
+            volume = stock_data.get('volume', 0)
+            avg_volume = stock_data.get('avg_volume', volume)
+            volume_ratio = volume / avg_volume if avg_volume > 0 else 1.0
+            change_rate = stock_data.get('change_rate', 0)
+
+            # 거래량 2배 이상 + 상승률 3% 이상 = 테마주 가능성 높음
+            if volume_ratio >= 2.0 and change_rate >= 3.0:
+                score += max_score * 0.4  # 20점 만점에 16점
+            elif volume_ratio >= 1.5 and change_rate >= 1.5:
+                score += max_score * 0.25  # 10점
+            elif volume_ratio >= 1.2 or change_rate >= 0.5:
+                score += max_score * 0.125  # 5점
 
         # 긍정 뉴스 (20점)
         has_positive_news = stock_data.get('has_positive_news', False)
         if has_positive_news:
             score += max_score * 0.5
+        else:
+            # 뉴스 데이터 없으면 가격 모멘텀+기관 매수로 추정 (원시 데이터 사용)
+            change_rate = stock_data.get('change_rate', 0)
+            institutional_net = stock_data.get('institutional_net_buy', 0)
+
+            # 상승률 5% 이상 + 기관 순매수 100만원 이상 = 호재 가능성
+            if change_rate >= 5.0 and institutional_net >= 1_000_000:
+                score += max_score * 0.4  # 20점 만점에 16점
+            elif change_rate >= 2.0 and institutional_net >= 500_000:
+                score += max_score * 0.25  # 10점
+            elif change_rate >= 0.5 or institutional_net >= 100_000:
+                score += max_score * 0.125  # 5점
 
         return score
 
