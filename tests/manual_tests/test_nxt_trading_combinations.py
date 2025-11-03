@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../.
 
 import time
 from datetime import datetime
-from core.rest_client import RestClient
+from core.rest_client import KiwoomRESTClient
 from api.market import MarketAPI
 import logging
 
@@ -24,7 +24,7 @@ class TradingCombinationTester:
     """다양한 거래 파라미터 조합을 테스트하는 클래스"""
 
     def __init__(self):
-        self.client = RestClient()
+        self.client = KiwoomRESTClient()
         self.market_api = MarketAPI(self.client)
         self.results = []
 
