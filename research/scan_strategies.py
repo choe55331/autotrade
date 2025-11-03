@@ -192,10 +192,40 @@ class VolumeBasedStrategy(ScanStrategy):
                         price_type='buy'
                     )
                     if trend_data:
-                        # 트렌드 데이터가 있으면 추가 점수 부여 가능
-                        # 현재는 데이터 수집만 하고 향후 스코어링에 활용
-                        print(f"      기관추이: 5일 데이터 수집 완료")
-                        # 향후 활용: candidate.institutional_trend = trend_data
+                        # 트렌드 데이터 저장
+                        candidate.institutional_trend = trend_data
+
+                        # 트렌드 데이터에서 스코어링에 활용할 정보 추출
+                        # trend_data는 dict로 여러 키를 가질 수 있음
+                        # 예: {'stk_orgn_for_trde_trnd': [...], ...}
+                        trend_score = 0
+                        for key, values in trend_data.items():
+                            if isinstance(values, list) and len(values) > 0:
+                                # 최근 데이터 분석
+                                recent = values[0] if values else {}
+
+                                # 기관 순매수량이 양수면 가점
+                                orgn_net = recent.get('orgn_netslmt', '0')
+                                if orgn_net and str(orgn_net).replace('+', '').replace('-', '').isdigit():
+                                    orgn_net_int = int(str(orgn_net).replace('+', '').replace('-', ''))
+                                    if not str(orgn_net).startswith('-'):
+                                        trend_score += 5  # 기관 매수 추세
+
+                                # 외국인 순매수량이 양수면 가점
+                                for_net = recent.get('for_netslmt', '0')
+                                if for_net and str(for_net).replace('+', '').replace('-', '').isdigit():
+                                    for_net_int = int(str(for_net).replace('+', '').replace('-', ''))
+                                    if not str(for_net).startswith('-'):
+                                        trend_score += 5  # 외국인 매수 추세
+
+                                break  # 첫 번째 키만 사용
+
+                        if trend_score > 0:
+                            candidate.fast_scan_score += trend_score
+                            candidate.fast_scan_breakdown['기관추이'] = trend_score
+                            print(f"      기관추이: 5일 데이터 수집 완료 (+{trend_score}점)")
+                        else:
+                            print(f"      기관추이: 5일 데이터 수집 완료 (점수 없음)")
                     else:
                         print(f"      기관추이: 데이터 없음")
 

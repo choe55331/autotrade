@@ -24,7 +24,7 @@ from .exceptions import (
 )
 
 # v4.2 Standard Types (CRITICAL #2)
-from .types import (
+from .trading_types import (
     OrderAction,
     OrderType,
     PositionStatus,
