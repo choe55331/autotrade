@@ -69,9 +69,9 @@ class OrderAPI:
 
         try:
             # 주문 파라미터 구성
-            # trde_tp: 거래유형
-            # - 00: 보통(지정가)
-            # - 01: 시장가
+            # trde_tp: 거래유형 (키움 API 문서 참조)
+            # - 0: 보통(지정가)
+            # - 3: 시장가
             # - 61: 장시작전시간외
             # - 62: 시간외단일가
             # - 81: 장마감후시간외
@@ -82,10 +82,10 @@ class OrderAPI:
                 trde_tp = '81'  # 장마감후시간외
             elif order_type == '61':
                 trde_tp = '61'  # 장시작전시간외
-            elif order_type in ['00', '02']:
-                trde_tp = '00'  # 지정가
-            elif order_type == '01':
-                trde_tp = '01'  # 시장가
+            elif order_type in ['00', '02', '0']:
+                trde_tp = '0'  # 보통(지정가) - 앞의 0 제거!
+            elif order_type in ['01', '3']:
+                trde_tp = '3'  # 시장가 - 3으로 변환!
             else:
                 trde_tp = order_type  # 그대로 사용
 
@@ -103,7 +103,8 @@ class OrderAPI:
                 "trde_tp": trde_tp
             }
 
-            logger.info(f"📋 주문 파라미터: trde_tp={trde_tp}, dmst_stex_tp={dmst_stex_tp}")
+            logger.info(f"📋 주문 파라미터: order_type={order_type} → trde_tp={trde_tp}, dmst_stex_tp={dmst_stex_tp}, price={price}")
+            print(f"📋 DEBUG: body_params={body_params}")
 
             # API 호출
             result = self.client.request(
@@ -176,9 +177,9 @@ class OrderAPI:
 
         try:
             # 주문 파라미터 구성
-            # trde_tp: 거래유형
-            # - 00: 보통(지정가)
-            # - 01: 시장가
+            # trde_tp: 거래유형 (키움 API 문서 참조)
+            # - 0: 보통(지정가)
+            # - 3: 시장가
             # - 61: 장시작전시간외
             # - 62: 시간외단일가
             # - 81: 장마감후시간외
@@ -189,10 +190,10 @@ class OrderAPI:
                 trde_tp = '81'  # 장마감후시간외
             elif order_type == '61':
                 trde_tp = '61'  # 장시작전시간외
-            elif order_type in ['00', '02']:
-                trde_tp = '00'  # 지정가
-            elif order_type == '01':
-                trde_tp = '01'  # 시장가
+            elif order_type in ['00', '02', '0']:
+                trde_tp = '0'  # 보통(지정가) - 앞의 0 제거!
+            elif order_type in ['01', '3']:
+                trde_tp = '3'  # 시장가 - 3으로 변환!
             else:
                 trde_tp = order_type  # 그대로 사용
 
@@ -210,7 +211,8 @@ class OrderAPI:
                 "trde_tp": trde_tp
             }
 
-            logger.info(f"📋 주문 파라미터: trde_tp={trde_tp}, dmst_stex_tp={dmst_stex_tp}")
+            logger.info(f"📋 주문 파라미터: order_type={order_type} → trde_tp={trde_tp}, dmst_stex_tp={dmst_stex_tp}, price={price}")
+            print(f"📋 DEBUG: body_params={body_params}")
 
             # API 호출
             result = self.client.request(
