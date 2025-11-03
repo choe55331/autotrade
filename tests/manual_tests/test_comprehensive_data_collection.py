@@ -335,46 +335,54 @@ class ComprehensiveDataTester:
 
         # ===== 테스트 케이스 7: 장중 투자자별 매매 (ka10063) =====
         self.test_scoring_api(
-            test_name="Case 7-1: 장중 투자자별매매 - 코스피",
+            test_name="Case 7-1: 장중 투자자별매매 - 기관계/금액",
             api_id="ka10063",
             body={
-                "stk_cd": self.test_stock,
-                "dt": today,
-                "mrkt_tp": "001"  # 필수: 001=코스피, 101=코스닥
+                "mrkt_tp": "001",         # 시장구분: 001=코스피
+                "amt_qty_tp": "1",        # 금액수량구분: 1=금액
+                "invsr": "7",             # 투자자별: 7=기관계
+                "frgn_all": "0",          # 외국계전체: 0=미체크
+                "smtm_netprps_tp": "0",   # 동시순매수구분: 0=미체크
+                "stex_tp": "1"            # 거래소구분: 1=KRX
             },
             path="mrkcond"
         )
 
         self.test_scoring_api(
-            test_name="Case 7-2: 장중 투자자별매매 - 코스닥",
+            test_name="Case 7-2: 장중 투자자별매매 - 외국인/수량",
             api_id="ka10063",
             body={
-                "stk_cd": "000660",  # SK하이닉스 (코스닥 예시)
-                "dt": today,
-                "mrkt_tp": "101"
+                "mrkt_tp": "001",
+                "amt_qty_tp": "2",        # 금액수량구분: 2=수량
+                "invsr": "6",             # 투자자별: 6=외국인
+                "frgn_all": "1",          # 외국계전체: 1=체크
+                "smtm_netprps_tp": "0",
+                "stex_tp": "1"
             },
             path="mrkcond"
         )
 
         # ===== 테스트 케이스 8: 장마감후 투자자별 매매 (ka10066) =====
         self.test_scoring_api(
-            test_name="Case 8-1: 장마감후 투자자별매매 - 코스피",
+            test_name="Case 8-1: 장마감후 투자자별매매 - 순매수/금액",
             api_id="ka10066",
             body={
-                "stk_cd": self.test_stock,
-                "dt": today,
-                "mrkt_tp": "001"  # 필수: 001=코스피, 101=코스닥
+                "mrkt_tp": "001",      # 시장구분: 001=코스피
+                "amt_qty_tp": "1",     # 금액수량구분: 1=금액
+                "trde_tp": "0",        # 매매구분: 0=순매수
+                "stex_tp": "1"         # 거래소구분: 1=KRX
             },
             path="mrkcond"
         )
 
         self.test_scoring_api(
-            test_name="Case 8-2: 장마감후 투자자별매매 - 코스닥",
+            test_name="Case 8-2: 장마감후 투자자별매매 - 순매수/수량",
             api_id="ka10066",
             body={
-                "stk_cd": "000660",
-                "dt": today,
-                "mrkt_tp": "101"
+                "mrkt_tp": "001",
+                "amt_qty_tp": "2",     # 금액수량구분: 2=수량
+                "trde_tp": "0",
+                "stex_tp": "1"
             },
             path="mrkcond"
         )
@@ -387,25 +395,27 @@ class ComprehensiveDataTester:
         start_dt_str = start_date.strftime("%Y%m%d")
 
         self.test_scoring_api(
-            test_name="Case 9-1: 종목별 기관매매추이 - 5일",
+            test_name="Case 9-1: 종목별 기관매매추이 - 5일/매수단가",
             api_id="ka10045",
             body={
                 "stk_cd": self.test_stock,
-                "qry_tp": "1",       # 조회구분
-                "strt_dt": start_dt_str,  # 필수: 시작일자
-                "end_dt": today      # 필수: 종료일자
+                "strt_dt": start_dt_str,      # 필수: 시작일자
+                "end_dt": today,               # 필수: 종료일자
+                "orgn_prsm_unp_tp": "1",       # 필수: 기관추정단가구분 (1=매수단가, 2=매도단가)
+                "for_prsm_unp_tp": "1"         # 필수: 외인추정단가구분 (1=매수단가, 2=매도단가)
             },
             path="mrkcond"
         )
 
         self.test_scoring_api(
-            test_name="Case 9-2: 종목별 기관매매추이 - 1일",
+            test_name="Case 9-2: 종목별 기관매매추이 - 1일/매도단가",
             api_id="ka10045",
             body={
                 "stk_cd": self.test_stock,
-                "qry_tp": "1",
                 "strt_dt": today,
-                "end_dt": today
+                "end_dt": today,
+                "orgn_prsm_unp_tp": "2",       # 매도단가
+                "for_prsm_unp_tp": "2"         # 매도단가
             },
             path="mrkcond"
         )
@@ -418,15 +428,20 @@ class ComprehensiveDataTester:
             ("001", "한국투자증권")
         ]
 
+        # 날짜 범위 계산 (최근 3일)
+        end_date_10 = datetime.strptime(today, "%Y%m%d")
+        start_date_10 = end_date_10 - timedelta(days=3)
+        start_dt_10 = start_date_10.strftime("%Y%m%d")
+
         for firm_code, firm_name in securities_firms[:2]:  # 처음 2개만 테스트
             self.test_scoring_api(
                 test_name=f"Case 10-{securities_firms.index((firm_code, firm_name)) + 1}: 증권사별 종목매매동향 - {firm_name}",
                 api_id="ka10078",
                 body={
+                    "mmcm_cd": firm_code,     # 필수: 회원사코드
                     "stk_cd": self.test_stock,
-                    "dt": today,
-                    "sort_tp": "1",      # 정렬구분
-                    "mmcm_cd": firm_code  # 필수: 증권회사코드
+                    "strt_dt": start_dt_10,   # 필수: 시작일자
+                    "end_dt": today           # 필수: 종료일자
                 },
                 path="mrkcond"
             )
