@@ -117,8 +117,8 @@ class ScoringSystem:
         # 8. 기술적 지표 (40점)
         result.technical_indicators_score = self._score_technical_indicators(stock_data)
 
-        # 9. 테마/뉴스 (40점)
-        result.theme_news_score = self._score_theme_news(stock_data)
+        # 9. 시장 모멘텀 (40점)
+        result.theme_news_score = self._score_market_momentum(stock_data)
 
         # 10. 변동성 패턴 (20점)
         result.volatility_pattern_score = self._score_volatility_pattern(stock_data)
@@ -495,9 +495,12 @@ class ScoringSystem:
 
         return score
 
-    def _score_theme_news(self, stock_data: Dict[str, Any]) -> float:
+    def _score_market_momentum(self, stock_data: Dict[str, Any]) -> float:
         """
-        9. 테마/뉴스 점수 (40점)
+        9. 시장 모멘텀 점수 (40점)
+
+        거래량 급등과 가격 상승률 기반으로 시장 모멘텀 추정
+        (원래 테마/뉴스 점수였으나 실제 데이터 없어 모멘텀으로 추정)
 
         Args:
             stock_data: 종목 데이터
@@ -510,7 +513,7 @@ class ScoringSystem:
 
         score = 0.0
 
-        # 테마 소속 (20점) - 실제로는 "시장 모멘텀" 추정
+        # 거래량 모멘텀 (20점)
         is_trending_theme = stock_data.get('is_trending_theme', False)
         if is_trending_theme:
             score += max_score * 0.5
@@ -532,7 +535,7 @@ class ScoringSystem:
                 elif volume_ratio >= 1.2 or change_rate >= 0.5:
                     score += max_score * 0.125  # 5점
 
-        # 긍정 뉴스 (20점) - 실제로는 "가격 강도" 추정
+        # 가격 모멘텀 (20점)
         has_positive_news = stock_data.get('has_positive_news', False)
         if has_positive_news:
             score += max_score * 0.5
