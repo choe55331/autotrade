@@ -1114,7 +1114,14 @@ class TradingBotV2:
                     self.ai_approved_candidates = self.ai_approved_candidates[:10]
 
                 # 최종 승인 조건
-                if ai_signal == 'buy' and scoring_result.total_score >= 300:
+                # 조건 1: AI=buy + 점수 250점 이상 (57%)
+                # 조건 2: AI=hold + 점수 300점 이상 (68%)
+                buy_approved = (
+                    (ai_signal == 'buy' and scoring_result.total_score >= 250) or
+                    (ai_signal == 'hold' and scoring_result.total_score >= 300)
+                )
+
+                if buy_approved:
                     print(f"✅ 매수 조건 충족 - 주문 실행")
 
                     # scan_progress 업데이트 - 승인
@@ -1388,10 +1395,12 @@ class TradingBotV2:
             logger.info(f"📊 최대 포지션: {risk_status['config']['max_open_positions']}개")
 
             # 스캐닝 상태
-            scan_summary = self.scanner_pipeline.get_scan_summary()
-            logger.info(f"🔍 Fast Scan: {scan_summary['fast_scan']['count']}종목")
-            logger.info(f"🔬 Deep Scan: {scan_summary['deep_scan']['count']}종목")
-            logger.info(f"🤖 AI Scan: {scan_summary['ai_scan']['count']}종목")
+            if self.strategy_manager:
+                current_strategy = self.strategy_manager.get_current_strategy_name() if hasattr(self.strategy_manager, 'get_current_strategy_name') else '알 수 없음'
+                logger.info(f"🔍 현재 전략: {current_strategy}")
+                logger.info(f"📊 스캔 진행: {len(self.scan_progress.get('top_candidates', []))}개 후보 발견")
+            else:
+                logger.info(f"🔍 스캐닝 대기 중...")
 
             # 가상 매매 성과
             if self.virtual_trader:
