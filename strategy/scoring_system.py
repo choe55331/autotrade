@@ -311,6 +311,8 @@ class ScoringSystem:
         """
         5. 체결 강도 점수 (40점)
 
+        ⚠️ API 미구현 - 항상 0점 반환
+
         Args:
             stock_data: 종목 데이터
 
@@ -320,7 +322,13 @@ class ScoringSystem:
         config = self.criteria_config.get('execution_intensity', {})
         max_score = config.get('weight', 40)
 
-        execution_intensity = stock_data.get('execution_intensity', 100)
+        execution_intensity = stock_data.get('execution_intensity')
+
+        # execution_intensity 데이터가 없으면 0점
+        if execution_intensity is None:
+            return 0.0
+
+        # execution_intensity가 있으면 기존 로직 사용
         min_value = config.get('min_value', 120)
 
         if execution_intensity >= min_value * 1.5:
@@ -480,6 +488,8 @@ class ScoringSystem:
         """
         10. 변동성 패턴 점수 (20점)
 
+        실제 volatility 데이터만 사용 (일봉 20일 표준편차)
+
         Args:
             stock_data: 종목 데이터
 
@@ -489,11 +499,15 @@ class ScoringSystem:
         config = self.criteria_config.get('volatility_pattern', {})
         max_score = config.get('weight', 20)
 
-        volatility = stock_data.get('volatility', 0.0)
+        volatility = stock_data.get('volatility')
         min_volatility = config.get('min_volatility', 0.02)
         max_volatility = config.get('max_volatility', 0.15)
 
-        # 적정 변동성 범위
+        # volatility 데이터가 없으면 0점
+        if volatility is None:
+            return 0.0
+
+        # volatility가 있으면 적정 변동성 범위 체크
         if min_volatility <= volatility <= max_volatility:
             # 중간값에 가까울수록 높은 점수
             mid_volatility = (min_volatility + max_volatility) / 2
