@@ -37,6 +37,12 @@ try:
 except ImportError:
     unified_settings = None
 
+# Import real-time minute chart manager
+try:
+    from core.realtime_minute_chart import RealtimeMinuteChartManager
+except ImportError:
+    RealtimeMinuteChartManager = None
+
 # Create Flask app
 app = Flask(__name__,
            template_folder='templates',
@@ -54,6 +60,7 @@ app.logger.setLevel(logging.WARNING)
 # Global state
 bot_instance = None
 config_manager = None
+realtime_chart_manager = None
 
 
 def load_features_config() -> Dict[str, Any]:
@@ -613,8 +620,22 @@ def run_dashboard(bot=None, host: str = '0.0.0.0', port: int = 5000, debug: bool
         port: Port to bind to (default: 5000)
         debug: Enable debug mode (default: False)
     """
-    global bot_instance
+    global bot_instance, realtime_chart_manager
     bot_instance = bot
+
+    # Initialize real-time minute chart manager if WebSocket is available
+    if bot_instance and hasattr(bot_instance, 'websocket_manager') and bot_instance.websocket_manager:
+        if RealtimeMinuteChartManager:
+            try:
+                realtime_chart_manager = RealtimeMinuteChartManager(bot_instance.websocket_manager)
+                print("✅ Real-time minute chart manager initialized")
+            except Exception as e:
+                print(f"⚠️ Failed to initialize real-time minute chart manager: {e}")
+                realtime_chart_manager = None
+        else:
+            print("⚠️ RealtimeMinuteChartManager not available")
+    else:
+        print("⚠️ WebSocket manager not available, real-time minute charts disabled")
 
     print("=" * 80)
     print("🚀 AutoTrade Pro v4.2 - AI-Powered Trading Dashboard")
@@ -1949,38 +1970,84 @@ def get_chart_data(stock_code: str):
                 # Minute data (1, 3, 5, 10, 30, 60)
                 print(f"📊 Attempting to fetch {timeframe}-minute data")
 
-                if hasattr(bot_instance.data_fetcher, 'get_minute_price'):
+                # Try real-time minute data first (장중 실시간)
+                realtime_data_available = False
+                if realtime_chart_manager:
                     try:
-                        daily_data = bot_instance.data_fetcher.get_minute_price(
-                            stock_code=stock_code,
-                            minute_type=timeframe
-                        )
+                        # Check if we have real-time data for this stock
+                        if stock_code in realtime_chart_manager.charts:
+                            candle_count = realtime_chart_manager.charts[stock_code].get_candle_count()
+                            if candle_count > 0:
+                                print(f"✅ Using real-time minute data ({candle_count} candles)")
+                                # Get requested number of minutes (default 60)
+                                minutes = int(timeframe) if timeframe == '1' else 60
+                                daily_data = realtime_chart_manager.get_minute_data(stock_code, minutes=minutes)
+                                realtime_data_available = True
+                                actual_timeframe = timeframe
+                        else:
+                            # Stock not subscribed yet, try to add it
+                            print(f"📡 Adding {stock_code} to real-time tracking...")
+                            import asyncio
+                            try:
+                                # Create event loop if needed
+                                try:
+                                    loop = asyncio.get_event_loop()
+                                except RuntimeError:
+                                    loop = asyncio.new_event_loop()
+                                    asyncio.set_event_loop(loop)
 
-                        # Check if we got valid data
-                        if not daily_data or len(daily_data) == 0:
-                            print(f"⚠️ {timeframe}-minute data not available (likely weekend/holiday), falling back to daily data")
+                                # Add stock to real-time tracking
+                                success = loop.run_until_complete(
+                                    realtime_chart_manager.add_stock(stock_code)
+                                )
+                                if success:
+                                    print(f"✅ {stock_code} added to real-time tracking")
+                                    # Try to get data after subscription (might be empty initially)
+                                    minutes = int(timeframe) if timeframe == '1' else 60
+                                    daily_data = realtime_chart_manager.get_minute_data(stock_code, minutes=minutes)
+                                    if daily_data and len(daily_data) > 0:
+                                        realtime_data_available = True
+                                        actual_timeframe = timeframe
+                            except Exception as e:
+                                print(f"⚠️ Failed to add stock to real-time tracking: {e}")
+                    except Exception as e:
+                        print(f"⚠️ Real-time data fetch failed: {e}")
+
+                # Fallback to REST API minute data if no real-time data
+                if not realtime_data_available:
+                    if hasattr(bot_instance.data_fetcher, 'get_minute_price'):
+                        try:
+                            print(f"📊 Trying REST API minute data...")
+                            daily_data = bot_instance.data_fetcher.get_minute_price(
+                                stock_code=stock_code,
+                                minute_type=timeframe
+                            )
+
+                            # Check if we got valid data
+                            if not daily_data or len(daily_data) == 0:
+                                print(f"⚠️ {timeframe}-minute data not available (likely weekend/holiday), falling back to daily data")
+                                actual_timeframe = 'D'
+                                daily_data = bot_instance.data_fetcher.get_daily_price(
+                                    stock_code=stock_code,
+                                    start_date=start_date_str,
+                                    end_date=end_date_str
+                                )
+                        except Exception as e:
+                            print(f"⚠️ Minute data fetch failed ({e}), falling back to daily data")
                             actual_timeframe = 'D'
                             daily_data = bot_instance.data_fetcher.get_daily_price(
                                 stock_code=stock_code,
                                 start_date=start_date_str,
                                 end_date=end_date_str
                             )
-                    except Exception as e:
-                        print(f"⚠️ Minute data fetch failed ({e}), falling back to daily data")
+                    else:
+                        print(f"⚠️ Minute price method not available, using daily data")
                         actual_timeframe = 'D'
                         daily_data = bot_instance.data_fetcher.get_daily_price(
                             stock_code=stock_code,
                             start_date=start_date_str,
                             end_date=end_date_str
                         )
-                else:
-                    print(f"⚠️ Minute price method not available, using daily data")
-                    actual_timeframe = 'D'
-                    daily_data = bot_instance.data_fetcher.get_daily_price(
-                        stock_code=stock_code,
-                        start_date=start_date_str,
-                        end_date=end_date_str
-                    )
             else:
                 # Daily, Weekly, Monthly data
                 daily_data = bot_instance.data_fetcher.get_daily_price(
@@ -2179,6 +2246,96 @@ def get_chart_data(stock_code: str):
         import traceback
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)})
+
+
+# ============================================================================
+# REAL-TIME MINUTE CHART API
+# ============================================================================
+
+@app.route('/api/realtime_chart/add/<stock_code>', methods=['POST'])
+def add_realtime_chart(stock_code):
+    """Add stock to real-time minute chart tracking"""
+    try:
+        if not realtime_chart_manager:
+            return jsonify({
+                'success': False,
+                'error': 'Real-time chart manager not initialized'
+            })
+
+        import asyncio
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+
+        success = loop.run_until_complete(
+            realtime_chart_manager.add_stock(stock_code)
+        )
+
+        return jsonify({
+            'success': success,
+            'message': f'{"성공적으로 추가됨" if success else "추가 실패"}: {stock_code}'
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })
+
+
+@app.route('/api/realtime_chart/remove/<stock_code>', methods=['POST'])
+def remove_realtime_chart(stock_code):
+    """Remove stock from real-time minute chart tracking"""
+    try:
+        if not realtime_chart_manager:
+            return jsonify({
+                'success': False,
+                'error': 'Real-time chart manager not initialized'
+            })
+
+        import asyncio
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+
+        loop.run_until_complete(
+            realtime_chart_manager.remove_stock(stock_code)
+        )
+
+        return jsonify({
+            'success': True,
+            'message': f'제거됨: {stock_code}'
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })
+
+
+@app.route('/api/realtime_chart/status')
+def get_realtime_chart_status():
+    """Get status of all real-time tracked stocks"""
+    try:
+        if not realtime_chart_manager:
+            return jsonify({
+                'success': False,
+                'error': 'Real-time chart manager not initialized'
+            })
+
+        status = realtime_chart_manager.get_status()
+        return jsonify({
+            'success': True,
+            'status': status
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })
 
 
 @app.route('/api/market/volume-rank')
