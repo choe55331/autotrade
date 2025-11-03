@@ -145,12 +145,12 @@ scoring:
     # 4. 매수 호가 강도 (40점)
     bid_strength:
       weight: 40
-      min_ratio: 1.2  # 매수/매도 호가 비율
+      min_ratio: 0.8  # 매수/매도 호가 비율 (1.2 → 0.8로 실제 시장 데이터에 맞게 조정)
 
     # 5. 체결 강도 (40점)
     execution_intensity:
       weight: 40
-      min_value: 120  # %
+      min_value: 50  # % (120 → 50으로 실제 시장 데이터에 맞게 조정)
 
     # 6. 주요 증권사 활동 (40점)
     broker_activity:
@@ -160,7 +160,7 @@ scoring:
     # 7. 프로그램 매매 (40점)
     program_trading:
       weight: 40
-      min_net_buy: 5000000  # 원
+      min_net_buy: 100000  # 원 (500만원 → 10만원으로 실제 시장 데이터에 맞게 조정)
 
     # 8. 기술적 지표 (40점)
     technical_indicators:

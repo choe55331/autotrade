@@ -236,9 +236,31 @@ class TradingBotV2:
                     self.websocket_manager.register_callback('0B', on_price_update)      # 주식체결
                     self.websocket_manager.register_callback('0D', on_orderbook_update)  # 주식호가잔량
 
+                    # WebSocket 자동 연결 시작 (백그라운드에서 실행)
+                    import asyncio
+                    import threading
+
+                    def start_websocket():
+                        """WebSocket 연결을 백그라운드에서 시작"""
+                        try:
+                            loop = asyncio.new_event_loop()
+                            asyncio.set_event_loop(loop)
+
+                            # 연결 시도
+                            connected = loop.run_until_complete(self.websocket_manager.connect())
+                            if connected:
+                                logger.info("✅ WebSocket 자동 연결 성공")
+                            else:
+                                logger.warning("⚠️  WebSocket 자동 연결 실패")
+                        except Exception as e:
+                            logger.error(f"❌ WebSocket 연결 오류: {e}")
+
+                    # 백그라운드 스레드에서 연결
+                    ws_thread = threading.Thread(target=start_websocket, daemon=True)
+                    ws_thread.start()
+
                     logger.info("✓ WebSocketManager 초기화 완료")
-                    logger.info("   💡 실시간 데이터 수신은 현재 비활성화 상태입니다")
-                    logger.info("   💡 필요 시 bot.websocket_manager.connect() 호출하여 수동 연결 가능")
+                    logger.info("   🔌 WebSocket 자동 연결 시작됨")
                     logger.info("   💡 장중(09:00-15:30)에만 실시간 데이터가 수신됩니다")
                 else:
                     self.websocket_manager = None
