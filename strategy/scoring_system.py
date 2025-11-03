@@ -406,7 +406,7 @@ class ScoringSystem:
             print(f"[DEBUG 프로그램] {stock_code}: 데이터 없음 → 0점")
             return 0.0
 
-        min_net_buy = 1_000  # 강제 하드코딩: config 무시 (1천원 기준)
+        min_net_buy = 100  # 강제 하드코딩: config 무시 (100원 기준)
         print(f"[DEBUG 프로그램] {stock_code}: min_net_buy={min_net_buy} (하드코딩)")
 
         # 양수(순매수)만 점수, 음수(순매도)는 0점
@@ -414,13 +414,13 @@ class ScoringSystem:
             print(f"[DEBUG 프로그램] {stock_code}: 음수 또는 0 → 0점")
             return 0.0
 
-        if program_net_buy >= min_net_buy * 5000:  # 500만원 이상
+        if program_net_buy >= min_net_buy * 50000:  # 500만원 이상
             score = max_score
-        elif program_net_buy >= min_net_buy * 3000:  # 300만원 이상
+        elif program_net_buy >= min_net_buy * 30000:  # 300만원 이상
             score = max_score * 0.75
-        elif program_net_buy >= min_net_buy * 1000:  # 100만원 이상
+        elif program_net_buy >= min_net_buy * 10000:  # 100만원 이상
             score = max_score * 0.5
-        elif program_net_buy >= min_net_buy:  # 1천원 이상
+        elif program_net_buy >= min_net_buy:  # 100원 이상
             score = max_score * 0.25
         else:
             score = 0.0
