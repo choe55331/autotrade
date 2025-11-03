@@ -419,18 +419,34 @@ class TradingBotV2:
 
             # 1. 삼성전자 현재가 조회
             logger.info(f"📊 {samsung_name} 현재가 조회 중...")
-            current_price = 70000  # 기본값 (조회 실패 시)
+            current_price = None
 
             try:
+                # ka10003 체결정보요청으로 현재가 조회
                 quote = self.market_api.get_stock_price(samsung_code)
                 if quote and quote.get('current_price', 0) > 0:
                     current_price = int(quote.get('current_price', 0))
-                    logger.info(f"✓ {samsung_name} 현재가: {current_price:,}원")
+                    logger.info(f"✓ {samsung_name} 현재가: {current_price:,}원 (체결정보)")
                 else:
-                    logger.warning(f"⚠️ 현재가 조회 실패 - 고정가격 사용: {current_price:,}원")
+                    # 체결정보 없으면 호가로 시도
+                    logger.warning(f"⚠️ 체결정보 없음 - 호가 조회 시도 중...")
+                    orderbook = self.market_api.get_orderbook(samsung_code)
+                    if orderbook and orderbook.get('mid_price', 0) > 0:
+                        current_price = int(orderbook.get('mid_price', 0))
+                        logger.info(f"✓ {samsung_name} 현재가: {current_price:,}원 (호가 기준)")
+                    else:
+                        logger.error(f"❌ 호가 조회 실패 - 테스트 중단")
+                        return
 
             except Exception as e:
-                logger.warning(f"⚠️ 가격 조회 실패: {e} - 고정가격 사용: {current_price:,}원")
+                logger.error(f"❌ 가격 조회 실패: {e}")
+                import traceback
+                traceback.print_exc()
+                return
+
+            if not current_price:
+                logger.error(f"❌ 현재가를 가져올 수 없습니다 - 테스트 중단")
+                return
 
             # 2. 매수 주문 실행
             quantity = 1  # 1주
@@ -484,9 +500,9 @@ class TradingBotV2:
                 quote = self.market_api.get_stock_price(samsung_code)
                 if quote and quote.get('current_price', 0) > 0:
                     sell_price = int(quote.get('current_price', 0))
-                    logger.info(f"✓ {samsung_name} 현재가 (매도): {sell_price:,}원")
+                    logger.info(f"✓ {samsung_name} 현재가 (매도): {sell_price:,}원 (체결정보)")
                 else:
-                    logger.warning(f"⚠️ 현재가 재조회 실패 - 매수가 사용: {sell_price:,}원")
+                    logger.warning(f"⚠️ 체결정보 없음 - 매수가 사용: {sell_price:,}원")
 
             except Exception as e:
                 logger.warning(f"⚠️ 가격 재조회 실패: {e} - 매수가 사용: {sell_price:,}원")

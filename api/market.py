@@ -59,41 +59,53 @@ class MarketAPI:
     
     def get_stock_price(self, stock_code: str) -> Optional[Dict[str, Any]]:
         """
-        종목 시세 정보 조회 (키움증권 API)
+        종목 체결정보 조회 (키움증권 API ka10003)
 
         Args:
             stock_code: 종목코드
 
         Returns:
-            시세 정보
+            체결정보 (현재가 포함)
         """
         body = {
             "stk_cd": stock_code
         }
 
         response = self.client.request(
-            api_id="ka10007",
+            api_id="ka10003",
             body=body,
-            path="mrkcond"
+            path="stkinfo"
         )
 
         if response and response.get('return_code') == 0:
-            # ka10007 응답 구조 확인 필요 - output 키 확인
-            price_info = response.get('output', {})
-            if not price_info:
-                # 다른 응답 키 시도
-                price_info = response.get('stk_quot_tab_prsn', {})
+            # ka10003 응답: cntr_infr 리스트
+            cntr_infr = response.get('cntr_infr', [])
 
-            # 응답 데이터 정규화
-            if price_info:
-                # 현재가 필드명 확인 필요
-                current_price = int(price_info.get('cur_prc', price_info.get('current_price', 0)))
+            if cntr_infr and len(cntr_infr) > 0:
+                # 최신 체결 정보 (첫 번째 항목)
+                latest = cntr_infr[0]
+
+                # 현재가 파싱 (+/- 부호 제거)
+                cur_prc_str = latest.get('cur_prc', '0')
+                current_price = abs(int(cur_prc_str.replace('+', '').replace('-', '')))
+
+                # 정규화된 응답
+                price_info = {
+                    'current_price': current_price,
+                    'cur_prc': current_price,  # 원본 필드명도 유지
+                    'change': latest.get('pred_pre', '0'),
+                    'change_rate': latest.get('pre_rt', '0'),
+                    'volume': latest.get('cntr_trde_qty', '0'),
+                    'acc_volume': latest.get('acc_trde_qty', '0'),
+                    'acc_trading_value': latest.get('acc_trde_prica', '0'),
+                    'time': latest.get('tm', ''),
+                    'stex_tp': latest.get('stex_tp', ''),
+                }
+
                 logger.info(f"{stock_code} 현재가: {current_price:,}원")
-                # current_price 필드 추가 (하위 호환성)
-                price_info['current_price'] = current_price
                 return price_info
             else:
-                logger.error(f"현재가 조회 실패: 응답 데이터 없음")
+                logger.error(f"현재가 조회 실패: 체결정보 없음 (장외시간일 수 있음)")
                 return None
         else:
             logger.error(f"현재가 조회 실패: {response.get('return_msg') if response else 'No response'}")
@@ -101,7 +113,7 @@ class MarketAPI:
     
     def get_orderbook(self, stock_code: str) -> Optional[Dict[str, Any]]:
         """
-        호가 조회 (키움증권 API)
+        호가 조회 (키움증권 API ka10004)
 
         Args:
             stock_code: 종목코드
@@ -120,13 +132,31 @@ class MarketAPI:
         )
 
         if response and response.get('return_code') == 0:
-            # ka10004 응답 구조 확인
-            orderbook = response.get('output', {})
-            if not orderbook:
-                # 다른 응답 키 시도
-                orderbook = response.get('stk_hoga', {})
+            # ka10004 응답은 output 키 없이 바로 데이터가 옴
+            orderbook = response
 
-            logger.info(f"{stock_code} 호가 조회 완료")
+            # 매도1호가 / 매수1호가 파싱
+            sel_fpr_bid = orderbook.get('sel_fpr_bid', '0').replace('+', '').replace('-', '')
+            buy_fpr_bid = orderbook.get('buy_fpr_bid', '0').replace('+', '').replace('-', '')
+
+            sell_price = abs(int(sel_fpr_bid)) if sel_fpr_bid and sel_fpr_bid != '0' else 0
+            buy_price = abs(int(buy_fpr_bid)) if buy_fpr_bid and buy_fpr_bid != '0' else 0
+
+            # 정규화된 응답
+            orderbook['sell_price'] = sell_price  # 매도1호가
+            orderbook['buy_price'] = buy_price    # 매수1호가
+
+            # 중간가 계산
+            if sell_price > 0 and buy_price > 0:
+                orderbook['mid_price'] = (sell_price + buy_price) // 2
+            elif sell_price > 0:
+                orderbook['mid_price'] = sell_price
+            elif buy_price > 0:
+                orderbook['mid_price'] = buy_price
+            else:
+                orderbook['mid_price'] = 0
+
+            logger.info(f"{stock_code} 호가 조회 완료 (매도1: {sell_price:,}, 매수1: {buy_price:,})")
             return orderbook
         else:
             logger.error(f"호가 조회 실패: {response.get('return_msg') if response else 'No response'}")
