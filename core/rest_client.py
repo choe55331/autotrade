@@ -100,7 +100,15 @@ class KiwoomRESTClient:
             self.min_call_interval = API_RATE_LIMIT.get('REST_CALL_INTERVAL', 0.3)
             self.max_retries = API_RATE_LIMIT.get('REST_MAX_RETRIES', 3)
             self.retry_backoff = API_RATE_LIMIT.get('REST_RETRY_BACKOFF', 1.0)
-            
+
+            # 중요: NXT 시간외 거래는 실제 운영 서버(api.kiwoom.com)에서만 가능
+            # 모의투자 서버(mockapi.kiwoom.com)는 KRX만 지원
+            if 'mockapi' in self.base_url:
+                logger.warning(f"⚠️ 모의투자 서버 사용 중: {self.base_url}")
+                logger.warning(f"⚠️ NXT 시간외 거래는 모의투자에서 지원되지 않습니다 (KRX만 지원)")
+            else:
+                logger.info(f"✅ 실제 운영 서버 사용 중: {self.base_url}")
+
             logger.info(f"계좌번호: {self.account_prefix}-{self.account_suffix}")
         except ImportError:
             # config 모듈이 없을 경우 기본값 사용
