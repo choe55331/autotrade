@@ -34,6 +34,7 @@ class StockCandidate:
     institutional_net_buy: int = 0
     foreign_net_buy: int = 0
     bid_ask_ratio: float = 0.0
+    institutional_trend: Optional[Dict[str, Any]] = None  # ka10045 기관매매추이 데이터
     deep_scan_score: float = 0.0
     deep_scan_time: Optional[datetime] = None
     deep_scan_breakdown: Dict[str, float] = field(default_factory=dict)  # 점수 상세
