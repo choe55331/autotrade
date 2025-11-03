@@ -157,7 +157,7 @@ class VolumeBasedStrategy(ScanStrategy):
 
             print(f"✅ 후보 {len(stock_candidates)}개 선정 (ETF {etf_count}개 제외)")
 
-            # Deep Scan 실행 (투자자 매매 & 호가 데이터 & 기관매매추이 수집)
+            # Deep Scan 실행 (모든 스코어링 데이터 수집)
             print(f"\n🔬 Deep Scan 실행 중 (상위 {min(len(stock_candidates), 20)}개)...")
             top_candidates = stock_candidates[:20]
 
@@ -192,51 +192,87 @@ class VolumeBasedStrategy(ScanStrategy):
                         price_type='buy'
                     )
                     if trend_data:
-                        # 트렌드 데이터 저장
                         candidate.institutional_trend = trend_data
-
-                        # 트렌드 데이터에서 스코어링에 활용할 정보 추출
-                        # trend_data는 dict로 여러 키를 가질 수 있음
-                        # 예: {'stk_orgn_for_trde_trnd': [...], ...}
-                        trend_score = 0
-                        for key, values in trend_data.items():
-                            if isinstance(values, list) and len(values) > 0:
-                                # 최근 데이터 분석
-                                recent = values[0] if values else {}
-
-                                # 기관 순매수량이 양수면 가점
-                                orgn_net = recent.get('orgn_netslmt', '0')
-                                if orgn_net and str(orgn_net).replace('+', '').replace('-', '').isdigit():
-                                    orgn_net_int = int(str(orgn_net).replace('+', '').replace('-', ''))
-                                    if not str(orgn_net).startswith('-'):
-                                        trend_score += 5  # 기관 매수 추세
-
-                                # 외국인 순매수량이 양수면 가점
-                                for_net = recent.get('for_netslmt', '0')
-                                if for_net and str(for_net).replace('+', '').replace('-', '').isdigit():
-                                    for_net_int = int(str(for_net).replace('+', '').replace('-', ''))
-                                    if not str(for_net).startswith('-'):
-                                        trend_score += 5  # 외국인 매수 추세
-
-                                break  # 첫 번째 키만 사용
-
-                        if trend_score > 0:
-                            candidate.fast_scan_score += trend_score
-                            candidate.fast_scan_breakdown['기관추이'] = trend_score
-                            print(f"      기관추이: 5일 데이터 수집 완료 (+{trend_score}점)")
-                        else:
-                            print(f"      기관추이: 5일 데이터 수집 완료 (점수 없음)")
+                        # 간단한 출력만 (점수는 scoring_system에서 계산)
+                        print(f"      기관추이: 5일 데이터 수집")
                     else:
                         print(f"      기관추이: 데이터 없음")
 
-                    time.sleep(0.15)  # API 호출 간격 (3개 API 호출)
+                    # 4. 일봉 데이터 조회 (ka10001) - 평균거래량 & 변동성
+                    daily_data = self.market_api.get_daily_price(candidate.code, days=20)
+                    if daily_data and len(daily_data) > 1:
+                        # 평균 거래량 (20일)
+                        volumes = [d.get('volume', 0) for d in daily_data if d.get('volume')]
+                        if volumes:
+                            candidate.avg_volume = sum(volumes) / len(volumes)
+                            print(f"      일봉: 평균거래량={candidate.avg_volume:,.0f}")
+
+                        # 변동성 (20일 등락률 표준편차)
+                        rates = [d.get('change_rate', 0) for d in daily_data if d.get('change_rate') is not None]
+                        if len(rates) > 1:
+                            import statistics
+                            candidate.volatility = statistics.stdev(rates)
+                            print(f"      일봉: 변동성={candidate.volatility:.2f}%")
+                    else:
+                        print(f"      일봉: 데이터 없음")
+
+                    # 5. 증권사별매매 조회 (ka10078) - 주요 증권사 순매수
+                    broker_data = self.market_api.get_broker_trading(candidate.code, days=5)
+                    if broker_data:
+                        # 순매수 상위 증권사 카운트 (순매수 > 0)
+                        buy_count = 0
+                        total_net_buy = 0
+                        for broker in broker_data[:10]:  # 상위 10개 증권사만
+                            net_buy = broker.get('net_buy', 0)
+                            if net_buy > 0:
+                                buy_count += 1
+                                total_net_buy += net_buy
+
+                        candidate.top_broker_buy_count = buy_count
+                        candidate.top_broker_net_buy = total_net_buy
+                        print(f"      증권사: 순매수증권사={buy_count}개, 순매수총액={total_net_buy:,}")
+                    else:
+                        candidate.top_broker_buy_count = 0
+                        candidate.top_broker_net_buy = 0
+                        print(f"      증권사: 데이터 없음")
+
+                    # 6. 체결강도 조회 (ka10047)
+                    execution_data = self.market_api.get_execution_intensity(candidate.code)
+                    if execution_data:
+                        candidate.execution_intensity = execution_data.get('execution_intensity')
+                        if candidate.execution_intensity:
+                            print(f"      체결강도={candidate.execution_intensity:.1f}")
+                        else:
+                            print(f"      체결강도: 값 없음")
+                    else:
+                        print(f"      체결강도: 데이터 없음")
+
+                    # 7. 프로그램매매 조회 (ka90013)
+                    program_data = self.market_api.get_program_trading(candidate.code)
+                    if program_data:
+                        candidate.program_net_buy = program_data.get('program_net_buy')
+                        if candidate.program_net_buy:
+                            print(f"      프로그램순매수={candidate.program_net_buy:,}")
+                        else:
+                            print(f"      프로그램매매: 값 없음")
+                    else:
+                        print(f"      프로그램매매: 데이터 없음")
+
+                    time.sleep(0.2)  # API 호출 간격 (7개 API 호출)
 
                 except Exception as e:
                     print(f"      ❌ Deep Scan 오류: {e}")
                     logger.error(f"종목 {candidate.code} Deep Scan 실패: {e}", exc_info=True)
+                    # 오류 시 기본값 설정
                     candidate.institutional_net_buy = 0
                     candidate.foreign_net_buy = 0
                     candidate.bid_ask_ratio = 0
+                    candidate.avg_volume = None
+                    candidate.volatility = None
+                    candidate.top_broker_buy_count = 0
+                    candidate.top_broker_net_buy = 0
+                    candidate.execution_intensity = None
+                    candidate.program_net_buy = None
 
             self.scan_results = top_candidates
             self.last_scan_time = time.time()
