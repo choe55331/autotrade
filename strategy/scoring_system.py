@@ -326,23 +326,32 @@ class ScoringSystem:
 
         execution_intensity = stock_data.get('execution_intensity')
 
+        # 디버그: 체결강도 값 확인
+        stock_code = stock_data.get('stock_code', 'Unknown')
+        print(f"[DEBUG 체결강도] {stock_code}: execution_intensity={execution_intensity} (type={type(execution_intensity)})")
+
         # execution_intensity 데이터가 없으면 0점
         if execution_intensity is None or execution_intensity == 0:
+            print(f"[DEBUG 체결강도] {stock_code}: 데이터 없음 또는 0 → 0점")
             return 0.0
 
         # 체결강도 기준 점수 계산
         min_value = config.get('min_value', 50)  # 120 → 50으로 낮춤
+        print(f"[DEBUG 체결강도] {stock_code}: min_value={min_value}, config에서 로드={config.get('min_value')}")
 
         if execution_intensity >= min_value * 3.0:  # 150 이상
-            return max_score
+            score = max_score
         elif execution_intensity >= min_value * 2.0:  # 100 이상
-            return max_score * 0.75
+            score = max_score * 0.75
         elif execution_intensity >= min_value * 1.4:  # 70 이상
-            return max_score * 0.5
+            score = max_score * 0.5
         elif execution_intensity >= min_value:  # 50 이상
-            return max_score * 0.25
+            score = max_score * 0.25
         else:
-            return 0.0
+            score = 0.0
+
+        print(f"[DEBUG 체결강도] {stock_code}: {execution_intensity} → {score}점")
+        return score
 
     def _score_broker_activity(self, stock_data: Dict[str, Any]) -> float:
         """
@@ -388,26 +397,36 @@ class ScoringSystem:
 
         program_net_buy = stock_data.get('program_net_buy')
 
+        # 디버그: 프로그램매매 값 확인
+        stock_code = stock_data.get('stock_code', 'Unknown')
+        print(f"[DEBUG 프로그램] {stock_code}: program_net_buy={program_net_buy} (type={type(program_net_buy)})")
+
         # 데이터가 없으면 0점
         if program_net_buy is None:
+            print(f"[DEBUG 프로그램] {stock_code}: 데이터 없음 → 0점")
             return 0.0
 
         min_net_buy = config.get('min_net_buy', 100_000)  # 500만원 → 10만원으로 낮춤
+        print(f"[DEBUG 프로그램] {stock_code}: min_net_buy={min_net_buy}, config에서 로드={config.get('min_net_buy')}")
 
         # 양수(순매수)만 점수, 음수(순매도)는 0점
         if program_net_buy <= 0:
+            print(f"[DEBUG 프로그램] {stock_code}: 음수 또는 0 → 0점")
             return 0.0
 
         if program_net_buy >= min_net_buy * 50:  # 500만원 이상
-            return max_score
+            score = max_score
         elif program_net_buy >= min_net_buy * 30:  # 300만원 이상
-            return max_score * 0.75
+            score = max_score * 0.75
         elif program_net_buy >= min_net_buy * 10:  # 100만원 이상
-            return max_score * 0.5
+            score = max_score * 0.5
         elif program_net_buy >= min_net_buy:  # 10만원 이상
-            return max_score * 0.25
+            score = max_score * 0.25
         else:
-            return 0.0
+            score = 0.0
+
+        print(f"[DEBUG 프로그램] {stock_code}: {program_net_buy:,}원 → {score}점")
+        return score
 
     def _score_technical_indicators(self, stock_data: Dict[str, Any]) -> float:
         """
