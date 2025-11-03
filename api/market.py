@@ -1637,18 +1637,22 @@ class MarketAPI:
                 # 응답 키 자동 탐색
                 data_keys = [k for k in response.keys() if k not in ['return_code', 'return_msg', 'api-id', 'cont-yn', 'next-key']]
 
-                # 디버깅: raw response 출력 (첫 번째 호출만)
+                # 디버깅: raw response 출력 (첫 번째 호출만, WARNING 레벨로 강제 출력)
                 if not hasattr(self, '_firm_trading_debug_shown'):
-                    logger.debug(f"[증권사 API] raw response keys: {list(response.keys())}")
-                    logger.debug(f"[증권사 API] data_keys: {data_keys}")
-                    for key in data_keys[:2]:  # 처음 2개만
+                    print(f"\n[증권사 API 디버깅]")
+                    print(f"  response keys: {list(response.keys())}")
+                    print(f"  data_keys: {data_keys}")
+                    for key in data_keys[:3]:  # 처음 3개
                         val = response.get(key)
                         if isinstance(val, list):
-                            logger.debug(f"[증권사 API] {key} = list({len(val)} items)")
+                            print(f"  {key} = list({len(val)} items)")
                             if len(val) > 0:
-                                logger.debug(f"[증권사 API] first item: {val[0]}")
+                                print(f"  first item: {val[0]}")
+                            else:
+                                print(f"  ⚠️ 빈 리스트!")
                         else:
-                            logger.debug(f"[증권사 API] {key} = {type(val)}")
+                            print(f"  {key} = {type(val).__name__}")
+                    print()
                     self._firm_trading_debug_shown = True
 
                 trading_list = []
@@ -1665,13 +1669,17 @@ class MarketAPI:
                 # 데이터 정규화
                 normalized_list = []
                 for item in trading_list:
+                    # netprps_qty는 음수일 수 있음 (순매도)
+                    netprps_qty_str = item.get('netprps_qty', '0').replace('+', '').strip()
+                    net_qty = int(netprps_qty_str) if netprps_qty_str and netprps_qty_str != '' else 0
+
                     normalized_list.append({
                         'date': item.get('dt', ''),
-                        'buy_qty': int(item.get('buy_qty', '0').replace('+', '').replace('-', '')),
-                        'sell_qty': int(item.get('sel_qty', '0').replace('+', '').replace('-', '')),
-                        'net_qty': int(item.get('netslmt', '0').replace('+', '').replace('-', '')),
-                        'buy_amount': int(item.get('buy_prica', '0').replace('+', '').replace('-', '')),
-                        'sell_amount': int(item.get('sel_prica', '0').replace('+', '').replace('-', '')),
+                        'buy_qty': int(item.get('buy_qty', '0').replace('+', '').replace('-', '').strip() or '0'),
+                        'sell_qty': int(item.get('sell_qty', '0').replace('+', '').replace('-', '').strip() or '0'),
+                        'net_qty': net_qty,  # 음수 보존 (순매도는 음수)
+                        'buy_amount': 0,  # API에서 제공하지 않음
+                        'sell_amount': 0,  # API에서 제공하지 않음
                     })
 
                 logger.info(f"증권사({firm_code}) {stock_code} 매매동향 {len(normalized_list)}건 조회")

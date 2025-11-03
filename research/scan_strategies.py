@@ -255,9 +255,11 @@ class VolumeBasedStrategy(ScanStrategy):
                                 if net_qty > 0:
                                     buy_count += 1
                                     total_net_buy += net_qty
-                                    print(f" ✅")
+                                    print(f" ✅ 순매수")
+                                elif net_qty < 0:
+                                    print(f" ⚠️ 순매도")
                                 else:
-                                    print(f" (순매도)")
+                                    print(f" - 변동없음")
                             else:
                                 # 디버깅: 데이터 없음
                                 print(f"         └ {firm_name}: 데이터 없음")
