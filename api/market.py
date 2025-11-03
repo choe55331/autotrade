@@ -1264,11 +1264,11 @@ class MarketAPI:
         date: str = None
     ) -> List[Dict[str, Any]]:
         """
-        일봉 차트 데이터 조회
+        일봉 차트 데이터 조회 (ka10081 사용)
 
         Args:
             stock_code: 종목코드
-            period: 조회 기간 (일수)
+            period: 조회 기간 (일수) - 참고용, API는 기준일부터 과거 데이터 반환
             date: 기준일 (YYYYMMDD, None이면 최근 거래일)
 
         Returns:
@@ -1290,29 +1290,38 @@ class MarketAPI:
             date = get_last_trading_date()
 
         body = {
-            "stock_code": stock_code,
-            "period": str(period),
-            "date": date
+            "stk_cd": stock_code,
+            "base_dt": date,
+            "upd_stkpc_tp": "1"  # 수정주가 반영
         }
 
         response = self.client.request(
-            api_id="ka10006",
+            api_id="ka10081",
             body=body,
-            path="chart"
+            path="mrkcond"
         )
 
         if response and response.get('return_code') == 0:
-            # 응답 구조 확인
-            output = response.get('output', {})
+            # ka10081은 'stk_dt_pole_chart_qry' 키에 데이터 반환
+            daily_data = response.get('stk_dt_pole_chart_qry', [])
 
-            # output이 dict이면 리스트로 변환
-            if isinstance(output, dict):
-                chart_data = output.get('list', [])
-            else:
-                chart_data = output if isinstance(output, list) else []
+            # 데이터 표준화
+            standardized_data = []
+            for item in daily_data:
+                try:
+                    standardized_data.append({
+                        'date': item.get('dt', ''),
+                        'open': int(item.get('open_pric', 0)),
+                        'high': int(item.get('high_pric', 0)),
+                        'low': int(item.get('low_pric', 0)),
+                        'close': int(item.get('cur_prc', 0)),
+                        'volume': int(item.get('trde_qty', 0))
+                    })
+                except (ValueError, TypeError):
+                    continue
 
-            logger.info(f"{stock_code} 일봉 차트 {len(chart_data)}개 조회 완료")
-            return chart_data
+            logger.info(f"{stock_code} 일봉 차트 {len(standardized_data)}개 조회 완료")
+            return standardized_data[:period] if period else standardized_data  # period만큼만 반환
         else:
             logger.error(f"일봉 차트 조회 실패: {response.get('return_msg')}")
             return []
