@@ -249,13 +249,23 @@ class VolumeBasedStrategy(ScanStrategy):
                                 latest = firm_data[0]
                                 net_qty = latest.get('net_qty', 0)
 
+                                # 디버깅: net_qty 값 확인
+                                print(f"         └ {firm_name}: net_qty={net_qty:,}주", end="")
+
                                 if net_qty > 0:
                                     buy_count += 1
                                     total_net_buy += net_qty
+                                    print(f" ✅")
+                                else:
+                                    print(f" (순매도)")
+                            else:
+                                # 디버깅: 데이터 없음
+                                print(f"         └ {firm_name}: 데이터 없음")
 
                             time.sleep(0.05)  # 증권사별 API 호출 간격
 
                         except Exception as e:
+                            print(f"         └ {firm_name}: 오류 - {e}")
                             continue
 
                     candidate.top_broker_buy_count = buy_count

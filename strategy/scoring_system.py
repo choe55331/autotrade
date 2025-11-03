@@ -117,8 +117,8 @@ class ScoringSystem:
         # 8. 기술적 지표 (40점)
         result.technical_indicators_score = self._score_technical_indicators(stock_data)
 
-        # 9. 테마/뉴스 (40점)
-        result.theme_news_score = self._score_theme_news(stock_data)
+        # 9. 시장 모멘텀 (40점)
+        result.theme_news_score = self._score_market_momentum(stock_data)
 
         # 10. 변동성 패턴 (20점)
         result.volatility_pattern_score = self._score_volatility_pattern(stock_data)
@@ -406,7 +406,7 @@ class ScoringSystem:
             print(f"[DEBUG 프로그램] {stock_code}: 데이터 없음 → 0점")
             return 0.0
 
-        min_net_buy = 100_000  # 강제 하드코딩: config 무시
+        min_net_buy = 1_000  # 강제 하드코딩: config 무시 (1천원 기준)
         print(f"[DEBUG 프로그램] {stock_code}: min_net_buy={min_net_buy} (하드코딩)")
 
         # 양수(순매수)만 점수, 음수(순매도)는 0점
@@ -414,13 +414,13 @@ class ScoringSystem:
             print(f"[DEBUG 프로그램] {stock_code}: 음수 또는 0 → 0점")
             return 0.0
 
-        if program_net_buy >= min_net_buy * 50:  # 500만원 이상
+        if program_net_buy >= min_net_buy * 5000:  # 500만원 이상
             score = max_score
-        elif program_net_buy >= min_net_buy * 30:  # 300만원 이상
+        elif program_net_buy >= min_net_buy * 3000:  # 300만원 이상
             score = max_score * 0.75
-        elif program_net_buy >= min_net_buy * 10:  # 100만원 이상
+        elif program_net_buy >= min_net_buy * 1000:  # 100만원 이상
             score = max_score * 0.5
-        elif program_net_buy >= min_net_buy:  # 10만원 이상
+        elif program_net_buy >= min_net_buy:  # 1천원 이상
             score = max_score * 0.25
         else:
             score = 0.0
@@ -495,9 +495,12 @@ class ScoringSystem:
 
         return score
 
-    def _score_theme_news(self, stock_data: Dict[str, Any]) -> float:
+    def _score_market_momentum(self, stock_data: Dict[str, Any]) -> float:
         """
-        9. 테마/뉴스 점수 (40점)
+        9. 시장 모멘텀 점수 (40점)
+
+        거래량 급등과 가격 상승률 기반으로 시장 모멘텀 추정
+        (원래 테마/뉴스 점수였으나 실제 데이터 없어 모멘텀으로 추정)
 
         Args:
             stock_data: 종목 데이터
@@ -510,37 +513,44 @@ class ScoringSystem:
 
         score = 0.0
 
-        # 테마 소속 (20점)
+        # 거래량 모멘텀 (20점)
         is_trending_theme = stock_data.get('is_trending_theme', False)
         if is_trending_theme:
             score += max_score * 0.5
         else:
-            # 테마 데이터 없으면 거래량+상승률로 추정 (원시 데이터 사용)
+            # 거래량+상승률 기반 시장 모멘텀 추정
             volume = stock_data.get('volume', 0)
-            avg_volume = stock_data.get('avg_volume', volume)
-            volume_ratio = volume / avg_volume if avg_volume > 0 else 1.0
+            avg_volume = stock_data.get('avg_volume')
             change_rate = stock_data.get('change_rate', 0)
 
-            # 거래량 2배 이상 + 상승률 3% 이상 = 테마주 가능성 높음
-            if volume_ratio >= 2.0 and change_rate >= 3.0:
-                score += max_score * 0.4  # 20점 만점에 16점
-            elif volume_ratio >= 1.5 and change_rate >= 1.5:
-                score += max_score * 0.25  # 10점
-            elif volume_ratio >= 1.2 or change_rate >= 0.5:
-                score += max_score * 0.125  # 5점
+            # avg_volume이 있고 0보다 큰 경우에만 비율 계산
+            if avg_volume and avg_volume > 0:
+                volume_ratio = volume / avg_volume
 
-        # 긍정 뉴스 (20점)
+                # 거래량 2배 이상 + 상승률 3% 이상 = 강한 모멘텀
+                if volume_ratio >= 2.0 and change_rate >= 3.0:
+                    score += max_score * 0.4  # 16점
+                elif volume_ratio >= 1.5 and change_rate >= 1.5:
+                    score += max_score * 0.25  # 10점
+                elif volume_ratio >= 1.2 or change_rate >= 0.5:
+                    score += max_score * 0.125  # 5점
+
+        # 가격 모멘텀 (20점)
         has_positive_news = stock_data.get('has_positive_news', False)
         if has_positive_news:
             score += max_score * 0.5
         else:
-            # 뉴스 데이터 없으면 가격 모멘텀+기관 매수로 추정 (원시 데이터 사용)
+            # 가격 모멘텀+기관 매수 기반 가격 강도 추정
             change_rate = stock_data.get('change_rate', 0)
-            institutional_net = stock_data.get('institutional_net_buy', 0)
+            institutional_net = stock_data.get('institutional_net_buy')
 
-            # 상승률 5% 이상 + 기관 순매수 100만원 이상 = 호재 가능성
+            # None 체크
+            if institutional_net is None:
+                institutional_net = 0
+
+            # 상승률 5% 이상 + 기관 순매수 100만원 이상 = 강한 가격 강도
             if change_rate >= 5.0 and institutional_net >= 1_000_000:
-                score += max_score * 0.4  # 20점 만점에 16점
+                score += max_score * 0.4  # 16점
             elif change_rate >= 2.0 and institutional_net >= 500_000:
                 score += max_score * 0.25  # 10점
             elif change_rate >= 0.5 or institutional_net >= 100_000:

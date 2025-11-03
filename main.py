@@ -978,7 +978,7 @@ class TradingBotV2:
                     f"증권사:{score_result.broker_activity_score:.0f}/40, "
                     f"프로그램:{score_result.program_trading_score:.0f}/40, "
                     f"기술:{score_result.technical_indicators_score:.0f}/40, "
-                    f"테마:{score_result.theme_news_score:.0f}/40, "
+                    f"모멘텀:{score_result.theme_news_score:.0f}/40, "
                     f"변동성:{score_result.volatility_pattern_score:.0f}/20"
                 )
 
@@ -1050,7 +1050,7 @@ class TradingBotV2:
                         '증권사 활동 (40점 만점)': scoring_result.broker_activity_score,
                         '프로그램 매매 (40점 만점)': scoring_result.program_trading_score,
                         '기술적 지표 (40점 만점)': scoring_result.technical_indicators_score,
-                        '테마/뉴스 (40점 만점)': scoring_result.theme_news_score,
+                        '시장 모멘텀 (40점 만점)': scoring_result.theme_news_score,
                         '변동성 패턴 (20점 만점)': scoring_result.volatility_pattern_score,
                     },
                     '0점 항목 설명': {
