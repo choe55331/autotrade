@@ -311,7 +311,7 @@ class ScoringSystem:
         """
         5. 체결 강도 점수 (40점)
 
-        ⚠️ API 미구현 - 항상 0점 반환
+        ka10047 API로 수집한 실제 체결강도 값 사용
 
         Args:
             stock_data: 종목 데이터
@@ -325,18 +325,20 @@ class ScoringSystem:
         execution_intensity = stock_data.get('execution_intensity')
 
         # execution_intensity 데이터가 없으면 0점
-        if execution_intensity is None:
+        if execution_intensity is None or execution_intensity == 0:
             return 0.0
 
-        # execution_intensity가 있으면 기존 로직 사용
+        # 체결강도 기준 점수 계산
         min_value = config.get('min_value', 120)
 
-        if execution_intensity >= min_value * 1.5:
+        if execution_intensity >= min_value * 1.5:  # 180 이상
             return max_score
-        elif execution_intensity >= min_value * 1.2:
+        elif execution_intensity >= min_value * 1.2:  # 144 이상
             return max_score * 0.75
-        elif execution_intensity >= min_value:
+        elif execution_intensity >= min_value:  # 120 이상
             return max_score * 0.5
+        elif execution_intensity >= min_value * 0.8:  # 96 이상
+            return max_score * 0.25
         else:
             return 0.0
 
@@ -369,6 +371,8 @@ class ScoringSystem:
         """
         7. 프로그램 매매 점수 (40점)
 
+        ka90013 API로 수집한 실제 프로그램순매수금액 사용
+
         Args:
             stock_data: 종목 데이터
 
@@ -378,15 +382,22 @@ class ScoringSystem:
         config = self.criteria_config.get('program_trading', {})
         max_score = config.get('weight', 40)
 
-        program_net_buy = stock_data.get('program_net_buy', 0)
+        program_net_buy = stock_data.get('program_net_buy')
+
+        # 데이터가 없거나 0이면 0점
+        if program_net_buy is None:
+            return 0.0
+
         min_net_buy = config.get('min_net_buy', 5_000_000)
 
-        if program_net_buy >= min_net_buy * 5:
+        if program_net_buy >= min_net_buy * 5:  # 2500만원 이상
             return max_score
-        elif program_net_buy >= min_net_buy * 3:
+        elif program_net_buy >= min_net_buy * 3:  # 1500만원 이상
             return max_score * 0.75
-        elif program_net_buy >= min_net_buy:
+        elif program_net_buy >= min_net_buy:  # 500만원 이상
             return max_score * 0.5
+        elif program_net_buy >= min_net_buy * 0.5:  # 250만원 이상
+            return max_score * 0.25
         else:
             return 0.0
 

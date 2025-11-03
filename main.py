@@ -910,9 +910,11 @@ class TradingBotV2:
                     'top_broker_buy_count': getattr(candidate, 'top_broker_buy_count', 0),  # 주요 증권사 순매수 카운트
                     'top_broker_net_buy': getattr(candidate, 'top_broker_net_buy', 0),  # 주요 증권사 순매수 총액
 
+                    # 체결강도 및 프로그램매매 (Deep Scan에서 수집됨, ka10047, ka90013)
+                    'execution_intensity': getattr(candidate, 'execution_intensity', None),  # 체결 강도 (ka10047)
+                    'program_net_buy': getattr(candidate, 'program_net_buy', None),         # 프로그램순매수 (ka90013)
+
                     # 미구현 필드 (API 없음)
-                    'execution_intensity': None,  # 체결 강도 (API 없음)
-                    'program_net_buy': 0,         # 프로그램 매매 (API 없음)
                     'is_trending_theme': False,   # 테마 여부 (API 없음)
                     'has_positive_news': False,   # 긍정 뉴스 (API 없음)
 

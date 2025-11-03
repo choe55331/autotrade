@@ -39,6 +39,8 @@ class StockCandidate:
     volatility: Optional[float] = None  # 변동성 (20일 표준편차)
     top_broker_buy_count: int = 0  # 주요 증권사 순매수 카운트
     top_broker_net_buy: int = 0  # 주요 증권사 순매수 총액
+    execution_intensity: Optional[float] = None  # 체결강도 (ka10047)
+    program_net_buy: Optional[int] = None  # 프로그램순매수금액 (ka90013)
     deep_scan_score: float = 0.0
     deep_scan_time: Optional[datetime] = None
     deep_scan_breakdown: Dict[str, float] = field(default_factory=dict)  # 점수 상세
@@ -382,6 +384,38 @@ class ScannerPipeline:
                     except Exception as e:
                         print(f"   ⚠️  증권사 데이터 조회 실패: {e}")
                         logger.debug(f"증권사 데이터 조회 실패: {e}")
+
+                    # 체결강도 조회 (ka10047)
+                    print(f"   📊 체결강도 조회 중...")
+                    try:
+                        execution_data = self.market_api.get_execution_intensity(
+                            stock_code=candidate.code
+                        )
+
+                        if execution_data:
+                            candidate.execution_intensity = execution_data.get('execution_intensity')
+                            print(f"   ✓ 체결강도: {candidate.execution_intensity:.1f}" if candidate.execution_intensity else "   ⚠️  체결강도: 0")
+                        else:
+                            print(f"   ⚠️  체결강도 데이터 없음")
+                    except Exception as e:
+                        print(f"   ⚠️  체결강도 조회 실패: {e}")
+                        logger.debug(f"체결강도 조회 실패: {e}")
+
+                    # 프로그램매매 조회 (ka90013)
+                    print(f"   📊 프로그램매매 조회 중...")
+                    try:
+                        program_data = self.market_api.get_program_trading(
+                            stock_code=candidate.code
+                        )
+
+                        if program_data:
+                            candidate.program_net_buy = program_data.get('program_net_buy')
+                            print(f"   ✓ 프로그램순매수: {candidate.program_net_buy:,}원" if candidate.program_net_buy else "   ⚠️  프로그램순매수: 0원")
+                        else:
+                            print(f"   ⚠️  프로그램매매 데이터 없음")
+                    except Exception as e:
+                        print(f"   ⚠️  프로그램매매 조회 실패: {e}")
+                        logger.debug(f"프로그램매매 조회 실패: {e}")
 
                     # Deep Scan 점수 계산
                     candidate.deep_scan_score = self._calculate_deep_score(candidate)

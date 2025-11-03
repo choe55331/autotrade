@@ -25,8 +25,12 @@ class MarketAPI:
     ----------------------------------
     키움증권 REST API는 응답 구조가 API마다 다릅니다!
 
+    ⚠️ DOSK API ID는 키움증권 내부 API ID입니다
+    - DOSK_XXXX는 한국투자증권이 아님!
+    - 실제 요청은 키움증권 API 서버로 전송됨 (/api/dostk/...)
+
     1. 일반적인 패턴: response['output']
-       예: DOSK_XXXX 시리즈
+       예: DOSK_XXXX 시리즈 (키움증권 내부 API ID)
 
     2. 랭킹 API 패턴: 특정 키 사용
        - ka10031 (거래량순위): response['pred_trde_qty_upper']
@@ -1655,6 +1659,155 @@ class MarketAPI:
 
         except Exception as e:
             logger.error(f"증권사별 매매동향 조회 중 예외 발생: {e}")
+            import traceback
+            traceback.print_exc()
+            return None
+
+    def get_execution_intensity(
+        self,
+        stock_code: str,
+        days: int = 1
+    ) -> Optional[Dict[str, Any]]:
+        """
+        체결강도 조회 (ka10047)
+
+        Args:
+            stock_code: 종목코드
+            days: 조회 일수 (기본 1일, 최근 데이터만 사용)
+
+        Returns:
+            체결강도 데이터
+            {
+                'execution_intensity': 120.5,  # 체결강도
+                'date': '20231201',
+                'current_price': 50000,
+                ...
+            }
+        """
+        try:
+            response = self.client.request(
+                api_id="ka10047",
+                body={"stk_cd": stock_code},
+                path="mrkcond"
+            )
+
+            if response and response.get('return_code') == 0:
+                # 응답 키 자동 탐색
+                data_keys = [k for k in response.keys() if k not in ['return_code', 'return_msg', 'api-id', 'cont-yn', 'next-key']]
+
+                if data_keys:
+                    first_key = data_keys[0]
+                    data_list = response.get(first_key, [])
+
+                    if isinstance(data_list, list) and len(data_list) > 0:
+                        # 최근 데이터 (첫 번째)
+                        recent = data_list[0]
+
+                        # 체결강도 추출
+                        execution_intensity = recent.get('cntr_str', '0')
+                        try:
+                            execution_intensity_value = float(execution_intensity.replace(',', '').replace('+', '').replace('-', ''))
+                        except (ValueError, AttributeError):
+                            execution_intensity_value = 0.0
+
+                        result = {
+                            'execution_intensity': execution_intensity_value,
+                            'date': recent.get('dt', ''),
+                            'current_price': recent.get('cur_prc', 0),
+                            'change_rate': recent.get('flu_rt', 0),
+                            'volume': recent.get('trde_qty', 0),
+                        }
+
+                        logger.info(f"{stock_code} 체결강도: {execution_intensity_value}")
+                        return result
+
+                logger.warning(f"체결강도 데이터 없음: {stock_code}")
+                return None
+            else:
+                logger.error(f"체결강도 조회 실패: {response.get('return_msg')}")
+                return None
+
+        except Exception as e:
+            logger.error(f"체결강도 조회 중 예외 발생: {e}")
+            import traceback
+            traceback.print_exc()
+            return None
+
+    def get_program_trading(
+        self,
+        stock_code: str,
+        days: int = 1
+    ) -> Optional[Dict[str, Any]]:
+        """
+        프로그램매매 추이 조회 (ka90013)
+
+        Args:
+            stock_code: 종목코드
+            days: 조회 일수 (기본 1일, 최근 데이터만 사용)
+
+        Returns:
+            프로그램매매 데이터
+            {
+                'program_net_buy': 5000000,  # 프로그램순매수금액 (원)
+                'program_buy': 10000000,     # 프로그램매수금액
+                'program_sell': 5000000,     # 프로그램매도금액
+                'date': '20231201',
+                ...
+            }
+        """
+        try:
+            response = self.client.request(
+                api_id="ka90013",
+                body={
+                    "stk_cd": stock_code,
+                    "amt_qty_tp": "1",  # 1:금액
+                    "date": ""  # 빈 값이면 최근일
+                },
+                path="mrkcond"
+            )
+
+            if response and response.get('return_code') == 0:
+                # 응답 키 자동 탐색
+                data_keys = [k for k in response.keys() if k not in ['return_code', 'return_msg', 'api-id', 'cont-yn', 'next-key']]
+
+                if data_keys:
+                    first_key = data_keys[0]
+                    data_list = response.get(first_key, [])
+
+                    if isinstance(data_list, list) and len(data_list) > 0:
+                        # 최근 데이터 (첫 번째)
+                        recent = data_list[0]
+
+                        # 프로그램순매수금액 추출
+                        program_net_buy = recent.get('prm_netprps_amt', '0')
+                        try:
+                            # '+', '-' 부호와 쉼표 제거 후 숫자로 변환
+                            program_net_buy_value = int(program_net_buy.replace(',', '').replace('+', '').replace('-', ''))
+                            # 부호 처리 (원래 문자열에 '-'가 있으면 음수)
+                            if str(program_net_buy).startswith('-'):
+                                program_net_buy_value = -program_net_buy_value
+                        except (ValueError, AttributeError):
+                            program_net_buy_value = 0
+
+                        result = {
+                            'program_net_buy': program_net_buy_value,
+                            'program_buy': recent.get('prm_buy_amt', 0),
+                            'program_sell': recent.get('prm_sell_amt', 0),
+                            'date': recent.get('dt', ''),
+                            'current_price': recent.get('cur_prc', 0),
+                        }
+
+                        logger.info(f"{stock_code} 프로그램순매수: {program_net_buy_value:,}원")
+                        return result
+
+                logger.warning(f"프로그램매매 데이터 없음: {stock_code}")
+                return None
+            else:
+                logger.error(f"프로그램매매 조회 실패: {response.get('return_msg')}")
+                return None
+
+        except Exception as e:
+            logger.error(f"프로그램매매 조회 중 예외 발생: {e}")
             import traceback
             traceback.print_exc()
             return None
