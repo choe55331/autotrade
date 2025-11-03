@@ -1298,7 +1298,7 @@ class MarketAPI:
         response = self.client.request(
             api_id="ka10081",
             body=body,
-            path="mrkcond"
+            path="chart"
         )
 
         if response and response.get('return_code') == 0:

@@ -145,7 +145,7 @@ class DataCollectionTester:
                     "base_dt": get_last_trading_date(),
                     "upd_stkpc_tp": "1"
                 },
-                path="mrkcond"
+                path="chart"
             )
 
             if response and response.get('return_code') == 0:
