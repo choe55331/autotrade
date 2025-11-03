@@ -1313,7 +1313,16 @@ class TradingBotV2:
                     return
 
                 for position in positions:
-                    stock_code = position.get('stock_code')
+                    # position이 딕셔너리인지 문자열인지 확인
+                    if isinstance(position, dict):
+                        stock_code = position.get('stock_code')
+                    elif isinstance(position, str):
+                        # position이 문자열이면 종목코드 그 자체
+                        stock_code = position
+                    else:
+                        logger.warning(f"알 수 없는 position 타입: {type(position)}")
+                        continue
+
                     if stock_code and self.websocket_client:
                         # TODO: Kiwoom API의 실제 구독 메시지 형식으로 교체 필요
                         # 현재는 테스트 형식 (실제 API 문서 확인 필요)
@@ -1328,6 +1337,8 @@ class TradingBotV2:
                 logger.info("보유 종목 없음 - 구독 생략")
         except Exception as e:
             logger.warning(f"실시간 데이터 구독 중 오류: {e}")
+            import traceback
+            traceback.print_exc()
 
     def _on_ws_message(self, data: dict):
         """WebSocket 메시지 수신 콜백"""

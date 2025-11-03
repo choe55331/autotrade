@@ -276,20 +276,35 @@ class ScannerPipeline:
             # 각 종목에 대해 심층 분석
             for candidate in candidates:
                 try:
+                    print(f"📍 Deep Scan: {candidate.name} ({candidate.code})")
+
                     # 기관/외국인 매매 데이터 조회
+                    print(f"   📊 투자자 매매 조회 중...")
                     investor_data = self.market_api.get_investor_data(candidate.code)
 
                     if investor_data:
-                        candidate.institutional_net_buy = investor_data.get('기관_순매수', 0)
-                        candidate.foreign_net_buy = investor_data.get('외국인_순매수', 0)
+                        inst_buy = investor_data.get('기관_순매수', 0)
+                        frgn_buy = investor_data.get('외국인_순매수', 0)
+                        candidate.institutional_net_buy = inst_buy
+                        candidate.foreign_net_buy = frgn_buy
+                        print(f"   ✓ 투자자: 기관={inst_buy:,}, 외국인={frgn_buy:,}")
+                    else:
+                        print(f"   ⚠️  투자자 데이터 없음")
+                        candidate.institutional_net_buy = 0
+                        candidate.foreign_net_buy = 0
 
                     # 호가 데이터 조회
+                    print(f"   📊 호가 조회 중...")
                     bid_ask_data = self.market_api.get_bid_ask(candidate.code)
 
                     if bid_ask_data:
                         bid_total = bid_ask_data.get('매수_총잔량', 1)
                         ask_total = bid_ask_data.get('매도_총잔량', 1)
                         candidate.bid_ask_ratio = bid_total / ask_total if ask_total > 0 else 0
+                        print(f"   ✓ 호가: 매수={bid_total:,}, 매도={ask_total:,}, 비율={candidate.bid_ask_ratio:.2f}")
+                    else:
+                        print(f"   ⚠️  호가 데이터 없음")
+                        candidate.bid_ask_ratio = 0
 
                     # Deep Scan 점수 계산
                     candidate.deep_scan_score = self._calculate_deep_score(candidate)
@@ -298,7 +313,8 @@ class ScannerPipeline:
                     time.sleep(0.1)  # API 호출 간격
 
                 except Exception as e:
-                    logger.error(f"종목 {candidate.code} Deep Scan 실패: {e}")
+                    print(f"   ❌ 오류: {e}")
+                    logger.error(f"종목 {candidate.code} Deep Scan 실패: {e}", exc_info=True)
                     continue
 
             # 점수 기준 정렬

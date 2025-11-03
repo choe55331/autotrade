@@ -203,9 +203,21 @@ class WebSocketClient:
             except Exception as e:
                 logger.error(f"on_error 콜백 실행 중 오류: {e}")
     
-    def _on_close(self, ws, close_status_code, close_msg):
-        """연결 종료 핸들러"""
+    def _on_close(self, ws, close_status_code=None, close_msg=None):
+        """
+        연결 종료 핸들러
+
+        Note: websocket-client 라이브러리 버전에 따라 매개변수가 다를 수 있음
+        - 구버전: on_close(ws)
+        - 신버전: on_close(ws, close_status_code, close_msg)
+        """
         self.is_connected = False
+
+        # 매개변수가 None인 경우 처리
+        if close_status_code is None and close_msg is None:
+            logger.info("WebSocket 연결 종료")
+            close_status_code = 1000  # 정상 종료로 간주
+            close_msg = "Normal closure"
 
         # "Bye" 메시지는 서버의 정상 종료 신호
         close_msg_str = str(close_msg) if close_msg else ""
