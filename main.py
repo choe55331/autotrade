@@ -340,23 +340,9 @@ class TradingBotV2:
             # 9. 가상 매매 시스템
             logger.info("📝 가상 매매 시스템 초기화 중...")
             try:
-                # 가상 매매 초기 자본: 실제 계좌 잔고 기준
-                deposit = self.account_api.get_deposit()
-                if deposit:
-                    # 실제 주문 가능 금액
-                    real_available_cash = int(deposit.get('ord_alow_amt', 0))
-                    # 총 평가 금액
-                    total_assets = int(deposit.get('tot_evlu_amt', 0))
-
-                    # 가상 매매는 실제 총 자산 기준으로 시작
-                    virtual_initial_cash = total_assets if total_assets > 0 else real_available_cash
-
-                    logger.info(f"   실제 총 자산: {total_assets:,}원")
-                    logger.info(f"   가상 매매 초기 자본: {virtual_initial_cash:,}원")
-                else:
-                    # API 조회 실패 시 기본값 (1000만원)
-                    virtual_initial_cash = 10_000_000
-                    logger.warning(f"   계좌 정보 조회 실패 - 기본값 사용: {virtual_initial_cash:,}원")
+                # 가상 매매 초기 자본: 실제 계좌와 독립적으로 운영 (고정 1000만원)
+                virtual_initial_cash = 10_000_000
+                logger.info(f"   가상 매매 초기 자본: {virtual_initial_cash:,}원 (실제 계좌와 독립)")
 
                 # VirtualTrader 초기화 (3가지 전략: 공격적, 보수적, 균형)
                 self.virtual_trader = VirtualTrader(initial_cash=virtual_initial_cash)
@@ -399,18 +385,21 @@ class TradingBotV2:
             raise
 
     def _get_initial_capital(self) -> int:
-        """초기 자본금 가져오기"""
+        """초기 자본금 가져오기 (예수금 + 보유주식 평가금액)"""
         try:
             deposit = self.account_api.get_deposit()
+            holdings = self.account_api.get_holdings()
+
             if deposit:
-                # 실제 주문 가능 금액 (ord_alow_amt) 또는 총 평가 금액 (tot_evlu_amt) 사용
-                available = int(deposit.get('ord_alow_amt', 0))
-                total = int(deposit.get('tot_evlu_amt', 0))
+                # 예수금 총액
+                deposit_total = int(deposit.get('dnca_tot_amt', 0))
+                # 보유 주식 평가 금액
+                holdings_value = sum(int(h.get('eval_amt', 0)) for h in holdings) if holdings else 0
 
-                # 둘 중 더 큰 값 사용 (보유 주식이 있으면 total이 큼)
-                capital = max(available, total) if available > 0 or total > 0 else 10_000_000
+                # 총 자본금 = 예수금 + 보유주식 평가금액
+                capital = deposit_total + holdings_value if (deposit_total + holdings_value) > 0 else 10_000_000
 
-                logger.info(f"💰 초기 자본금: {capital:,}원 (주문가능: {available:,}, 총평가: {total:,})")
+                logger.info(f"💰 초기 자본금: {capital:,}원 (예수금: {deposit_total:,}, 보유주식: {holdings_value:,})")
                 return capital
             return 10_000_000  # 기본값 1천만원
         except Exception as e:
@@ -513,8 +502,18 @@ class TradingBotV2:
                         current_price = int(orderbook.get('mid_price', 0))
                         logger.info(f"✓ {samsung_name} 현재가: {current_price:,}원 (호가 기준)")
                     else:
-                        logger.error(f"❌ 호가 조회 실패 - 테스트 중단")
-                        return
+                        # NXT 시간대는 전일 종가 사용
+                        logger.warning(f"⚠️ 호가 조회 실패 - NXT 시간대는 전일 종가 사용")
+                        print(f"📊 DEBUG: 전일 종가 조회 시도 중...")
+                        daily_data = self.market_api.get_daily_chart(samsung_code, period=2)
+                        if daily_data and len(daily_data) > 0:
+                            # 가장 최근 데이터의 종가
+                            current_price = int(daily_data[0].get('close', 0))
+                            logger.info(f"✓ {samsung_name} 전일 종가 사용: {current_price:,}원")
+                            print(f"📊 DEBUG: 전일 종가: {current_price:,}원")
+                        else:
+                            logger.error(f"❌ 전일 종가 조회 실패 - 테스트 중단")
+                            return
 
             except Exception as e:
                 logger.error(f"❌ 가격 조회 실패: {e}")
@@ -811,18 +810,28 @@ class TradingBotV2:
         """계좌 정보 업데이트"""
         try:
             deposit = self.account_api.get_deposit()
-            cash = int(deposit.get('ord_alow_amt', 0)) if deposit else 0
-
             holdings = self.account_api.get_holdings()
+
+            # 예수금 총액 (dnca_tot_amt)
+            deposit_total = int(deposit.get('dnca_tot_amt', 0)) if deposit else 0
+
+            # 보유 주식 총 구입가 계산
+            total_purchase_amount = 0
+            for holding in holdings:
+                purchase_price = holding.get('buy_amt', 0)  # 매입금액
+                total_purchase_amount += int(purchase_price) if purchase_price else 0
+
+            # 가용 현금 = 예수금 - 보유주식 구입가
+            cash = deposit_total - total_purchase_amount
 
             # 포트폴리오 업데이트
             self.portfolio_manager.update_portfolio(holdings, cash)
 
             # 동적 리스크 관리자 업데이트
-            total_capital = cash + sum(h.get('eval_amt', 0) for h in holdings)
+            total_capital = deposit_total + sum(h.get('eval_amt', 0) for h in holdings)
             self.dynamic_risk_manager.update_capital(total_capital)
 
-            logger.info(f"💰 계좌 정보: 현금 {cash:,}원, 보유 {len(holdings)}개")
+            logger.info(f"💰 계좌 정보: 예수금 {deposit_total:,}원, 보유주식 구입가 {total_purchase_amount:,}원, 가용현금 {cash:,}원, 보유 {len(holdings)}개")
 
         except Exception as e:
             logger.error(f"계좌 정보 업데이트 실패: {e}")
@@ -1192,7 +1201,19 @@ class TradingBotV2:
 
             # 가용 현금
             deposit = self.account_api.get_deposit()
-            available_cash = int(deposit.get('ord_alow_amt', 0)) if deposit else 0
+            holdings = self.account_api.get_holdings()
+
+            # 예수금 총액
+            deposit_total = int(deposit.get('dnca_tot_amt', 0)) if deposit else 0
+
+            # 보유 주식 총 구입가 계산
+            total_purchase_amount = 0
+            for holding in holdings:
+                purchase_price = holding.get('buy_amt', 0)
+                total_purchase_amount += int(purchase_price) if purchase_price else 0
+
+            # 가용 현금 = 예수금 - 보유주식 구입가
+            available_cash = deposit_total - total_purchase_amount
 
             # 포지션 크기 계산 (동적 리스크 관리)
             quantity = self.dynamic_risk_manager.calculate_position_size(
