@@ -194,6 +194,8 @@ class WebSocketClient:
         error_str = str(error)
         if 'Bye' not in error_str:
             logger.error(f"WebSocket 오류: {error}")
+        else:
+            logger.info(f"WebSocket 정상 종료 신호 수신: {error}")
 
         if self.on_error_callback:
             try:
@@ -204,22 +206,37 @@ class WebSocketClient:
     def _on_close(self, ws, close_status_code, close_msg):
         """연결 종료 핸들러"""
         self.is_connected = False
-        logger.info(f"WebSocket 연결 종료 (코드: {close_status_code}, 메시지: {close_msg})")
-        
+
+        # "Bye" 메시지는 서버의 정상 종료 신호
+        close_msg_str = str(close_msg) if close_msg else ""
+        if 'Bye' in close_msg_str or close_status_code == 1000:
+            logger.info(f"WebSocket 서버 정상 종료 (코드: {close_status_code}, 메시지: {close_msg})")
+        else:
+            logger.warning(f"WebSocket 비정상 종료 (코드: {close_status_code}, 메시지: {close_msg})")
+
         if self.on_close_callback:
             try:
                 self.on_close_callback(close_status_code, close_msg)
             except Exception as e:
                 logger.error(f"on_close 콜백 실행 중 오류: {e}")
-        
-        # 재연결 시도
+
+        # 재연결 시도 (정상 종료 포함, should_reconnect가 True인 경우)
         if self.should_reconnect and self.reconnect_count < self.max_reconnects:
             self.reconnect_count += 1
-            logger.info(f"재연결 시도 {self.reconnect_count}/{self.max_reconnects} (#{self.reconnect_delay}초 후)")
-            time.sleep(self.reconnect_delay)
+            delay = self.reconnect_delay
+
+            # "Bye" 메시지로 정상 종료된 경우 조금 더 긴 대기 시간 사용
+            if 'Bye' in close_msg_str or close_status_code == 1000:
+                delay = max(delay, 10)  # 최소 10초 대기
+                logger.info(f"서버 정상 종료 후 재연결 대기: {delay}초")
+
+            logger.info(f"🔄 재연결 시도 {self.reconnect_count}/{self.max_reconnects} ({delay}초 후)")
+            time.sleep(delay)
             self.connect()
         elif self.reconnect_count >= self.max_reconnects:
-            logger.error("최대 재연결 횟수 초과. 재연결을 중단합니다.")
+            logger.error("❌ 최대 재연결 횟수 초과. 재연결을 중단합니다.")
+        elif not self.should_reconnect:
+            logger.info("재연결 비활성화 상태 - 재연결하지 않음")
 
 
 __all__ = ['WebSocketClient']

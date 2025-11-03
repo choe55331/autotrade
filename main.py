@@ -839,14 +839,27 @@ class TradingBotV2:
             candidate_scores = {}
             for candidate in final_candidates:
                 stock_data = {
+                    # 기본 정보
                     'stock_code': candidate.code,
                     'stock_name': candidate.name,
                     'current_price': candidate.price,
                     'volume': candidate.volume,
                     'change_rate': candidate.rate,
+
+                    # 투자자 매매 정보 (Deep Scan에서 수집됨)
                     'institutional_net_buy': candidate.institutional_net_buy,
                     'foreign_net_buy': candidate.foreign_net_buy,
                     'bid_ask_ratio': candidate.bid_ask_ratio,
+
+                    # 추가 필드 (현재 수집 안 됨 - 기본값 0)
+                    'execution_intensity': 100,  # 체결 강도 (기본값 100)
+                    'top_broker_buy_count': 0,   # 증권사 활동 (미구현)
+                    'program_net_buy': 0,        # 프로그램 매매 (미구현)
+                    'is_trending_theme': False,  # 테마 여부 (미구현)
+                    'has_positive_news': False,  # 긍정 뉴스 (미구현)
+                    'volatility': 0.0,           # 변동성 (미구현)
+
+                    # 기술적 지표는 없지만 가격/거래량 데이터로 추정 가능 (scoring_system에서 처리)
                 }
                 scoring_result = self.scoring_system.calculate_score(stock_data)
                 candidate_scores[candidate.code] = scoring_result

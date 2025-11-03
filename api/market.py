@@ -120,6 +120,14 @@ class MarketAPI:
 
         Returns:
             호가 정보
+            {
+                'sell_price': 매도1호가,
+                'buy_price': 매수1호가,
+                'mid_price': 중간가,
+                '매도_총잔량': 총매도잔량,
+                '매수_총잔량': 총매수잔량,
+                ...
+            }
         """
         body = {
             "stk_cd": stock_code
@@ -142,9 +150,20 @@ class MarketAPI:
             sell_price = abs(int(sel_fpr_bid)) if sel_fpr_bid and sel_fpr_bid != '0' else 0
             buy_price = abs(int(buy_fpr_bid)) if buy_fpr_bid and buy_fpr_bid != '0' else 0
 
+            # 총잔량 파싱
+            tot_sel_req = orderbook.get('tot_sel_req', '0').replace('+', '').replace('-', '')
+            tot_buy_req = orderbook.get('tot_buy_req', '0').replace('+', '').replace('-', '')
+
+            total_sell_qty = abs(int(tot_sel_req)) if tot_sel_req and tot_sel_req != '0' else 0
+            total_buy_qty = abs(int(tot_buy_req)) if tot_buy_req and tot_buy_req != '0' else 0
+
             # 정규화된 응답
             orderbook['sell_price'] = sell_price  # 매도1호가
             orderbook['buy_price'] = buy_price    # 매수1호가
+
+            # scanner_pipeline.py 호환 필드명 추가
+            orderbook['매도_총잔량'] = total_sell_qty
+            orderbook['매수_총잔량'] = total_buy_qty
 
             # 중간가 계산
             if sell_price > 0 and buy_price > 0:
@@ -156,7 +175,11 @@ class MarketAPI:
             else:
                 orderbook['mid_price'] = 0
 
-            logger.info(f"{stock_code} 호가 조회 완료 (매도1: {sell_price:,}, 매수1: {buy_price:,})")
+            logger.info(
+                f"{stock_code} 호가 조회 완료: "
+                f"매도1={sell_price:,}, 매수1={buy_price:,}, "
+                f"총잔량(매도={total_sell_qty:,}, 매수={total_buy_qty:,})"
+            )
             return orderbook
         else:
             logger.error(f"호가 조회 실패: {response.get('return_msg') if response else 'No response'}")
@@ -1101,7 +1124,7 @@ class MarketAPI:
         date: str = None
     ) -> Optional[Dict[str, Any]]:
         """
-        투자자별 매매 동향 조회
+        투자자별 매매 동향 조회 (키움증권 API ka10059)
 
         Args:
             stock_code: 종목코드
@@ -1109,28 +1132,86 @@ class MarketAPI:
 
         Returns:
             투자자별 매매 동향
+            {
+                '기관_순매수': 10000,
+                '외국인_순매수': 5000,
+                '개인_순매수': -15000,
+                ...
+            }
         """
         # 날짜 자동 계산
         if not date:
             date = get_last_trading_date()
 
         body = {
-            "stock_code": stock_code,
-            "date": date
+            "stk_cd": stock_code,
+            "dt": date,
+            "amt_qty_tp": "1",  # 1:금액, 2:수량
+            "trde_tp": "0",     # 0:순매수, 1:매수, 2:매도
+            "unit_tp": "1000"   # 1000:천주, 1:단주
         }
 
         response = self.client.request(
-            api_id="DOSK_0040",
+            api_id="ka10059",
             body=body,
-            path="inquire/investor"
+            path="stkinfo"
         )
 
         if response and response.get('return_code') == 0:
-            investor_info = response.get('output', {})
-            logger.info(f"{stock_code} 투자자별 매매 동향 조회 완료 (날짜: {date})")
+            # ka10059 응답 구조: stk_invsr_orgn 리스트
+            stk_invsr_orgn = response.get('stk_invsr_orgn', [])
+
+            if not stk_invsr_orgn:
+                logger.warning(f"{stock_code} 투자자별 매매 데이터 없음")
+                return None
+
+            # 가장 최근 데이터 (첫 번째 항목)
+            latest = stk_invsr_orgn[0]
+
+            # 필드 파싱 (천 단위로 제공되므로 1000 곱함)
+            def parse_value(val: str) -> int:
+                """문자열 값을 정수로 변환 (+/- 기호 제거, 천 단위 → 원 단위)"""
+                if not val:
+                    return 0
+                val_str = val.replace('+', '').replace('-', '').strip()
+                try:
+                    # 천 단위로 제공되므로 1000을 곱함
+                    return int(float(val_str)) * 1000
+                except (ValueError, AttributeError):
+                    return 0
+
+            # 부호 확인 (+ 또는 -)
+            def get_sign(val: str) -> int:
+                """값의 부호 반환 (1 또는 -1)"""
+                if not val:
+                    return 1
+                return -1 if val.startswith('-') else 1
+
+            # 기관, 외국인, 개인 순매수 추출
+            orgn_val = latest.get('orgn', '0')
+            frgnr_val = latest.get('frgnr_invsr', '0')
+            ind_val = latest.get('ind_invsr', '0')
+
+            institutional_net = parse_value(orgn_val) * get_sign(orgn_val)
+            foreign_net = parse_value(frgnr_val) * get_sign(frgnr_val)
+            individual_net = parse_value(ind_val) * get_sign(ind_val)
+
+            investor_info = {
+                '기관_순매수': institutional_net,
+                '외국인_순매수': foreign_net,
+                '개인_순매수': individual_net,
+                '날짜': latest.get('dt', date),
+                '현재가': parse_value(latest.get('cur_prc', '0')),
+                '등락율': latest.get('flu_rt', '0'),
+            }
+
+            logger.info(
+                f"{stock_code} 투자자별 매매 조회 완료: "
+                f"기관={institutional_net:,}, 외국인={foreign_net:,}, 개인={individual_net:,}"
+            )
             return investor_info
         else:
-            logger.error(f"투자자별 매매 동향 조회 실패: {response.get('return_msg')}")
+            logger.error(f"투자자별 매매 동향 조회 실패: {response.get('return_msg') if response else 'No response'}")
             return None
 
     def get_investor_data(
