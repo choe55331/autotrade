@@ -198,8 +198,8 @@ class VolumeBasedStrategy(ScanStrategy):
                     else:
                         print(f"      기관추이: 데이터 없음")
 
-                    # 4. 일봉 데이터 조회 (ka10001) - 평균거래량 & 변동성
-                    daily_data = self.market_api.get_daily_price(candidate.code, days=20)
+                    # 4. 일봉 데이터 조회 (ka10006) - 평균거래량 & 변동성
+                    daily_data = self.market_api.get_daily_chart(candidate.code, period=20)
                     if daily_data and len(daily_data) > 1:
                         # 평균 거래량 (20일)
                         volumes = [d.get('volume', 0) for d in daily_data if d.get('volume')]
@@ -207,8 +207,15 @@ class VolumeBasedStrategy(ScanStrategy):
                             candidate.avg_volume = sum(volumes) / len(volumes)
                             print(f"      일봉: 평균거래량={candidate.avg_volume:,.0f}")
 
-                        # 변동성 (20일 등락률 표준편차)
-                        rates = [d.get('change_rate', 0) for d in daily_data if d.get('change_rate') is not None]
+                        # 변동성 (20일 일별 등락률 표준편차)
+                        rates = []
+                        for d in daily_data:
+                            close = d.get('close', 0)
+                            open_price = d.get('open', 0)
+                            if open_price and open_price > 0:
+                                rate = ((close - open_price) / open_price) * 100
+                                rates.append(rate)
+
                         if len(rates) > 1:
                             import statistics
                             candidate.volatility = statistics.stdev(rates)
@@ -217,24 +224,47 @@ class VolumeBasedStrategy(ScanStrategy):
                         print(f"      일봉: 데이터 없음")
 
                     # 5. 증권사별매매 조회 (ka10078) - 주요 증권사 순매수
-                    broker_data = self.market_api.get_broker_trading(candidate.code, days=5)
-                    if broker_data:
-                        # 순매수 상위 증권사 카운트 (순매수 > 0)
-                        buy_count = 0
-                        total_net_buy = 0
-                        for broker in broker_data[:10]:  # 상위 10개 증권사만
-                            net_buy = broker.get('net_buy', 0)
-                            if net_buy > 0:
-                                buy_count += 1
-                                total_net_buy += net_buy
+                    # 주요 증권사 코드 목록 (상위 5개만 조회)
+                    major_firms = [
+                        ('001', '한국투자'),
+                        ('003', '미래에셋'),
+                        ('030', 'NH투자'),
+                        ('005', '삼성'),
+                        ('088', '신한'),
+                    ]
 
-                        candidate.top_broker_buy_count = buy_count
-                        candidate.top_broker_net_buy = total_net_buy
-                        print(f"      증권사: 순매수증권사={buy_count}개, 순매수총액={total_net_buy:,}")
+                    buy_count = 0
+                    total_net_buy = 0
+
+                    for firm_code, firm_name in major_firms:
+                        try:
+                            firm_data = self.market_api.get_securities_firm_trading(
+                                firm_code=firm_code,
+                                stock_code=candidate.code,
+                                days=5
+                            )
+
+                            if firm_data and len(firm_data) > 0:
+                                # 최근 데이터의 순매수량 확인
+                                latest = firm_data[0]
+                                net_qty = latest.get('net_qty', 0)
+
+                                if net_qty > 0:
+                                    buy_count += 1
+                                    total_net_buy += net_qty
+
+                            time.sleep(0.05)  # 증권사별 API 호출 간격
+
+                        except Exception as e:
+                            continue
+
+                    candidate.top_broker_buy_count = buy_count
+                    candidate.top_broker_net_buy = total_net_buy
+
+                    if buy_count > 0:
+                        print(f"      증권사: 순매수증권사={buy_count}개, 순매수총량={total_net_buy:,}주")
                     else:
-                        candidate.top_broker_buy_count = 0
-                        candidate.top_broker_net_buy = 0
-                        print(f"      증권사: 데이터 없음")
+                        print(f"      증권사: 순매수 없음")
 
                     # 6. 체결강도 조회 (ka10047)
                     execution_data = self.market_api.get_execution_intensity(candidate.code)
@@ -258,7 +288,7 @@ class VolumeBasedStrategy(ScanStrategy):
                     else:
                         print(f"      프로그램매매: 데이터 없음")
 
-                    time.sleep(0.2)  # API 호출 간격 (7개 API 호출)
+                    time.sleep(0.1)  # API 호출 간격 (7개 API + 증권사 5개)
 
                 except Exception as e:
                     print(f"      ❌ Deep Scan 오류: {e}")
