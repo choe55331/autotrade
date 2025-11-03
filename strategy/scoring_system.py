@@ -296,17 +296,18 @@ class ScoringSystem:
         max_score = config.get('weight', 40)
 
         bid_ask_ratio = stock_data.get('bid_ask_ratio', 0.0)
-        min_ratio = 0.8  # 강제 하드코딩: config 무시
 
-        if bid_ask_ratio >= min_ratio * 1.875:  # 1.5
+        # 호가비율 기준 (매수호가/매도호가)
+        # 1.0 이상 = 매수 우위, 1.0 미만 = 매도 우위
+        if bid_ask_ratio >= 1.5:  # 강한 매수 우위
             return max_score
-        elif bid_ask_ratio >= min_ratio * 1.5:  # 1.2
+        elif bid_ask_ratio >= 1.2:  # 매수 우위
             return max_score * 0.75
-        elif bid_ask_ratio >= min_ratio:  # 0.8
+        elif bid_ask_ratio >= 0.8:  # 균형 (약간 매도 우위)
             return max_score * 0.5
-        elif bid_ask_ratio >= min_ratio * 0.625:  # 0.5
+        elif bid_ask_ratio >= 0.5:  # 매도 우위
             return max_score * 0.25
-        else:
+        else:  # 강한 매도 우위
             return 0.0
 
     def _score_execution_intensity(self, stock_data: Dict[str, Any]) -> float:
@@ -406,21 +407,19 @@ class ScoringSystem:
             print(f"[DEBUG 프로그램] {stock_code}: 데이터 없음 → 0점")
             return 0.0
 
-        min_net_buy = 100  # 강제 하드코딩: config 무시 (100원 기준)
-        print(f"[DEBUG 프로그램] {stock_code}: min_net_buy={min_net_buy} (하드코딩)")
-
         # 양수(순매수)만 점수, 음수(순매도)는 0점
         if program_net_buy <= 0:
             print(f"[DEBUG 프로그램] {stock_code}: 음수 또는 0 → 0점")
             return 0.0
 
-        if program_net_buy >= min_net_buy * 50000:  # 500만원 이상
+        # 프로그램 순매수 금액 기준 (원 단위)
+        if program_net_buy >= 5_000_000:  # 500만원 이상
             score = max_score
-        elif program_net_buy >= min_net_buy * 30000:  # 300만원 이상
+        elif program_net_buy >= 3_000_000:  # 300만원 이상
             score = max_score * 0.75
-        elif program_net_buy >= min_net_buy * 10000:  # 100만원 이상
+        elif program_net_buy >= 1_000_000:  # 100만원 이상
             score = max_score * 0.5
-        elif program_net_buy >= min_net_buy:  # 100원 이상
+        elif program_net_buy >= 100_000:  # 10만원 이상
             score = max_score * 0.25
         else:
             score = 0.0
