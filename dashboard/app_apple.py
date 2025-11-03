@@ -2605,15 +2605,24 @@ def get_system_connections():
         if bot_instance and hasattr(bot_instance, 'client'):
             connections['rest_api'] = True
 
-        # WebSocket 체크
-        if bot_instance and hasattr(bot_instance, 'websocket_client'):
+        # WebSocket 체크 (구 websocket_client는 비활성화, 신 websocket_manager 사용)
+        if bot_instance and hasattr(bot_instance, 'websocket_manager'):
+            try:
+                ws_manager = bot_instance.websocket_manager
+                # WebSocketManager가 None이 아니고 연결되어 있는지 확인
+                if ws_manager is not None:
+                    connections['websocket'] = getattr(ws_manager, 'is_connected', False)
+                else:
+                    connections['websocket'] = False
+            except:
+                pass
+        elif bot_instance and hasattr(bot_instance, 'websocket_client'):
             try:
                 ws_client = bot_instance.websocket_client
-                # WebSocket이 비활성화된 경우 (None)
+                # 구 WebSocket 클라이언트 (비활성화됨)
                 if ws_client is None:
                     connections['websocket'] = False
                 else:
-                    # 속성 이름은 'is_connected' (not 'connected')
                     connections['websocket'] = getattr(ws_client, 'is_connected', False)
             except:
                 pass
