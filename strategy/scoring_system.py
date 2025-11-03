@@ -220,6 +220,10 @@ class ScoringSystem:
         """
         3. 기관 매수세 점수 (60점)
 
+        - institutional_net_buy (일별, ka10008): 40점
+        - foreign_net_buy (일별, ka10008): 10점
+        - institutional_trend (5일 추이, ka10045): 10점 ⭐ NEW
+
         Args:
             stock_data: 종목 데이터
 
@@ -231,24 +235,50 @@ class ScoringSystem:
 
         institutional_net_buy = stock_data.get('institutional_net_buy', 0)
         foreign_net_buy = stock_data.get('foreign_net_buy', 0)
+        institutional_trend = stock_data.get('institutional_trend', None)  # ⭐ ka10045 데이터
 
         min_net_buy = config.get('min_net_buy', 10_000_000)
 
         score = 0.0
 
-        # 기관 순매수 (40점)
+        # 1) 기관 순매수 - 일별 (40점)
         if institutional_net_buy >= min_net_buy * 5:
-            score += max_score * 0.67
+            score += 40.0  # max_score * 0.67
         elif institutional_net_buy >= min_net_buy * 3:
-            score += max_score * 0.5
+            score += 30.0  # max_score * 0.5
         elif institutional_net_buy >= min_net_buy:
-            score += max_score * 0.33
+            score += 20.0  # max_score * 0.33
 
-        # 외국인 순매수 (20점)
+        # 2) 외국인 순매수 - 일별 (10점)
         if foreign_net_buy >= min_net_buy:
-            score += max_score * 0.33
+            score += 10.0  # max_score * 0.33 (20점) → 10점으로 조정
         elif foreign_net_buy >= min_net_buy * 0.5:
-            score += max_score * 0.2
+            score += 5.0   # max_score * 0.2 (12점) → 5점으로 조정
+
+        # 3) 기관/외국인 매매 추이 - 5일 (10점) ⭐ NEW
+        if institutional_trend:
+            trend_score = 0.0
+            try:
+                # institutional_trend는 dict 형태: {'stk_orgn_for_trde_trnd': [...], ...}
+                for key, values in institutional_trend.items():
+                    if isinstance(values, list) and len(values) > 0:
+                        recent = values[0]  # 최근 데이터
+
+                        # 기관 순매수량이 양수면 +5점
+                        orgn_net = recent.get('orgn_netslmt', '0')
+                        if orgn_net and not str(orgn_net).startswith('-'):
+                            trend_score += 5.0
+
+                        # 외국인 순매수량이 양수면 +5점
+                        for_net = recent.get('for_netslmt', '0')
+                        if for_net and not str(for_net).startswith('-'):
+                            trend_score += 5.0
+
+                        break  # 첫 번째 키만 사용
+
+                score += trend_score
+            except Exception as e:
+                logger.debug(f"institutional_trend 파싱 실패: {e}")
 
         return min(score, max_score)
 

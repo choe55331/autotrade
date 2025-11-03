@@ -236,7 +236,10 @@ class TradingBotV2:
                     self.websocket_manager.register_callback('0B', on_price_update)      # 주식체결
                     self.websocket_manager.register_callback('0D', on_orderbook_update)  # 주식호가잔량
 
-                    logger.info("✓ WebSocketManager 초기화 완료 (연결은 필요 시 수동 실행)")
+                    logger.info("✓ WebSocketManager 초기화 완료")
+                    logger.info("   💡 실시간 데이터 수신은 현재 비활성화 상태입니다")
+                    logger.info("   💡 필요 시 bot.websocket_manager.connect() 호출하여 수동 연결 가능")
+                    logger.info("   💡 장중(09:00-15:30)에만 실시간 데이터가 수신됩니다")
                 else:
                     self.websocket_manager = None
                     logger.info("⚠️  토큰 없음 - WebSocketManager 비활성화")
@@ -925,7 +928,22 @@ class TradingBotV2:
 
             for rank, c in enumerate(top5, 1):
                 score_result = candidate_scores[c.code]
-                # 주요 점수 카테고리 (0점 초과인 것만)
+
+                # 전체 점수 breakdown (0점 포함)
+                breakdown_full = (
+                    f"거래량:{score_result.volume_surge_score:.0f}/60, "
+                    f"가격:{score_result.price_momentum_score:.0f}/60, "
+                    f"기관:{score_result.institutional_buying_score:.0f}/60, "
+                    f"호가:{score_result.bid_strength_score:.0f}/40, "
+                    f"체결:{score_result.execution_intensity_score:.0f}/40, "
+                    f"증권사:{score_result.broker_activity_score:.0f}/40, "
+                    f"프로그램:{score_result.program_trading_score:.0f}/40, "
+                    f"기술:{score_result.technical_indicators_score:.0f}/40, "
+                    f"테마:{score_result.theme_news_score:.0f}/40, "
+                    f"변동성:{score_result.volatility_pattern_score:.0f}/20"
+                )
+
+                # 요약 (0점 초과만)
                 breakdown_parts = []
                 if score_result.volume_surge_score > 0:
                     breakdown_parts.append(f"거래량:{score_result.volume_surge_score:.0f}")
@@ -938,8 +956,10 @@ class TradingBotV2:
                 if score_result.technical_indicators_score > 0:
                     breakdown_parts.append(f"기술:{score_result.technical_indicators_score:.0f}")
                 breakdown_str = ", ".join(breakdown_parts) if breakdown_parts else "기타"
+
                 percentage = (c.final_score / 440) * 100
                 print(f"   {rank}. {c.name} - {c.final_score:.0f}점 ({percentage:.0f}%) [{breakdown_str}]")
+                print(f"      상세: {breakdown_full}")
 
                 # scan_progress에 추가
                 self.scan_progress['top_candidates'].append({
@@ -977,21 +997,29 @@ class TradingBotV2:
                     'institutional_trend': getattr(candidate, 'institutional_trend', None),  # ka10045 기관매매추이 데이터
                 }
 
-                # 점수 breakdown 생성
+                # 점수 breakdown 생성 (AI에게 전달)
                 score_info = {
                     'score': scoring_result.total_score,
+                    'max_score': 440,
                     'percentage': scoring_result.percentage,
                     'breakdown': {
-                        '거래량 급증': scoring_result.volume_surge_score,
-                        '가격 모멘텀': scoring_result.price_momentum_score,
-                        '기관 매수세': scoring_result.institutional_buying_score,
-                        '매수 호가 강도': scoring_result.bid_strength_score,
-                        '체결 강도': scoring_result.execution_intensity_score,
-                        '증권사 활동': scoring_result.broker_activity_score,
-                        '프로그램 매매': scoring_result.program_trading_score,
-                        '기술적 지표': scoring_result.technical_indicators_score,
-                        '테마/뉴스': scoring_result.theme_news_score,
-                        '변동성 패턴': scoring_result.volatility_pattern_score,
+                        '거래량 급증 (60점 만점)': scoring_result.volume_surge_score,
+                        '가격 모멘텀 (60점 만점)': scoring_result.price_momentum_score,
+                        '기관 매수세 (60점 만점)': scoring_result.institutional_buying_score,
+                        '매수 호가 강도 (40점 만점)': scoring_result.bid_strength_score,
+                        '체결 강도 (40점 만점)': scoring_result.execution_intensity_score,
+                        '증권사 활동 (40점 만점)': scoring_result.broker_activity_score,
+                        '프로그램 매매 (40점 만점)': scoring_result.program_trading_score,
+                        '기술적 지표 (40점 만점)': scoring_result.technical_indicators_score,
+                        '테마/뉴스 (40점 만점)': scoring_result.theme_news_score,
+                        '변동성 패턴 (20점 만점)': scoring_result.volatility_pattern_score,
+                    },
+                    '0점 항목 설명': {
+                        '체결 강도': '기본값 100 < 최소값 120 (데이터 미수집)',
+                        '증권사 활동': '미구현 (향후 ka10078 API 활용 예정)',
+                        '프로그램 매매': '미구현 (향후 API 개발 필요)',
+                        '테마/뉴스': '미구현 (향후 뉴스 분석 API 연동 예정)',
+                        '변동성 패턴': '미구현 (향후 변동성 지표 계산 예정)',
                     }
                 }
 
