@@ -72,6 +72,7 @@ class OrderAPI:
             # trde_tp: 거래유형
             # - 00: 보통(지정가)
             # - 01: 시장가
+            # - 61: 장시작전시간외
             # - 62: 시간외단일가
             # - 81: 장마감후시간외
             # order_type을 trde_tp로 매핑
@@ -79,6 +80,8 @@ class OrderAPI:
                 trde_tp = '62'  # 시간외단일가
             elif order_type == '81':
                 trde_tp = '81'  # 장마감후시간외
+            elif order_type == '61':
+                trde_tp = '61'  # 장시작전시간외
             elif order_type in ['00', '02']:
                 trde_tp = '00'  # 지정가
             elif order_type == '01':
@@ -86,15 +89,21 @@ class OrderAPI:
             else:
                 trde_tp = order_type  # 그대로 사용
 
+            # dmst_stex_tp: 시간외 거래(61,62,81)는 NXT, 일반 거래는 KRX
+            if trde_tp in ['61', '62', '81']:
+                dmst_stex_tp = 'NXT'
+            else:
+                dmst_stex_tp = 'KRX'
+
             body_params = {
-                "dmst_stex_tp": "KRX",  # 시장구분 (KRX, NXT, SOR)
+                "dmst_stex_tp": dmst_stex_tp,
                 "stk_cd": stock_code,
                 "ord_qty": str(quantity),
                 "ord_uv": str(price),
                 "trde_tp": trde_tp
             }
 
-            logger.info(f"📋 주문 파라미터: trde_tp={trde_tp}, dmst_stex_tp=KRX")
+            logger.info(f"📋 주문 파라미터: trde_tp={trde_tp}, dmst_stex_tp={dmst_stex_tp}")
 
             # API 호출
             result = self.client.request(
@@ -170,6 +179,7 @@ class OrderAPI:
             # trde_tp: 거래유형
             # - 00: 보통(지정가)
             # - 01: 시장가
+            # - 61: 장시작전시간외
             # - 62: 시간외단일가
             # - 81: 장마감후시간외
             # order_type을 trde_tp로 매핑
@@ -177,6 +187,8 @@ class OrderAPI:
                 trde_tp = '62'  # 시간외단일가
             elif order_type == '81':
                 trde_tp = '81'  # 장마감후시간외
+            elif order_type == '61':
+                trde_tp = '61'  # 장시작전시간외
             elif order_type in ['00', '02']:
                 trde_tp = '00'  # 지정가
             elif order_type == '01':
@@ -184,15 +196,21 @@ class OrderAPI:
             else:
                 trde_tp = order_type  # 그대로 사용
 
+            # dmst_stex_tp: 시간외 거래(61,62,81)는 NXT, 일반 거래는 KRX
+            if trde_tp in ['61', '62', '81']:
+                dmst_stex_tp = 'NXT'
+            else:
+                dmst_stex_tp = 'KRX'
+
             body_params = {
-                "dmst_stex_tp": "KRX",  # 시장구분 (KRX, NXT, SOR)
+                "dmst_stex_tp": dmst_stex_tp,
                 "stk_cd": stock_code,
                 "ord_qty": str(quantity),
                 "ord_uv": str(price),
                 "trde_tp": trde_tp
             }
 
-            logger.info(f"📋 주문 파라미터: trde_tp={trde_tp}, dmst_stex_tp=KRX")
+            logger.info(f"📋 주문 파라미터: trde_tp={trde_tp}, dmst_stex_tp={dmst_stex_tp}")
 
             # API 호출
             result = self.client.request(
