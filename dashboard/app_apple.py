@@ -2609,8 +2609,12 @@ def get_system_connections():
         if bot_instance and hasattr(bot_instance, 'websocket_client'):
             try:
                 ws_client = bot_instance.websocket_client
-                # 속성 이름은 'is_connected' (not 'connected')
-                connections['websocket'] = getattr(ws_client, 'is_connected', False)
+                # WebSocket이 비활성화된 경우 (None)
+                if ws_client is None:
+                    connections['websocket'] = False
+                else:
+                    # 속성 이름은 'is_connected' (not 'connected')
+                    connections['websocket'] = getattr(ws_client, 'is_connected', False)
             except:
                 pass
 

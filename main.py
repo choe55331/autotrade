@@ -412,15 +412,19 @@ class TradingBotV2:
 
             # 시간대별 거래 유형 판단
             if 8 <= current_hour < 9:
-                market_type = "NXT 프리마켓"
-                order_type = "00"  # 지정가
-                logger.info(f"⏰ 현재 시간: {now.strftime('%H:%M:%S')} - {market_type}")
+                market_type = "장시작전 시간외"
+                order_type = "61"  # 장시작전시간외
+                logger.info(f"⏰ 현재 시간: {now.strftime('%H:%M:%S')} - {market_type} (주문유형: 장시작전시간외)")
             elif 9 <= current_hour < 15 or (current_hour == 15 and current_minute < 30):
-                market_type = "일반시장"
+                market_type = "정규장"
                 order_type = "00"  # 지정가
-                logger.info(f"⏰ 현재 시간: {now.strftime('%H:%M:%S')} - {market_type}")
-            elif 16 <= current_hour < 20:
-                market_type = "NXT 시간외 단일가"
+                logger.info(f"⏰ 현재 시간: {now.strftime('%H:%M:%S')} - {market_type} (주문유형: 지정가)")
+            elif current_hour == 15 and 40 <= current_minute < 60:
+                market_type = "장후 시간외 종가"
+                order_type = "81"  # 장마감후시간외
+                logger.info(f"⏰ 현재 시간: {now.strftime('%H:%M:%S')} - {market_type} (주문유형: 장마감후시간외)")
+            elif 16 <= current_hour < 18:
+                market_type = "시간외 단일가"
                 order_type = "62"  # 시간외단일가
                 logger.info(f"⏰ 현재 시간: {now.strftime('%H:%M:%S')} - {market_type} (주문유형: 시간외단일가)")
             else:
