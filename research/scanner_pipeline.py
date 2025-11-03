@@ -37,6 +37,8 @@ class StockCandidate:
     institutional_trend: Optional[Dict[str, Any]] = None  # ka10045 기관매매추이 데이터
     avg_volume: Optional[float] = None  # 평균 거래량 (20일)
     volatility: Optional[float] = None  # 변동성 (20일 표준편차)
+    top_broker_buy_count: int = 0  # 주요 증권사 순매수 카운트
+    top_broker_net_buy: int = 0  # 주요 증권사 순매수 총액
     deep_scan_score: float = 0.0
     deep_scan_time: Optional[datetime] = None
     deep_scan_breakdown: Dict[str, float] = field(default_factory=dict)  # 점수 상세
@@ -332,6 +334,54 @@ class ScannerPipeline:
                     except Exception as e:
                         print(f"   ⚠️  일봉 데이터 조회 실패: {e}")
                         logger.debug(f"일봉 데이터 조회 실패: {e}")
+
+                    # 증권사별 매매동향 조회 (주요 증권사 5개)
+                    print(f"   📊 증권사별 매매동향 조회 중...")
+                    try:
+                        # 주요 증권사 코드 (상위 5개)
+                        major_firms = [
+                            ("040", "KB증권"),
+                            ("039", "교보증권"),
+                            ("001", "한국투자증권"),
+                            ("003", "미래에셋증권"),
+                            ("005", "삼성증권")
+                        ]
+
+                        broker_buy_count = 0
+                        broker_net_buy_total = 0
+
+                        for firm_code, firm_name in major_firms:
+                            try:
+                                firm_data = self.market_api.get_securities_firm_trading(
+                                    firm_code=firm_code,
+                                    stock_code=candidate.code,
+                                    days=1  # 당일만 조회
+                                )
+
+                                if firm_data and len(firm_data) > 0:
+                                    # 최근 데이터 (당일)
+                                    recent = firm_data[0]
+                                    net_qty = recent.get('net_qty', 0)
+
+                                    if net_qty > 0:  # 순매수인 경우
+                                        broker_buy_count += 1
+                                        broker_net_buy_total += net_qty
+
+                                time.sleep(0.05)  # API 호출 간격
+                            except Exception as e:
+                                logger.debug(f"증권사 {firm_name} 데이터 조회 실패: {e}")
+                                continue
+
+                        candidate.top_broker_buy_count = broker_buy_count
+                        candidate.top_broker_net_buy = broker_net_buy_total
+
+                        if broker_buy_count > 0:
+                            print(f"   ✓ 증권사: {broker_buy_count}/5개 순매수, 총 {broker_net_buy_total:,}주")
+                        else:
+                            print(f"   ⚠️  증권사: 순매수 없음")
+                    except Exception as e:
+                        print(f"   ⚠️  증권사 데이터 조회 실패: {e}")
+                        logger.debug(f"증권사 데이터 조회 실패: {e}")
 
                     # Deep Scan 점수 계산
                     candidate.deep_scan_score = self._calculate_deep_score(candidate)

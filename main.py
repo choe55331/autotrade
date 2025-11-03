@@ -906,12 +906,15 @@ class TradingBotV2:
                     'avg_volume': getattr(candidate, 'avg_volume', None),  # 평균 거래량 (20일)
                     'volatility': getattr(candidate, 'volatility', None),  # 변동성 (20일 표준편차)
 
-                    # 미구현 필드 (기본값 None으로 변경 - scoring_system에서 추정 로직 사용)
-                    'execution_intensity': None,  # 체결 강도 (None이면 거래량/상승률로 추정)
-                    'top_broker_buy_count': 0,    # 증권사 활동 (미구현)
-                    'program_net_buy': 0,         # 프로그램 매매 (미구현)
-                    'is_trending_theme': False,   # 테마 여부 (미구현)
-                    'has_positive_news': False,   # 긍정 뉴스 (미구현)
+                    # 증권사별 매매동향 (Deep Scan에서 수집됨, ka10078)
+                    'top_broker_buy_count': getattr(candidate, 'top_broker_buy_count', 0),  # 주요 증권사 순매수 카운트
+                    'top_broker_net_buy': getattr(candidate, 'top_broker_net_buy', 0),  # 주요 증권사 순매수 총액
+
+                    # 미구현 필드 (API 없음)
+                    'execution_intensity': None,  # 체결 강도 (API 없음)
+                    'program_net_buy': 0,         # 프로그램 매매 (API 없음)
+                    'is_trending_theme': False,   # 테마 여부 (API 없음)
+                    'has_positive_news': False,   # 긍정 뉴스 (API 없음)
 
                     # 기술적 지표는 없지만 가격/거래량 데이터로 추정 가능 (scoring_system에서 처리)
                 }
