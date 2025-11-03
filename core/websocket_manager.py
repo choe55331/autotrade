@@ -491,9 +491,10 @@ async def test_websocket():
             print("❌ 연결 실패")
             return
 
-        # 구독
+        # 구독 - 더 많은 종목으로 테스트
+        stock_codes = ["005930", "000660", "035720", "051910", "035420"]  # 삼성전자, SK하이닉스, 카카오, LG화학, NAVER
         success = await ws_manager.subscribe(
-            stock_codes=["005930"],  # 삼성전자
+            stock_codes=stock_codes,
             types=["0B", "0D"],      # 체결 + 호가
             grp_no="1"
         )
@@ -501,9 +502,13 @@ async def test_websocket():
             print("❌ 구독 실패")
             return
 
-        # 실시간 데이터 수신 (10초)
-        print("\n실시간 데이터 수신 중 (10초)...")
-        await asyncio.wait_for(ws_manager.receive_loop(), timeout=10.0)
+        print(f"\n✅ {len(stock_codes)}개 종목 구독 완료")
+        print("💡 팁: 장중(09:00-15:30)에 테스트하면 실시간 데이터를 받을 수 있습니다.")
+        print("     장외시간에는 체결/호가 데이터가 없어 메시지가 수신되지 않습니다.\n")
+
+        # 실시간 데이터 수신 (30초)
+        print("실시간 데이터 수신 중 (30초)...")
+        await asyncio.wait_for(ws_manager.receive_loop(), timeout=30.0)
 
     except asyncio.TimeoutError:
         print("\n⏱️ 타임아웃 (정상)")
