@@ -296,14 +296,16 @@ class ScoringSystem:
         max_score = config.get('weight', 40)
 
         bid_ask_ratio = stock_data.get('bid_ask_ratio', 0.0)
-        min_ratio = config.get('min_ratio', 1.2)
+        min_ratio = config.get('min_ratio', 0.8)  # 1.2 → 0.8로 낮춤
 
-        if bid_ask_ratio >= min_ratio * 1.5:
+        if bid_ask_ratio >= min_ratio * 1.875:  # 1.5
             return max_score
-        elif bid_ask_ratio >= min_ratio * 1.2:
+        elif bid_ask_ratio >= min_ratio * 1.5:  # 1.2
             return max_score * 0.75
-        elif bid_ask_ratio >= min_ratio:
+        elif bid_ask_ratio >= min_ratio:  # 0.8
             return max_score * 0.5
+        elif bid_ask_ratio >= min_ratio * 0.625:  # 0.5
+            return max_score * 0.25
         else:
             return 0.0
 
@@ -329,15 +331,15 @@ class ScoringSystem:
             return 0.0
 
         # 체결강도 기준 점수 계산
-        min_value = config.get('min_value', 120)
+        min_value = config.get('min_value', 50)  # 120 → 50으로 낮춤
 
-        if execution_intensity >= min_value * 1.5:  # 180 이상
+        if execution_intensity >= min_value * 3.0:  # 150 이상
             return max_score
-        elif execution_intensity >= min_value * 1.2:  # 144 이상
+        elif execution_intensity >= min_value * 2.0:  # 100 이상
             return max_score * 0.75
-        elif execution_intensity >= min_value:  # 120 이상
+        elif execution_intensity >= min_value * 1.4:  # 70 이상
             return max_score * 0.5
-        elif execution_intensity >= min_value * 0.8:  # 96 이상
+        elif execution_intensity >= min_value:  # 50 이상
             return max_score * 0.25
         else:
             return 0.0
@@ -358,12 +360,14 @@ class ScoringSystem:
         broker_buy_count = stock_data.get('top_broker_buy_count', 0)
         top_brokers = config.get('top_brokers', 5)
 
-        if broker_buy_count >= top_brokers:
+        if broker_buy_count >= top_brokers:  # 5개
             return max_score
-        elif broker_buy_count >= top_brokers * 0.6:
+        elif broker_buy_count >= top_brokers * 0.6:  # 3개
             return max_score * 0.67
-        elif broker_buy_count >= top_brokers * 0.4:
+        elif broker_buy_count >= top_brokers * 0.4:  # 2개
             return max_score * 0.33
+        elif broker_buy_count >= 1:  # 1개라도 있으면
+            return max_score * 0.17
         else:
             return 0.0
 
@@ -384,19 +388,23 @@ class ScoringSystem:
 
         program_net_buy = stock_data.get('program_net_buy')
 
-        # 데이터가 없거나 0이면 0점
+        # 데이터가 없으면 0점
         if program_net_buy is None:
             return 0.0
 
-        min_net_buy = config.get('min_net_buy', 5_000_000)
+        min_net_buy = config.get('min_net_buy', 100_000)  # 500만원 → 10만원으로 낮춤
 
-        if program_net_buy >= min_net_buy * 5:  # 2500만원 이상
+        # 양수(순매수)만 점수, 음수(순매도)는 0점
+        if program_net_buy <= 0:
+            return 0.0
+
+        if program_net_buy >= min_net_buy * 50:  # 500만원 이상
             return max_score
-        elif program_net_buy >= min_net_buy * 3:  # 1500만원 이상
+        elif program_net_buy >= min_net_buy * 30:  # 300만원 이상
             return max_score * 0.75
-        elif program_net_buy >= min_net_buy:  # 500만원 이상
+        elif program_net_buy >= min_net_buy * 10:  # 100만원 이상
             return max_score * 0.5
-        elif program_net_buy >= min_net_buy * 0.5:  # 250만원 이상
+        elif program_net_buy >= min_net_buy:  # 10만원 이상
             return max_score * 0.25
         else:
             return 0.0
