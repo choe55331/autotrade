@@ -31,7 +31,7 @@ class ComprehensiveDataTester:
 
     def __init__(self):
         """테스터 초기화"""
-        self.rest_client = KiwoomRESTClient.get_instance()
+        self.rest_client = KiwoomRESTClient()  # 싱글톤 패턴으로 동작
         self.test_stock = "005930"  # 삼성전자 (테스트용)
         self.test_results = {
             'scoring_apis': [],
@@ -40,7 +40,7 @@ class ComprehensiveDataTester:
         }
 
         # WebSocket 테스트를 위한 토큰 추출
-        self.access_token = self.rest_client.credentials.get('access_token', '')
+        self.access_token = self.rest_client.token if hasattr(self.rest_client, 'token') else ''
         self.base_url = self.rest_client.base_url
 
         # WebSocket URL 결정
