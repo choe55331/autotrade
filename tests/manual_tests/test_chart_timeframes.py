@@ -46,27 +46,48 @@ class ChartTimeframesTester:
             response = self.client.request(api_id=api_id, body=body, path=path)
 
             if response:
-                print(f"✅ 성공!")
+                print(f"✅ API 호출 성공!")
                 print(f"응답 키: {list(response.keys())}")
 
-                # 데이터 확인
+                # 데이터 확인 - 실제 데이터가 있는지 체크
+                has_data = False
+                data_count = 0
+
                 for key, value in response.items():
                     if isinstance(value, list):
-                        print(f"   - {key}: {len(value)}개 항목")
-                        if len(value) > 0:
+                        data_count = len(value)
+                        print(f"   - {key}: {data_count}개 항목")
+                        if data_count > 0:
+                            has_data = True
                             print(f"      첫 번째 항목 키: {list(value[0].keys())}")
                             print(f"      첫 번째 항목 샘플: {json.dumps(value[0], ensure_ascii=False, indent=8)}")
+                        else:
+                            print(f"      ⚠️ 데이터가 비어있음 (빈 배열)")
                     else:
                         print(f"   - {key}: {value}")
 
-                self.success_results.append({
-                    'test_name': test_name,
-                    'api_id': api_id,
-                    'path': path,
-                    'body': body,
-                    'response_keys': list(response.keys())
-                })
-                return True
+                # 실제 데이터가 있을 때만 성공으로 간주
+                if has_data:
+                    print(f"✅ 실제 데이터 있음: {data_count}개")
+                    self.success_results.append({
+                        'test_name': test_name,
+                        'api_id': api_id,
+                        'path': path,
+                        'body': body,
+                        'response_keys': list(response.keys()),
+                        'data_count': data_count
+                    })
+                    return True
+                else:
+                    print(f"❌ API 호출은 성공했지만 데이터가 없음")
+                    self.failed_results.append({
+                        'test_name': test_name,
+                        'api_id': api_id,
+                        'path': path,
+                        'body': body,
+                        'error': 'No data in response (empty array)'
+                    })
+                    return False
             else:
                 print(f"❌ 실패: 응답 없음")
                 self.failed_results.append({
