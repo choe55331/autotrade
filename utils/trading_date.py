@@ -75,12 +75,45 @@ def get_trading_date_with_fallback(days_back: int = 5) -> list:
     return dates
 
 
-def is_market_hours() -> bool:
+def is_nxt_hours() -> bool:
     """
-    현재가 장 운영 시간인지 확인
+    현재가 NXT 거래 시간인지 확인 (프리마켓 + 애프터마켓)
+
+    NXT 거래 시간:
+    - 프리마켓: 08:00 ~ 09:00
+    - 애프터마켓: 15:30 ~ 20:00
 
     Returns:
-        장 운영 시간 여부
+        NXT 거래 시간 여부
+    """
+    now = datetime.now()
+    current_weekday = now.weekday()
+    current_hour = now.hour
+    current_minute = now.minute
+
+    # 주말은 무조건 False
+    if current_weekday >= 5:
+        return False
+
+    # 평일 프리마켓: 08:00 ~ 08:59
+    if current_hour == 8:
+        return True
+
+    # 평일 애프터마켓: 15:30 ~ 19:59
+    if current_hour == 15 and current_minute >= 30:
+        return True
+    elif 16 <= current_hour < 20:
+        return True
+
+    return False
+
+
+def is_market_hours() -> bool:
+    """
+    현재가 장 운영 시간인지 확인 (정규장만, NXT 제외)
+
+    Returns:
+        정규장 운영 시간 여부
     """
     now = datetime.now()
     current_weekday = now.weekday()
@@ -100,6 +133,21 @@ def is_market_hours() -> bool:
         return True
 
     return False
+
+
+def is_any_trading_hours() -> bool:
+    """
+    현재가 거래 시간인지 확인 (정규장 + NXT 포함)
+
+    전체 거래 시간: 08:00 ~ 20:00
+    - 08:00-09:00: NXT 프리마켓
+    - 09:00-15:30: 정규장
+    - 15:30-20:00: NXT 애프터마켓
+
+    Returns:
+        거래 시간 여부
+    """
+    return is_nxt_hours() or is_market_hours()
 
 
 def is_after_market_hours() -> bool:
@@ -133,7 +181,8 @@ def should_use_test_mode() -> bool:
 
     조건:
     - 휴일 (토요일, 일요일)
-    - 평일 오후 8시(20:00) ~ 오전 8시(08:00)
+    - 평일 거래 시간 외 (20:00 ~ 08:00)
+      * 거래 시간: 08:00-20:00 (NXT 프리마켓 + 정규장 + NXT 애프터마켓)
 
     Returns:
         테스트 모드 사용 여부
@@ -146,7 +195,8 @@ def should_use_test_mode() -> bool:
     if current_weekday >= 5:
         return True
 
-    # 평일: 20:00 ~ 23:59 또는 00:00 ~ 07:59
+    # 평일: 거래 시간(08:00-20:00) 외에는 테스트 모드
+    # 즉, 20:00 ~ 23:59 또는 00:00 ~ 07:59
     if current_hour >= 20 or current_hour < 8:
         return True
 
@@ -156,7 +206,9 @@ def should_use_test_mode() -> bool:
 __all__ = [
     'get_last_trading_date',
     'get_trading_date_with_fallback',
+    'is_nxt_hours',
     'is_market_hours',
+    'is_any_trading_hours',
     'is_after_market_hours',
     'should_use_test_mode'
 ]
