@@ -61,16 +61,20 @@ class MarketAPI:
         self.client = client
         logger.info("MarketAPI 초기화 완료")
     
-    def get_stock_price(self, stock_code: str) -> Optional[Dict[str, Any]]:
+    def get_stock_price(self, stock_code: str, use_fallback: bool = True) -> Optional[Dict[str, Any]]:
         """
         종목 체결정보 조회 (키움증권 API ka10003)
+        NXT 시간대 및 fallback 지원
 
         Args:
             stock_code: 종목코드
+            use_fallback: 실패 시 대체 소스 사용 여부 (기본값: True)
 
         Returns:
             체결정보 (현재가 포함)
         """
+        from utils.trading_date import is_nxt_hours, is_any_trading_hours
+
         body = {
             "stk_cd": stock_code
         }
@@ -104,16 +108,32 @@ class MarketAPI:
                     'acc_trading_value': latest.get('acc_trde_prica', '0'),
                     'time': latest.get('tm', ''),
                     'stex_tp': latest.get('stex_tp', ''),
+                    'source': 'nxt_market' if is_nxt_hours() else 'regular_market',
                 }
 
-                logger.info(f"{stock_code} 현재가: {current_price:,}원")
+                logger.info(f"{stock_code} 현재가: {current_price:,}원 (출처: {price_info['source']})")
                 return price_info
             else:
-                logger.error(f"현재가 조회 실패: 체결정보 없음 (장외시간일 수 있음)")
-                return None
+                logger.warning(f"현재가 조회 실패: 체결정보 없음")
         else:
-            logger.error(f"현재가 조회 실패: {response.get('return_msg') if response else 'No response'}")
-            return None
+            logger.warning(f"현재가 조회 API 실패: {response.get('return_msg') if response else 'No response'}")
+
+        # Fallback: 호가 정보에서 현재가 추출 시도
+        if use_fallback:
+            logger.info(f"{stock_code} 호가 정보로 현재가 조회 시도...")
+            orderbook = self.get_orderbook(stock_code)
+            if orderbook and orderbook.get('현재가', 0) > 0:
+                current_price = int(orderbook.get('현재가', 0))
+                logger.info(f"{stock_code} 현재가: {current_price:,}원 (출처: orderbook)")
+                return {
+                    'current_price': current_price,
+                    'cur_prc': current_price,
+                    'source': 'orderbook',
+                    'time': '',
+                }
+
+        logger.error(f"{stock_code} 현재가 조회 완전 실패 (모든 소스)")
+        return None
     
     def get_orderbook(self, stock_code: str) -> Optional[Dict[str, Any]]:
         """

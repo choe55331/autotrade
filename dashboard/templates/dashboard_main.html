@@ -838,7 +838,7 @@
                 <!-- Strategy Cards Grid -->
                 <div class="grid-3" id="virtual-strategies-grid">
                     <!-- 공격적 전략 -->
-                    <div class="card" id="strategy-aggressive">
+                    <div class="card" id="strategy-aggressive" style="cursor: pointer;" onclick="toggleStrategyDetails('공격적')">
                         <div class="card-header">
                             <div class="card-title">
                                 <i class="fas fa-fire" style="color: #ef4444;"></i> 공격적 전략
@@ -862,10 +862,15 @@
                                 <span class="metric-value" id="aggressive-winrate">-</span>
                             </div>
                         </div>
+                        <!-- Position Details (Hidden by default) -->
+                        <div id="aggressive-details" style="display: none; border-top: 1px solid var(--border); padding: 15px; background: var(--bg-dark);">
+                            <div style="font-size: 12px; font-weight: 600; margin-bottom: 10px; color: var(--text-secondary);">보유 포지션</div>
+                            <div id="aggressive-positions-list"></div>
+                        </div>
                     </div>
 
                     <!-- 보수적 전략 -->
-                    <div class="card" id="strategy-conservative">
+                    <div class="card" id="strategy-conservative" style="cursor: pointer;" onclick="toggleStrategyDetails('보수적')">
                         <div class="card-header">
                             <div class="card-title">
                                 <i class="fas fa-shield-alt" style="color: #3b82f6;"></i> 보수적 전략
@@ -889,10 +894,15 @@
                                 <span class="metric-value" id="conservative-winrate">-</span>
                             </div>
                         </div>
+                        <!-- Position Details (Hidden by default) -->
+                        <div id="conservative-details" style="display: none; border-top: 1px solid var(--border); padding: 15px; background: var(--bg-dark);">
+                            <div style="font-size: 12px; font-weight: 600; margin-bottom: 10px; color: var(--text-secondary);">보유 포지션</div>
+                            <div id="conservative-positions-list"></div>
+                        </div>
                     </div>
 
                     <!-- 균형 전략 -->
-                    <div class="card" id="strategy-balanced">
+                    <div class="card" id="strategy-balanced" style="cursor: pointer;" onclick="toggleStrategyDetails('균형')">
                         <div class="card-header">
                             <div class="card-title">
                                 <i class="fas fa-balance-scale" style="color: #f59e0b;"></i> 균형 전략
@@ -915,6 +925,11 @@
                                 <span class="metric-label">승률</span>
                                 <span class="metric-value" id="balanced-winrate">-</span>
                             </div>
+                        </div>
+                        <!-- Position Details (Hidden by default) -->
+                        <div id="balanced-details" style="display: none; border-top: 1px solid var(--border); padding: 15px; background: var(--bg-dark);">
+                            <div style="font-size: 12px; font-weight: 600; margin-bottom: 10px; color: var(--text-secondary);">보유 포지션</div>
+                            <div id="balanced-positions-list"></div>
                         </div>
                     </div>
                 </div>
@@ -1938,7 +1953,7 @@
 
                 const bestData = strategies[bestStrategy.name || bestStrategy];
                 if (bestData) {
-                    const returnPct = (bestData.total_pnl_rate || 0) * 100;
+                    const returnPct = bestData.total_pnl_rate || 0;  // Already percentage
                     document.getElementById('best-strategy-return').textContent =
                         (returnPct >= 0 ? '+' : '') + returnPct.toFixed(2) + '%';
                 }
@@ -1949,7 +1964,7 @@
                 const strategyId = strategyNames[name];
                 if (!strategyId) return;
 
-                const returnPct = (summary.total_pnl_rate || 0) * 100;
+                const returnPct = summary.total_pnl_rate || 0;  // Already percentage
                 const returnClass = returnPct >= 0 ? 'positive' : 'negative';
 
                 document.getElementById(`${strategyId}-cash`).textContent =
@@ -1962,7 +1977,7 @@
                 document.getElementById(`${strategyId}-positions`).textContent =
                     (summary.position_count || 0) + '개';
 
-                const winRate = (summary.win_rate || 0) * 100;
+                const winRate = summary.win_rate || 0;  // Already percentage
                 document.getElementById(`${strategyId}-winrate`).textContent =
                     winRate.toFixed(1) + '%';
             });
@@ -2004,6 +2019,64 @@
             html += '</div>';
 
             container.innerHTML = html;
+        }
+
+        // Toggle Strategy Position Details
+        async function toggleStrategyDetails(strategyName) {
+            const strategyNames = {
+                '공격적': 'aggressive',
+                '보수적': 'conservative',
+                '균형': 'balanced'
+            };
+
+            const strategyId = strategyNames[strategyName];
+            const detailsDiv = document.getElementById(`${strategyId}-details`);
+            const positionsDiv = document.getElementById(`${strategyId}-positions-list`);
+
+            // Toggle display
+            if (detailsDiv.style.display === 'none' || !detailsDiv.style.display) {
+                detailsDiv.style.display = 'block';
+
+                // Load positions
+                positionsDiv.innerHTML = '<div style="text-align: center; padding: 10px;"><div class="spinner"></div></div>';
+
+                try {
+                    const response = await fetch(`/api/virtual_trading/account/${strategyName}`);
+                    const data = await response.json();
+
+                    if (data.success && data.positions) {
+                        if (data.positions.length === 0) {
+                            positionsDiv.innerHTML = '<div style="text-align: center; padding: 10px; color: var(--text-secondary); font-size: 11px;">보유 포지션 없음</div>';
+                        } else {
+                            let html = '<div style="display: flex; flex-direction: column; gap: 8px;">';
+                            data.positions.forEach(pos => {
+                                const plClass = (pos.unrealized_pnl || 0) >= 0 ? 'positive' : 'negative';
+                                html += `
+                                    <div style="background: var(--bg-primary); padding: 10px; border-radius: 6px; font-size: 11px;">
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                            <span style="font-weight: 600;">${pos.stock_name} (${pos.stock_code})</span>
+                                            <span class="metric-value ${plClass}">${(pos.unrealized_pnl >= 0 ? '+' : '')}${pos.unrealized_pnl_rate.toFixed(2)}%</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; color: var(--text-secondary);">
+                                            <span>${pos.quantity}주 @ ₩${formatNumber(pos.avg_price)}</span>
+                                            <span>현재 ₩${formatNumber(pos.current_price || pos.avg_price)}</span>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                            html += '</div>';
+                            positionsDiv.innerHTML = html;
+                        }
+                    } else {
+                        positionsDiv.innerHTML = '<div style="text-align: center; padding: 10px; color: var(--error); font-size: 11px;">데이터 로드 실패</div>';
+                    }
+                } catch (error) {
+                    console.error('Position load error:', error);
+                    positionsDiv.innerHTML = '<div style="text-align: center; padding: 10px; color: var(--error); font-size: 11px;">오류 발생</div>';
+                }
+            } else {
+                detailsDiv.style.display = 'none';
+            }
         }
 
         // Utility Functions
