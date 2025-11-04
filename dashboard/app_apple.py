@@ -229,13 +229,15 @@ def get_account():
             deposit = bot_instance.account_api.get_deposit()
             holdings = bot_instance.account_api.get_holdings()
 
-            # 계좌 정보 계산
-            cash = int(deposit.get('ord_alow_amt', 0)) if deposit else 0
-            stock_value = sum(int(h.get('eval_amt', 0)) for h in holdings) if holdings else 0
-            total_assets = cash + stock_value
+            # 계좌 정보 계산 (kt00001 API 응답 구조에 맞게 수정)
+            # entr: 예수금, 100stk_ord_alow_amt: 100% 주문가능금액 (실제 사용가능액)
+            deposit_amount = int(str(deposit.get('entr', '0')).replace(',', '')) if deposit else 0
+            cash = int(str(deposit.get('100stk_ord_alow_amt', '0')).replace(',', '')) if deposit else 0
+            stock_value = sum(int(str(h.get('eval_amt', 0)).replace(',', '')) for h in holdings) if holdings else 0
+            total_assets = deposit_amount + stock_value
 
             # 손익 계산
-            total_buy_amount = sum(int(h.get('pchs_amt', 0)) for h in holdings) if holdings else 0
+            total_buy_amount = sum(int(str(h.get('pchs_amt', 0)).replace(',', '')) for h in holdings) if holdings else 0
             profit_loss = stock_value - total_buy_amount
             profit_loss_percent = (profit_loss / total_buy_amount * 100) if total_buy_amount > 0 else 0
 
