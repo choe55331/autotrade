@@ -19,25 +19,42 @@ class NXTPriceFix:
 
     @staticmethod
     def is_nxt_time() -> bool:
-        """NXT 거래 시간인지 확인"""
+        """
+        NXT 시간외 거래 시간인지 확인
+
+        시간외 단일가:
+        - 오전: 08:00 ~ 09:00
+        - 오후: 15:30 ~ 20:00 (실제는 18:00까지지만 여유있게)
+        """
         now = datetime.now().time()
 
-        # NXT 거래시간: 16:00 ~ 18:00
-        nxt_start = time(16, 0)
-        nxt_end = time(18, 0)
+        # 오전 시간외: 08:00 ~ 09:00
+        morning_nxt_start = time(8, 0)
+        morning_nxt_end = time(9, 0)
 
-        return nxt_start <= now <= nxt_end
+        # 오후 시간외: 15:30 ~ 20:00
+        afternoon_nxt_start = time(15, 30)
+        afternoon_nxt_end = time(20, 0)
+
+        is_morning_nxt = morning_nxt_start <= now < morning_nxt_end
+        is_afternoon_nxt = afternoon_nxt_start <= now <= afternoon_nxt_end
+
+        return is_morning_nxt or is_afternoon_nxt
 
     @staticmethod
     def is_regular_market_time() -> bool:
-        """정규시장 시간인지 확인"""
+        """
+        정규시장 시간인지 확인
+
+        정규시장: 09:00 ~ 15:30
+        """
         now = datetime.now().time()
 
         # 정규시장: 09:00 ~ 15:30
         market_start = time(9, 0)
         market_close = time(15, 30)
 
-        return market_start <= now <= market_close
+        return market_start <= now < market_close
 
     @staticmethod
     def approach_1_time_aware_api(market_api, stock_code: str) -> Optional[Dict[str, Any]]:

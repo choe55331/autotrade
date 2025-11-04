@@ -18,23 +18,24 @@ class AccountBalanceFix:
     @staticmethod
     def approach_1_deposit_minus_purchase(deposit: Dict, holdings: List[Dict]) -> Dict[str, Any]:
         """
-        접근법 1: 예수금 - 총 구매원가
+        접근법 1: 키움증권 API의 실제 사용가능액 필드 사용
 
-        가장 정확한 방법
-        - dps_amt: 예수금 (실제 보유 현금)
-        - pchs_amt: 매입금액 (구매에 사용한 금액)
+        kt00001 API 응답에서:
+        - entr: 예수금
+        - 100stk_ord_alow_amt: 100% 주문가능금액 (실제 사용가능액)
+        - ord_alow_amt: 일반 주문가능금액 (보수적)
         """
-        # 예수금
-        deposit_amount = int(deposit.get('dps_amt', 0))
+        # 예수금 (entr 필드)
+        deposit_amount = int(deposit.get('entr', '0').replace(',', ''))
 
-        # 보유주식 총 구매원가
-        total_purchase_cost = sum(int(h.get('pchs_amt', 0)) for h in holdings)
+        # 실제 사용가능액 (100% 주문가능금액)
+        available_cash = int(deposit.get('100stk_ord_alow_amt', '0').replace(',', ''))
 
-        # 실제 사용가능액 = 예수금 - 구매원가
-        available_cash = deposit_amount - total_purchase_cost
+        # 보유주식 총 구매원가 (추가 정보용)
+        total_purchase_cost = sum(int(str(h.get('pchs_amt', 0)).replace(',', '')) for h in holdings)
 
         # 보유주식 현재가치
-        stock_value = sum(int(h.get('eval_amt', 0)) for h in holdings)
+        stock_value = sum(int(str(h.get('eval_amt', 0)).replace(',', '')) for h in holdings)
 
         # 총 자산 = 예수금 + 보유주식 평가액
         total_assets = deposit_amount + stock_value
@@ -45,7 +46,7 @@ class AccountBalanceFix:
 
         return {
             'total_assets': total_assets,
-            'cash': available_cash,  # 실제 사용가능액
+            'cash': available_cash,  # 실제 사용가능액 (100stk_ord_alow_amt)
             'stock_value': stock_value,
             'profit_loss': profit_loss,
             'profit_loss_percent': profit_loss_percent,
@@ -53,9 +54,11 @@ class AccountBalanceFix:
 
             # 디버깅 정보
             '_debug': {
-                'deposit_amount': deposit_amount,
+                'deposit_amount': deposit_amount,  # entr
+                'available_cash': available_cash,  # 100stk_ord_alow_amt
                 'total_purchase_cost': total_purchase_cost,
-                'calculation': f'{deposit_amount} - {total_purchase_cost} = {available_cash}'
+                'ord_alow_amt': int(deposit.get('ord_alow_amt', '0').replace(',', '')),  # 참고용
+                'field': '100stk_ord_alow_amt'
             }
         }
 
