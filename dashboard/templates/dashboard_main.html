@@ -1201,15 +1201,41 @@
                 </div>
             </div>
 
-            <!-- Trading Activity Section -->
+            <!-- Program Monitoring Section -->
             <div class="right-panel-section">
                 <div class="section-title">
-                    <i class="fas fa-clock"></i> 실시간 매매
+                    <i class="fas fa-desktop"></i> 프로그램 모니터
                 </div>
-                <div id="trading-activity-compact" class="compact-card">
-                    <div class="loading">
-                        <div class="spinner"></div>
-                        <p style="margin-top: 10px; font-size: 12px;">매매 내역 로딩 중...</p>
+                <div id="program-monitor" class="compact-card">
+                    <!-- Scan Progress -->
+                    <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color);">
+                        <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 6px;">스캔 상태</div>
+                        <div id="scan-status" style="font-size: 11px; color: var(--text-secondary);">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <span>현재 전략:</span>
+                                <span id="current-strategy" style="color: var(--color-primary); font-weight: 600;">-</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <span>후보 종목:</span>
+                                <span id="total-candidates" style="color: var(--text-primary); font-weight: 600;">0개</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <span>검토 중:</span>
+                                <span id="reviewing-stock" style="color: var(--color-info); font-weight: 600;">-</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>승인/탈락:</span>
+                                <span><span id="approved-count" style="color: var(--color-success); font-weight: 600;">0</span> / <span id="rejected-count" style="color: var(--color-danger); font-weight: 600;">0</span></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activities -->
+                    <div>
+                        <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 6px;">시스템 활동</div>
+                        <div id="system-activities" style="max-height: 200px; overflow-y: auto;">
+                            <div style="text-align: center; padding: 15px; color: var(--text-secondary); font-size: 11px;">로딩 중...</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1429,7 +1455,7 @@
 
                 // Update compact right panel sections
                 updatePortfolioSummary(account, positions);
-                updateTradingActivityCompact(activity);
+                updateProgramMonitor();  // New: Program monitoring
                 updateCandidatesCompact(candidates);
             } catch (error) {
                 console.error('Error loading data:', error);
@@ -1633,28 +1659,69 @@
             container.innerHTML = html;
         }
 
-        function updateTradingActivityCompact(data) {
-            const container = document.getElementById('trading-activity-compact');
+        async function updateProgramMonitor() {
+            try {
+                // Fetch scan progress
+                const scanResponse = await fetch('/api/scan-progress');
+                const scanData = await scanResponse.json();
 
-            if (!data || !data.activities || data.activities.length === 0) {
-                container.innerHTML = '<div style="text-align: center; padding: 15px; color: var(--text-secondary); font-size: 11px;">매매 활동 없음</div>';
-                return;
+                // Update scan status
+                document.getElementById('current-strategy').textContent = scanData.current_strategy || '대기 중';
+                document.getElementById('total-candidates').textContent = (scanData.total_candidates || 0) + '개';
+                document.getElementById('reviewing-stock').textContent = scanData.reviewing || '-';
+                document.getElementById('approved-count').textContent = (scanData.approved || []).length;
+                document.getElementById('rejected-count').textContent = (scanData.rejected || []).length;
+
+                // Fetch recent activities
+                const activitiesResponse = await fetch('/api/activities');
+                const activities = await activitiesResponse.json();
+
+                // Update system activities
+                const activitiesContainer = document.getElementById('system-activities');
+                if (!activities || activities.length === 0) {
+                    activitiesContainer.innerHTML = '<div style="text-align: center; padding: 15px; color: var(--text-secondary); font-size: 11px;">시스템 활동 없음</div>';
+                    return;
+                }
+
+                let html = '';
+                activities.slice(0, 8).forEach(act => {
+                    // Level에 따른 색상 설정
+                    let levelColor = 'var(--text-secondary)';
+                    let levelIcon = 'fa-info-circle';
+                    if (act.level === 'success') {
+                        levelColor = 'var(--color-success)';
+                        levelIcon = 'fa-check-circle';
+                    } else if (act.level === 'error') {
+                        levelColor = 'var(--color-danger)';
+                        levelIcon = 'fa-exclamation-circle';
+                    } else if (act.level === 'warning') {
+                        levelColor = 'var(--color-warning)';
+                        levelIcon = 'fa-exclamation-triangle';
+                    }
+
+                    // Type에 따른 배경색
+                    let bgColor = 'rgba(255, 255, 255, 0.02)';
+                    if (act.type === 'BUY') {
+                        bgColor = 'rgba(16, 185, 129, 0.05)';
+                    } else if (act.type === 'SELL') {
+                        bgColor = 'rgba(239, 68, 68, 0.05)';
+                    }
+
+                    html += `
+                        <div style="padding: 8px; background: ${bgColor}; border-radius: 4px; margin-bottom: 6px; border-left: 3px solid ${levelColor};">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+                                <div style="font-size: 9px; color: var(--text-muted);">${act.time}</div>
+                                <i class="fas ${levelIcon}" style="font-size: 9px; color: ${levelColor};"></i>
+                            </div>
+                            <div style="font-size: 10px; color: var(--text-primary); line-height: 1.4;">${act.message}</div>
+                        </div>
+                    `;
+                });
+
+                activitiesContainer.innerHTML = html;
+            } catch (error) {
+                console.error('Program monitor update error:', error);
             }
-
-            let html = '';
-            data.activities.slice(0, 6).forEach(act => {
-                const typeClass = act.type === 'BUY' ? 'buy' : 'sell';
-                const bgColor = act.type === 'BUY' ? 'rgba(16, 185, 129, 0.05)' : 'rgba(239, 68, 68, 0.05)';
-                const borderColor = act.type === 'BUY' ? 'var(--color-success)' : 'var(--color-danger)';
-                html += `
-                    <div style="padding: 6px; border-left: 3px solid ${borderColor}; background: ${bgColor}; border-radius: 3px; margin-bottom: 6px;">
-                        <div style="font-size: 9px; color: var(--text-muted); margin-bottom: 3px;">${act.time}</div>
-                        <div style="font-size: 11px;">${act.message}</div>
-                    </div>
-                `;
-            });
-
-            container.innerHTML = html;
         }
 
         function updateCandidatesCompact(candidates) {
