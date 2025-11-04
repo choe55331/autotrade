@@ -1938,7 +1938,7 @@
 
                 const bestData = strategies[bestStrategy.name || bestStrategy];
                 if (bestData) {
-                    const returnPct = bestData.return_rate * 100 || 0;
+                    const returnPct = (bestData.total_pnl_rate || 0) * 100;
                     document.getElementById('best-strategy-return').textContent =
                         (returnPct >= 0 ? '+' : '') + returnPct.toFixed(2) + '%';
                 }
@@ -1949,11 +1949,11 @@
                 const strategyId = strategyNames[name];
                 if (!strategyId) return;
 
-                const returnPct = (summary.return_rate || 0) * 100;
+                const returnPct = (summary.total_pnl_rate || 0) * 100;
                 const returnClass = returnPct >= 0 ? 'positive' : 'negative';
 
                 document.getElementById(`${strategyId}-cash`).textContent =
-                    '₩' + formatNumber(Math.round(summary.cash || 0));
+                    '₩' + formatNumber(Math.round(summary.total_value || 0));
 
                 const returnEl = document.getElementById(`${strategyId}-return`);
                 returnEl.textContent = (returnPct >= 0 ? '+' : '') + returnPct.toFixed(2) + '%';
