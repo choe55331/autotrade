@@ -279,19 +279,24 @@ def get_account():
 
 @app.route('/api/positions')
 def get_positions():
-    """Get current positions from real API"""
+    """Get current positions from real API (kt00004 API 응답 필드 사용)"""
     try:
         if bot_instance and hasattr(bot_instance, 'account_api'):
             holdings = bot_instance.account_api.get_holdings()
 
             positions = []
             for h in holdings:
-                code = h.get('pdno', '')
-                name = h.get('prdt_name', '')
-                quantity = int(h.get('hldg_qty', 0))
-                avg_price = int(h.get('pchs_avg_pric', 0))
-                current_price = int(h.get('prpr', 0))
-                value = int(h.get('eval_amt', 0))
+                # kt00004 API 응답 필드 사용 (동일한 필드: main.py:856-864)
+                code = str(h.get('stk_cd', '')).strip()  # 종목코드
+                # A 접두사 제거 (키움증권 API에서 A005930 형식으로 올 수 있음)
+                if code.startswith('A'):
+                    code = code[1:]
+
+                name = h.get('stk_nm', '')  # 종목명
+                quantity = int(str(h.get('rmnd_qty', 0)).replace(',', ''))  # 보유수량
+                avg_price = int(str(h.get('avg_prc', 0)).replace(',', ''))  # 평균단가
+                current_price = int(str(h.get('cur_prc', 0)).replace(',', ''))  # 현재가
+                value = int(str(h.get('eval_amt', 0)).replace(',', ''))  # 평가금액
 
                 profit_loss = value - (avg_price * quantity)
                 profit_loss_percent = ((current_price - avg_price) / avg_price * 100) if avg_price > 0 else 0
@@ -319,6 +324,8 @@ def get_positions():
             return jsonify([])
     except Exception as e:
         print(f"Error getting positions: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify([])
 
 

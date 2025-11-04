@@ -385,16 +385,16 @@ class TradingBotV2:
             raise
 
     def _get_initial_capital(self) -> int:
-        """초기 자본금 가져오기 (예수금 + 보유주식 평가금액)"""
+        """초기 자본금 가져오기 (예수금 + 보유주식 평가금액) - kt00001 API 응답 필드 사용"""
         try:
             deposit = self.account_api.get_deposit()
             holdings = self.account_api.get_holdings()
 
             if deposit:
-                # 예수금 총액
-                deposit_total = int(deposit.get('dnca_tot_amt', 0))
+                # 예수금 (entr 필드 - kt00001 API 응답)
+                deposit_total = int(str(deposit.get('entr', '0')).replace(',', ''))
                 # 보유 주식 평가 금액
-                holdings_value = sum(int(h.get('eval_amt', 0)) for h in holdings) if holdings else 0
+                holdings_value = sum(int(str(h.get('eval_amt', 0)).replace(',', '')) for h in holdings) if holdings else 0
 
                 # 총 자본금 = 예수금 + 보유주식 평가금액
                 capital = deposit_total + holdings_value if (deposit_total + holdings_value) > 0 else 10_000_000
@@ -807,31 +807,26 @@ class TradingBotV2:
         return True
 
     def _update_account_info(self):
-        """계좌 정보 업데이트"""
+        """계좌 정보 업데이트 (kt00001 API 응답 필드 사용)"""
         try:
             deposit = self.account_api.get_deposit()
             holdings = self.account_api.get_holdings()
 
-            # 예수금 총액 (dnca_tot_amt)
-            deposit_total = int(deposit.get('dnca_tot_amt', 0)) if deposit else 0
+            # kt00001 API 응답 필드 사용 (동일한 필드: dashboard/app_apple.py:234-235)
+            deposit_total = int(str(deposit.get('entr', '0')).replace(',', '')) if deposit else 0  # 예수금
+            cash = int(str(deposit.get('100stk_ord_alow_amt', '0')).replace(',', '')) if deposit else 0  # 주문가능금액
 
-            # 보유 주식 총 구입가 계산
-            total_purchase_amount = 0
-            for holding in holdings:
-                purchase_price = holding.get('buy_amt', 0)  # 매입금액
-                total_purchase_amount += int(purchase_price) if purchase_price else 0
-
-            # 가용 현금 = 예수금 - 보유주식 구입가
-            cash = deposit_total - total_purchase_amount
+            # 보유 주식 총 평가금액 계산
+            stock_value = sum(int(str(h.get('eval_amt', 0)).replace(',', '')) for h in holdings) if holdings else 0
 
             # 포트폴리오 업데이트
             self.portfolio_manager.update_portfolio(holdings, cash)
 
-            # 동적 리스크 관리자 업데이트
-            total_capital = deposit_total + sum(h.get('eval_amt', 0) for h in holdings)
+            # 동적 리스크 관리자 업데이트 (총 자산 = 예수금 + 주식평가금액)
+            total_capital = deposit_total + stock_value
             self.dynamic_risk_manager.update_capital(total_capital)
 
-            logger.info(f"💰 계좌 정보: 예수금 {deposit_total:,}원, 보유주식 구입가 {total_purchase_amount:,}원, 가용현금 {cash:,}원, 보유 {len(holdings)}개")
+            logger.info(f"💰 계좌 정보: 예수금 {deposit_total:,}원, 주문가능금액 {cash:,}원, 주식평가 {stock_value:,}원, 총자산 {total_capital:,}원, 보유 {len(holdings)}개")
 
         except Exception as e:
             logger.error(f"계좌 정보 업데이트 실패: {e}")
@@ -1199,21 +1194,14 @@ class TradingBotV2:
             stock_name = candidate.name
             current_price = candidate.price
 
-            # 가용 현금
+            # 가용 현금 (kt00001 API 응답 필드 사용)
             deposit = self.account_api.get_deposit()
             holdings = self.account_api.get_holdings()
 
-            # 예수금 총액
-            deposit_total = int(deposit.get('dnca_tot_amt', 0)) if deposit else 0
+            # 100% 주문가능금액 = 실제 사용가능액 (동일한 필드 사용: dashboard/app_apple.py:235)
+            available_cash = int(str(deposit.get('100stk_ord_alow_amt', '0')).replace(',', '')) if deposit else 0
 
-            # 보유 주식 총 구입가 계산
-            total_purchase_amount = 0
-            for holding in holdings:
-                purchase_price = holding.get('buy_amt', 0)
-                total_purchase_amount += int(purchase_price) if purchase_price else 0
-
-            # 가용 현금 = 예수금 - 보유주식 구입가
-            available_cash = deposit_total - total_purchase_amount
+            logger.debug(f"주문가능금액: {available_cash:,}원")
 
             # 포지션 크기 계산 (동적 리스크 관리)
             quantity = self.dynamic_risk_manager.calculate_position_size(
