@@ -1033,6 +1033,8 @@
                                     <th style="padding: 12px; text-align: right; font-size: 12px; color: var(--text-secondary);">익절가 (ATR)</th>
                                     <th style="padding: 12px; text-align: right; font-size: 12px; color: var(--text-secondary);">수익률</th>
                                     <th style="padding: 12px; text-align: right; font-size: 12px; color: var(--text-secondary);">평가액</th>
+                                    <th style="padding: 12px; text-align: right; font-size: 12px; color: var(--text-secondary);">Kelly / Sharpe</th>
+                                    <th style="padding: 12px; text-align: right; font-size: 12px; color: var(--text-secondary);">RSI / R:R</th>
                                 </tr>
                             </thead>
                             <tbody id="real-holdings-table">
@@ -1049,23 +1051,73 @@
                     </div>
                 </div>
 
-                <!-- ATR 설명 카드 -->
+                <!-- 진보된 지표 설명 카드 -->
                 <div class="card" style="margin-top: 20px;">
                     <div class="card-header">
                         <div class="card-title">
                             <i class="fas fa-info-circle"></i>
-                            ATR (Average True Range) 기반 손익 관리
+                            진보된 포트폴리오 분석 지표 설명
                         </div>
                     </div>
-                    <div style="padding: 15px; font-size: 13px; line-height: 1.6;">
-                        <p style="margin-bottom: 10px; color: var(--text-secondary);">
-                            <strong style="color: var(--text-primary);">ATR이란?</strong> 최근 14일간의 True Range 평균값으로, 주식의 변동성을 측정하는 지표입니다.
-                        </p>
-                        <ul style="margin-left: 20px; color: var(--text-secondary);">
-                            <li style="margin-bottom: 6px;"><span style="color: var(--color-danger);">손절가</span> = 평균가 - (ATR × 2) : 변동성 기반 동적 손절</li>
-                            <li style="margin-bottom: 6px;"><span style="color: var(--color-success);">익절가</span> = 평균가 + (ATR × 3) : 변동성 기반 동적 익절</li>
-                            <li>변동성이 크면 손절/익절가의 폭이 넓어지고, 변동성이 작으면 폭이 좁아집니다.</li>
-                        </ul>
+                    <div style="padding: 15px; font-size: 12px; line-height: 1.6;">
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+                            <div>
+                                <strong style="color: var(--color-primary);">ATR (Average True Range)</strong>
+                                <ul style="margin: 5px 0 0 15px; color: var(--text-secondary);">
+                                    <li>손절가 = 평균가 - (ATR × 2)</li>
+                                    <li>익절가 = 평균가 + (ATR × 3)</li>
+                                    <li>변동성 기반 동적 손익 관리</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <strong style="color: var(--color-success);">Kelly Criterion (K)</strong>
+                                <ul style="margin: 5px 0 0 15px; color: var(--text-secondary);">
+                                    <li>최적 포지션 크기 계산</li>
+                                    <li>15% 이상: 공격적 비중 가능</li>
+                                    <li>5% 이하: 보수적 접근 권장</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <strong style="color: var(--color-warning);">Sharpe Ratio (S)</strong>
+                                <ul style="margin: 5px 0 0 15px; color: var(--text-secondary);">
+                                    <li>위험 조정 수익률 (20일 기준)</li>
+                                    <li>1.0 이상: 우수한 risk-return</li>
+                                    <li>음수: 손실 위험 높음</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <strong style="color: var(--color-danger);">Maximum Drawdown (MDD)</strong>
+                                <ul style="margin: 5px 0 0 15px; color: var(--text-secondary);">
+                                    <li>최고점 대비 최대 낙폭</li>
+                                    <li>20% 이상: 고위험 구간</li>
+                                    <li>손실 내성 수준 파악</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <strong style="color: var(--color-primary);">RSI (Relative Strength Index)</strong>
+                                <ul style="margin: 5px 0 0 15px; color: var(--text-secondary);">
+                                    <li>70 이상: 과매수 (매도 신호)</li>
+                                    <li>30 이하: 과매도 (매수 신호)</li>
+                                    <li>모멘텀 강도 측정</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <strong style="color: var(--color-success);">Risk/Reward Ratio (R:R)</strong>
+                                <ul style="margin: 5px 0 0 15px; color: var(--text-secondary);">
+                                    <li>익절폭 / 손절폭 비율</li>
+                                    <li>2:1 이상: 양호한 거래</li>
+                                    <li>1:1 이하: 위험 높은 거래</li>
+                                </ul>
+                            </div>
+                            <div style="grid-column: 1 / -1;">
+                                <strong style="color: var(--color-info);">Bollinger Bands Position (BB)</strong>
+                                <ul style="margin: 5px 0 0 15px; color: var(--text-secondary);">
+                                    <li>100%: 상단 밴드 (과매수 가능)</li>
+                                    <li>50%: 중앙선 (정상)</li>
+                                    <li>0%: 하단 밴드 (과매도 가능)</li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -2596,7 +2648,7 @@
             const tbody = document.getElementById('real-holdings-table');
 
             if (!response.success || !response.data || response.data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: var(--text-secondary);">보유 종목 없음</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 40px; color: var(--text-secondary);">보유 종목 없음</td></tr>';
                 return;
             }
 
@@ -2607,6 +2659,16 @@
                 const stopLossDistance = h.distance_to_stop || 0;
                 const takeProfitDistance = h.distance_to_target || 0;
                 const plColor = h.pnl_rate >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
+
+                // Kelly & Sharpe 색상
+                const kellyColor = h.kelly_fraction > 0.15 ? 'var(--color-success)' : h.kelly_fraction > 0.05 ? 'var(--color-warning)' : 'var(--color-danger)';
+                const sharpeColor = h.sharpe_ratio > 1 ? 'var(--color-success)' : h.sharpe_ratio > 0 ? 'var(--color-warning)' : 'var(--color-danger)';
+
+                // RSI 색상 (70 이상 과매수, 30 이하 과매도)
+                const rsiColor = h.rsi > 70 ? 'var(--color-danger)' : h.rsi < 30 ? 'var(--color-success)' : 'var(--text-primary)';
+
+                // Risk/Reward 색상
+                const rrColor = h.risk_reward_ratio >= 2 ? 'var(--color-success)' : h.risk_reward_ratio >= 1 ? 'var(--color-warning)' : 'var(--color-danger)';
 
                 html += `
                     <tr style="border-bottom: 1px solid var(--border-color); cursor: pointer;" onclick="loadChartData('${h.stock_code}')">
@@ -2636,6 +2698,16 @@
                             </div>
                         </td>
                         <td style="padding: 12px; text-align: right; font-weight: 600;">₩${formatNumber(h.eval_amount)}</td>
+                        <td style="padding: 12px; text-align: right;">
+                            <div style="color: ${kellyColor}; font-weight: 600; font-size: 12px;">K: ${(h.kelly_fraction * 100).toFixed(1)}%</div>
+                            <div style="color: ${sharpeColor}; font-size: 11px; margin-top: 2px;">S: ${h.sharpe_ratio.toFixed(2)}</div>
+                            <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">MDD: ${h.max_drawdown.toFixed(1)}%</div>
+                        </td>
+                        <td style="padding: 12px; text-align: right;">
+                            <div style="color: ${rsiColor}; font-weight: 600; font-size: 12px;">RSI: ${h.rsi.toFixed(0)}</div>
+                            <div style="color: ${rrColor}; font-size: 11px; margin-top: 2px;">R:R ${h.risk_reward_ratio.toFixed(1)}:1</div>
+                            <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">BB: ${(h.bb_position * 100).toFixed(0)}%</div>
+                        </td>
                     </tr>
                 `;
             });
