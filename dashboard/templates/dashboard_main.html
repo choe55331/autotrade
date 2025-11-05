@@ -866,6 +866,45 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- v5.7.5: New Features -->
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="fas fa-chart-line"></i>
+                                시장 트렌드 분석
+                            </div>
+                            <button onclick="loadMarketTrend()" style="padding: 4px 10px; background: var(--color-primary); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">
+                                <i class="fas fa-sync-alt"></i> 갱신
+                            </button>
+                        </div>
+                        <div id="market-trend-analysis">
+                            <div class="loading">
+                                <div class="spinner"></div>
+                                <p>분석 중...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="fas fa-lightbulb"></i>
+                                AI 추천 종목 (Top 5)
+                            </div>
+                            <button onclick="loadStockRecommendations()" style="padding: 4px 10px; background: var(--color-primary); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">
+                                <i class="fas fa-sync-alt"></i> 갱신
+                            </button>
+                        </div>
+                        <div id="stock-recommendations">
+                            <div class="loading">
+                                <div class="spinner"></div>
+                                <p>분석 중...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Tab 3: Virtual Trading (Paper Trading) -->
@@ -2168,6 +2207,10 @@
                     updateRiskAnalysis(data.risk);
                     updateMultiAgentConsensus(data.consensus);
                 }
+
+                // v5.7.5: Load new features
+                loadMarketTrend();
+                loadStockRecommendations();
             } catch (error) {
                 console.error('AI analysis error:', error);
             }
@@ -2247,6 +2290,104 @@
             }
 
             container.innerHTML = html;
+        }
+
+        // v5.7.5: Load Market Trend Analysis
+        async function loadMarketTrend() {
+            try {
+                const response = await fetch('/api/ai/market-trend');
+                const data = await response.json();
+
+                const container = document.getElementById('market-trend-analysis');
+                if (!data.success || !data.trend) {
+                    container.innerHTML = '<div style="padding: 15px; color: var(--text-secondary); font-size: 12px;">데이터 없음</div>';
+                    return;
+                }
+
+                const trend = data.trend;
+                const trendColor = trend.trend === 'Bullish' ? 'var(--color-success)' :
+                                 trend.trend === 'Bearish' ? 'var(--color-danger)' :
+                                 'var(--text-secondary)';
+
+                let html = `
+                    <div style="padding: 15px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                            <div style="font-size: 24px; font-weight: 700; color: ${trendColor};">
+                                ${trend.trend}
+                            </div>
+                            <div style="font-size: 16px; color: var(--text-secondary);">
+                                강도: ${trend.strength}/10
+                            </div>
+                        </div>
+                        <div style="background: var(--bg-secondary); padding: 12px; border-radius: 6px; margin-bottom: 10px;">
+                            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 5px;">권장사항</div>
+                            <div style="font-size: 14px; color: var(--text-primary);">${trend.recommendation}</div>
+                        </div>
+                `;
+
+                if (trend.indicators && trend.indicators.length > 0) {
+                    html += '<div style="font-size: 11px; color: var(--text-secondary); margin-top: 10px;">지표:</div>';
+                    trend.indicators.forEach(indicator => {
+                        html += `<div style="font-size: 12px; padding: 5px 0; border-bottom: 1px solid var(--border-color);">• ${indicator}</div>`;
+                    });
+                }
+
+                html += '</div>';
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('Market trend error:', error);
+                document.getElementById('market-trend-analysis').innerHTML =
+                    '<div style="padding: 15px; color: var(--color-danger); font-size: 12px;">오류 발생</div>';
+            }
+        }
+
+        // v5.7.5: Load Stock Recommendations
+        async function loadStockRecommendations() {
+            try {
+                const response = await fetch('/api/ai/stock-recommendations');
+                const data = await response.json();
+
+                const container = document.getElementById('stock-recommendations');
+                if (!data.success || !data.recommendations || data.recommendations.length === 0) {
+                    container.innerHTML = '<div style="padding: 15px; color: var(--text-secondary); font-size: 12px;">추천 종목 없음</div>';
+                    return;
+                }
+
+                let html = '<div style="padding: 10px;">';
+                data.recommendations.forEach((rec, idx) => {
+                    const gradeColor = rec.grade === 'S' ? '#fbbf24' :
+                                     rec.grade === 'A' ? '#10b981' :
+                                     rec.grade === 'B' ? '#3b82f6' : '#9ca3af';
+
+                    const changeColor = rec.change_rate >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
+
+                    html += `
+                        <div style="background: var(--bg-secondary); padding: 12px; border-radius: 6px; margin-bottom: 8px; cursor: pointer; transition: background 0.2s;"
+                             onmouseover="this.style.background='var(--bg-primary)'"
+                             onmouseout="this.style.background='var(--bg-secondary)'"
+                             onclick="searchStock('${rec.code}', '${rec.name}')">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                <div style="font-weight: 600; font-size: 13px;">${rec.name}</div>
+                                <div style="background: ${gradeColor}; color: black; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 11px;">${rec.grade}</div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-secondary);">
+                                <span>₩${formatNumber(rec.price)}</span>
+                                <span style="color: ${changeColor};">${rec.change_rate >= 0 ? '+' : ''}${rec.change_rate.toFixed(2)}%</span>
+                            </div>
+                            <div style="margin-top: 5px; font-size: 10px; color: var(--text-muted);">
+                                점수: ${rec.score.toFixed(0)}/${rec.percentage.toFixed(0)}% • ${rec.reason}
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('Stock recommendations error:', error);
+                document.getElementById('stock-recommendations').innerHTML =
+                    '<div style="padding: 15px; color: var(--color-danger); font-size: 12px;">오류 발생</div>';
+            }
         }
 
         // Initialize Paper Equity Chart
