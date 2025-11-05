@@ -576,4 +576,108 @@ def pause_trading():
         })
     except Exception as e:
         logger.error(f"Pause trading error: {e}")
-        return jsonify({'success': False, 'error': str(e)})
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+# ============================================================================
+# QUICK BUY API
+# ============================================================================
+
+@trading_bp.route('/api/quick-buy', methods=['POST'])
+def quick_buy():
+    """
+    빠른 매수 API
+
+    후보 종목 리스트에서 즉시 매수 주문을 실행합니다.
+
+    Request JSON:
+    {
+        "stock_code": "005930",
+        "stock_name": "삼성전자",
+        "price": 70000
+    }
+
+    Response:
+    {
+        "success": true,
+        "message": "매수 주문 완료",
+        "order_id": "..."
+    }
+    """
+    try:
+        data = request.get_json()
+
+        if not data:
+            return jsonify({'success': False, 'error': '요청 데이터가 없습니다'}), 400
+
+        stock_code = data.get('stock_code')
+        stock_name = data.get('stock_name')
+        price = data.get('price', 0)
+
+        if not stock_code or not stock_name:
+            return jsonify({'success': False, 'error': '종목 코드 또는 이름이 없습니다'}), 400
+
+        # bot_instance 확인
+        if not _bot_instance:
+            return jsonify({'success': False, 'error': '봇 인스턴스가 연결되지 않았습니다'}), 503
+
+        # 테스트 모드 확인
+        if hasattr(_bot_instance, 'market_status') and _bot_instance.market_status.get('is_test_mode'):
+            return jsonify({
+                'success': False,
+                'error': '테스트 모드에서는 실제 주문을 실행할 수 없습니다'
+            }), 403
+
+        # 매수 금액 계산 (포트폴리오 관리자 사용)
+        if hasattr(_bot_instance, 'portfolio_manager'):
+            position_size = _bot_instance.portfolio_manager.calculate_position_size(price)
+            quantity = int(position_size / price)
+        else:
+            # 기본값: 100만원 / 가격
+            quantity = int(1_000_000 / price)
+
+        if quantity == 0:
+            return jsonify({'success': False, 'error': '매수 수량이 0입니다'}), 400
+
+        # 매수 주문 실행
+        if hasattr(_bot_instance, 'order_api'):
+            # 지정가 주문 (현재가 기준)
+            order_response = _bot_instance.order_api.place_order(
+                stock_code=stock_code,
+                order_type='buy',
+                quantity=quantity,
+                price=price,
+                order_method='limit'  # 지정가
+            )
+
+            if order_response and order_response.get('return_code') == 0:
+                logger.info(f"✅ Quick buy success: {stock_name}({stock_code}) {quantity}주 @ {price:,}원")
+
+                # 소켓으로 알림
+                if _socketio:
+                    _socketio.emit('trade_executed', {
+                        'action': 'BUY',
+                        'stock_name': stock_name,
+                        'stock_code': stock_code,
+                        'quantity': quantity,
+                        'price': price,
+                        'timestamp': datetime.now().isoformat()
+                    })
+
+                return jsonify({
+                    'success': True,
+                    'message': f'{stock_name} {quantity}주 매수 주문 완료',
+                    'order_id': order_response.get('order_id', ''),
+                    'quantity': quantity,
+                    'price': price
+                })
+            else:
+                error_msg = order_response.get('return_msg', '알 수 없는 오류') if order_response else '주문 응답 없음'
+                logger.error(f"❌ Quick buy failed: {error_msg}")
+                return jsonify({'success': False, 'error': error_msg}), 500
+        else:
+            return jsonify({'success': False, 'error': 'order_api가 연결되지 않았습니다'}), 503
+
+    except Exception as e:
+        logger.error(f"Quick buy error: {e}", exc_info=True)
+        return jsonify({'success': False, 'error': str(e)}), 500

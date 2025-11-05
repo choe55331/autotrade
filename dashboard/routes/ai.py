@@ -1112,21 +1112,21 @@ def get_stock_recommendations():
                 holdings = _bot_instance.account_api.get_holdings()
                 held_codes = [h.get('stk_cd', '').replace('A', '') for h in holdings]
 
-                # Get market leaders by CHANGE RATE (상승률) instead of volume
-                gainers = _bot_instance.market_api.get_change_rank(market='ALL', limit=30)
+                # Get market leaders by PRICE CHANGE RATE (상승률) instead of volume
+                gainers = _bot_instance.market_api.get_price_change_rank(market='ALL', sort='rise', limit=30)
 
                 for stock in gainers:
-                    stock_code = stock.get('stck_shrn_iscd', '')
-                    stock_name = stock.get('hts_kor_isnm', '')
+                    stock_code = stock.get('code', '')
+                    stock_name = stock.get('name', '')
 
                     # Skip if already held or invalid
                     if not stock_code or stock_code in held_codes:
                         continue
 
                     # Get volume and price
-                    volume = int(stock.get('acml_vol', 0))
-                    current_price = int(stock.get('stck_prpr', 0))
-                    change_rate = float(stock.get('prdy_ctrt', 0))
+                    volume = int(stock.get('volume', 0))
+                    current_price = int(stock.get('price', 0))
+                    change_rate = float(stock.get('change_rate', 0))
 
                     # Filter: Only stocks with significant volume and positive change
                     if volume < 100_000 or change_rate <= 0 or current_price == 0:
