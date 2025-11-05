@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AutoTrade Pro v5.0 - AI 자동매매</title>
+    <title>AutoTrade Pro v5.1 - AI 자동매매</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -589,7 +589,7 @@
         <header class="header">
             <div class="logo">
                 <i class="fas fa-chart-line"></i>
-                <span>AutoTrade Pro v5.0 AI</span>
+                <span>AutoTrade Pro v5.1 AI</span>
             </div>
             <div style="display: flex; align-items: center; gap: 15px;">
                 <a href="/settings" target="_blank" class="settings-btn" title="설정">
@@ -623,37 +623,27 @@
                 </div>
             </div>
 
-            <div class="section-title">AI 시스템</div>
-            <ul class="stat-list">
-                <li class="stat-item">
-                    <span class="stat-label">스캐닝 종목</span>
-                    <span class="stat-value" id="scanning-count">0</span>
-                </li>
-                <li class="stat-item">
-                    <span class="stat-label">AI 분석 완료</span>
-                    <span class="stat-value" id="analyzed-count">0</span>
-                </li>
-                <li class="stat-item">
-                    <span class="stat-label">매수 대기</span>
-                    <span class="stat-value" id="buy-queue">0</span>
-                </li>
-            </ul>
-
-            <div class="section-title">가상 매매 성과</div>
-            <ul class="stat-list">
-                <li class="stat-item">
-                    <span class="stat-label">총 수익률</span>
-                    <span class="stat-value" id="paper-return">0%</span>
-                </li>
-                <li class="stat-item">
-                    <span class="stat-label">승률</span>
-                    <span class="stat-value" id="win-rate">0%</span>
-                </li>
-                <li class="stat-item">
-                    <span class="stat-label">매매 횟수</span>
-                    <span class="stat-value" id="trade-count">0</span>
-                </li>
-            </ul>
+            <div class="section-title">
+                <i class="fas fa-broadcast-tower"></i> WebSocket 실시간 구독
+            </div>
+            <div style="margin-bottom: 20px; padding: 12px; background: rgba(59, 130, 246, 0.1); border-radius: 8px; border: 1px solid rgba(59, 130, 246, 0.3);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <span style="font-size: 12px; font-weight: 600;">총 구독</span>
+                    <span id="ws-total-badge" style="padding: 2px 8px; background: var(--color-primary); border-radius: 12px; font-size: 11px; font-weight: 700;">0</span>
+                </div>
+                <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px;">
+                    <strong style="color: var(--color-primary);">📊 현재가 (KA10003)</strong>
+                    <div id="ws-price-list" style="margin-top: 4px; font-size: 10px;">없음</div>
+                </div>
+                <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px;">
+                    <strong style="color: var(--color-success);">📈 호가 (KA10004)</strong>
+                    <div id="ws-orderbook-list" style="margin-top: 4px; font-size: 10px;">없음</div>
+                </div>
+                <div style="font-size: 11px; color: var(--text-secondary);">
+                    <strong style="color: var(--color-warning);">⚡ 체결 (KA10005)</strong>
+                    <div id="ws-execution-list" style="margin-top: 4px; font-size: 10px;">없음</div>
+                </div>
+            </div>
 
             <div class="section-title">시스템 연결 상태</div>
             <ul class="stat-list">
@@ -1019,59 +1009,63 @@
                 </div>
             </div>
 
-            <!-- Tab 5: Portfolio Optimization (v4.2) -->
+            <!-- Tab 5: Real Portfolio with ATR-based Stops (v5.1) -->
             <div class="tab-content" id="tab-portfolio">
                 <div class="card">
                     <div class="card-header">
                         <div class="card-title">
                             <i class="fas fa-chart-pie"></i>
-                            포트폴리오 최적화 (v4.2)
+                            실제 보유 종목 (ATR 기반 손익 관리)
+                        </div>
+                        <span style="font-size: 11px; color: var(--text-secondary);">
+                            <span class="realtime-indicator"></span>실시간 업데이트
+                        </span>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead style="background: var(--bg-secondary);">
+                                <tr>
+                                    <th style="padding: 12px; text-align: left; font-size: 12px; color: var(--text-secondary);">종목</th>
+                                    <th style="padding: 12px; text-align: right; font-size: 12px; color: var(--text-secondary);">수량</th>
+                                    <th style="padding: 12px; text-align: right; font-size: 12px; color: var(--text-secondary);">평균가</th>
+                                    <th style="padding: 12px; text-align: right; font-size: 12px; color: var(--text-secondary);">현재가</th>
+                                    <th style="padding: 12px; text-align: right; font-size: 12px; color: var(--text-secondary);">손절가 (ATR)</th>
+                                    <th style="padding: 12px; text-align: right; font-size: 12px; color: var(--text-secondary);">익절가 (ATR)</th>
+                                    <th style="padding: 12px; text-align: right; font-size: 12px; color: var(--text-secondary);">수익률</th>
+                                    <th style="padding: 12px; text-align: right; font-size: 12px; color: var(--text-secondary);">평가액</th>
+                                </tr>
+                            </thead>
+                            <tbody id="real-holdings-table">
+                                <tr>
+                                    <td colspan="8" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                                        <div class="loading">
+                                            <div class="spinner"></div>
+                                            <p style="margin-top: 10px;">데이터 불러오는 중...</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ATR 설명 카드 -->
+                <div class="card" style="margin-top: 20px;">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fas fa-info-circle"></i>
+                            ATR (Average True Range) 기반 손익 관리
                         </div>
                     </div>
-                    <div style="padding: 20px;">
-                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px;">
-                            <div style="padding: 15px; background: var(--bg-secondary); border-radius: 8px;">
-                                <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px;">최적화 방법</div>
-                                <select id="portfolio-method" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary);">
-                                    <option value="markowitz">Markowitz (최소분산)</option>
-                                    <option value="black-litterman">Black-Litterman</option>
-                                    <option value="risk-parity">Risk Parity (위험균등)</option>
-                                </select>
-                            </div>
-                            <div style="padding: 15px; background: var(--bg-secondary); border-radius: 8px;">
-                                <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px;">목표 수익률 (%)</div>
-                                <input type="number" id="portfolio-target-return" value="15" step="0.5" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary);">
-                            </div>
-                            <div style="padding: 15px; background: var(--bg-secondary); border-radius: 8px;">
-                                <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 8px;">리스크 허용 수준</div>
-                                <select id="portfolio-risk-level" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-primary); color: var(--text-primary);">
-                                    <option value="conservative">보수적</option>
-                                    <option value="moderate" selected>중립</option>
-                                    <option value="aggressive">공격적</option>
-                                </select>
-                            </div>
-                        </div>
-                        <button onclick="runPortfolioOptimization()" style="width: 100%; padding: 12px; border-radius: 6px; border: none; background: var(--color-primary); color: white; font-weight: 600; cursor: pointer;">
-                            <i class="fas fa-calculator"></i> 포트폴리오 최적화 실행
-                        </button>
-                        <div id="portfolio-results" style="margin-top: 20px; padding: 20px; background: var(--bg-secondary); border-radius: 8px; display: none;">
-                            <h3 style="margin-bottom: 15px; font-size: 14px;">최적 포트폴리오</h3>
-                            <div id="portfolio-allocation"></div>
-                            <div style="margin-top: 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
-                                <div>
-                                    <div style="font-size: 11px; color: var(--text-secondary);">예상 수익률</div>
-                                    <div style="font-size: 18px; font-weight: 700; color: var(--color-success);" id="portfolio-exp-return">-</div>
-                                </div>
-                                <div>
-                                    <div style="font-size: 11px; color: var(--text-secondary);">예상 변동성</div>
-                                    <div style="font-size: 18px; font-weight: 700; color: var(--color-warning);" id="portfolio-volatility">-</div>
-                                </div>
-                                <div>
-                                    <div style="font-size: 11px; color: var(--text-secondary);">샤프 비율</div>
-                                    <div style="font-size: 18px; font-weight: 700; color: var(--color-info);" id="portfolio-sharpe">-</div>
-                                </div>
-                            </div>
-                        </div>
+                    <div style="padding: 15px; font-size: 13px; line-height: 1.6;">
+                        <p style="margin-bottom: 10px; color: var(--text-secondary);">
+                            <strong style="color: var(--text-primary);">ATR이란?</strong> 최근 14일간의 True Range 평균값으로, 주식의 변동성을 측정하는 지표입니다.
+                        </p>
+                        <ul style="margin-left: 20px; color: var(--text-secondary);">
+                            <li style="margin-bottom: 6px;"><span style="color: var(--color-danger);">손절가</span> = 평균가 - (ATR × 2) : 변동성 기반 동적 손절</li>
+                            <li style="margin-bottom: 6px;"><span style="color: var(--color-success);">익절가</span> = 평균가 + (ATR × 3) : 변동성 기반 동적 익절</li>
+                            <li>변동성이 크면 손절/익절가의 폭이 넓어지고, 변동성이 작으면 폭이 좁아집니다.</li>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -1455,13 +1449,16 @@
         // Load All Data
         async function loadAllData() {
             try {
-                const [account, positions, candidates, status, activity, connections] = await Promise.all([
+                const [account, positions, candidates, status, activity, connections, wsSubscriptions, virtualTrades, realHoldings] = await Promise.all([
                     fetch('/api/account').then(r => r.json()),
                     fetch('/api/positions').then(r => r.json()),
                     fetch('/api/candidates').then(r => r.json()),
                     fetch('/api/status').then(r => r.json()),
                     fetch('/api/trading-activity').then(r => r.json()),
-                    fetch('/api/system-connections').then(r => r.json())
+                    fetch('/api/system-connections').then(r => r.json()),
+                    fetch('/api/websocket/subscriptions').then(r => r.json()).catch(() => ({success: false, data: {price: [], orderbook: [], execution: [], total: 0}})),
+                    fetch('/api/virtual-trades').then(r => r.json()).catch(() => ({success: false})),
+                    fetch('/api/portfolio/real-holdings').then(r => r.json()).catch(() => ({success: false, data: []}))
                 ]);
 
                 updateAccount(account);
@@ -1472,6 +1469,11 @@
                 updatePortfolioSummary(account, positions);
                 updateProgramMonitor();  // New: Program monitoring
                 updateCandidatesCompact(candidates);
+
+                // v5.1: Update new sections
+                updateWebSocketSubscriptions(wsSubscriptions);
+                updateVirtualTradesHistory(virtualTrades);
+                updateRealHoldingsTable(realHoldings);
             } catch (error) {
                 console.error('Error loading data:', error);
             }
@@ -2470,6 +2472,175 @@
             // Clear search input and hide results
             document.getElementById('stock-search-input').value = '';
             document.getElementById('stock-search-results').style.display = 'none';
+        }
+
+        // v5.1: WebSocket Subscriptions Update
+        function updateWebSocketSubscriptions(response) {
+            if (!response.success || !response.data) {
+                document.getElementById('ws-total-badge').textContent = '0';
+                return;
+            }
+
+            const data = response.data;
+            document.getElementById('ws-total-badge').textContent = data.total || 0;
+
+            // 현재가 구독
+            const priceList = document.getElementById('ws-price-list');
+            if (data.price && data.price.length > 0) {
+                priceList.innerHTML = data.price.map(s =>
+                    `<span style="display: inline-block; margin: 2px; padding: 2px 6px; background: rgba(59, 130, 246, 0.2); border-radius: 4px; font-size: 10px;">${s.stock_name}</span>`
+                ).join('');
+            } else {
+                priceList.textContent = '없음';
+            }
+
+            // 호가 구독
+            const orderbookList = document.getElementById('ws-orderbook-list');
+            if (data.orderbook && data.orderbook.length > 0) {
+                orderbookList.innerHTML = data.orderbook.map(s =>
+                    `<span style="display: inline-block; margin: 2px; padding: 2px 6px; background: rgba(16, 185, 129, 0.2); border-radius: 4px; font-size: 10px;">${s.stock_name}</span>`
+                ).join('');
+            } else {
+                orderbookList.textContent = '없음';
+            }
+
+            // 체결 구독
+            const executionList = document.getElementById('ws-execution-list');
+            if (data.execution && data.execution.length > 0) {
+                executionList.innerHTML = data.execution.map(s =>
+                    `<span style="display: inline-block; margin: 2px; padding: 2px 6px; background: rgba(245, 158, 11, 0.2); border-radius: 4px; font-size: 10px;">${s.stock_name}</span>`
+                ).join('');
+            } else {
+                executionList.textContent = '없음';
+            }
+        }
+
+        // v5.1: Virtual Trading History Update
+        function updateVirtualTradesHistory(response) {
+            const container = document.getElementById('virtual-trades-list');
+
+            if (!response.success || !response.data) {
+                container.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-secondary);">가상매매 데이터 없음</div>';
+                return;
+            }
+
+            const data = response.data;
+            let html = '';
+            let allTrades = [];
+
+            // 모든 전략의 거래를 모아서 시간순 정렬
+            for (const [strategyName, strategyData] of Object.entries(data)) {
+                const trades = strategyData.trades || [];
+                trades.forEach(trade => {
+                    trade.strategy = strategyName;
+                    allTrades.push(trade);
+                });
+            }
+
+            // 최신순 정렬
+            allTrades.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+            if (allTrades.length === 0) {
+                html = '<div style="text-align: center; padding: 20px; color: var(--text-secondary);">거래 내역 없음</div>';
+            } else {
+                allTrades.slice(0, 20).forEach(trade => {
+                    const timestamp = trade.timestamp ? new Date(trade.timestamp).toLocaleString('ko-KR', {
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    }) : 'N/A';
+
+                    const strategyColor = trade.strategy === '공격적' ? '#ef4444' : trade.strategy === '보수적' ? '#3b82f6' : '#f59e0b';
+
+                    if (trade.type === 'buy') {
+                        html += `
+                            <div style="padding: 10px; border-bottom: 1px solid var(--border-color); font-size: 12px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                    <span style="color: ${strategyColor}; font-weight: 600;">[${trade.strategy}]</span>
+                                    <span style="color: var(--text-muted);">${timestamp}</span>
+                                </div>
+                                <div>🔵 <strong>매수</strong> ${trade.stock_name || trade.stock_code} ${trade.quantity}주 @ ₩${formatNumber(trade.price)}</div>
+                            </div>
+                        `;
+                    } else {
+                        const pnl = trade.realized_pnl || 0;
+                        const pnlRate = trade.realized_pnl_rate || 0;
+                        const pnlColor = pnl >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
+                        const pnlSign = pnl >= 0 ? '✅' : '❌';
+
+                        html += `
+                            <div style="padding: 10px; border-bottom: 1px solid var(--border-color); font-size: 12px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                    <span style="color: ${strategyColor}; font-weight: 600;">[${trade.strategy}]</span>
+                                    <span style="color: var(--text-muted);">${timestamp}</span>
+                                </div>
+                                <div>
+                                    🔴 <strong>매도</strong> ${trade.stock_name || trade.stock_code} ${trade.quantity}주 @ ₩${formatNumber(trade.price)}
+                                    <span style="color: ${pnlColor}; font-weight: 600;">
+                                        (${pnl >= 0 ? '+' : ''}₩${formatNumber(Math.abs(pnl))}, ${pnl >= 0 ? '+' : ''}${pnlRate.toFixed(2)}%)
+                                    </span> ${pnlSign}
+                                    ${trade.reason ? `<span style="color: var(--text-muted); font-size: 11px;">[${trade.reason}]</span>` : ''}
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+            }
+
+            container.innerHTML = html;
+        }
+
+        // v5.1: Real Holdings with ATR Stops Update
+        function updateRealHoldingsTable(response) {
+            const tbody = document.getElementById('real-holdings-table');
+
+            if (!response.success || !response.data || response.data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px; color: var(--text-secondary);">보유 종목 없음</td></tr>';
+                return;
+            }
+
+            const holdings = response.data;
+
+            let html = '';
+            holdings.forEach(h => {
+                const stopLossDistance = h.distance_to_stop || 0;
+                const takeProfitDistance = h.distance_to_target || 0;
+                const plColor = h.pnl_rate >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
+
+                html += `
+                    <tr style="border-bottom: 1px solid var(--border-color); cursor: pointer;" onclick="loadChartData('${h.stock_code}')">
+                        <td style="padding: 12px;">
+                            <div style="font-weight: 600; font-size: 13px;">${h.stock_name}</div>
+                            <div style="font-size: 11px; color: var(--text-muted);">${h.stock_code}</div>
+                        </td>
+                        <td style="padding: 12px; text-align: right;">${h.quantity}</td>
+                        <td style="padding: 12px; text-align: right;">₩${formatNumber(h.avg_price)}</td>
+                        <td style="padding: 12px; text-align: right;">₩${formatNumber(h.current_price)}</td>
+                        <td style="padding: 12px; text-align: right;">
+                            <div style="color: var(--color-danger); font-weight: 600;">₩${formatNumber(h.stop_loss_price)}</div>
+                            <div style="font-size: 10px; color: var(--text-muted);">(${stopLossDistance >= 0 ? '+' : ''}${stopLossDistance.toFixed(1)}%)</div>
+                            ${h.atr_based ? '<div style="font-size: 9px; color: var(--color-danger); margin-top: 2px;">ATR</div>' : ''}
+                        </td>
+                        <td style="padding: 12px; text-align: right;">
+                            <div style="color: var(--color-success); font-weight: 600;">₩${formatNumber(h.take_profit_price)}</div>
+                            <div style="font-size: 10px; color: var(--text-muted);">(${takeProfitDistance >= 0 ? '+' : ''}${takeProfitDistance.toFixed(1)}%)</div>
+                            ${h.atr_based ? '<div style="font-size: 9px; color: var(--color-success); margin-top: 2px;">ATR</div>' : ''}
+                        </td>
+                        <td style="padding: 12px; text-align: right;">
+                            <div style="color: ${plColor}; font-weight: 700; font-size: 14px;">
+                                ${h.pnl_rate >= 0 ? '+' : ''}${h.pnl_rate.toFixed(2)}%
+                            </div>
+                            <div style="font-size: 11px; color: ${plColor};">
+                                ${h.pnl >= 0 ? '+' : ''}₩${formatNumber(Math.abs(h.pnl))}
+                            </div>
+                        </td>
+                        <td style="padding: 12px; text-align: right; font-weight: 600;">₩${formatNumber(h.eval_amount)}</td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
         }
     </script>
 
