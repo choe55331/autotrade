@@ -1232,6 +1232,171 @@ def get_stock_recommendations():
         })
 
 
+@ai_bp.route('/api/ai/auto-stop-loss', methods=['POST'])
+def execute_auto_stop_loss():
+    """
+    자동 손절 실행
+    - 5% 이상 손실 종목 자동 매도
+    """
+    try:
+        if not _bot_instance or not hasattr(_bot_instance, 'account_api') or not hasattr(_bot_instance, 'trading_api'):
+            return jsonify({
+                'success': False,
+                'error': '봇 인스턴스가 초기화되지 않았습니다.'
+            })
+
+        data = request.get_json()
+        enable = data.get('enable', False)
+        threshold = data.get('threshold', -5)  # Default -5%
+
+        if not enable:
+            return jsonify({
+                'success': True,
+                'message': '자동 손절이 비활성화되었습니다.',
+                'executed': []
+            })
+
+        executed_orders = []
+        holdings = _bot_instance.account_api.get_holdings()
+
+        for h in holdings:
+            stock_code = h.get('stk_cd', '').replace('A', '')
+            stock_name = h.get('stk_nm', '')
+            quantity = int(h.get('rmnd_qty', 0))
+            buy_price = int(h.get('pchs_avg_pric', 0))
+            current_price = int(h.get('cur_prc', 0))
+
+            if quantity == 0 or buy_price == 0:
+                continue
+
+            profit_pct = ((current_price - buy_price) / buy_price * 100)
+
+            # Execute stop loss if below threshold
+            if profit_pct <= threshold:
+                try:
+                    # Place sell order
+                    order_result = _bot_instance.trading_api.sell_market_order(
+                        stock_code=stock_code,
+                        quantity=quantity
+                    )
+
+                    executed_orders.append({
+                        'stock': stock_name,
+                        'code': stock_code,
+                        'quantity': quantity,
+                        'price': current_price,
+                        'loss_pct': round(profit_pct, 2),
+                        'order_result': order_result,
+                        'timestamp': datetime.now().isoformat()
+                    })
+
+                    print(f"자동 손절 실행: {stock_name} {quantity}주 @ {current_price}원 ({profit_pct:.2f}%)")
+
+                except Exception as e:
+                    print(f"자동 손절 실패 ({stock_name}): {e}")
+
+        return jsonify({
+            'success': True,
+            'message': f'{len(executed_orders)}건 자동 손절 실행',
+            'executed': executed_orders
+        })
+
+    except Exception as e:
+        print(f"Auto stop-loss error: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'executed': []
+        })
+
+
+@ai_bp.route('/api/ai/auto-take-profit', methods=['POST'])
+def execute_auto_take_profit():
+    """
+    자동 익절 실행
+    - 15% 이상 수익 종목 일부(50%) 매도
+    """
+    try:
+        if not _bot_instance or not hasattr(_bot_instance, 'account_api') or not hasattr(_bot_instance, 'trading_api'):
+            return jsonify({
+                'success': False,
+                'error': '봇 인스턴스가 초기화되지 않았습니다.'
+            })
+
+        data = request.get_json()
+        enable = data.get('enable', False)
+        threshold = data.get('threshold', 15)  # Default +15%
+        sell_ratio = data.get('sell_ratio', 0.5)  # Default 50%
+
+        if not enable:
+            return jsonify({
+                'success': True,
+                'message': '자동 익절이 비활성화되었습니다.',
+                'executed': []
+            })
+
+        executed_orders = []
+        holdings = _bot_instance.account_api.get_holdings()
+
+        for h in holdings:
+            stock_code = h.get('stk_cd', '').replace('A', '')
+            stock_name = h.get('stk_nm', '')
+            quantity = int(h.get('rmnd_qty', 0))
+            buy_price = int(h.get('pchs_avg_pric', 0))
+            current_price = int(h.get('cur_prc', 0))
+
+            if quantity == 0 or buy_price == 0:
+                continue
+
+            profit_pct = ((current_price - buy_price) / buy_price * 100)
+
+            # Execute take profit if above threshold
+            if profit_pct >= threshold:
+                sell_quantity = int(quantity * sell_ratio)
+
+                if sell_quantity > 0:
+                    try:
+                        # Place sell order
+                        order_result = _bot_instance.trading_api.sell_market_order(
+                            stock_code=stock_code,
+                            quantity=sell_quantity
+                        )
+
+                        executed_orders.append({
+                            'stock': stock_name,
+                            'code': stock_code,
+                            'quantity': sell_quantity,
+                            'remaining': quantity - sell_quantity,
+                            'price': current_price,
+                            'profit_pct': round(profit_pct, 2),
+                            'order_result': order_result,
+                            'timestamp': datetime.now().isoformat()
+                        })
+
+                        print(f"자동 익절 실행: {stock_name} {sell_quantity}주 @ {current_price}원 ({profit_pct:.2f}%)")
+
+                    except Exception as e:
+                        print(f"자동 익절 실패 ({stock_name}): {e}")
+
+        return jsonify({
+            'success': True,
+            'message': f'{len(executed_orders)}건 자동 익절 실행',
+            'executed': executed_orders
+        })
+
+    except Exception as e:
+        print(f"Auto take-profit error: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'executed': []
+        })
+
+
 @ai_bp.route('/api/ai/alerts')
 def get_ai_alerts():
     """

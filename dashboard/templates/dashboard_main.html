@@ -21,6 +21,20 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <!-- CountUp.js - 숫자 애니메이션 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/countup.js/2.8.0/countUp.umd.min.js"></script>
+
+    <!-- AOS - Scroll Animations -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+    <!-- Toastify - Toast Notifications -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+    <!-- ApexCharts - Modern Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
     <!-- Advanced Chart CSS -->
     <link rel="stylesheet" href="/static/css/advanced-chart.css">
 
@@ -45,6 +59,18 @@
             --chart-down: #ef4444;
         }
 
+        /* Light Mode */
+        [data-theme="light"] {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-card: #ffffff;
+            --border-color: #e2e8f0;
+
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -56,6 +82,46 @@
             background: var(--bg-primary);
             color: var(--text-primary);
             overflow: hidden;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        /* Smooth transitions for theme switch */
+        .card, .header, .sidebar, .right-panel, .account-card {
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        /* Pulse animation */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        /* Fade in animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Skeleton loading */
+        @keyframes skeleton-loading {
+            0% { background-position: -200px 0; }
+            100% { background-position: calc(200px + 100%) 0; }
+        }
+
+        .skeleton {
+            background: linear-gradient(
+                90deg,
+                var(--bg-secondary) 0px,
+                var(--bg-card) 40px,
+                var(--bg-secondary) 80px
+            );
+            background-size: 200px 100%;
+            animation: skeleton-loading 1.5s infinite;
+            border-radius: 4px;
         }
 
         /* Layout - NO SCROLL */
@@ -613,6 +679,9 @@
                 <a href="/settings" target="_blank" class="settings-btn" title="설정">
                     <i class="fas fa-cog"></i>
                 </a>
+                <button id="theme-toggle" class="settings-btn" title="다크모드/라이트모드" onclick="toggleTheme()" style="cursor: pointer;">
+                    <i class="fas fa-moon" id="theme-icon"></i>
+                </button>
                 <div class="status-badge live" id="status-indicator">
                     <span class="realtime-indicator"></span>
                     <span id="status-text">AI 자동매매 실행 중</span>
@@ -763,7 +832,7 @@
             <!-- Tab 1: Main Dashboard -->
             <div class="tab-content active" id="tab-main">
                 <!-- Real-time Chart with Search -->
-                <div class="card">
+                <div class="card" data-aos="fade-up" data-aos-delay="100">
                     <div class="card-header">
                         <div class="card-title">
                             <i class="fas fa-chart-candlestick"></i>
@@ -792,7 +861,7 @@
             <!-- Tab 2: AI Analysis - v5.7.5 완전 재구축 -->
             <div class="tab-content" id="tab-ai">
                 <!-- Performance Summary Banner -->
-                <div class="card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; margin-bottom: 20px;">
+                <div class="card" data-aos="fade-down" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; margin-bottom: 20px;">
                     <div style="padding: 20px;">
                         <div style="font-size: 13px; opacity: 0.9; margin-bottom: 12px;">
                             <i class="fas fa-chart-area"></i> 실시간 포트폴리오 성과
@@ -831,7 +900,7 @@
                 </div>
 
                 <!-- Real-time Alerts -->
-                <div class="card" id="ai-alerts-section" style="display: none; margin-bottom: 20px;">
+                <div class="card" id="ai-alerts-section" data-aos="zoom-in" data-aos-delay="200" style="display: none; margin-bottom: 20px;">
                     <div class="card-header" style="background: linear-gradient(90deg, #ef4444, #f59e0b); color: white;">
                         <div class="card-title">
                             <i class="fas fa-bell"></i>
@@ -843,7 +912,7 @@
                 </div>
 
                 <!-- Position Monitor -->
-                <div class="card">
+                <div class="card" data-aos="fade-up" data-aos-delay="150">
                     <div class="card-header">
                         <div class="card-title">
                             <i class="fas fa-crosshairs"></i>
@@ -863,7 +932,7 @@
 
                 <!-- Portfolio Optimization & Market Trend -->
                 <div class="grid-2">
-                    <div class="card">
+                    <div class="card" data-aos="fade-right" data-aos-delay="200">
                         <div class="card-header">
                             <div class="card-title">
                                 <i class="fas fa-balance-scale"></i>
@@ -881,7 +950,7 @@
                         </div>
                     </div>
 
-                    <div class="card">
+                    <div class="card" data-aos="fade-left" data-aos-delay="200">
                         <div class="card-header">
                             <div class="card-title">
                                 <i class="fas fa-chart-line"></i>
@@ -1916,13 +1985,28 @@
             previousData.optimization = {...summary};
         }
         function updateAccount(data) {
-            document.getElementById('total-assets').textContent = '₩' + formatNumber(data.total_assets || 0);
-            document.getElementById('cash').textContent = '₩' + formatNumber(data.cash || 0);
-            document.getElementById('stock-value').textContent = '₩' + formatNumber(data.stock_value || 0);
+            // Use CountUp.js for animated number updates
+            if (typeof countUp !== 'undefined') {
+                animateNumber('total-assets', data.total_assets || 0, '₩', '', 0);
+                animateNumber('cash', data.cash || 0, '₩', '', 0);
+                animateNumber('stock-value', data.stock_value || 0, '₩', '', 0);
+            } else {
+                // Fallback to smooth update
+                smoothUpdateNumber('total-assets', data.total_assets || 0, '₩', '', 800);
+                smoothUpdateNumber('cash', data.cash || 0, '₩', '', 800);
+                smoothUpdateNumber('stock-value', data.stock_value || 0, '₩', '', 800);
+            }
 
             const pl = data.profit_loss || 0;
             const plElement = document.getElementById('profit-loss');
-            plElement.textContent = (pl >= 0 ? '+' : '') + '₩' + formatNumber(Math.abs(pl));
+
+            // Animate profit/loss
+            if (typeof countUp !== 'undefined') {
+                const prefix = pl >= 0 ? '+₩' : '-₩';
+                animateNumber('profit-loss', Math.abs(pl), prefix, '', 0);
+            } else {
+                plElement.textContent = (pl >= 0 ? '+' : '') + '₩' + formatNumber(Math.abs(pl));
+            }
             plElement.style.color = pl >= 0 ? '#ef4444' : '#3b82f6';  // v5.7.4: 한국식 색상
 
             // Update profit/loss percentage
@@ -1930,6 +2014,12 @@
             const plPercentElement = document.getElementById('profit-loss-percent');
             plPercentElement.textContent = (plPercent >= 0 ? '+' : '') + plPercent.toFixed(2) + '%';
             plPercentElement.style.color = plPercent >= 0 ? '#ef4444' : '#3b82f6';  // v5.7.4: 한국식 색상
+
+            // Add pulse animation on significant change
+            if (Math.abs(pl) > 10000) {
+                plElement.style.animation = 'pulse 0.5s ease-in-out';
+                setTimeout(() => plElement.style.animation = '', 500);
+            }
         }
 
         function updatePositions(positions) {
@@ -3706,25 +3796,160 @@
                 }
             }
         });
+
+        // ====================================
+        // Theme Toggle (Dark/Light Mode)
+        // ====================================
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+
+            // Update icon
+            const icon = document.getElementById('theme-icon');
+            if (icon) {
+                icon.className = newTheme === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
+            }
+
+            // Show toast notification
+            showToastModern(
+                newTheme === 'dark' ? '🌙 다크 모드 활성화' : '☀️ 라이트 모드 활성화',
+                'success'
+            );
+        }
+
+        // Load saved theme on page load
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            const icon = document.getElementById('theme-icon');
+            if (icon) {
+                icon.className = savedTheme === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
+            }
+        })();
+
+        // ====================================
+        // Modern Toast Notifications with Toastify
+        // ====================================
+
+        function showToastModern(message, type = 'info') {
+            const colors = {
+                success: 'linear-gradient(to right, #10b981, #059669)',
+                error: 'linear-gradient(to right, #ef4444, #dc2626)',
+                warning: 'linear-gradient(to right, #f59e0b, #d97706)',
+                info: 'linear-gradient(to right, #3b82f6, #2563eb)'
+            };
+
+            Toastify({
+                text: message,
+                duration: 3000,
+                gravity: "top",
+                position: "right",
+                style: {
+                    background: colors[type] || colors.info,
+                    borderRadius: "8px",
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)"
+                },
+                stopOnFocus: true
+            }).showToast();
+        }
+
+        // ====================================
+        // CountUp.js - Animated Number Displays
+        // ====================================
+
+        function animateNumber(elementId, endValue, prefix = '', suffix = '', decimals = 0) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+
+            const startValue = parseFloat(element.textContent.replace(/[^0-9.-]/g, '')) || 0;
+
+            const countUp = new countUp.CountUp(elementId, endValue, {
+                startVal: startValue,
+                decimalPlaces: decimals,
+                duration: 1.5,
+                useEasing: true,
+                useGrouping: true,
+                separator: ',',
+                prefix: prefix,
+                suffix: suffix
+            });
+
+            if (!countUp.error) {
+                countUp.start();
+            }
+        }
+
+        // ====================================
+        // Alert Sound Notifications
+        // ====================================
+
+        const alertSounds = {
+            success: new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIF2m98OScTgwOU6bh8bllHgU3kdTzz3kqBSV4yO3cgEIJE1621+2nVBMKRp/f8L5sHwUqgc/y2Ik2CBdqvfDknE4MDlOm4fG5ZR4FN5HU889...'),
+            error: new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIF2m98OScTgwOU6bh8bllHgU3kdTzz3kqBSV4yO3cgEIJE1621+2nVBMKRp/f8L5sHwUqgc/y2Ik2CBdqvfDknE4MDlOm4fG5ZR4FN5HU889...'),
+            warning: new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIF2m98OScTgwOU6bh8bllHgU3kdTzz3kqBSV4yO3cgEIJE1621+2nVBMKRp/f8L5sHwUqgc/y2Ik2CBdqvfDknE4MDlOm4fG5ZR4FN5HU889...')
+        };
+
+        function playAlertSound(type = 'success') {
+            try {
+                const sound = alertSounds[type] || alertSounds.success;
+                sound.volume = 0.3;
+                sound.play().catch(e => console.log('Sound play prevented:', e));
+            } catch (error) {
+                console.log('Sound notification not available');
+            }
+        }
+
+        // ====================================
+        // AOS (Animate On Scroll) Initialization
+        // ====================================
+
+        if (typeof AOS !== 'undefined') {
+            AOS.init({
+                duration: 800,
+                easing: 'ease-in-out',
+                once: true,
+                mirror: false,
+                offset: 120
+            });
+        }
+
+        // ====================================
+        // Enhanced showToast with backwards compatibility
+        // ====================================
+
+        // Override the existing showToast to use Toastify if available
+        const originalShowToast = showToast;
+        showToast = function(message, type = 'info') {
+            if (typeof Toastify !== 'undefined') {
+                showToastModern(message, type);
+            } else {
+                originalShowToast(message, type);
+            }
+        };
+
+        // ====================================
+        // Auto-refresh AOS on dynamic content
+        // ====================================
+
+        const originalLoadAllData = loadAllData;
+        loadAllData = function() {
+            originalLoadAllData();
+            setTimeout(() => {
+                if (typeof AOS !== 'undefined') {
+                    AOS.refresh();
+                }
+            }, 500);
+        };
+
     </script>
 
     <!-- Advanced Trading Chart -->
     <script src="/static/js/advanced-chart.js"></script>
 </body>
 </html>
-
-        // v5.7.2: 수익 최적화 패널 업데이트
-        function updateOptimization(response) {
-            if (!response.success || !response.summary) {
-                document.getElementById('opt-sell-count').textContent = '0';
-                document.getElementById('opt-partial-count').textContent = '0';
-                document.getElementById('opt-hold-count').textContent = '0';
-                return;
-            }
-
-            const summary = response.summary;
-
-            document.getElementById('opt-sell-count').textContent = summary.sell_recommended || 0;
-            document.getElementById('opt-partial-count').textContent = summary.partial_sell_recommended || 0;
-            document.getElementById('opt-hold-count').textContent = summary.hold_recommended || 0;
-        }
