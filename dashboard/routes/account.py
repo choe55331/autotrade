@@ -65,7 +65,7 @@ def get_account():
                         cur_price = int(str(h.get('cur_prc', 0)).replace(',', ''))
                         calculated_value = quantity * cur_price
                         stock_value += calculated_value
-                        print(f"[DEBUG] {h.get('stk_cd', 'N/A')}: eval_amt=0, calculated={calculated_value:,}원 ({quantity}주 × {cur_price:,}원)")
+                        # Note: After-hours calculation (eval_amt=0)
 
             # 총 자산 = 주식 현재가치 + 잔존 현금
             total_assets = stock_value + cash
