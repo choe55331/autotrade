@@ -75,14 +75,17 @@ class MarketAPI:
         """
         from utils.trading_date import is_nxt_hours, is_any_trading_hours
 
-        # NXT 시간대에는 dmst_stex_tp=NXT 파라미터 추가
-        body = {
-            "stk_cd": stock_code
-        }
-
+        # NXT 시간대에는 종목코드에 _NX 접미사 추가
+        nxt_stock_code = stock_code
         if is_nxt_hours():
-            body["dmst_stex_tp"] = "NXT"  # NXT 시장 실시간 데이터 조회
-            logger.info(f"{stock_code} NXT 시간대 - dmst_stex_tp=NXT 파라미터 사용")
+            # NXT 종목코드 형식: 039490_NX
+            if not stock_code.endswith("_NX"):
+                nxt_stock_code = f"{stock_code}_NX"
+            logger.info(f"NXT 시간대 - 종목코드 변환: {stock_code} → {nxt_stock_code}")
+
+        body = {
+            "stk_cd": nxt_stock_code
+        }
 
         response = self.client.request(
             api_id="ka10003",
@@ -160,13 +163,15 @@ class MarketAPI:
         """
         from utils.trading_date import is_nxt_hours
 
-        body = {
-            "stk_cd": stock_code
-        }
-
-        # NXT 시간대에는 dmst_stex_tp=NXT 파라미터 추가
+        # NXT 시간대에는 종목코드에 _NX 접미사 추가
+        nxt_stock_code = stock_code
         if is_nxt_hours():
-            body["dmst_stex_tp"] = "NXT"
+            if not stock_code.endswith("_NX"):
+                nxt_stock_code = f"{stock_code}_NX"
+
+        body = {
+            "stk_cd": nxt_stock_code
+        }
 
         response = self.client.request(
             api_id="ka10004",
