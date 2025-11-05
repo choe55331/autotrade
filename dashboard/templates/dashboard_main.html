@@ -1683,8 +1683,15 @@
 
         function updateStatus(data) {
             if (data && data.scanning) {
-                document.getElementById('scanning-count').textContent = data.scanning.fast_scan?.count || 0;
-                document.getElementById('analyzed-count').textContent = data.scanning.ai_scan?.count || 0;
+                const scanningCount = document.getElementById('scanning-count');
+                const analyzedCount = document.getElementById('analyzed-count');
+
+                if (scanningCount) {
+                    scanningCount.textContent = data.scanning.fast_scan?.count || 0;
+                }
+                if (analyzedCount) {
+                    analyzedCount.textContent = data.scanning.ai_scan?.count || 0;
+                }
             }
         }
 
