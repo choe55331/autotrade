@@ -789,85 +789,8 @@
                 </div>
             </div>
 
-            <!-- Tab 2: AI Analysis -->
+            <!-- Tab 2: AI Analysis - v5.7.5 완전 재구축 -->
             <div class="tab-content" id="tab-ai">
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">
-                            <i class="fas fa-brain"></i>
-                            AI 자동 분석 결과 (실시간 업데이트)
-                        </div>
-                        <span style="font-size: 11px; color: var(--text-secondary);">
-                            <span class="realtime-indicator"></span>매 30초 갱신
-                        </span>
-                    </div>
-                    <div class="grid-3">
-                        <div class="ai-result-card">
-                            <div class="ai-result-title">포트폴리오 점수</div>
-                            <div class="ai-result-value" id="ai-portfolio-score">-</div>
-                            <div class="ai-result-desc" id="ai-portfolio-desc">분석 대기 중</div>
-                        </div>
-                        <div class="ai-result-card">
-                            <div class="ai-result-title">시장 감정</div>
-                            <div class="ai-result-value" id="ai-sentiment">-</div>
-                            <div class="ai-result-desc" id="ai-sentiment-desc">분석 대기 중</div>
-                        </div>
-                        <div class="ai-result-card">
-                            <div class="ai-result-title">리스크 레벨</div>
-                            <div class="ai-result-value" id="ai-risk">-</div>
-                            <div class="ai-result-desc" id="ai-risk-desc">분석 대기 중</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid-2">
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-title">
-                                <i class="fas fa-chart-pie"></i>
-                                포트폴리오 최적화
-                            </div>
-                        </div>
-                        <div id="portfolio-analysis">
-                            <div class="loading">
-                                <div class="spinner"></div>
-                                <p>분석 중...</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-title">
-                                <i class="fas fa-shield-alt"></i>
-                                리스크 분석
-                            </div>
-                        </div>
-                        <div id="risk-analysis">
-                            <div class="loading">
-                                <div class="spinner"></div>
-                                <p>분석 중...</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">
-                            <i class="fas fa-users"></i>
-                            다중 AI 에이전트 합의
-                        </div>
-                    </div>
-                    <div id="multiagent-consensus">
-                        <div class="loading">
-                            <div class="spinner"></div>
-                            <p>합의 중...</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- v5.7.5: New Features -->
                 <!-- Performance Summary Banner -->
                 <div class="card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; margin-bottom: 20px;">
                     <div style="padding: 20px;">
@@ -905,6 +828,18 @@
                             <div id="ai-alerts" style="font-size: 12px;"></div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Real-time Alerts -->
+                <div class="card" id="ai-alerts-section" style="display: none; margin-bottom: 20px;">
+                    <div class="card-header" style="background: linear-gradient(90deg, #ef4444, #f59e0b); color: white;">
+                        <div class="card-title">
+                            <i class="fas fa-bell"></i>
+                            실시간 AI 알림
+                        </div>
+                        <span id="alert-count" style="background: white; color: #ef4444; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 700;">0</span>
+                    </div>
+                    <div id="ai-alerts-list" style="max-height: 200px; overflow-y: auto;"></div>
                 </div>
 
                 <!-- Position Monitor -->
@@ -1440,6 +1375,7 @@
             // Load tab-specific data
             if (index === 1) {
                 // v5.7.5: Load all AI analysis features
+                loadAIAlerts();
                 loadPositionMonitor();
                 loadPortfolioOptimization();
                 loadMarketTrend();
@@ -2420,6 +2356,52 @@
                 console.error('Market trend error:', error);
                 document.getElementById('market-trend-analysis').innerHTML =
                     '<div style="padding: 15px; color: var(--color-danger); font-size: 12px;">오류 발생</div>';
+            }
+        }
+
+        // v5.7.5: Load AI Alerts
+        async function loadAIAlerts() {
+            try {
+                const response = await fetch('/api/ai/alerts');
+                const data = await response.json();
+
+                if (!data.success || !data.alerts || data.alerts.length === 0) {
+                    document.getElementById('ai-alerts-section').style.display = 'none';
+                    return;
+                }
+
+                // Show alerts section
+                document.getElementById('ai-alerts-section').style.display = 'block';
+                document.getElementById('alert-count').textContent = data.alerts.length;
+
+                // Build alerts list
+                let html = '';
+                data.alerts.forEach(alert => {
+                    const iconMap = {
+                        'stop_loss': 'fa-exclamation-triangle',
+                        'take_profit': 'fa-check-circle',
+                        'warning': 'fa-exclamation-circle'
+                    };
+
+                    html += `
+                        <div style="padding: 12px; border-bottom: 1px solid var(--border-color); border-left: 3px solid ${alert.color}; background: ${alert.color}08;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                <div style="font-weight: 600; font-size: 13px; color: ${alert.color};">
+                                    <i class="fas ${iconMap[alert.type] || 'fa-bell'}"></i> ${alert.stock}
+                                </div>
+                                <span style="background: ${alert.color}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700;">
+                                    ${alert.action}
+                                </span>
+                            </div>
+                            <div style="font-size: 12px; color: var(--text-primary);">${alert.message}</div>
+                        </div>
+                    `;
+                });
+
+                document.getElementById('ai-alerts-list').innerHTML = html;
+            } catch (error) {
+                console.error('AI alerts error:', error);
+                document.getElementById('ai-alerts-section').style.display = 'none';
             }
         }
 
