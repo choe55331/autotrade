@@ -75,9 +75,14 @@ class MarketAPI:
         """
         from utils.trading_date import is_nxt_hours, is_any_trading_hours
 
+        # NXT 시간대에는 dmst_stex_tp=NXT 파라미터 추가
         body = {
             "stk_cd": stock_code
         }
+
+        if is_nxt_hours():
+            body["dmst_stex_tp"] = "NXT"  # NXT 시장 실시간 데이터 조회
+            logger.info(f"{stock_code} NXT 시간대 - dmst_stex_tp=NXT 파라미터 사용")
 
         response = self.client.request(
             api_id="ka10003",
@@ -118,7 +123,7 @@ class MarketAPI:
         else:
             logger.warning(f"현재가 조회 API 실패: {response.get('return_msg') if response else 'No response'}")
 
-        # Fallback 1: 호가 정보에서 현재가 추출 시도
+        # Fallback: 호가 정보에서 현재가 추출 시도
         if use_fallback:
             logger.info(f"{stock_code} 호가 정보로 현재가 조회 시도...")
             orderbook = self.get_orderbook(stock_code)
@@ -131,21 +136,6 @@ class MarketAPI:
                     'source': 'orderbook',
                     'time': '',
                 }
-
-            # Fallback 2: NXT 시간대에는 전일 종가 조회 시도
-            if is_nxt_hours():
-                logger.info(f"{stock_code} NXT 시간대 - 전일 종가 조회 시도...")
-                daily_chart = self.get_daily_chart(stock_code, period=1)
-                if daily_chart and len(daily_chart) > 0:
-                    prev_close = daily_chart[0].get('close', 0)
-                    if prev_close > 0:
-                        logger.info(f"{stock_code} 현재가: {prev_close:,}원 (출처: 전일종가)")
-                        return {
-                            'current_price': prev_close,
-                            'cur_prc': prev_close,
-                            'source': 'previous_close',
-                            'time': '',
-                        }
 
         logger.error(f"{stock_code} 현재가 조회 완전 실패 (모든 소스)")
         return None
@@ -168,9 +158,15 @@ class MarketAPI:
                 ...
             }
         """
+        from utils.trading_date import is_nxt_hours
+
         body = {
             "stk_cd": stock_code
         }
+
+        # NXT 시간대에는 dmst_stex_tp=NXT 파라미터 추가
+        if is_nxt_hours():
+            body["dmst_stex_tp"] = "NXT"
 
         response = self.client.request(
             api_id="ka10004",
