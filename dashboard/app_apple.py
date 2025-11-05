@@ -2993,7 +2993,7 @@ def get_real_holdings():
                         # ATR 조회 (14일 기준)
                         if hasattr(bot_instance, 'market_api'):
                             # 일봉 데이터로 ATR 계산
-                            daily_data = bot_instance.market_api.get_daily_chart(stock_code, days=20)
+                            daily_data = bot_instance.market_api.get_daily_chart(stock_code, period=20)
 
                             if daily_data and len(daily_data) >= 14:
                                 # ATR 계산 (True Range 평균)
