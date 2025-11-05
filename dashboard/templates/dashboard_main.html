@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AutoTrade Pro v5.2 - AI 자동매매</title>
+    <title>AutoTrade Pro v5.3 - AI 자동매매</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -589,7 +589,7 @@
         <header class="header">
             <div class="logo">
                 <i class="fas fa-chart-line"></i>
-                <span>AutoTrade Pro v5.2 AI</span>
+                <span>AutoTrade Pro v5.3 AI</span>
             </div>
             <div style="display: flex; align-items: center; gap: 15px;">
                 <a href="/settings" target="_blank" class="settings-btn" title="설정">
@@ -1513,7 +1513,7 @@
                     fetch('/api/portfolio/real-holdings').then(r => r.json()).catch(() => ({success: false, data: []}))
                 ]);
 
-                // v5.2: Check if bot is connected
+                // v5.3: Check if bot is connected
                 const isBotConnected = account && account.total_assets !== undefined && (connections.rest_api || connections.websocket || connections.gemini);
 
                 if (!isBotConnected && account.total_assets === 0) {
@@ -1538,7 +1538,7 @@
             }
         }
 
-        // v5.2: Show warning when bot is not connected
+        // v5.3: Show warning when bot is not connected
         let warningShown = false;
         function showBotDisconnectedWarning() {
             if (warningShown) return;
