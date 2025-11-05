@@ -64,18 +64,18 @@ realtime_chart_manager = None
 # ============================================================================
 
 # Import all route blueprints
-from routes import (
+from .routes import (
     account_bp, trading_bp, ai_bp, market_bp,
     portfolio_bp, system_bp, pages_bp
 )
 
 # Import route setter functions
-from routes.account import set_bot_instance as account_set_bot
-from routes.trading import set_bot_instance as trading_set_bot, set_socketio as trading_set_socketio
-from routes.ai import set_bot_instance as ai_set_bot
-from routes.market import set_bot_instance as market_set_bot, set_realtime_chart_manager as market_set_chart_manager
-from routes.portfolio import set_bot_instance as portfolio_set_bot
-from routes.system import (
+from .routes.account import set_bot_instance as account_set_bot
+from .routes.trading import set_bot_instance as trading_set_bot, set_socketio as trading_set_socketio
+from .routes.ai import set_bot_instance as ai_set_bot
+from .routes.market import set_bot_instance as market_set_bot, set_realtime_chart_manager as market_set_chart_manager
+from .routes.portfolio import set_bot_instance as portfolio_set_bot
+from .routes.system import (
     set_bot_instance as system_set_bot,
     set_config_manager as system_set_config_manager,
     set_unified_settings as system_set_unified_settings
@@ -91,7 +91,7 @@ app.register_blueprint(system_bp)
 app.register_blueprint(pages_bp)
 
 # Register WebSocket handlers
-from websocket import register_websocket_handlers
+from .websocket import register_websocket_handlers
 register_websocket_handlers(socketio)
 
 

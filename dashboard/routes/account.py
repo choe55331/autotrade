@@ -47,7 +47,23 @@ def get_account():
             # entr: 예수금, 100stk_ord_alow_amt: 100% 주문가능금액 (실제 사용가능액 = 잔존 현금)
             deposit_amount = int(str(deposit.get('entr', '0')).replace(',', '')) if deposit else 0
             cash = int(str(deposit.get('100stk_ord_alow_amt', '0')).replace(',', '')) if deposit else 0
-            stock_value = sum(int(str(h.get('eval_amt', 0)).replace(',', '')) for h in holdings) if holdings else 0
+
+            # v5.4.2: 주식 현재가치 계산 (장외 시간 대응)
+            # eval_amt이 0인 경우 (장외 시간) 수량 × 현재가로 직접 계산
+            stock_value = 0
+            if holdings:
+                for h in holdings:
+                    eval_amt = int(str(h.get('eval_amt', 0)).replace(',', ''))
+                    if eval_amt > 0:
+                        # API에서 평가금액이 정상적으로 오는 경우 (장중)
+                        stock_value += eval_amt
+                    else:
+                        # 장외 시간 등으로 eval_amt이 0인 경우, 직접 계산
+                        quantity = int(str(h.get('rmnd_qty', 0)).replace(',', ''))
+                        cur_price = int(str(h.get('cur_prc', 0)).replace(',', ''))
+                        calculated_value = quantity * cur_price
+                        stock_value += calculated_value
+                        print(f"[DEBUG] {h.get('stk_cd', 'N/A')}: eval_amt=0, calculated={calculated_value:,}원 ({quantity}주 × {cur_price:,}원)")
 
             print(f"[DEBUG] deposit_amount (예수금): {deposit_amount:,}원")
             print(f"[DEBUG] cash (잔존현금/주문가능금액): {cash:,}원")
@@ -137,7 +153,12 @@ def get_positions():
 
                 avg_price = int(str(h.get('avg_prc', 0)).replace(',', ''))  # 평균단가
                 current_price = int(str(h.get('cur_prc', 0)).replace(',', ''))  # 현재가
-                value = int(str(h.get('eval_amt', 0)).replace(',', ''))  # 평가금액
+
+                # v5.4.2: 평가금액 계산 (장외 시간 대응)
+                value = int(str(h.get('eval_amt', 0)).replace(',', ''))
+                if value == 0 and current_price > 0:
+                    # 장외 시간 등으로 eval_amt이 0인 경우, 직접 계산
+                    value = quantity * current_price
 
                 profit_loss = value - (avg_price * quantity)
                 profit_loss_percent = ((current_price - avg_price) / avg_price * 100) if avg_price > 0 else 0
@@ -224,7 +245,12 @@ def get_real_holdings():
 
                 avg_price = int(str(holding.get('avg_prc', 0)).replace(',', ''))
                 current_price = int(str(holding.get('cur_prc', 0)).replace(',', ''))
+
+                # v5.4.2: 평가금액 계산 (장외 시간 대응)
                 eval_amount = int(str(holding.get('eval_amt', 0)).replace(',', ''))
+                if eval_amount == 0 and current_price > 0:
+                    # 장외 시간 등으로 eval_amt이 0인 경우, 직접 계산
+                    eval_amount = quantity * current_price
 
                 # 수익률 계산
                 pnl = (current_price - avg_price) * quantity
