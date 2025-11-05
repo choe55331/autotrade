@@ -432,15 +432,11 @@ class TradingBotV2:
 
     def _test_samsung_trade(self):
         """삼성전자 테스트 매매 (연결 직후 1주 매수 → 10초 후 매도)"""
-        print("\n" + "="*60)
-        print("🧪 DEBUG: _test_samsung_trade() 호출됨")
-        print("="*60)
-
         try:
             logger.info("="*60)
             logger.info("🧪 삼성전자 테스트 매매 시작")
             logger.info("="*60)
-            print("🧪 삼성전자 테스트 매매 시작")
+            print("\n🧪 삼성전자 테스트 매매 시작")
 
             samsung_code = "005930"  # 삼성전자
             samsung_name = "삼성전자"
@@ -483,14 +479,11 @@ class TradingBotV2:
 
             # 1. 삼성전자 현재가 조회
             logger.info(f"📊 {samsung_name} 현재가 조회 중...")
-            print(f"📊 DEBUG: {samsung_name} 현재가 조회 시작")
             current_price = None
 
             try:
                 # ka10003 체결정보요청으로 현재가 조회
-                print(f"📊 DEBUG: get_stock_price() 호출 중...")
                 quote = self.market_api.get_stock_price(samsung_code)
-                print(f"📊 DEBUG: quote 결과: {quote}")
                 if quote and quote.get('current_price', 0) > 0:
                     current_price = int(quote.get('current_price', 0))
                     logger.info(f"✓ {samsung_name} 현재가: {current_price:,}원 (체결정보)")
@@ -504,13 +497,11 @@ class TradingBotV2:
                     else:
                         # NXT 시간대는 전일 종가 사용
                         logger.warning(f"⚠️ 호가 조회 실패 - NXT 시간대는 전일 종가 사용")
-                        print(f"📊 DEBUG: 전일 종가 조회 시도 중...")
                         daily_data = self.market_api.get_daily_chart(samsung_code, period=2)
                         if daily_data and len(daily_data) > 0:
                             # 가장 최근 데이터의 종가
                             current_price = int(daily_data[0].get('close', 0))
                             logger.info(f"✓ {samsung_name} 전일 종가 사용: {current_price:,}원")
-                            print(f"📊 DEBUG: 전일 종가: {current_price:,}원")
                         else:
                             logger.error(f"❌ 전일 종가 조회 실패 - 테스트 중단")
                             return
@@ -621,7 +612,7 @@ class TradingBotV2:
 
         except Exception as e:
             logger.error(f"테스트 매매 중 오류: {e}", exc_info=True)
-            print(f"❌ DEBUG: 테스트 매매 중 오류 발생: {e}")
+            print(f"❌ 테스트 매매 오류: {e}")
             import traceback
             traceback.print_exc()
 

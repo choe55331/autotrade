@@ -42,28 +42,34 @@ def test_nxt_current_price():
     client = KiwoomRESTClient()
     account_api = AccountAPI(client)
 
-    # 2. NXT 종목 조회
-    holdings_nxt = account_api.get_holdings(market_type="NXT")
-    print(f"\n[NXT 보유 종목 조회]")
-    print(f"  종목 수: {len(holdings_nxt) if holdings_nxt else 0}개")
+    # 2. 보유 종목 조회 (KRX+NXT 통합)
+    holdings = account_api.get_holdings(market_type="KRX+NXT")
+    print(f"\n[보유 종목 조회 (KRX+NXT)]")
+    print(f"  종목 수: {len(holdings) if holdings else 0}개")
 
-    if not holdings_nxt:
-        print("\n⚠️  경고: NXT 보유 종목이 없습니다.")
-        print("  - NXT 시장에 종목을 보유하고 있어야 테스트를 진행할 수 있습니다.")
-        print("  - KRX 종목만 보유한 경우, NXT 현재가 조회를 확인할 수 없습니다.")
+    if not holdings:
+        print("\n⚠️  경고: 보유 종목이 없습니다.")
+        print("  - 종목을 보유하고 있어야 테스트를 진행할 수 있습니다.")
         return True  # 종목이 없는 것은 오류가 아님
 
     # 3. 각 종목의 현재가 확인
-    print(f"\n[NXT 종목 현재가]")
+    print(f"\n[종목 현재가]")
     all_prices_valid = True
 
-    for h in holdings_nxt:
+    for h in holdings:
         code = h.get('stk_cd', '')
         name = h.get('stk_nm', '')
         qty = int(str(h.get('rmnd_qty', 0)).replace(',', ''))
         avg_prc = int(str(h.get('avg_prc', 0)).replace(',', ''))
         cur_prc = int(str(h.get('cur_prc', 0)).replace(',', ''))
         eval_amt = int(str(h.get('eval_amt', 0)).replace(',', ''))
+
+        # v5.5.0: 장외 시간 대응 - eval_amt이 0이면 직접 계산
+        if eval_amt == 0 and cur_prc > 0:
+            eval_amt = qty * cur_prc
+            market_hours_note = " (장외 시간 계산)"
+        else:
+            market_hours_note = ""
 
         # 현재가 검증
         if cur_prc > 0:
@@ -76,24 +82,17 @@ def test_nxt_current_price():
         print(f"      수량: {qty}주")
         print(f"      평균단가: {avg_prc:,}원")
         print(f"      현재가: {cur_prc:,}원")
-        print(f"      평가금액: {eval_amt:,}원")
-
-        # 평가금액 검증 (수량 * 현재가 = 평가금액)
-        calculated_value = qty * cur_prc
-        if abs(calculated_value - eval_amt) <= qty * 10:  # 오차 허용 (1주당 10원)
-            print(f"      ✅ 평가금액 계산: OK ({calculated_value:,}원)")
-        else:
-            print(f"      ⚠️  평가금액 계산: 차이 있음 (계산값: {calculated_value:,}원, API: {eval_amt:,}원)")
+        print(f"      평가금액: {eval_amt:,}원{market_hours_note}")
 
     # 4. 검증 결과
     print(f"\n[검증 결과]")
     if all_prices_valid:
-        print("  ✅ 모든 NXT 종목의 현재가가 정상 조회됨")
+        print("  ✅ 모든 종목의 현재가가 정상 조회됨")
     else:
-        print("  ❌ 일부 NXT 종목의 현재가가 0원 또는 조회 안됨")
-        print("  - NXT 장외 시간일 수 있습니다. (09:00-15:30 장중에 테스트하세요)")
+        print("  ❌ 일부 종목의 현재가가 0원 또는 조회 안됨")
+        print("  - 장외 시간일 수 있습니다. (09:00-15:30 장중에 테스트하세요)")
         if not is_nxt_time:
-            print("  - 현재는 NXT 장외 시간입니다.")
+            print("  - 현재는 장외 시간입니다.")
 
     print("\n" + "=" * 80)
     if all_prices_valid:

@@ -32,16 +32,18 @@ def get_account():
             # 실제 API에서 데이터 가져오기 (테스트 모드에서도 가장 최근 데이터 사용)
             deposit = _bot_instance.account_api.get_deposit()
 
-            # v5.3.3: KRX와 NXT 종목 모두 조회
-            holdings_krx = _bot_instance.account_api.get_holdings(market_type="KRX")
-            holdings_nxt = _bot_instance.account_api.get_holdings(market_type="NXT")
-            holdings = (holdings_krx or []) + (holdings_nxt or [])
+            # v5.5.0: KRX+NXT 통합 조회로 중복 제거
+            # 이전에는 KRX와 NXT를 각각 조회하여 같은 종목이 2번 카운트되는 버그 발생
+            # API가 "KRX+NXT" 옵션을 지원하므로 한 번에 조회
+            holdings = _bot_instance.account_api.get_holdings(market_type="KRX+NXT") or []
 
-            # v5.3.3: 디버깅 로그 추가
-            print(f"[DEBUG] deposit response: {deposit}")
-            print(f"[DEBUG] KRX holdings count: {len(holdings_krx) if holdings_krx else 0}")
-            print(f"[DEBUG] NXT holdings count: {len(holdings_nxt) if holdings_nxt else 0}")
-            print(f"[DEBUG] Total holdings count: {len(holdings) if holdings else 0}")
+            # 디버깅 로그
+            if holdings:
+                print(f"[ACCOUNT] 보유 종목: {len(holdings)}개")
+                for h in holdings:
+                    print(f"  - {h.get('stk_cd', 'N/A')} {h.get('stk_nm', 'N/A')}: {h.get('rmnd_qty', 0)}주")
+            else:
+                print(f"[ACCOUNT] 보유 종목: 없음")
 
             # 계좌 정보 계산 (kt00001 API 응답 구조에 맞게 수정)
             # entr: 예수금, 100stk_ord_alow_amt: 100% 주문가능금액 (실제 사용가능액 = 잔존 현금)
@@ -63,16 +65,12 @@ def get_account():
                         cur_price = int(str(h.get('cur_prc', 0)).replace(',', ''))
                         calculated_value = quantity * cur_price
                         stock_value += calculated_value
-                        print(f"[DEBUG] {h.get('stk_cd', 'N/A')}: eval_amt=0, calculated={calculated_value:,}원 ({quantity}주 × {cur_price:,}원)")
+                        # Note: After-hours calculation (eval_amt=0)
 
-            print(f"[DEBUG] deposit_amount (예수금): {deposit_amount:,}원")
-            print(f"[DEBUG] cash (잔존현금/주문가능금액): {cash:,}원")
-            print(f"[DEBUG] stock_value (주식평가금액): {stock_value:,}원")
-
-            # 총 자산 = 주식 현재가치 + 잔존 현금 (v5.3.3 수정)
+            # 총 자산 = 주식 현재가치 + 잔존 현금
             total_assets = stock_value + cash
 
-            print(f"[DEBUG] total_assets (총자산): {total_assets:,}원")
+            print(f"[ACCOUNT] 총자산: {total_assets:,}원 (주식: {stock_value:,}원 + 현금: {cash:,}원)")
 
             # 손익 계산
             total_buy_amount = sum(int(str(h.get('pchs_amt', 0)).replace(',', '')) for h in holdings) if holdings else 0
@@ -128,11 +126,11 @@ def get_positions():
             print("Error: bot_instance has no account_api")
             return jsonify([])
 
-        # v5.3.2: 보유 종목 조회
-        holdings = _bot_instance.account_api.get_holdings()
+        # v5.5.0: KRX+NXT 통합 조회
+        holdings = _bot_instance.account_api.get_holdings(market_type="KRX+NXT")
 
         if not holdings:
-            print("No holdings found")
+            print("[POSITIONS] 보유 종목 없음")
             return jsonify([])
 
         positions = []
@@ -218,16 +216,17 @@ def get_real_holdings():
                 'message': 'Account API not available'
             })
 
-        raw_holdings = _bot_instance.account_api.get_holdings()
+        # v5.5.0: KRX+NXT 통합 조회
+        raw_holdings = _bot_instance.account_api.get_holdings(market_type="KRX+NXT")
 
         if not raw_holdings:
-            print("No holdings found")
+            print("[HOLDINGS] 보유 종목 없음")
             return jsonify({
                 'success': True,
                 'data': []
             })
 
-        print(f"Processing {len(raw_holdings)} holdings...")
+        print(f"[HOLDINGS] {len(raw_holdings)}개 종목 분석 중...")
 
         # v5.3.2: 각 종목 처리를 try-except로 감싸서 하나가 실패해도 다른 종목은 계속 처리
         for idx, holding in enumerate(raw_holdings):
