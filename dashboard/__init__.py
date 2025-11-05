@@ -1,6 +1,6 @@
 """
 AutoTrade Pro Dashboard Module
-v5.4 - Modular Architecture
+v5.7 - Critical Fixes & Real Functionality
 
 Exports:
 - run_dashboard: Main function to start the dashboard server
@@ -11,4 +11,4 @@ Exports:
 from .app import run_dashboard, create_app, app, socketio
 
 __all__ = ['run_dashboard', 'create_app', 'app', 'socketio']
-__version__ = '5.4.0'
+__version__ = '5.7.0'

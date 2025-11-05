@@ -72,10 +72,50 @@ def get_account():
 
             print(f"[ACCOUNT] 총자산: {total_assets:,}원 (주식: {stock_value:,}원 + 현금: {cash:,}원)")
 
-            # 손익 계산
-            total_buy_amount = sum(int(str(h.get('pchs_amt', 0)).replace(',', '')) for h in holdings) if holdings else 0
+            # 손익 계산 (kt00004 API 필드 사용: avg_prc, rmnd_qty)
+            # 계산 방식: get_positions()와 동일하게 통일
+            total_buy_amount = 0
+            profit_loss_detailed = []
+
+            if holdings:
+                for h in holdings:
+                    stock_code = h.get('stk_cd', '')
+                    stock_name = h.get('stk_nm', '')
+
+                    # kt00004 API 필드 사용 (main.py:841-851과 동일)
+                    quantity = int(str(h.get('rmnd_qty', 0)).replace(',', ''))  # 보유수량
+                    avg_price = int(str(h.get('avg_prc', 0)).replace(',', ''))  # 평균단가
+                    cur_price = int(str(h.get('cur_prc', 0)).replace(',', ''))  # 현재가
+
+                    # 매입금액 계산 (평균단가 × 수량)
+                    buy_amt = avg_price * quantity
+
+                    # 평가금액 계산
+                    eval_amt = int(str(h.get('eval_amt', 0)).replace(',', ''))
+                    if eval_amt == 0:
+                        # 장외 시간 등으로 eval_amt이 0인 경우, 직접 계산
+                        eval_amt = quantity * cur_price
+
+                    # 손익 = 평가금액 - 매입금액
+                    stock_pl = eval_amt - buy_amt
+                    total_buy_amount += buy_amt
+
+                    profit_loss_detailed.append({
+                        'code': stock_code,
+                        'name': stock_name,
+                        'buy_amount': buy_amt,
+                        'eval_amount': eval_amt,
+                        'profit_loss': stock_pl
+                    })
+
+                    print(f"[ACCOUNT] {stock_code} ({stock_name}) 손익: {stock_pl:,}원 (매입: {buy_amt:,}원 = {quantity}주 × {avg_price:,}원, 평가: {eval_amt:,}원)")
+
             profit_loss = stock_value - total_buy_amount
             profit_loss_percent = (profit_loss / total_buy_amount * 100) if total_buy_amount > 0 else 0
+
+            print(f"[ACCOUNT] 총 손익: {profit_loss:,}원 ({profit_loss_percent:+.2f}%)")
+            print(f"[ACCOUNT] 총 매입금액: {total_buy_amount:,}원 (정확한 계산: avg_prc × rmnd_qty)")
+            print(f"[ACCOUNT] 총 평가금액: {stock_value:,}원")
 
             return jsonify({
                 'total_assets': total_assets,
