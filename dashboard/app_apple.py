@@ -2957,17 +2957,21 @@ def get_real_holdings():
         holdings = []
 
         # 실제 보유 종목 조회
-        if hasattr(bot_instance, 'get_holdings'):
-            raw_holdings = bot_instance.get_holdings()
+        if hasattr(bot_instance, 'account_api'):
+            raw_holdings = bot_instance.account_api.get_holdings()
 
             if raw_holdings:
                 for holding in raw_holdings:
-                    stock_code = holding.get('stk_cd')
+                    stock_code = str(holding.get('stk_cd', '')).strip()
+                    # A 접두사 제거
+                    if stock_code.startswith('A'):
+                        stock_code = stock_code[1:]
+
                     stock_name = holding.get('stk_nm', stock_code)
-                    quantity = int(holding.get('rmnd_qty', 0))
-                    avg_price = int(holding.get('avg_prc', 0))
-                    current_price = int(holding.get('cur_prc', 0))
-                    eval_amount = int(holding.get('eval_amt', 0))
+                    quantity = int(str(holding.get('rmnd_qty', 0)).replace(',', ''))
+                    avg_price = int(str(holding.get('avg_prc', 0)).replace(',', ''))
+                    current_price = int(str(holding.get('cur_prc', 0)).replace(',', ''))
+                    eval_amount = int(str(holding.get('eval_amt', 0)).replace(',', ''))
 
                     if quantity <= 0:
                         continue
@@ -3007,20 +3011,103 @@ def get_real_holdings():
                                     # ATR 기반 손절/익절 (2 ATR)
                                     stop_loss_price = int(avg_price - (atr * 2))
                                     take_profit_price = int(avg_price + (atr * 3))
+
+                                    # Kelly Criterion 계산 (승률 60%, Risk/Reward 1.5배 가정)
+                                    win_rate = 0.60
+                                    avg_win_loss_ratio = 1.5
+                                    kelly_fraction = (win_rate * avg_win_loss_ratio - (1 - win_rate)) / avg_win_loss_ratio
+                                    kelly_fraction = max(0, min(kelly_fraction, 0.25))  # 최대 25%로 제한
+
+                                    # Sharpe Ratio 추정 (최근 20일 수익률 기반)
+                                    returns = []
+                                    for i in range(1, len(daily_data)):
+                                        close_today = daily_data[i-1].get('close', 0)
+                                        close_yesterday = daily_data[i].get('close', 0)
+                                        if close_yesterday > 0:
+                                            ret = (close_today - close_yesterday) / close_yesterday
+                                            returns.append(ret)
+
+                                    if returns:
+                                        avg_return = sum(returns) / len(returns)
+                                        variance = sum((r - avg_return) ** 2 for r in returns) / len(returns)
+                                        std_return = variance ** 0.5
+                                        sharpe_ratio = (avg_return / std_return * (252 ** 0.5)) if std_return > 0 else 0
+                                    else:
+                                        sharpe_ratio = 0
+
+                                    # Maximum Drawdown 계산
+                                    peak = daily_data[0].get('close', current_price)
+                                    max_dd = 0
+                                    for data in daily_data:
+                                        price = data.get('close', 0)
+                                        if price > peak:
+                                            peak = price
+                                        dd = (peak - price) / peak if peak > 0 else 0
+                                        if dd > max_dd:
+                                            max_dd = dd
+
+                                    # RSI 계산 (14일)
+                                    gains = []
+                                    losses = []
+                                    for i in range(1, min(15, len(daily_data))):
+                                        change = daily_data[i-1].get('close', 0) - daily_data[i].get('close', 0)
+                                        if change > 0:
+                                            gains.append(change)
+                                            losses.append(0)
+                                        else:
+                                            gains.append(0)
+                                            losses.append(abs(change))
+
+                                    avg_gain = sum(gains) / len(gains) if gains else 0
+                                    avg_loss = sum(losses) / len(losses) if losses else 0.01
+                                    rs = avg_gain / avg_loss if avg_loss > 0 else 0
+                                    rsi = 100 - (100 / (1 + rs)) if rs > 0 else 50
+
+                                    # Bollinger Bands 위치 (20일 SMA, 2 표준편차)
+                                    closes = [d.get('close', 0) for d in daily_data[:20]]
+                                    sma_20 = sum(closes) / len(closes) if closes else current_price
+                                    variance_bb = sum((c - sma_20) ** 2 for c in closes) / len(closes) if closes else 0
+                                    std_20 = variance_bb ** 0.5
+                                    bb_upper = sma_20 + (std_20 * 2)
+                                    bb_lower = sma_20 - (std_20 * 2)
+                                    bb_position = ((current_price - bb_lower) / (bb_upper - bb_lower)) if (bb_upper - bb_lower) > 0 else 0.5
+
+                                    # Risk/Reward Ratio
+                                    potential_loss = current_price - stop_loss_price
+                                    potential_gain = take_profit_price - current_price
+                                    risk_reward_ratio = potential_gain / potential_loss if potential_loss > 0 else 0
                             else:
                                 # ATR 계산 불가 시 고정값 사용
                                 stop_loss_price = int(avg_price * 0.95)  # -5%
                                 take_profit_price = int(avg_price * 1.10)  # +10%
+                                kelly_fraction = 0.10
+                                sharpe_ratio = 0
+                                max_dd = 0
+                                rsi = 50
+                                bb_position = 0.5
+                                risk_reward_ratio = 2.0
                         else:
                             # market_api 없으면 고정값
                             stop_loss_price = int(avg_price * 0.95)
                             take_profit_price = int(avg_price * 1.10)
+                            kelly_fraction = 0.10
+                            sharpe_ratio = 0
+                            max_dd = 0
+                            rsi = 50
+                            bb_position = 0.5
+                            risk_reward_ratio = 2.0
 
                     except Exception as e:
-                        logger.debug(f"ATR 계산 실패 ({stock_code}): {e}")
+                        logger.debug(f"Advanced metrics calculation failed ({stock_code}): {e}")
                         # 기본값 사용
                         stop_loss_price = int(avg_price * 0.95)
                         take_profit_price = int(avg_price * 1.10)
+                        kelly_fraction = 0.10
+                        sharpe_ratio = 0
+                        max_dd = 0
+                        rsi = 50
+                        bb_position = 0.5
+                        risk_reward_ratio = 2.0
 
                     # 손절/익절까지 거리 계산
                     distance_to_stop = ((stop_loss_price - current_price) / current_price * 100) if current_price > 0 else 0
@@ -3039,7 +3126,14 @@ def get_real_holdings():
                         'take_profit_price': take_profit_price,
                         'distance_to_stop': round(distance_to_stop, 2),
                         'distance_to_target': round(distance_to_target, 2),
-                        'atr_based': True  # ATR 기반 여부
+                        'atr_based': True,  # ATR 기반 여부
+                        # 진보된 지표들
+                        'kelly_fraction': round(kelly_fraction, 3),
+                        'sharpe_ratio': round(sharpe_ratio, 2),
+                        'max_drawdown': round(max_dd * 100, 2),
+                        'rsi': round(rsi, 1),
+                        'bb_position': round(bb_position, 2),
+                        'risk_reward_ratio': round(risk_reward_ratio, 2)
                     })
 
         return jsonify({
