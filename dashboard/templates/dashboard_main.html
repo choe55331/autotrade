@@ -639,6 +639,29 @@
                     <span>손익</span>
                     <span id="profit-loss" style="color: var(--color-success);">+₩0</span>
                 </div>
+                <div class="account-row" style="padding-top: 8px;">
+                    <span style="font-size: 11px; color: var(--text-muted);">수익률</span>
+                    <span id="profit-loss-percent" style="font-size: 13px; font-weight: 600;">0%</span>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="section-title" style="margin-top: 20px;">
+                <i class="fas fa-bolt"></i> 빠른 액션 <kbd style="font-size: 9px; padding: 2px 4px; background: rgba(59,130,246,0.2); border-radius: 3px; margin-left: 5px;">단축키</kbd>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px;">
+                <button onclick="emergencyStopAll()" style="padding: 10px; background: var(--color-danger); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 5px;" title="긴급 전체 정지 (Ctrl+Shift+Q)">
+                    <i class="fas fa-stop-circle"></i> 긴급정지
+                </button>
+                <button onclick="sellAllPositions()" style="padding: 10px; background: var(--color-warning); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 5px;" title="모든 포지션 매도 (Ctrl+Shift+S)">
+                    <i class="fas fa-hand-paper"></i> 전체매도
+                </button>
+                <button onclick="pauseTrading()" style="padding: 10px; background: rgba(59, 130, 246, 0.8); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 5px;" title="매매 일시정지 (Ctrl+Shift+P)">
+                    <i class="fas fa-pause"></i> 일시정지
+                </button>
+                <button onclick="loadAllData()" style="padding: 10px; background: var(--color-success); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 5px;" title="데이터 새로고침 (F5)">
+                    <i class="fas fa-sync-alt"></i> 새로고침
+                </button>
             </div>
 
             <div class="section-title">
@@ -1723,6 +1746,12 @@
             const plElement = document.getElementById('profit-loss');
             plElement.textContent = (pl >= 0 ? '+' : '') + '₩' + formatNumber(Math.abs(pl));
             plElement.style.color = pl >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
+
+            // Update profit/loss percentage
+            const plPercent = data.profit_loss_percent || 0;
+            const plPercentElement = document.getElementById('profit-loss-percent');
+            plPercentElement.textContent = (plPercent >= 0 ? '+' : '') + plPercent.toFixed(2) + '%';
+            plPercentElement.style.color = plPercent >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
         }
 
         function updatePositions(positions) {
@@ -2877,6 +2906,117 @@
 
             tbody.innerHTML = html;
         }
+
+        // ====================================
+        // Quick Action Functions
+        // ====================================
+
+        async function emergencyStopAll() {
+            if (!confirm('⚠️ 긴급 정지: 모든 거래를 즉시 중단하고 봇을 정지합니다.\n\n계속하시겠습니까?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/emergency-stop', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'}
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast('✅ 긴급 정지 완료', 'success');
+                    loadAllData();
+                } else {
+                    showToast('❌ 긴급 정지 실패: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showToast('❌ 긴급 정지 오류: ' + error.message, 'error');
+            }
+        }
+
+        async function sellAllPositions() {
+            if (!confirm('⚠️ 전체 매도: 모든 보유 종목을 시장가로 매도합니다.\n\n계속하시겠습니까?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/sell-all', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'}
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast(`✅ 전체 매도 주문 완료 (${data.count}건)`, 'success');
+                    loadAllData();
+                } else {
+                    showToast('❌ 전체 매도 실패: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showToast('❌ 전체 매도 오류: ' + error.message, 'error');
+            }
+        }
+
+        async function pauseTrading() {
+            try {
+                const response = await fetch('/api/pause-trading', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'}
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast('✅ 매매 일시정지', 'success');
+                    loadAllData();
+                } else {
+                    showToast('❌ 일시정지 실패: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showToast('❌ 일시정지 오류: ' + error.message, 'error');
+            }
+        }
+
+        // ====================================
+        // Keyboard Shortcuts
+        // ====================================
+
+        document.addEventListener('keydown', function(e) {
+            // Ctrl + Shift + Q: Emergency Stop
+            if (e.ctrlKey && e.shiftKey && e.key === 'Q') {
+                e.preventDefault();
+                emergencyStopAll();
+                return;
+            }
+
+            // Ctrl + Shift + S: Sell All
+            if (e.ctrlKey && e.shiftKey && e.key === 'S') {
+                e.preventDefault();
+                sellAllPositions();
+                return;
+            }
+
+            // Ctrl + Shift + P: Pause Trading
+            if (e.ctrlKey && e.shiftKey && e.key === 'P') {
+                e.preventDefault();
+                pauseTrading();
+                return;
+            }
+
+            // F5: Refresh (allow default, but also trigger our refresh)
+            if (e.key === 'F5') {
+                e.preventDefault();
+                loadAllData();
+                return;
+            }
+
+            // Escape: Close any open modals/dialogs
+            if (e.key === 'Escape') {
+                const searchResults = document.getElementById('stock-search-results');
+                if (searchResults) {
+                    searchResults.style.display = 'none';
+                }
+            }
+        });
     </script>
 
     <!-- Advanced Trading Chart -->

@@ -457,3 +457,123 @@ def get_hft_status():
     except Exception as e:
         print(f"HFT status error: {e}")
         return jsonify({'success': False, 'message': str(e)})
+
+
+# ============================================================================
+# QUICK ACTION API (Emergency Controls)
+# ============================================================================
+
+@trading_bp.route('/api/emergency-stop', methods=['POST'])
+def emergency_stop():
+    """Emergency stop: Stop all trading immediately"""
+    try:
+        if _bot_instance:
+            # Stop the bot
+            if hasattr(_bot_instance, 'stop'):
+                _bot_instance.stop()
+            
+            # Update control.json
+            set_control_status(False)
+            
+            logger.warning("⚠️ Emergency stop triggered")
+            return jsonify({
+                'success': True,
+                'message': '긴급 정지 완료'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Bot instance not available'
+            })
+    except Exception as e:
+        logger.error(f"Emergency stop error: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+
+@trading_bp.route('/api/sell-all', methods=['POST'])
+def sell_all_positions():
+    """Sell all positions at market price"""
+    try:
+        if not _bot_instance:
+            return jsonify({'success': False, 'error': 'Bot instance not available'})
+        
+        if not hasattr(_bot_instance, 'trading_api'):
+            return jsonify({'success': False, 'error': 'Trading API not available'})
+        
+        # Get current positions
+        if hasattr(_bot_instance, 'account_api'):
+            holdings = _bot_instance.account_api.get_holdings(market_type="KRX+NXT")
+            
+            if not holdings:
+                return jsonify({
+                    'success': True,
+                    'count': 0,
+                    'message': '보유 종목 없음'
+                })
+            
+            sell_count = 0
+            for holding in holdings:
+                stock_code = holding.get('stk_cd', '')
+                quantity = int(str(holding.get('rmnd_qty', 0)).replace(',', ''))
+                
+                if stock_code and quantity > 0:
+                    try:
+                        # Place market sell order
+                        result = _bot_instance.trading_api.sell_stock(
+                            stock_code=stock_code,
+                            quantity=quantity,
+                            price=0,  # Market price
+                            order_type="03"  # Market order
+                        )
+                        if result:
+                            sell_count += 1
+                    except Exception as e:
+                        logger.error(f"Failed to sell {stock_code}: {e}")
+            
+            logger.warning(f"⚠️ Sell all triggered: {sell_count} orders placed")
+            return jsonify({
+                'success': True,
+                'count': sell_count,
+                'message': f'{sell_count}건 매도 주문 완료'
+            })
+        else:
+            return jsonify({'success': False, 'error': 'Account API not available'})
+            
+    except Exception as e:
+        logger.error(f"Sell all error: {e}")
+        return jsonify({'success': False, 'error': str(e)})
+
+
+@trading_bp.route('/api/pause-trading', methods=['POST'])
+def pause_trading():
+    """Pause trading (buy only, sell continues)"""
+    try:
+        control_file = BASE_DIR / 'data' / 'control.json'
+        
+        # Read current control status
+        current_status = {}
+        if control_file.exists():
+            with open(control_file, 'r', encoding='utf-8') as f:
+                current_status = json.load(f)
+        
+        # Toggle pause_buy
+        current_pause = current_status.get('pause_buy', False)
+        new_pause = not current_pause
+        
+        current_status['pause_buy'] = new_pause
+        
+        # Write back
+        with open(control_file, 'w', encoding='utf-8') as f:
+            json.dump(current_status, f, indent=2)
+        
+        status_text = "매매 일시정지" if new_pause else "매매 재개"
+        logger.info(f"Trading pause toggled: {status_text}")
+        
+        return jsonify({
+            'success': True,
+            'paused': new_pause,
+            'message': status_text
+        })
+    except Exception as e:
+        logger.error(f"Pause trading error: {e}")
+        return jsonify({'success': False, 'error': str(e)})
