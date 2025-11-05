@@ -104,14 +104,18 @@ class OrderAPI:
                 # 기본값: KRX
                 dmst_stex_tp = 'KRX'
 
-            # ord_uv(주문단가): 시장가(3)만 빈 문자열, 나머지는 가격 지정
+            # ord_uv(주문단가): 시장가(3)와 시간외종가(81)는 빈 문자열, 나머지는 가격 지정
             # ✅ 테스트 결과: NXT 거래소는 trde_tp=0에도 가격 지정 필요
             if trde_tp == '3':
-                # 시장가만 빈 문자열
+                # 시장가: 가격 지정 안 함
                 ord_uv_value = ""
                 logger.info(f"⚠️ 시장가 주문: 가격 지정 없음")
+            elif trde_tp == '81':
+                # 시간외종가: 가격 지정 안 함 (종가로 자동 체결)
+                ord_uv_value = ""
+                logger.info(f"⚠️ 시간외종가 주문: 장 마감 종가로 자동 체결")
             else:
-                # 나머지는 모두 가격 지정
+                # 나머지는 가격 지정
                 ord_uv_value = str(price)
 
             body_params = {
@@ -239,14 +243,18 @@ class OrderAPI:
                 # 기본값: KRX
                 dmst_stex_tp = 'KRX'
 
-            # ord_uv(주문단가): 시장가(3)만 빈 문자열, 나머지는 가격 지정
+            # ord_uv(주문단가): 시장가(3)와 시간외종가(81)는 빈 문자열, 나머지는 가격 지정
             # ✅ 테스트 결과: NXT 거래소는 trde_tp=0에도 가격 지정 필요
             if trde_tp == '3':
-                # 시장가만 빈 문자열
+                # 시장가: 가격 지정 안 함
                 ord_uv_value = ""
                 logger.info(f"⚠️ 시장가 주문: 가격 지정 없음")
+            elif trde_tp == '81':
+                # 시간외종가: 가격 지정 안 함 (종가로 자동 체결)
+                ord_uv_value = ""
+                logger.info(f"⚠️ 시간외종가 주문: 장 마감 종가로 자동 체결")
             else:
-                # 나머지는 모두 가격 지정
+                # 나머지는 가격 지정
                 ord_uv_value = str(price)
 
             body_params = {

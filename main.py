@@ -1220,11 +1220,25 @@ class TradingBotV2:
                 f"(총 {total_amount:,}원)"
             )
 
-            # 주문 유형 결정 (NXT 프리/애프터마켓에서는 지정가만 가능)
-            order_type = '00'  # 기본: 지정가
-            if self.market_status.get('order_type_limit') == 'all':
-                # 메인마켓에서는 시장가 주문도 가능 (필요시)
-                order_type = '00'  # 여전히 지정가 사용 (안전)
+            # 주문 유형 결정 (시간대별 자동 선택)
+            from utils.trading_date import is_nxt_hours
+            from datetime import datetime
+
+            if is_nxt_hours():
+                # NXT 시간대
+                now = datetime.now()
+                if now.hour == 8:
+                    # 프리마켓 (08:00-09:00)
+                    order_type = '61'  # 장시작전시간외
+                    logger.info("📌 프리마켓 주문: 장시작전시간외(61)")
+                else:
+                    # 애프터마켓 (15:30-20:00)
+                    order_type = '81'  # 장마감후시간외
+                    logger.info("📌 애프터마켓 주문: 장마감후시간외(81) - 종가로 체결")
+            else:
+                # 정규장 (09:00-15:30)
+                order_type = '0'  # 보통(지정가)
+                logger.info("📌 정규장 주문: 보통 지정가(0)")
 
             # 테스트 모드일 때 로그
             if self.market_status.get('is_test_mode'):
@@ -1284,8 +1298,25 @@ class TradingBotV2:
                 f"(손익: {profit_loss:+,}원, {profit_loss_rate:+.2f}%)"
             )
 
-            # 주문 유형 결정 (NXT 프리/애프터마켓에서는 지정가만 가능)
-            order_type = '00'  # 지정가
+            # 주문 유형 결정 (시간대별 자동 선택)
+            from utils.trading_date import is_nxt_hours
+            from datetime import datetime
+
+            if is_nxt_hours():
+                # NXT 시간대
+                now = datetime.now()
+                if now.hour == 8:
+                    # 프리마켓 (08:00-09:00)
+                    order_type = '61'  # 장시작전시간외
+                    logger.info("📌 프리마켓 매도: 장시작전시간외(61)")
+                else:
+                    # 애프터마켓 (15:30-20:00)
+                    order_type = '81'  # 장마감후시간외
+                    logger.info("📌 애프터마켓 매도: 장마감후시간외(81) - 종가로 체결")
+            else:
+                # 정규장 (09:00-15:30)
+                order_type = '0'  # 보통(지정가)
+                logger.info("📌 정규장 매도: 보통 지정가(0)")
 
             # 테스트 모드일 때 로그
             if self.market_status.get('is_test_mode'):
