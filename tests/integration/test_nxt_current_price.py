@@ -2,7 +2,11 @@
 NXT 현재가 조회 테스트
 """
 import sys
-sys.path.insert(0, '/home/user/autotrade')
+import os
+
+# Cross-platform path resolution
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, project_root)
 
 from datetime import datetime
 from api.account import AccountAPI
