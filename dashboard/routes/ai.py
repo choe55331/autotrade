@@ -1108,45 +1108,104 @@ def get_stock_recommendations():
 
         if _bot_instance and hasattr(_bot_instance, 'market_api') and hasattr(_bot_instance, 'account_api'):
             try:
-                # Get top volume stocks
-                from strategy.scoring_system import ScoringSystem
-                scoring_system = ScoringSystem(_bot_instance.market_api)
-
                 # Get current holdings to avoid recommending already-held stocks
                 holdings = _bot_instance.account_api.get_holdings()
                 held_codes = [h.get('stk_cd', '').replace('A', '') for h in holdings]
 
-                # Get market leaders by volume
-                volume_leaders = _bot_instance.market_api.get_volume_rank(limit=20)
+                # Get market leaders by CHANGE RATE (상승률) instead of volume
+                gainers = _bot_instance.market_api.get_change_rank(market='ALL', limit=30)
 
-                for stock in volume_leaders[:10]:  # Top 10
+                for stock in gainers:
                     stock_code = stock.get('stck_shrn_iscd', '')
-                    if stock_code in held_codes:
-                        continue  # Skip already held stocks
+                    stock_name = stock.get('hts_kor_isnm', '')
 
-                    # Score this stock
+                    # Skip if already held or invalid
+                    if not stock_code or stock_code in held_codes:
+                        continue
+
+                    # Get volume and price
+                    volume = int(stock.get('acml_vol', 0))
+                    current_price = int(stock.get('stck_prpr', 0))
+                    change_rate = float(stock.get('prdy_ctrt', 0))
+
+                    # Filter: Only stocks with significant volume and positive change
+                    if volume < 100_000 or change_rate <= 0 or current_price == 0:
+                        continue
+
+                    # Build basic stock data
                     stock_data = {
                         'stock_code': stock_code,
-                        'name': stock.get('hts_kor_isnm', ''),
-                        'current_price': int(stock.get('stck_prpr', 0)),
-                        'change_rate': float(stock.get('prdy_ctrt', 0)),
-                        'volume': int(stock.get('acml_vol', 0)),
+                        'name': stock_name,
+                        'current_price': current_price,
+                        'change_rate': change_rate,
+                        'volume': volume
                     }
 
-                    # Calculate score
-                    score_result = scoring_system.calculate_score(stock_data, scan_type='ai_driven')
+                    # Simple scoring based on available data
+                    score = 0
 
-                    if score_result.total_score >= 200:  # Only recommend high-scoring stocks
+                    # Price momentum (0-60)
+                    if change_rate >= 10:
+                        score += 60
+                    elif change_rate >= 7:
+                        score += 51
+                    elif change_rate >= 5:
+                        score += 42
+                    elif change_rate >= 3:
+                        score += 33
+                    elif change_rate >= 1:
+                        score += 15
+
+                    # Volume score (0-60)
+                    if volume >= 5_000_000:
+                        score += 48
+                    elif volume >= 2_000_000:
+                        score += 36
+                    elif volume >= 1_000_000:
+                        score += 24
+                    elif volume >= 500_000:
+                        score += 12
+
+                    # Baseline score for being in top gainers
+                    score += 50
+
+                    # Calculate percentage
+                    max_score = 440
+                    percentage = (score / max_score) * 100
+
+                    # Determine grade
+                    if percentage >= 90:
+                        grade = 'S'
+                    elif percentage >= 80:
+                        grade = 'A'
+                    elif percentage >= 70:
+                        grade = 'B'
+                    elif percentage >= 60:
+                        grade = 'C'
+                    elif percentage >= 50:
+                        grade = 'D'
+                    else:
+                        grade = 'F'
+
+                    # Only recommend if score is decent
+                    if score >= 120:  # Lower threshold
+                        reason = f'상승률 {change_rate:.1f}% + 거래량 {volume:,}주'
+
                         recommendations.append({
                             'code': stock_code,
-                            'name': stock_data['name'],
-                            'price': stock_data['current_price'],
-                            'change_rate': stock_data['change_rate'],
-                            'score': round(score_result.total_score, 1),
-                            'percentage': round(score_result.percentage, 1),
-                            'grade': scoring_system.get_grade(score_result.total_score),
-                            'reason': f'강한 모멘텀 ({score_result.percentage:.0f}% 점수)'
+                            'name': stock_name,
+                            'price': current_price,
+                            'change_rate': change_rate,
+                            'score': round(score, 1),
+                            'percentage': round(percentage, 1),
+                            'grade': grade,
+                            'reason': reason,
+                            'volume': volume
                         })
+
+                    # Stop after 5 recommendations
+                    if len(recommendations) >= 5:
+                        break
 
             except Exception as e:
                 print(f"Stock recommendation error: {e}")
@@ -1170,6 +1229,86 @@ def get_stock_recommendations():
             'success': False,
             'error': str(e),
             'recommendations': []
+        })
+
+
+@ai_bp.route('/api/ai/alerts')
+def get_ai_alerts():
+    """
+    실시간 AI 알림
+    - 손절/익절 알림
+    - 급등/급락 알림
+    - 리스크 경고
+    """
+    try:
+        alerts = []
+
+        if _bot_instance and hasattr(_bot_instance, 'account_api'):
+            try:
+                holdings = _bot_instance.account_api.get_holdings()
+
+                for h in holdings:
+                    stock_name = h.get('stk_nm', '')
+                    quantity = int(h.get('rmnd_qty', 0))
+                    buy_price = int(h.get('pchs_avg_pric', 0))
+                    current_price = int(h.get('cur_prc', 0))
+
+                    if quantity == 0 or buy_price == 0:
+                        continue
+
+                    profit_pct = ((current_price - buy_price) / buy_price * 100)
+
+                    # 손절 알림 (-5% 이상 손실)
+                    if profit_pct <= -5:
+                        alerts.append({
+                            'type': 'stop_loss',
+                            'severity': 'critical',
+                            'stock': stock_name,
+                            'message': f'{stock_name} {profit_pct:.1f}% 손실 - 즉시 손절 검토',
+                            'action': '매도',
+                            'color': '#ef4444'
+                        })
+
+                    # 익절 알림 (+15% 이상 수익)
+                    elif profit_pct >= 15:
+                        alerts.append({
+                            'type': 'take_profit',
+                            'severity': 'info',
+                            'stock': stock_name,
+                            'message': f'{stock_name} {profit_pct:.1f}% 수익 - 익절 고려',
+                            'action': '일부 매도',
+                            'color': '#10b981'
+                        })
+
+                    # 경고 알림 (-3% 손실)
+                    elif profit_pct <= -3:
+                        alerts.append({
+                            'type': 'warning',
+                            'severity': 'warning',
+                            'stock': stock_name,
+                            'message': f'{stock_name} {profit_pct:.1f}% 손실 - 주의 관찰',
+                            'action': '모니터링',
+                            'color': '#f59e0b'
+                        })
+
+            except Exception as e:
+                print(f"Alerts error: {e}")
+
+        # Sort by severity
+        severity_order = {'critical': 0, 'warning': 1, 'info': 2}
+        alerts.sort(key=lambda x: severity_order.get(x['severity'], 99))
+
+        return jsonify({
+            'success': True,
+            'alerts': alerts[:10]
+        })
+
+    except Exception as e:
+        print(f"AI alerts API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'alerts': []
         })
 
 
