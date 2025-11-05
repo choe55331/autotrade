@@ -193,6 +193,10 @@ class AdvancedTradingChart {
 
     initMainChart() {
         const container = document.getElementById('main-chart-container');
+        if (!container) {
+            console.error('Main chart container not found');
+            return;
+        }
 
         this.mainChart = LightweightCharts.createChart(container, {
             width: container.clientWidth,
@@ -345,7 +349,9 @@ class AdvancedTradingChart {
         // Sync with main chart
         this.mainChart.timeScale().subscribeVisibleTimeRangeChange(() => {
             const range = this.mainChart.timeScale().getVisibleRange();
-            this.rsiChart.timeScale().setVisibleRange(range);
+            if (range && this.rsiChart) {
+                this.rsiChart.timeScale().setVisibleRange(range);
+            }
         });
     }
 
@@ -399,7 +405,9 @@ class AdvancedTradingChart {
         // Sync with main chart
         this.mainChart.timeScale().subscribeVisibleTimeRangeChange(() => {
             const range = this.mainChart.timeScale().getVisibleRange();
-            this.macdChart.timeScale().setVisibleRange(range);
+            if (range && this.macdChart) {
+                this.macdChart.timeScale().setVisibleRange(range);
+            }
         });
     }
 
@@ -438,7 +446,9 @@ class AdvancedTradingChart {
         // Sync with main chart
         this.mainChart.timeScale().subscribeVisibleTimeRangeChange(() => {
             const range = this.mainChart.timeScale().getVisibleRange();
-            this.volumeChart.timeScale().setVisibleRange(range);
+            if (range && this.volumeChart) {
+                this.volumeChart.timeScale().setVisibleRange(range);
+            }
         });
     }
 
@@ -592,6 +602,10 @@ class AdvancedTradingChart {
         }
 
         // Set candlestick data
+        if (!this.candlestickSeries) {
+            console.error('Candlestick series not initialized');
+            return;
+        }
         this.candlestickSeries.setData(chartData);
 
         // For weekly/monthly, create volume data from aggregated candles

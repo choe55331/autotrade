@@ -234,8 +234,8 @@ def get_account():
             deposit_amount = int(str(deposit.get('entr', '0')).replace(',', '')) if deposit else 0
             cash = int(str(deposit.get('100stk_ord_alow_amt', '0')).replace(',', '')) if deposit else 0
             stock_value = sum(int(str(h.get('eval_amt', 0)).replace(',', '')) for h in holdings) if holdings else 0
-            # 총 자산 = 주문가능금액 + 주식평가금액 (v5.3.2 수정)
-            total_assets = cash + stock_value
+            # 총 자산 = 예수금 + 주식평가금액 (v5.3.3 재수정)
+            total_assets = deposit_amount + stock_value
 
             # 손익 계산
             total_buy_amount = sum(int(str(h.get('pchs_amt', 0)).replace(',', '')) for h in holdings) if holdings else 0
