@@ -4,6 +4,7 @@ Handles account balance, positions, and detailed holdings
 """
 from flask import Blueprint, jsonify
 from typing import Dict, Any
+from datetime import datetime
 
 account_bp = Blueprint('account', __name__)
 
@@ -201,7 +202,59 @@ def get_positions():
                 profit_loss = value - (avg_price * quantity)
                 profit_loss_percent = ((current_price - avg_price) / avg_price * 100) if avg_price > 0 else 0
 
-                # 손절가 계산 (dynamic_risk_manager 사용)
+                # v5.7.2: 수익 최적화 분석 추가
+                optimization_info = {}
+                try:
+                    from features.profit_optimizer import get_profit_optimizer
+
+                    optimizer = get_profit_optimizer()
+
+                    # 최고가 추정 (현재가와 평균단가 중 높은 값)
+                    highest_price = max(current_price, avg_price)
+                    if profit_loss_percent > 0:
+                        # 수익 중이면 현재가가 최고가일 가능성
+                        highest_price = current_price
+
+                    # 보유 일수 계산 (실제로는 entry_time 필요, 여기서는 추정)
+                    days_held = 5  # 기본값
+
+                    # 포지션 분석
+                    analysis = optimizer.analyze_position(
+                        entry_price=avg_price,
+                        current_price=current_price,
+                        highest_price=highest_price,
+                        quantity=quantity,
+                        days_held=days_held,
+                        rule_name='balanced'
+                    )
+
+                    # ATR 기반 최적 레벨 계산 (ATR 추정)
+                    estimated_atr = current_price * 0.02  # 주가의 2%로 추정
+                    exit_levels = optimizer.optimize_exit_levels(
+                        entry_price=avg_price,
+                        atr=estimated_atr,
+                        rule_name='balanced'
+                    )
+
+                    optimization_info = {
+                        'action': analysis.action,
+                        'reason': analysis.reason,
+                        'sell_ratio': analysis.sell_ratio,
+                        'optimized_stop_loss': exit_levels['stop_loss'],
+                        'optimized_take_profit': exit_levels['take_profit'],
+                        'risk_reward_ratio': exit_levels['risk_reward_ratio'],
+                        'trailing_stop': analysis.new_stop_loss if analysis.new_stop_loss else None
+                    }
+
+                except Exception as e:
+                    print(f"Error in profit optimization for {code}: {e}")
+                    optimization_info = {
+                        'action': 'hold',
+                        'reason': '분석 불가',
+                        'sell_ratio': 0.0
+                    }
+
+                # 기존 손절가 (dynamic_risk_manager)
                 stop_loss_price = avg_price
                 if _bot_instance and hasattr(_bot_instance, 'dynamic_risk_manager'):
                     try:
@@ -219,7 +272,8 @@ def get_positions():
                     'profit_loss': profit_loss,
                     'profit_loss_percent': profit_loss_percent,
                     'value': value,
-                    'stop_loss_price': stop_loss_price
+                    'stop_loss_price': stop_loss_price,
+                    'optimization': optimization_info  # v5.7.2: 최적화 정보 추가
                 })
             except Exception as e:
                 print(f"Error processing holding {h}: {e}")
@@ -452,3 +506,139 @@ def get_real_holdings():
             'success': False,
             'message': str(e)
         }), 500
+
+# ============================================================================
+# v5.7.2: 수익 최적화 API
+# ============================================================================
+
+@account_bp.route('/api/profit-optimization/rules')
+def get_optimization_rules():
+    """수익 최적화 규칙 조회"""
+    try:
+        from features.profit_optimizer import get_profit_optimizer
+
+        optimizer = get_profit_optimizer()
+
+        rules_info = []
+        for name, rule in optimizer.rules.items():
+            rules_info.append({
+                'name': name,
+                'display_name': rule.name,
+                'stop_loss_rate': rule.stop_loss_rate * 100,
+                'take_profit_rate': rule.take_profit_rate * 100,
+                'trailing_stop_enabled': rule.trailing_stop_enabled,
+                'trailing_stop_trigger': rule.trailing_stop_trigger * 100,
+                'trailing_stop_distance': rule.trailing_stop_distance * 100,
+                'max_holding_days': rule.max_holding_days,
+                'partial_profit_enabled': rule.partial_profit_enabled,
+                'partial_profit_rate': rule.partial_profit_rate * 100,
+                'partial_profit_sell_ratio': rule.partial_profit_sell_ratio * 100
+            })
+
+        return jsonify({
+            'success': True,
+            'rules': rules_info
+        })
+
+    except Exception as e:
+        print(f"Error getting optimization rules: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })
+
+
+@account_bp.route('/api/profit-optimization/summary')
+def get_optimization_summary():
+    """현재 보유 종목의 수익 최적화 요약"""
+    try:
+        from features.profit_optimizer import get_profit_optimizer
+
+        if not _bot_instance or not hasattr(_bot_instance, 'account_api'):
+            return jsonify({
+                'success': False,
+                'message': 'Bot not initialized'
+            })
+
+        optimizer = get_profit_optimizer()
+        holdings = _bot_instance.account_api.get_holdings(market_type="KRX+NXT")
+
+        if not holdings:
+            return jsonify({
+                'success': True,
+                'summary': {
+                    'total_positions': 0,
+                    'sell_recommended': 0,
+                    'hold_recommended': 0,
+                    'partial_sell_recommended': 0,
+                    'actions': []
+                }
+            })
+
+        actions = []
+        sell_count = 0
+        hold_count = 0
+        partial_sell_count = 0
+
+        for h in holdings:
+            code = str(h.get('stk_cd', '')).replace('A', '')
+            name = h.get('stk_nm', '')
+            quantity = int(str(h.get('rmnd_qty', 0)).replace(',', ''))
+
+            if quantity <= 0:
+                continue
+
+            avg_price = int(str(h.get('avg_prc', 0)).replace(',', ''))
+            current_price = int(str(h.get('cur_prc', 0)).replace(',', ''))
+
+            # 최고가 추정
+            highest_price = max(current_price, avg_price)
+            pnl_percent = ((current_price - avg_price) / avg_price * 100) if avg_price > 0 else 0
+
+            if pnl_percent > 0:
+                highest_price = current_price
+
+            # 분석
+            analysis = optimizer.analyze_position(
+                entry_price=avg_price,
+                current_price=current_price,
+                highest_price=highest_price,
+                quantity=quantity,
+                days_held=5,
+                rule_name='balanced'
+            )
+
+            if analysis.action == 'full_sell':
+                sell_count += 1
+            elif analysis.action == 'partial_sell':
+                partial_sell_count += 1
+            else:
+                hold_count += 1
+
+            actions.append({
+                'code': code,
+                'name': name,
+                'action': analysis.action,
+                'reason': analysis.reason,
+                'pnl_percent': pnl_percent
+            })
+
+        return jsonify({
+            'success': True,
+            'summary': {
+                'total_positions': len(actions),
+                'sell_recommended': sell_count,
+                'hold_recommended': hold_count,
+                'partial_sell_recommended': partial_sell_count,
+                'actions': actions
+            }
+        })
+
+    except Exception as e:
+        print(f"Error getting optimization summary: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })

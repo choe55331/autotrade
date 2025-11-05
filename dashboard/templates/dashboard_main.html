@@ -664,6 +664,31 @@
                 </button>
             </div>
 
+            <!-- v5.7.2: 수익 최적화 패널 -->
+            <div class="section-title" style="margin-top: 20px;">
+                <i class="fas fa-chart-line"></i> 수익 최적화 <span style="font-size: 10px; color: var(--color-success); margin-left: 5px;">NEW</span>
+            </div>
+            <div id="profit-optimization-panel" style="margin-bottom: 20px; padding: 12px; background: linear-gradient(135deg, rgba(16,185,129,0.1) 0%, rgba(59,130,246,0.1) 100%); border-radius: 8px; border: 1px solid rgba(16,185,129,0.3);">
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                    <div style="text-align: center; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 6px;">
+                        <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 3px;">매도 권장</div>
+                        <div id="opt-sell-count" style="font-size: 16px; font-weight: 700; color: var(--color-danger);">0</div>
+                    </div>
+                    <div style="text-align: center; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 6px;">
+                        <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 3px;">부분 익절</div>
+                        <div id="opt-partial-count" style="font-size: 16px; font-weight: 700; color: var(--color-warning);">0</div>
+                    </div>
+                    <div style="text-align: center; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 6px;">
+                        <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 3px;">보유 유지</div>
+                        <div id="opt-hold-count" style="font-size: 16px; font-weight: 700; color: var(--color-success);">0</div>
+                    </div>
+                </div>
+                <div style="font-size: 11px; color: var(--text-secondary); padding: 8px; background: rgba(0,0,0,0.1); border-radius: 6px;">
+                    <div style="margin-bottom: 3px;"><strong>현재 규칙:</strong> 균형 (손절 -6%, 익절 +12%)</div>
+                    <div style="font-size: 10px; opacity: 0.8;">트레일링 스톱: 활성 (최고가 대비 -4%)</div>
+                </div>
+            </div>
+
             <div class="section-title">
                 <i class="fas fa-broadcast-tower"></i> WebSocket 실시간 구독
             </div>
@@ -1586,7 +1611,7 @@
                 const originalText = statusText ? statusText.textContent : '';
                 if (statusText) statusText.textContent = '데이터 로딩 중...';
 
-                const [account, positions, candidates, status, activity, connections, wsSubscriptions, realHoldings] = await Promise.all([
+                const [account, positions, candidates, status, activity, connections, wsSubscriptions, realHoldings, optimization] = await Promise.all([
                     fetch('/api/account').then(r => r.json()).catch(e => {
                         console.error('Account API error:', e);
                         return {total_assets: 0, cash: 0, stock_value: 0, profit_loss: 0, profit_loss_percent: 0};
@@ -1597,7 +1622,8 @@
                     fetch('/api/trading-activity').then(r => r.json()).catch(() => ({success: false})),
                     fetch('/api/system-connections').then(r => r.json()).catch(() => ({rest_api: false, websocket: false, gemini: false})),
                     fetch('/api/websocket/subscriptions').then(r => r.json()).catch(() => ({success: false, data: {price: [], orderbook: [], execution: [], total: 0}})),
-                    fetch('/api/portfolio/real-holdings').then(r => r.json()).catch(() => ({success: false, data: []}))
+                    fetch('/api/portfolio/real-holdings').then(r => r.json()).catch(() => ({success: false, data: []})),
+                    fetch('/api/profit-optimization/summary').then(r => r.json()).catch(() => ({success: false, summary: {total_positions: 0, sell_recommended: 0, hold_recommended: 0, partial_sell_recommended: 0}}))
                 ]);
 
                 // v5.3: Check if bot is connected
@@ -1619,6 +1645,9 @@
                 // v5.1: Update new sections
                 updateWebSocketSubscriptions(wsSubscriptions);
                 updateRealHoldingsTable(realHoldings);
+
+                // v5.7.2: Update profit optimization
+                updateOptimization(optimization);
 
                 // v5.6: Update virtual trades only if auto-refresh is enabled
                 if (document.getElementById('auto-refresh-trades')?.checked) {
@@ -3078,3 +3107,19 @@
     <script src="/static/js/advanced-chart.js"></script>
 </body>
 </html>
+
+        // v5.7.2: 수익 최적화 패널 업데이트
+        function updateOptimization(response) {
+            if (!response.success || !response.summary) {
+                document.getElementById('opt-sell-count').textContent = '0';
+                document.getElementById('opt-partial-count').textContent = '0';
+                document.getElementById('opt-hold-count').textContent = '0';
+                return;
+            }
+
+            const summary = response.summary;
+
+            document.getElementById('opt-sell-count').textContent = summary.sell_recommended || 0;
+            document.getElementById('opt-partial-count').textContent = summary.partial_sell_recommended || 0;
+            document.getElementById('opt-hold-count').textContent = summary.hold_recommended || 0;
+        }
