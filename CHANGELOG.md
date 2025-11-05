@@ -7,6 +7,54 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.7.4] - 2025-11-05
+
+### 🚀 Major Dashboard Upgrade: 10 Diverse Trading Strategies
+
+#### Changed
+- **Dashboard Virtual Trading Display**: Upgraded from 3 hardcoded strategies to dynamic 10-strategy display
+  - Now shows all 10 diverse strategies: 모멘텀추세, 평균회귀, 돌파매매, 가치투자, 스윙매매, MACD크로스, 역발상, 섹터순환, 급등추격, 배당성장
+  - Each strategy has unique icon and color coding
+  - Real-time strategy performance tracking
+- **Color Convention**: Changed to Korean stock market standard
+  - Profit = Red (#ef4444) - 이익은 빨간색
+  - Loss = Blue (#3b82f6) - 손실은 파란색
+  - Applied consistently across all dashboard components
+- **Number Animations**: Enhanced smooth animations
+  - Strategy card metrics animate on update
+  - Consistent easeOutCubic animation across all numeric displays
+  - Assets, returns, positions all use smooth transitions
+
+#### Fixed
+- **AI Analysis Robustness**: Never returns None
+  - Sentiment analysis always returns data (even on error)
+  - Risk analysis always returns data (even on error)
+  - Portfolio analysis has proper fallback values
+  - Graceful degradation with meaningful status messages
+
+#### Added
+- **Dynamic Strategy Cards**: JavaScript generates 10 cards from API data
+  - First render: Full HTML generation
+  - Updates: Smooth numeric transitions without DOM recreation
+  - Individual strategy detail view on click
+
+### 📊 Technical Details
+```
+Dashboard Changes:
+- updateVirtualStrategies(): Now handles 10 strategies dynamically
+- toggleStrategyDetails(): Updated to work with all 10 strategies
+- Color scheme: Red/Blue instead of Green/Red
+- Smooth animations: Applied to strategy metrics
+
+AI Analysis:
+- Sentiment: Always returns {overall_score, status, count, analyzed_stocks}
+- Risk: Always returns {risk_level, risk_score, max_weight, diversification}
+- Portfolio: Always returns {score, health, recommendations}
+- Error handling: Fallback to neutral values on failure
+```
+
+---
+
 ## [5.6.0] - 2025-11-05
 
 ### 🎯 UX Improvements & Optimization
