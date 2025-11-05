@@ -1,15 +1,14 @@
 """
-dashboard 패키지
-웹 대시보드
+AutoTrade Pro Dashboard Module
+v5.4 - Modular Architecture
 
-v4.2 AI-Powered Dashboard:
-- 18 AI systems integrated
-- 38 API endpoints
-- Real-time trading with WebSocket
-- Advanced portfolio optimization
-- Multi-agent consensus system
+Exports:
+- run_dashboard: Main function to start the dashboard server
+- create_app: Flask app factory for testing
+- app: Flask application instance
+- socketio: SocketIO instance
 """
-# Apple-Style Dashboard를 기본으로 사용 (v4.2)
-from .app_apple import run_dashboard, create_app
+from .app import run_dashboard, create_app, app, socketio
 
-__all__ = ['run_dashboard', 'create_app']
+__all__ = ['run_dashboard', 'create_app', 'app', 'socketio']
+__version__ = '5.4.0'

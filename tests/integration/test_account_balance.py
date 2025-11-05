@@ -2,7 +2,11 @@
 계좌잔액 계산 테스트
 """
 import sys
-sys.path.insert(0, '/home/user/autotrade')
+import os
+
+# Cross-platform path resolution
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, project_root)
 
 from api.account import AccountAPI
 from core.rest_client import KiwoomRESTClient
