@@ -882,102 +882,11 @@
                     </div>
                 </div>
 
-                <!-- Strategy Cards Grid -->
+                <!-- Strategy Cards Grid - v5.7.4: 10개 전략 동적 생성 -->
                 <div class="grid-3" id="virtual-strategies-grid">
-                    <!-- 공격적 전략 -->
-                    <div class="card" id="strategy-aggressive" style="cursor: pointer;" onclick="toggleStrategyDetails('공격적')">
-                        <div class="card-header">
-                            <div class="card-title">
-                                <i class="fas fa-fire" style="color: #ef4444;"></i> 공격적 전략
-                            </div>
-                        </div>
-                        <div style="padding: 15px;">
-                            <div class="metric-row">
-                                <span class="metric-label">자산</span>
-                                <span class="metric-value" id="aggressive-cash">-</span>
-                            </div>
-                            <div class="metric-row">
-                                <span class="metric-label">수익률</span>
-                                <span class="metric-value" id="aggressive-return">-</span>
-                            </div>
-                            <div class="metric-row">
-                                <span class="metric-label">포지션</span>
-                                <span class="metric-value" id="aggressive-positions">-</span>
-                            </div>
-                            <div class="metric-row">
-                                <span class="metric-label">승률</span>
-                                <span class="metric-value" id="aggressive-winrate">-</span>
-                            </div>
-                        </div>
-                        <!-- Position Details (Hidden by default) -->
-                        <div id="aggressive-details" style="display: none; border-top: 1px solid var(--border); padding: 15px; background: var(--bg-dark);">
-                            <div style="font-size: 12px; font-weight: 600; margin-bottom: 10px; color: var(--text-secondary);">보유 포지션</div>
-                            <div id="aggressive-positions-list"></div>
-                        </div>
-                    </div>
-
-                    <!-- 보수적 전략 -->
-                    <div class="card" id="strategy-conservative" style="cursor: pointer;" onclick="toggleStrategyDetails('보수적')">
-                        <div class="card-header">
-                            <div class="card-title">
-                                <i class="fas fa-shield-alt" style="color: #3b82f6;"></i> 보수적 전략
-                            </div>
-                        </div>
-                        <div style="padding: 15px;">
-                            <div class="metric-row">
-                                <span class="metric-label">자산</span>
-                                <span class="metric-value" id="conservative-cash">-</span>
-                            </div>
-                            <div class="metric-row">
-                                <span class="metric-label">수익률</span>
-                                <span class="metric-value" id="conservative-return">-</span>
-                            </div>
-                            <div class="metric-row">
-                                <span class="metric-label">포지션</span>
-                                <span class="metric-value" id="conservative-positions">-</span>
-                            </div>
-                            <div class="metric-row">
-                                <span class="metric-label">승률</span>
-                                <span class="metric-value" id="conservative-winrate">-</span>
-                            </div>
-                        </div>
-                        <!-- Position Details (Hidden by default) -->
-                        <div id="conservative-details" style="display: none; border-top: 1px solid var(--border); padding: 15px; background: var(--bg-dark);">
-                            <div style="font-size: 12px; font-weight: 600; margin-bottom: 10px; color: var(--text-secondary);">보유 포지션</div>
-                            <div id="conservative-positions-list"></div>
-                        </div>
-                    </div>
-
-                    <!-- 균형 전략 -->
-                    <div class="card" id="strategy-balanced" style="cursor: pointer;" onclick="toggleStrategyDetails('균형')">
-                        <div class="card-header">
-                            <div class="card-title">
-                                <i class="fas fa-balance-scale" style="color: #f59e0b;"></i> 균형 전략
-                            </div>
-                        </div>
-                        <div style="padding: 15px;">
-                            <div class="metric-row">
-                                <span class="metric-label">자산</span>
-                                <span class="metric-value" id="balanced-cash">-</span>
-                            </div>
-                            <div class="metric-row">
-                                <span class="metric-label">수익률</span>
-                                <span class="metric-value" id="balanced-return">-</span>
-                            </div>
-                            <div class="metric-row">
-                                <span class="metric-label">포지션</span>
-                                <span class="metric-value" id="balanced-positions">-</span>
-                            </div>
-                            <div class="metric-row">
-                                <span class="metric-label">승률</span>
-                                <span class="metric-value" id="balanced-winrate">-</span>
-                            </div>
-                        </div>
-                        <!-- Position Details (Hidden by default) -->
-                        <div id="balanced-details" style="display: none; border-top: 1px solid var(--border); padding: 15px; background: var(--bg-dark);">
-                            <div style="font-size: 12px; font-weight: 600; margin-bottom: 10px; color: var(--text-secondary);">보유 포지션</div>
-                            <div id="balanced-positions-list"></div>
-                        </div>
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-muted);">
+                        <div class="spinner"></div>
+                        <p style="margin-top: 15px;">10가지 전략 로딩 중...</p>
                     </div>
                 </div>
 
@@ -1886,26 +1795,26 @@
                 smoothUpdateNumber('stock-value', stockValue, '₩', '', 600);
             }
 
-            // 손익
+            // 손익 - v5.7.4: 한국식 색상 (이익=빨강, 손실=파랑)
             const pl = data.profit_loss || 0;
             const plElement = document.getElementById('profit-loss');
             if (previousData.account.profit_loss !== pl && plElement) {
                 const prefix = pl >= 0 ? '+₩' : '-₩';
                 smoothUpdateNumber('profit-loss', Math.abs(pl), prefix, '', 700);
-                plElement.style.color = pl >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
+                plElement.style.color = pl >= 0 ? '#ef4444' : '#3b82f6';  // 이익=빨강, 손실=파랑
 
                 if (previousData.account.profit_loss) {
-                    highlightChange('profit-loss', pl >= 0 ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)');
+                    highlightChange('profit-loss', pl >= 0 ? 'rgba(239, 68, 68, 0.3)' : 'rgba(59, 130, 246, 0.3)');
                 }
             }
 
-            // 손익률
+            // 손익률 - v5.7.4: 한국식 색상
             const plPercent = data.profit_loss_percent || 0;
             const plPercentElement = document.getElementById('profit-loss-percent');
             if (previousData.account.profit_loss_percent !== plPercent && plPercentElement) {
                 const prefix = plPercent >= 0 ? '+' : '';
                 plPercentElement.textContent = prefix + plPercent.toFixed(2) + '%';
-                plPercentElement.style.color = plPercent >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
+                plPercentElement.style.color = plPercent >= 0 ? '#ef4444' : '#3b82f6';  // 이익=빨강, 손실=파랑
             }
 
             // 이전 데이터 저장
@@ -1957,13 +1866,13 @@
             const pl = data.profit_loss || 0;
             const plElement = document.getElementById('profit-loss');
             plElement.textContent = (pl >= 0 ? '+' : '') + '₩' + formatNumber(Math.abs(pl));
-            plElement.style.color = pl >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
+            plElement.style.color = pl >= 0 ? '#ef4444' : '#3b82f6';  // v5.7.4: 한국식 색상
 
             // Update profit/loss percentage
             const plPercent = data.profit_loss_percent || 0;
             const plPercentElement = document.getElementById('profit-loss-percent');
             plPercentElement.textContent = (plPercent >= 0 ? '+' : '') + plPercent.toFixed(2) + '%';
-            plPercentElement.style.color = plPercent >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
+            plPercentElement.style.color = plPercent >= 0 ? '#ef4444' : '#3b82f6';  // v5.7.4: 한국식 색상
         }
 
         function updatePositions(positions) {
@@ -1976,7 +1885,7 @@
 
             let html = '';
             positions.forEach(p => {
-                const plColor = p.profit_loss >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
+                const plColor = p.profit_loss >= 0 ? '#ef4444' : '#3b82f6';  // v5.7.4: 한국식 색상
                 html += `
                     <div style="padding: 8px; border-bottom: 1px solid var(--border-color); cursor: pointer;" onclick="loadChartData('${p.code}')">
                         <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
@@ -2076,7 +1985,7 @@
             const cash = account.cash || 0;
             const stockValue = account.stock_value || 0;
             const pl = account.profit_loss || 0;
-            const plColor = pl >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
+            const plColor = pl >= 0 ? '#ef4444' : '#3b82f6';  // v5.7.4: 한국식 색상
 
             let html = `
                 <div style="margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color);">
@@ -2101,12 +2010,12 @@
                 </div>
             `;
 
-            // Add top 3 positions
+            // Add top 3 positions - v5.7.4: 한국식 색상
             if (positions && positions.length > 0) {
                 html += '<div style="border-top: 1px solid var(--border-color); padding-top: 10px;">';
                 html += '<div style="font-size: 10px; color: var(--text-secondary); margin-bottom: 6px;">주요 보유종목</div>';
                 positions.slice(0, 3).forEach(p => {
-                    const posPlColor = p.profit_loss >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
+                    const posPlColor = p.profit_loss >= 0 ? '#ef4444' : '#3b82f6';  // 한국식 색상
                     html += `
                         <div style="padding: 5px; border-left: 2px solid ${posPlColor}; margin-bottom: 6px; padding-left: 6px; cursor: pointer;" onclick="loadChartData('${p.code}')">
                             <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
@@ -2396,49 +2305,186 @@
             }
         }
 
+        /**
+         * v5.7.4: 10개 전략 동적 생성 및 표시
+         * 한국식 색상: 이익=빨강, 손실=파랑
+         * 부드러운 숫자 애니메이션 적용
+         */
         function updateVirtualStrategies(strategies, bestStrategy) {
-            // Strategy name mapping
-            const strategyNames = {
-                '공격적': 'aggressive',
-                '보수적': 'conservative',
-                '균형': 'balanced'
+            const container = document.getElementById('virtual-strategies-grid');
+
+            // 전략 아이콘 매핑
+            const strategyIcons = {
+                '모멘텀추세': 'fa-rocket',
+                '평균회귀': 'fa-chart-line',
+                '돌파매매': 'fa-bolt',
+                '가치투자': 'fa-gem',
+                '스윙매매': 'fa-wave-square',
+                'MACD크로스': 'fa-exchange-alt',
+                '역발상': 'fa-undo',
+                '섹터순환': 'fa-sync',
+                '급등추격': 'fa-fire',
+                '배당성장': 'fa-seedling'
             };
 
-            // Update best strategy banner
+            // 전략 색상 매핑
+            const strategyColors = {
+                '모멘텀추세': '#3b82f6',
+                '평균회귀': '#10b981',
+                '돌파매매': '#f59e0b',
+                '가치투자': '#8b5cf6',
+                '스윙매매': '#ec4899',
+                'MACD크로스': '#06b6d4',
+                '역발상': '#f97316',
+                '섹터순환': '#14b8a6',
+                '급등추격': '#ef4444',
+                '배당성장': '#84cc16'
+            };
+
+            // 첫 렌더링인지 확인
+            const isFirstRender = container.children.length === 0 ||
+                                  container.querySelector('.spinner');
+
+            if (isFirstRender) {
+                // 전략 카드 초기 생성
+                let html = '';
+
+                Object.entries(strategies).forEach(([name, summary]) => {
+                    const icon = strategyIcons[name] || 'fa-chart-bar';
+                    const color = strategyColors[name] || '#3b82f6';
+                    const returnPct = summary.total_pnl_rate || 0;
+
+                    // 한국식 색상: 이익=빨강, 손실=파랑
+                    const returnColor = returnPct >= 0 ? '#ef4444' : '#3b82f6';
+                    const returnBg = returnPct >= 0 ? 'rgba(239, 68, 68, 0.1)' : 'rgba(59, 130, 246, 0.1)';
+
+                html += `
+                    <div class="card" style="position: relative; overflow: hidden;">
+                        <!-- 전략 헤더 -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 36px; height: 36px; border-radius: 8px; background: ${color}; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas ${icon}" style="font-size: 16px; color: white;"></i>
+                                </div>
+                                <div>
+                                    <div style="font-size: 14px; font-weight: 700; color: var(--text-primary);">${name}</div>
+                                    <div style="font-size: 10px; color: var(--text-muted);">Strategy ${Object.keys(strategies).indexOf(name) + 1}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 주요 지표 -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+                            <div style="background: var(--bg-secondary); padding: 10px; border-radius: 6px;">
+                                <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 4px;">총 자산</div>
+                                <div id="strategy-${name}-assets" class="strategy-number" style="font-size: 13px; font-weight: 700; color: var(--text-primary);">
+                                    ₩${formatNumber(Math.round(summary.total_value || 0))}
+                                </div>
+                            </div>
+                            <div style="background: ${returnBg}; padding: 10px; border-radius: 6px; border: 1px solid ${returnColor}20;">
+                                <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 4px;">수익률</div>
+                                <div id="strategy-${name}-return" class="strategy-number" style="font-size: 13px; font-weight: 700; color: ${returnColor};">
+                                    ${returnPct >= 0 ? '+' : ''}${returnPct.toFixed(2)}%
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 하위 지표 -->
+                        <div style="display: flex; justify-content: space-between; padding-top: 10px; border-top: 1px solid var(--border-color);">
+                            <div style="text-align: center; flex: 1;">
+                                <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 3px;">포지션</div>
+                                <div id="strategy-${name}-positions" class="strategy-number" style="font-size: 12px; font-weight: 600; color: var(--text-primary);">
+                                    ${summary.position_count || 0}개
+                                </div>
+                            </div>
+                            <div style="text-align: center; flex: 1; border-left: 1px solid var(--border-color);">
+                                <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 3px;">승률</div>
+                                <div id="strategy-${name}-winrate" class="strategy-number" style="font-size: 12px; font-weight: 600; color: var(--text-primary);">
+                                    ${(summary.win_rate || 0).toFixed(1)}%
+                                </div>
+                            </div>
+                            <div style="text-align: center; flex: 1; border-left: 1px solid var(--border-color);">
+                                <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 3px;">거래</div>
+                                <div id="strategy-${name}-trades" class="strategy-number" style="font-size: 12px; font-weight: 600; color: var(--text-primary);">
+                                    ${summary.total_trades || 0}회
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 클릭 시 상세보기 -->
+                        <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-color);">
+                            <button onclick="toggleStrategyDetails('${name}')"
+                                    style="width: 100%; padding: 6px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-primary); font-size: 11px; cursor: pointer; transition: all 0.2s;">
+                                <i class="fas fa-chevron-down"></i> 상세 보기
+                            </button>
+                        </div>
+
+                        <!-- 상세 정보 (숨김) -->
+                        <div id="strategy-${name}-details" style="display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-color);">
+                            <div id="strategy-${name}-positions-list"></div>
+                        </div>
+                    </div>
+                `;
+                });
+
+                container.innerHTML = html;
+            } else {
+                // 기존 카드 업데이트 (부드러운 애니메이션)
+                Object.entries(strategies).forEach(([name, summary]) => {
+                    const returnPct = summary.total_pnl_rate || 0;
+                    const returnColor = returnPct >= 0 ? '#ef4444' : '#3b82f6';
+
+                    // 자산 애니메이션
+                    const assetsEl = document.getElementById(`strategy-${name}-assets`);
+                    if (assetsEl) {
+                        const newValue = Math.round(summary.total_value || 0);
+                        const currentValue = parseInt(assetsEl.textContent.replace(/[^0-9]/g, '')) || 0;
+                        if (newValue !== currentValue) {
+                            smoothUpdateNumber(`strategy-${name}-assets`, newValue, '₩', '', 500);
+                        }
+                    }
+
+                    // 수익률 업데이트 (애니메이션)
+                    const returnEl = document.getElementById(`strategy-${name}-return`);
+                    if (returnEl) {
+                        returnEl.textContent = `${returnPct >= 0 ? '+' : ''}${returnPct.toFixed(2)}%`;
+                        returnEl.style.color = returnColor;
+                    }
+
+                    // 포지션 수 애니메이션
+                    const posEl = document.getElementById(`strategy-${name}-positions`);
+                    if (posEl) {
+                        posEl.textContent = `${summary.position_count || 0}개`;
+                    }
+
+                    // 승률 애니메이션
+                    const winRateEl = document.getElementById(`strategy-${name}-winrate`);
+                    if (winRateEl) {
+                        winRateEl.textContent = `${(summary.win_rate || 0).toFixed(1)}%`;
+                    }
+
+                    // 거래 횟수 애니메이션
+                    const tradesEl = document.getElementById(`strategy-${name}-trades`);
+                    if (tradesEl) {
+                        tradesEl.textContent = `${summary.total_trades || 0}회`;
+                    }
+                });
+            }
+
+            // Best Strategy Banner 업데이트
             if (bestStrategy) {
                 document.getElementById('best-strategy-banner').style.display = 'block';
                 document.getElementById('best-strategy-name').textContent = bestStrategy.name || bestStrategy;
 
                 const bestData = strategies[bestStrategy.name || bestStrategy];
                 if (bestData) {
-                    const returnPct = bestData.total_pnl_rate || 0;  // Already percentage
-                    document.getElementById('best-strategy-return').textContent =
-                        (returnPct >= 0 ? '+' : '') + returnPct.toFixed(2) + '%';
+                    const returnPct = bestData.total_pnl_rate || 0;
+                    const returnEl = document.getElementById('best-strategy-return');
+                    returnEl.textContent = (returnPct >= 0 ? '+' : '') + returnPct.toFixed(2) + '%';
+                    // 한국식 색상 적용
+                    returnEl.style.color = returnPct >= 0 ? '#ef4444' : '#3b82f6';
                 }
             }
-
-            // Update each strategy card
-            Object.entries(strategies).forEach(([name, summary]) => {
-                const strategyId = strategyNames[name];
-                if (!strategyId) return;
-
-                const returnPct = summary.total_pnl_rate || 0;  // Already percentage
-                const returnClass = returnPct >= 0 ? 'positive' : 'negative';
-
-                document.getElementById(`${strategyId}-cash`).textContent =
-                    '₩' + formatNumber(Math.round(summary.total_value || 0));
-
-                const returnEl = document.getElementById(`${strategyId}-return`);
-                returnEl.textContent = (returnPct >= 0 ? '+' : '') + returnPct.toFixed(2) + '%';
-                returnEl.className = `metric-value ${returnClass}`;
-
-                document.getElementById(`${strategyId}-positions`).textContent =
-                    (summary.position_count || 0) + '개';
-
-                const winRate = summary.win_rate || 0;  // Already percentage
-                document.getElementById(`${strategyId}-winrate`).textContent =
-                    winRate.toFixed(1) + '%';
-            });
         }
 
         function updateVirtualTrades(trades) {
@@ -2479,17 +2525,12 @@
             container.innerHTML = html;
         }
 
-        // Toggle Strategy Position Details
+        /**
+         * v5.7.4: 10개 전략 상세 보기 (토글)
+         */
         async function toggleStrategyDetails(strategyName) {
-            const strategyNames = {
-                '공격적': 'aggressive',
-                '보수적': 'conservative',
-                '균형': 'balanced'
-            };
-
-            const strategyId = strategyNames[strategyName];
-            const detailsDiv = document.getElementById(`${strategyId}-details`);
-            const positionsDiv = document.getElementById(`${strategyId}-positions-list`);
+            const detailsDiv = document.getElementById(`strategy-${strategyName}-details`);
+            const positionsDiv = document.getElementById(`strategy-${strategyName}-positions-list`);
 
             // Toggle display
             if (detailsDiv.style.display === 'none' || !detailsDiv.style.display) {
@@ -2508,12 +2549,14 @@
                         } else {
                             let html = '<div style="display: flex; flex-direction: column; gap: 8px;">';
                             data.positions.forEach(pos => {
-                                const plClass = (pos.unrealized_pnl || 0) >= 0 ? 'positive' : 'negative';
+                                const plRate = pos.unrealized_pnl_rate || 0;
+                                // 한국식 색상: 이익=빨강, 손실=파랑
+                                const plColor = plRate >= 0 ? '#ef4444' : '#3b82f6';
                                 html += `
                                     <div style="background: var(--bg-primary); padding: 10px; border-radius: 6px; font-size: 11px;">
                                         <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
                                             <span style="font-weight: 600;">${pos.stock_name} (${pos.stock_code})</span>
-                                            <span class="metric-value ${plClass}">${(pos.unrealized_pnl >= 0 ? '+' : '')}${pos.unrealized_pnl_rate.toFixed(2)}%</span>
+                                            <span style="font-weight: 700; color: ${plColor};">${(plRate >= 0 ? '+' : '')}${plRate.toFixed(2)}%</span>
                                         </div>
                                         <div style="display: flex; justify-content: space-between; color: var(--text-secondary);">
                                             <span>${pos.quantity}주 @ ₩${formatNumber(pos.avg_price)}</span>
@@ -2887,7 +2930,7 @@
                 if (data.success && data.results.length > 0) {
                     let html = '';
                     data.results.forEach(stock => {
-                        const changeColor = stock.change_rate >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
+                        const changeColor = stock.change_rate >= 0 ? '#ef4444' : '#3b82f6';  // v5.7.4: 한국식 색상
                         const changeSign = stock.change_rate >= 0 ? '+' : '';
                         html += `
                             <div onclick="selectStock('${stock.code}', '${stock.name}')" style="padding: 10px; border-bottom: 1px solid var(--border-color); cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='var(--bg-secondary)'" onmouseout="this.style.background='transparent'">
@@ -3032,7 +3075,7 @@
                 } else {
                     const pnl = trade.realized_pnl || 0;
                     const pnlRate = trade.realized_pnl_rate || 0;
-                    const pnlColor = pnl >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
+                    const pnlColor = pnl >= 0 ? '#ef4444' : '#3b82f6';  // v5.7.4: 한국식 색상
                     const pnlSign = pnl >= 0 ? '✅' : '❌';
 
                     html += `
@@ -3105,7 +3148,7 @@
             holdings.forEach(h => {
                 const stopLossDistance = h.distance_to_stop || 0;
                 const takeProfitDistance = h.distance_to_target || 0;
-                const plColor = h.pnl_rate >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
+                const plColor = h.pnl_rate >= 0 ? '#ef4444' : '#3b82f6';  // v5.7.4: 한국식 색상
 
                 // Kelly & Sharpe 색상
                 const kellyColor = h.kelly_fraction > 0.15 ? 'var(--color-success)' : h.kelly_fraction > 0.05 ? 'var(--color-warning)' : 'var(--color-danger)';
