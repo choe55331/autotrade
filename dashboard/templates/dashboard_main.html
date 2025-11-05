@@ -647,6 +647,317 @@
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
         }
+
+        /* ========================================
+           v5.7.7: 고급 그라디언트 및 애니메이션 효과
+           ======================================== */
+
+        /* Shimmer 반짝임 효과 */
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+
+        .shimmer {
+            background: linear-gradient(
+                90deg,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.1) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            background-size: 1000px 100%;
+            animation: shimmer 2s infinite;
+        }
+
+        /* 그라디언트 리스트 아이템 hover 효과 */
+        .gradient-hover {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .gradient-hover::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg,
+                transparent,
+                rgba(59, 130, 246, 0.1),
+                transparent
+            );
+            transition: left 0.5s ease;
+        }
+
+        .gradient-hover:hover::before {
+            left: 100%;
+        }
+
+        .gradient-hover:hover {
+            transform: translateX(4px);
+            background: linear-gradient(90deg,
+                var(--bg-card) 0%,
+                rgba(59, 130, 246, 0.05) 100%
+            );
+        }
+
+        /* 원형 AI 점수 게이지 */
+        .ai-score-gauge {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: conic-gradient(
+                var(--gauge-color, #3b82f6) var(--gauge-percentage, 0%),
+                var(--bg-secondary) var(--gauge-percentage, 0%)
+            );
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ai-score-gauge::before {
+            content: '';
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: var(--bg-card);
+        }
+
+        .ai-score-gauge-value {
+            position: absolute;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        /* 그라디언트 프로그레스 바 */
+        .gradient-progress {
+            width: 100%;
+            height: 8px;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .gradient-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg,
+                #3b82f6 0%,
+                #8b5cf6 50%,
+                #ec4899 100%
+            );
+            border-radius: 10px;
+            transition: width 0.6s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gradient-progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg,
+                transparent,
+                rgba(255, 255, 255, 0.3),
+                transparent
+            );
+            animation: progress-shimmer 1.5s infinite;
+        }
+
+        @keyframes progress-shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* 펄스 글로우 효과 (위험 알림) */
+        @keyframes pulse-glow {
+            0%, 100% {
+                box-shadow: 0 0 5px rgba(239, 68, 68, 0.5);
+            }
+            50% {
+                box-shadow: 0 0 20px rgba(239, 68, 68, 0.8),
+                            0 0 30px rgba(239, 68, 68, 0.6);
+            }
+        }
+
+        .pulse-glow {
+            animation: pulse-glow 2s infinite;
+        }
+
+        /* 매수 타이밍 신호등 */
+        .timing-signal {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        .timing-signal.buy {
+            background: #10b981;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.8);
+            animation: pulse-buy 1.5s infinite;
+        }
+
+        .timing-signal.wait {
+            background: #f59e0b;
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
+        }
+
+        .timing-signal.sell {
+            background: #ef4444;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.8);
+            animation: pulse-sell 1.5s infinite;
+        }
+
+        @keyframes pulse-buy {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 0.7;
+            }
+        }
+
+        @keyframes pulse-sell {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 0.7;
+            }
+        }
+
+        /* 차트 그라디언트 배경 */
+        .chart-gradient-bg {
+            background: linear-gradient(135deg,
+                rgba(59, 130, 246, 0.05) 0%,
+                rgba(139, 92, 246, 0.05) 50%,
+                rgba(236, 72, 153, 0.05) 100%
+            );
+        }
+
+        /* 리스트 아이템 그라디언트 경계선 */
+        .gradient-border {
+            position: relative;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+        }
+
+        .gradient-border::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #3b82f6, #8b5cf6, #ec4899);
+            border-radius: inherit;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .gradient-border:hover::before {
+            opacity: 1;
+        }
+
+        /* 틱 업/다운 애니메이션 */
+        @keyframes tick-up {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+
+        @keyframes tick-down {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(4px); }
+        }
+
+        .tick-up {
+            animation: tick-up 0.5s ease;
+            color: #ef4444 !important;
+        }
+
+        .tick-down {
+            animation: tick-down 0.5s ease;
+            color: #3b82f6 !important;
+        }
+
+        /* AI 코멘터리 카드 */
+        .ai-commentary {
+            background: linear-gradient(135deg,
+                rgba(139, 92, 246, 0.1) 0%,
+                rgba(59, 130, 246, 0.1) 100%
+            );
+            border-left: 4px solid #8b5cf6;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ai-commentary::before {
+            content: '🤖';
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            font-size: 24px;
+            opacity: 0.3;
+        }
+
+        /* 음성 알림 표시 */
+        @keyframes voice-wave {
+            0%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(1.5); }
+        }
+
+        .voice-indicator {
+            display: inline-flex;
+            gap: 2px;
+            align-items: center;
+            margin-left: 8px;
+        }
+
+        .voice-indicator span {
+            width: 3px;
+            height: 12px;
+            background: var(--color-primary);
+            border-radius: 2px;
+            animation: voice-wave 0.6s ease-in-out infinite;
+        }
+
+        .voice-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .voice-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+        /* 도넛 차트 (포트폴리오 분산) */
+        .donut-chart {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .donut-chart-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
     </style>
 </head>
 <body>
@@ -854,7 +1165,7 @@
                             <span style="font-size: 12px; color: var(--text-secondary);" id="chart-price">₩0</span>
                         </div>
                     </div>
-                    <div id="main-chart"></div>
+                    <div id="main-chart" class="chart-gradient-bg"></div>
                 </div>
             </div>
 
@@ -909,6 +1220,28 @@
                         <span id="alert-count" style="background: white; color: #ef4444; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 700;">0</span>
                     </div>
                     <div id="ai-alerts-list" style="max-height: 200px; overflow-y: auto;"></div>
+                </div>
+
+                <!-- AI 실시간 시장 코멘터리 -->
+                <div class="card" data-aos="fade-up" data-aos-delay="100" style="margin-bottom: 20px;">
+                    <div class="card-header" style="background: linear-gradient(90deg, #8b5cf6, #3b82f6); color: white;">
+                        <div class="card-title">
+                            <i class="fas fa-comment-dots"></i>
+                            AI 실시간 시장 코멘터리
+                            <span class="voice-indicator" id="voice-indicator" style="display: none;">
+                                <span></span><span></span><span></span>
+                            </span>
+                        </div>
+                        <button onclick="loadAICommentary()" style="padding: 5px 12px; background: rgba(255,255,255,0.2); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 11px;">
+                            <i class="fas fa-sync-alt"></i> 새로고침
+                        </button>
+                    </div>
+                    <div id="ai-commentary-content" style="padding: 15px;">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <p>AI 분석 중...</p>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Position Monitor -->
@@ -2033,16 +2366,45 @@
             let html = '';
             positions.forEach(p => {
                 const plColor = p.profit_loss >= 0 ? '#ef4444' : '#3b82f6';  // v5.7.4: 한국식 색상
+
+                // AI 점수 계산 (손익률 기반)
+                const aiScore = Math.min(100, Math.max(0, 50 + p.profit_loss_percent * 2));
+                const scoreColor = aiScore >= 70 ? '#10b981' : aiScore >= 40 ? '#f59e0b' : '#ef4444';
+
+                // 타이밍 신호
+                let timingSignal = 'wait';
+                if (p.profit_loss_percent < -5) timingSignal = 'sell'; // 손실 5% 이상
+                else if (p.profit_loss_percent > 10) timingSignal = 'sell'; // 수익 10% 이상 실현
+                else if (p.profit_loss_percent > 2 && p.profit_loss_percent < 5) timingSignal = 'buy'; // 추가 매수 구간
+
                 html += `
-                    <div style="padding: 8px; border-bottom: 1px solid var(--border-color); cursor: pointer;" onclick="loadChartData('${p.code}')">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                            <strong style="font-size: 12px;">${p.name}</strong>
-                            <span style="color: ${plColor}; font-weight: 600; font-size: 12px;">
-                                ${p.profit_loss >= 0 ? '+' : ''}${p.profit_loss_percent.toFixed(2)}%
-                            </span>
+                    <div class="gradient-hover" style="padding: 10px; border-bottom: 1px solid var(--border-color); cursor: pointer; border-radius: 6px; margin-bottom: 4px;" onclick="loadChartData('${p.code}')">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                    <span class="timing-signal ${timingSignal}"></span>
+                                    <strong style="font-size: 12px;">${p.name}</strong>
+                                </div>
+                                <div style="font-size: 11px; color: var(--text-secondary);">
+                                    ${p.quantity}주 × ₩${formatNumber(p.current_price)}
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="text-align: right;">
+                                    <div style="color: ${plColor}; font-weight: 600; font-size: 13px;">
+                                        ${p.profit_loss >= 0 ? '+' : ''}${p.profit_loss_percent.toFixed(2)}%
+                                    </div>
+                                    <div style="font-size: 10px; color: var(--text-muted);">
+                                        ${p.profit_loss >= 0 ? '+' : ''}₩${formatNumber(Math.abs(p.profit_loss))}
+                                    </div>
+                                </div>
+                                <div class="ai-score-gauge" style="--gauge-percentage: ${aiScore}%; --gauge-color: ${scoreColor}; width: 45px; height: 45px;">
+                                    <div class="ai-score-gauge-value" style="font-size: 11px;">${Math.round(aiScore)}</div>
+                                </div>
+                            </div>
                         </div>
-                        <div style="font-size: 11px; color: var(--text-secondary);">
-                            ${p.quantity}주 × ₩${formatNumber(p.current_price)}
+                        <div class="gradient-progress">
+                            <div class="gradient-progress-bar" style="width: ${Math.abs(p.profit_loss_percent) * 5}%;"></div>
                         </div>
                     </div>
                 `;
@@ -3945,6 +4307,210 @@
                     AOS.refresh();
                 }
             }, 500);
+        };
+
+        // ====================================
+        // v5.7.7: AI 실시간 코멘터리
+        // ====================================
+
+        async function loadAICommentary() {
+            try {
+                const container = document.getElementById('ai-commentary-content');
+                container.innerHTML = '<div class="loading"><div class="spinner"></div><p>AI 분석 중...</p></div>';
+
+                const response = await fetch('/api/ai/market-commentary');
+                const data = await response.json();
+
+                if (!data.success || !data.commentary) {
+                    container.innerHTML = '<div style="padding: 15px; color: var(--text-secondary);">코멘터리를 불러올 수 없습니다.</div>';
+                    return;
+                }
+
+                const commentary = data.commentary;
+                let html = '';
+
+                // 종합 시장 분석
+                html += `
+                    <div class="ai-commentary">
+                        <div style="font-size: 13px; font-weight: 700; margin-bottom: 8px; color: var(--text-primary);">
+                            📊 종합 시장 분석
+                        </div>
+                        <div style="font-size: 12px; line-height: 1.6; color: var(--text-secondary);">
+                            ${commentary.market_summary || '시장 데이터 분석 중...'}
+                        </div>
+                    </div>
+                `;
+
+                // 포트폴리오 조언
+                if (commentary.portfolio_advice) {
+                    html += `
+                        <div class="ai-commentary">
+                            <div style="font-size: 13px; font-weight: 700; margin-bottom: 8px; color: var(--text-primary);">
+                                💼 포트폴리오 조언
+                            </div>
+                            <div style="font-size: 12px; line-height: 1.6; color: var(--text-secondary);">
+                                ${commentary.portfolio_advice}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // 주요 기회
+                if (commentary.opportunities && commentary.opportunities.length > 0) {
+                    html += `
+                        <div class="ai-commentary" style="border-left-color: #10b981;">
+                            <div style="font-size: 13px; font-weight: 700; margin-bottom: 8px; color: #10b981;">
+                                🎯 주요 기회
+                            </div>
+                            <ul style="margin: 0; padding-left: 20px; font-size: 12px; line-height: 1.8;">
+                    `;
+                    commentary.opportunities.forEach(opp => {
+                        html += `<li>${opp}</li>`;
+                    });
+                    html += `</ul></div>`;
+                }
+
+                // 주요 위험
+                if (commentary.risks && commentary.risks.length > 0) {
+                    html += `
+                        <div class="ai-commentary" style="border-left-color: #ef4444;">
+                            <div style="font-size: 13px; font-weight: 700; margin-bottom: 8px; color: #ef4444;">
+                                ⚠️ 주요 위험
+                            </div>
+                            <ul style="margin: 0; padding-left: 20px; font-size: 12px; line-height: 1.8;">
+                    `;
+                    commentary.risks.forEach(risk => {
+                        html += `<li>${risk}</li>`;
+                    });
+                    html += `</ul></div>`;
+                }
+
+                container.innerHTML = html;
+
+                // 음성 알림 (중요한 경우)
+                if (commentary.speak && commentary.speak_text) {
+                    speakText(commentary.speak_text);
+                }
+
+            } catch (error) {
+                console.error('AI Commentary error:', error);
+                document.getElementById('ai-commentary-content').innerHTML =
+                    '<div style="padding: 15px; color: var(--text-secondary);">코멘터리 로딩 오류</div>';
+            }
+        }
+
+        // ====================================
+        // 브라우저 푸시 알림
+        // ====================================
+
+        async function requestNotificationPermission() {
+            if ('Notification' in window && Notification.permission === 'default') {
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    showToast('✅ 알림 권한이 허용되었습니다', 'success');
+                }
+            }
+        }
+
+        function showBrowserNotification(title, message, type = 'info') {
+            if ('Notification' in window && Notification.permission === 'granted') {
+                const icon = type === 'success' ? '✅' : type === 'warning' ? '⚠️' : type === 'error' ? '❌' : 'ℹ️';
+
+                const notification = new Notification(icon + ' ' + title, {
+                    body: message,
+                    icon: '/static/icon.png',
+                    badge: '/static/badge.png',
+                    tag: type,
+                    requireInteraction: type === 'error' || type === 'warning',
+                    vibrate: [200, 100, 200]
+                });
+
+                notification.onclick = function() {
+                    window.focus();
+                    notification.close();
+                };
+
+                // Play sound
+                playAlertSound(type);
+            }
+        }
+
+        // ====================================
+        // 음성 알림 (Text-to-Speech)
+        // ====================================
+
+        function speakText(text) {
+            if ('speechSynthesis' in window) {
+                // 기존 음성 중지
+                window.speechSynthesis.cancel();
+
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'ko-KR';
+                utterance.rate = 1.0;
+                utterance.pitch = 1.0;
+                utterance.volume = 0.8;
+
+                // 음성 표시
+                const indicator = document.getElementById('voice-indicator');
+                if (indicator) {
+                    indicator.style.display = 'inline-flex';
+                }
+
+                utterance.onend = function() {
+                    if (indicator) {
+                        indicator.style.display = 'none';
+                    }
+                };
+
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        // ====================================
+        // 실시간 틱업/틱다운 애니메이션
+        // ====================================
+
+        const previousPrices = {};
+
+        function updatePriceWithTick(elementId, newPrice) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+
+            const oldPrice = previousPrices[elementId] || newPrice;
+
+            if (newPrice > oldPrice) {
+                element.classList.remove('tick-down');
+                element.classList.add('tick-up');
+                setTimeout(() => element.classList.remove('tick-up'), 500);
+            } else if (newPrice < oldPrice) {
+                element.classList.remove('tick-up');
+                element.classList.add('tick-down');
+                setTimeout(() => element.classList.remove('tick-down'), 500);
+            }
+
+            previousPrices[elementId] = newPrice;
+        }
+
+        // ====================================
+        // 초기화: 알림 권한 요청
+        // ====================================
+
+        setTimeout(() => {
+            requestNotificationPermission();
+        }, 3000); // 3초 후 권한 요청
+
+        // ====================================
+        // AI 탭 로드 시 코멘터리 자동 로드
+        // ====================================
+
+        const originalSwitchTab = switchTab;
+        switchTab = function(index) {
+            originalSwitchTab(index);
+            if (index === 1) { // AI Analysis tab
+                setTimeout(() => {
+                    loadAICommentary();
+                }, 500);
+            }
         };
 
     </script>
