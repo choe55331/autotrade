@@ -1633,7 +1633,7 @@
                     showBotDisconnectedWarning();
                 }
 
-                updateAccount(account);
+                updateAccountSeamless(account);
                 updateStatus(status);
                 updateConnectionStatus(connections);
 
@@ -1647,7 +1647,7 @@
                 updateRealHoldingsTable(realHoldings);
 
                 // v5.7.2: Update profit optimization
-                updateOptimization(optimization);
+                updateOptimizationSeamless(optimization);
 
                 // v5.6: Update virtual trades only if auto-refresh is enabled
                 if (document.getElementById('auto-refresh-trades')?.checked) {
@@ -1769,6 +1769,186 @@
             }
         }
 
+        // v5.7.2: Seamless Update 시스템
+        // 사용자가 눈치채지 못하게 부드럽게 업데이트
+
+        // 이전 데이터 저장
+        let previousData = {
+            account: {},
+            positions: [],
+            optimization: {}
+        };
+
+        /**
+         * 부드러운 숫자 업데이트 (카운터 애니메이션)
+         */
+        function smoothUpdateNumber(elementId, newValue, prefix = '', suffix = '', duration = 500) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+
+            const oldText = element.textContent.replace(prefix, '').replace(suffix, '').replace(/[^0-9.-]/g, '');
+            const oldValue = parseFloat(oldText) || 0;
+            const newValueNum = parseFloat(newValue) || 0;
+
+            // 값이 같으면 스킵
+            if (oldValue === newValueNum) return;
+
+            const startTime = performance.now();
+            const diff = newValueNum - oldValue;
+
+            function animate(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+
+                // Easing function (easeOutCubic)
+                const easeProgress = 1 - Math.pow(1 - progress, 3);
+
+                const currentValue = oldValue + (diff * easeProgress);
+                element.textContent = prefix + formatNumber(Math.round(currentValue)) + suffix;
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    element.textContent = prefix + formatNumber(newValueNum) + suffix;
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        /**
+         * 부드러운 텍스트 업데이트 (fade transition)
+         */
+        function smoothUpdateText(elementId, newValue, applyColorClass = null) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+
+            const oldValue = element.textContent;
+
+            // 값이 같으면 스킵
+            if (oldValue === newValue) return;
+
+            // Fade out
+            element.style.transition = 'opacity 0.2s ease-out';
+            element.style.opacity = '0';
+
+            setTimeout(() => {
+                element.textContent = newValue;
+
+                // 색상 적용
+                if (applyColorClass) {
+                    element.className = applyColorClass;
+                }
+
+                // Fade in
+                element.style.opacity = '1';
+            }, 200);
+        }
+
+        /**
+         * 변경 감지 및 하이라이트
+         */
+        function highlightChange(elementId, color = 'rgba(16, 185, 129, 0.3)') {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+
+            // 배경색 플래시
+            element.style.transition = 'background-color 0.3s ease-out';
+            element.style.backgroundColor = color;
+
+            setTimeout(() => {
+                element.style.backgroundColor = 'transparent';
+            }, 300);
+        }
+
+        /**
+         * v5.7.2: Seamless Account Update
+         */
+        function updateAccountSeamless(data) {
+            // 총 자산
+            const totalAssets = data.total_assets || 0;
+            if (previousData.account.total_assets !== totalAssets) {
+                smoothUpdateNumber('total-assets', totalAssets, '₩', '', 800);
+                if (previousData.account.total_assets) {
+                    highlightChange('total-assets', 'rgba(59, 130, 246, 0.2)');
+                }
+            }
+
+            // 현금
+            const cash = data.cash || 0;
+            if (previousData.account.cash !== cash) {
+                smoothUpdateNumber('cash', cash, '₩', '', 600);
+            }
+
+            // 주식 가치
+            const stockValue = data.stock_value || 0;
+            if (previousData.account.stock_value !== stockValue) {
+                smoothUpdateNumber('stock-value', stockValue, '₩', '', 600);
+            }
+
+            // 손익
+            const pl = data.profit_loss || 0;
+            const plElement = document.getElementById('profit-loss');
+            if (previousData.account.profit_loss !== pl && plElement) {
+                const prefix = pl >= 0 ? '+₩' : '-₩';
+                smoothUpdateNumber('profit-loss', Math.abs(pl), prefix, '', 700);
+                plElement.style.color = pl >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
+
+                if (previousData.account.profit_loss) {
+                    highlightChange('profit-loss', pl >= 0 ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)');
+                }
+            }
+
+            // 손익률
+            const plPercent = data.profit_loss_percent || 0;
+            const plPercentElement = document.getElementById('profit-loss-percent');
+            if (previousData.account.profit_loss_percent !== plPercent && plPercentElement) {
+                const prefix = plPercent >= 0 ? '+' : '';
+                plPercentElement.textContent = prefix + plPercent.toFixed(2) + '%';
+                plPercentElement.style.color = plPercent >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
+            }
+
+            // 이전 데이터 저장
+            previousData.account = {...data};
+        }
+
+        /**
+         * v5.7.2: Seamless Optimization Update
+         */
+        function updateOptimizationSeamless(response) {
+            if (!response.success || !response.summary) {
+                return;
+            }
+
+            const summary = response.summary;
+
+            // 매도 권장
+            const sellCount = summary.sell_recommended || 0;
+            if (previousData.optimization.sell_recommended !== sellCount) {
+                smoothUpdateNumber('opt-sell-count', sellCount, '', '', 400);
+                if (sellCount > 0 && previousData.optimization.sell_recommended !== undefined) {
+                    highlightChange('opt-sell-count', 'rgba(239, 68, 68, 0.4)');
+                }
+            }
+
+            // 부분 익절
+            const partialCount = summary.partial_sell_recommended || 0;
+            if (previousData.optimization.partial_sell_recommended !== partialCount) {
+                smoothUpdateNumber('opt-partial-count', partialCount, '', '', 400);
+                if (partialCount > 0) {
+                    highlightChange('opt-partial-count', 'rgba(245, 158, 11, 0.4)');
+                }
+            }
+
+            // 보유 유지
+            const holdCount = summary.hold_recommended || 0;
+            if (previousData.optimization.hold_recommended !== holdCount) {
+                smoothUpdateNumber('opt-hold-count', holdCount, '', '', 400);
+            }
+
+            // 이전 데이터 저장
+            previousData.optimization = {...summary};
+        }
         function updateAccount(data) {
             document.getElementById('total-assets').textContent = '₩' + formatNumber(data.total_assets || 0);
             document.getElementById('cash').textContent = '₩' + formatNumber(data.cash || 0);
