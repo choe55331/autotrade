@@ -2835,3 +2835,222 @@ def get_system_connections():
         return jsonify(connections)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+# ============================================================================
+# 가상매매 거래 기록 API
+# ============================================================================
+
+@app.route('/api/virtual-trades')
+def get_virtual_trades():
+    """가상매매 전략별 거래 기록 조회"""
+    try:
+        if not bot_instance or not hasattr(bot_instance, 'virtual_trader'):
+            return jsonify({
+                'success': False,
+                'message': '가상매매 미활성화'
+            })
+
+        virtual_trader = bot_instance.virtual_trader
+        trades_by_strategy = {}
+
+        for strategy_name, account in virtual_trader.accounts.items():
+            # 최근 50건 거래 기록
+            trades = account.trade_history[-50:] if account.trade_history else []
+
+            # 역순 정렬 (최신순)
+            trades = list(reversed(trades))
+
+            trades_by_strategy[strategy_name] = {
+                'summary': account.get_summary(),
+                'trades': trades
+            }
+
+        return jsonify({
+            'success': True,
+            'data': trades_by_strategy
+        })
+
+    except Exception as e:
+        logger.error(f"가상매매 거래 기록 조회 실패: {e}", exc_info=True)
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
+
+
+# ============================================================================
+# 웹소켓 구독 리스트 API
+# ============================================================================
+
+@app.route('/api/websocket/subscriptions')
+def get_websocket_subscriptions():
+    """현재 웹소켓 구독 리스트 조회"""
+    try:
+        subscriptions = {
+            'price': [],  # 현재가 구독 (KA10003)
+            'orderbook': [],  # 호가 구독 (KA10004)
+            'execution': [],  # 체결 구독 (KA10005)
+            'total': 0
+        }
+
+        # WebSocketManager 사용 (있는 경우)
+        if bot_instance and hasattr(bot_instance, 'websocket_manager'):
+            ws_manager = bot_instance.websocket_manager
+            if ws_manager and hasattr(ws_manager, 'get_subscription_summary'):
+                try:
+                    summary = ws_manager.get_subscription_summary()
+                    subscriptions = summary
+                except:
+                    pass
+
+        # TODO: 실제 구독 종목 리스트 추가 (구현 필요)
+        # 현재는 보유 종목만 표시
+        if bot_instance and hasattr(bot_instance, 'get_holdings'):
+            try:
+                holdings = bot_instance.get_holdings()
+                if holdings:
+                    for holding in holdings:
+                        stock_code = holding.get('stk_cd')
+                        stock_name = holding.get('stk_nm', stock_code)
+                        subscriptions['price'].append({
+                            'stock_code': stock_code,
+                            'stock_name': stock_name,
+                            'type': 'holdings'
+                        })
+            except:
+                pass
+
+        subscriptions['total'] = (
+            len(subscriptions['price']) +
+            len(subscriptions['orderbook']) +
+            len(subscriptions['execution'])
+        )
+
+        return jsonify({
+            'success': True,
+            'data': subscriptions
+        })
+
+    except Exception as e:
+        logger.error(f"웹소켓 구독 리스트 조회 실패: {e}", exc_info=True)
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
+
+
+# ============================================================================
+# 실제 포트폴리오 상세 정보 API (ATR 기반 손절/익절)
+# ============================================================================
+
+@app.route('/api/portfolio/real-holdings')
+def get_real_holdings():
+    """실제 보유 종목 상세 정보 (수익률, ATR 기반 손절/익절)"""
+    try:
+        if not bot_instance:
+            return jsonify({
+                'success': False,
+                'message': 'Bot not initialized'
+            })
+
+        holdings = []
+
+        # 실제 보유 종목 조회
+        if hasattr(bot_instance, 'get_holdings'):
+            raw_holdings = bot_instance.get_holdings()
+
+            if raw_holdings:
+                for holding in raw_holdings:
+                    stock_code = holding.get('stk_cd')
+                    stock_name = holding.get('stk_nm', stock_code)
+                    quantity = int(holding.get('rmnd_qty', 0))
+                    avg_price = int(holding.get('avg_prc', 0))
+                    current_price = int(holding.get('cur_prc', 0))
+                    eval_amount = int(holding.get('eval_amt', 0))
+
+                    if quantity <= 0:
+                        continue
+
+                    # 수익률 계산
+                    pnl = (current_price - avg_price) * quantity
+                    pnl_rate = ((current_price - avg_price) / avg_price * 100) if avg_price > 0 else 0
+
+                    # ATR 기반 동적 손절/익절 계산
+                    stop_loss_price = avg_price
+                    take_profit_price = avg_price
+
+                    try:
+                        # ATR 조회 (14일 기준)
+                        if hasattr(bot_instance, 'market_api'):
+                            # 일봉 데이터로 ATR 계산
+                            daily_data = bot_instance.market_api.get_daily_price(stock_code, days=20)
+
+                            if daily_data and len(daily_data) >= 14:
+                                # ATR 계산 (True Range 평균)
+                                atr_values = []
+                                for i in range(1, min(15, len(daily_data))):
+                                    high = daily_data[i].get('high', 0)
+                                    low = daily_data[i].get('low', 0)
+                                    prev_close = daily_data[i-1].get('close', 0)
+
+                                    tr = max(
+                                        high - low,
+                                        abs(high - prev_close),
+                                        abs(low - prev_close)
+                                    )
+                                    atr_values.append(tr)
+
+                                if atr_values:
+                                    atr = sum(atr_values) / len(atr_values)
+
+                                    # ATR 기반 손절/익절 (2 ATR)
+                                    stop_loss_price = int(avg_price - (atr * 2))
+                                    take_profit_price = int(avg_price + (atr * 3))
+                            else:
+                                # ATR 계산 불가 시 고정값 사용
+                                stop_loss_price = int(avg_price * 0.95)  # -5%
+                                take_profit_price = int(avg_price * 1.10)  # +10%
+                        else:
+                            # market_api 없으면 고정값
+                            stop_loss_price = int(avg_price * 0.95)
+                            take_profit_price = int(avg_price * 1.10)
+
+                    except Exception as e:
+                        logger.debug(f"ATR 계산 실패 ({stock_code}): {e}")
+                        # 기본값 사용
+                        stop_loss_price = int(avg_price * 0.95)
+                        take_profit_price = int(avg_price * 1.10)
+
+                    # 손절/익절까지 거리 계산
+                    distance_to_stop = ((stop_loss_price - current_price) / current_price * 100) if current_price > 0 else 0
+                    distance_to_target = ((take_profit_price - current_price) / current_price * 100) if current_price > 0 else 0
+
+                    holdings.append({
+                        'stock_code': stock_code,
+                        'stock_name': stock_name,
+                        'quantity': quantity,
+                        'avg_price': avg_price,
+                        'current_price': current_price,
+                        'eval_amount': eval_amount,
+                        'pnl': pnl,
+                        'pnl_rate': round(pnl_rate, 2),
+                        'stop_loss_price': stop_loss_price,
+                        'take_profit_price': take_profit_price,
+                        'distance_to_stop': round(distance_to_stop, 2),
+                        'distance_to_target': round(distance_to_target, 2),
+                        'atr_based': True  # ATR 기반 여부
+                    })
+
+        return jsonify({
+            'success': True,
+            'data': holdings
+        })
+
+    except Exception as e:
+        logger.error(f"실제 보유 종목 조회 실패: {e}", exc_info=True)
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
+
