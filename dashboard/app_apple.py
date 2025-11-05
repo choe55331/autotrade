@@ -227,24 +227,30 @@ def get_account():
         if bot_instance and hasattr(bot_instance, 'account_api'):
             # 실제 API에서 데이터 가져오기 (테스트 모드에서도 가장 최근 데이터 사용)
             deposit = bot_instance.account_api.get_deposit()
-            holdings = bot_instance.account_api.get_holdings()
+
+            # v5.3.3: KRX와 NXT 종목 모두 조회
+            holdings_krx = bot_instance.account_api.get_holdings(market_type="KRX")
+            holdings_nxt = bot_instance.account_api.get_holdings(market_type="NXT")
+            holdings = (holdings_krx or []) + (holdings_nxt or [])
 
             # v5.3.3: 디버깅 로그 추가
             print(f"[DEBUG] deposit response: {deposit}")
-            print(f"[DEBUG] holdings count: {len(holdings) if holdings else 0}")
+            print(f"[DEBUG] KRX holdings count: {len(holdings_krx) if holdings_krx else 0}")
+            print(f"[DEBUG] NXT holdings count: {len(holdings_nxt) if holdings_nxt else 0}")
+            print(f"[DEBUG] Total holdings count: {len(holdings) if holdings else 0}")
 
             # 계좌 정보 계산 (kt00001 API 응답 구조에 맞게 수정)
-            # entr: 예수금, 100stk_ord_alow_amt: 100% 주문가능금액 (실제 사용가능액)
+            # entr: 예수금, 100stk_ord_alow_amt: 100% 주문가능금액 (실제 사용가능액 = 잔존 현금)
             deposit_amount = int(str(deposit.get('entr', '0')).replace(',', '')) if deposit else 0
             cash = int(str(deposit.get('100stk_ord_alow_amt', '0')).replace(',', '')) if deposit else 0
             stock_value = sum(int(str(h.get('eval_amt', 0)).replace(',', '')) for h in holdings) if holdings else 0
 
             print(f"[DEBUG] deposit_amount (예수금): {deposit_amount:,}원")
-            print(f"[DEBUG] cash (주문가능금액): {cash:,}원")
+            print(f"[DEBUG] cash (잔존현금/주문가능금액): {cash:,}원")
             print(f"[DEBUG] stock_value (주식평가금액): {stock_value:,}원")
 
-            # 총 자산 = 예수금 + 주식평가금액 (v5.3.3 재수정)
-            total_assets = deposit_amount + stock_value
+            # 총 자산 = 주식 현재가치 + 잔존 현금 (v5.3.3 수정)
+            total_assets = stock_value + cash
 
             print(f"[DEBUG] total_assets (총자산): {total_assets:,}원")
 
