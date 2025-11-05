@@ -708,6 +708,398 @@ def get_v42_all_status():
 # Auto-Analysis - Background AI Analysis
 # ============================================================================
 
+@ai_bp.route('/api/ai/position-monitor')
+def get_position_monitor():
+    """
+    실시간 포지션 모니터링 - 수익/손실 추적 및 매매 신호
+
+    기능:
+    - 각 종목의 실시간 손익률 계산
+    - 손절/익절 라인 표시
+    - AI 매매 신호 (홀드/매도)
+    - 위험 종목 경고
+    """
+    try:
+        positions = []
+        alerts = []
+        summary = {
+            'total_value': 0,
+            'total_profit': 0,
+            'total_profit_pct': 0,
+            'winning_count': 0,
+            'losing_count': 0,
+            'holding_count': 0
+        }
+
+        if _bot_instance and hasattr(_bot_instance, 'account_api') and hasattr(_bot_instance, 'market_api'):
+            try:
+                from strategy.scoring_system import ScoringSystem
+                scoring_system = ScoringSystem(_bot_instance.market_api)
+
+                # Get holdings
+                holdings = _bot_instance.account_api.get_holdings()
+
+                for holding in holdings:
+                    stock_code = holding.get('stk_cd', '').replace('A', '')
+                    stock_name = holding.get('stk_nm', '')
+
+                    # Current position info
+                    quantity = int(holding.get('rmnd_qty', 0))
+                    buy_price = int(holding.get('pchs_avg_pric', 0))
+                    current_price = int(holding.get('cur_prc', 0))
+
+                    if quantity == 0 or buy_price == 0:
+                        continue
+
+                    # Calculate profit/loss
+                    position_value = current_price * quantity
+                    buy_value = buy_price * quantity
+                    profit = position_value - buy_value
+                    profit_pct = (profit / buy_value * 100) if buy_value > 0 else 0
+
+                    # Get current price data
+                    try:
+                        price_info = _bot_instance.market_api.get_current_price(stock_code)
+                        if price_info:
+                            current_price = int(price_info.get('prpr', current_price))
+                            change_rate = float(price_info.get('prdy_ctrt', 0))
+                    except:
+                        change_rate = 0
+
+                    # Re-score with AI
+                    stock_data = {
+                        'stock_code': stock_code,
+                        'name': stock_name,
+                        'current_price': current_price,
+                        'change_rate': change_rate,
+                        'volume': 0  # Will be fetched if needed
+                    }
+
+                    try:
+                        score_result = scoring_system.calculate_score(stock_data, scan_type='ai_driven')
+                        ai_score = score_result.total_score
+                        ai_grade = scoring_system.get_grade(ai_score)
+                    except:
+                        ai_score = 0
+                        ai_grade = 'F'
+
+                    # Determine trading signal
+                    signal = 'HOLD'
+                    signal_reason = '현재 보유 유지'
+                    signal_color = '#9ca3af'
+
+                    # SELL signals
+                    if profit_pct < -5:  # 5% 이상 손실
+                        signal = 'SELL'
+                        signal_reason = f'손실 {abs(profit_pct):.1f}% - 손절 검토'
+                        signal_color = '#ef4444'
+                        alerts.append({
+                            'stock': stock_name,
+                            'type': 'loss',
+                            'message': f'{stock_name}: {profit_pct:.1f}% 손실 - 손절 검토 필요'
+                        })
+                    elif ai_grade in ['D', 'F']:  # AI 점수 낮음
+                        signal = 'SELL'
+                        signal_reason = f'AI 등급 {ai_grade} - 매도 고려'
+                        signal_color = '#ef4444'
+                    elif profit_pct > 15:  # 15% 이상 수익
+                        signal = 'TAKE_PROFIT'
+                        signal_reason = f'수익 {profit_pct:.1f}% - 익절 고려'
+                        signal_color = '#10b981'
+                    elif ai_grade in ['S', 'A'] and profit_pct > 0:
+                        signal = 'HOLD'
+                        signal_reason = f'AI 등급 {ai_grade} - 보유 추천'
+                        signal_color = '#10b981'
+
+                    # Stop loss / Take profit lines
+                    stop_loss_price = int(buy_price * 0.95)  # -5%
+                    take_profit_price = int(buy_price * 1.15)  # +15%
+
+                    # Add to positions
+                    positions.append({
+                        'code': stock_code,
+                        'name': stock_name,
+                        'quantity': quantity,
+                        'buy_price': buy_price,
+                        'current_price': current_price,
+                        'profit': profit,
+                        'profit_pct': round(profit_pct, 2),
+                        'position_value': position_value,
+                        'ai_score': round(ai_score, 1),
+                        'ai_grade': ai_grade,
+                        'signal': signal,
+                        'signal_reason': signal_reason,
+                        'signal_color': signal_color,
+                        'stop_loss_price': stop_loss_price,
+                        'take_profit_price': take_profit_price,
+                        'change_rate': change_rate
+                    })
+
+                    # Update summary
+                    summary['total_value'] += position_value
+                    summary['total_profit'] += profit
+                    summary['holding_count'] += 1
+                    if profit > 0:
+                        summary['winning_count'] += 1
+                    elif profit < 0:
+                        summary['losing_count'] += 1
+
+                # Calculate total profit percentage
+                total_buy_value = sum(p['buy_price'] * p['quantity'] for p in positions)
+                if total_buy_value > 0:
+                    summary['total_profit_pct'] = round(summary['total_profit'] / total_buy_value * 100, 2)
+
+                # Sort by profit percentage (worst first for alerts)
+                positions.sort(key=lambda x: x['profit_pct'])
+
+            except Exception as e:
+                print(f"Position monitor error: {e}")
+                import traceback
+                traceback.print_exc()
+
+        return jsonify({
+            'success': True,
+            'positions': positions,
+            'summary': summary,
+            'alerts': alerts,
+            'timestamp': datetime.now().isoformat()
+        })
+
+    except Exception as e:
+        print(f"Position monitor API error: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'positions': [],
+            'summary': {},
+            'alerts': []
+        })
+
+
+@ai_bp.route('/api/ai/portfolio-optimization')
+def get_portfolio_optimization():
+    """
+    포트폴리오 최적화 제안
+
+    기능:
+    - 비중 분석 및 과도한 집중도 경고
+    - 리밸런싱 제안
+    - 섹터 다각화 분석
+    """
+    try:
+        optimization = {
+            'status': 'optimal',
+            'risk_level': 'low',
+            'concentration_warning': False,
+            'rebalance_needed': False,
+            'suggestions': []
+        }
+
+        if _bot_instance and hasattr(_bot_instance, 'account_api'):
+            try:
+                holdings = _bot_instance.account_api.get_holdings()
+
+                if holdings and len(holdings) > 0:
+                    # Calculate weights
+                    total_value = sum(int(h.get('eval_amt', 0)) for h in holdings)
+                    if total_value == 0:
+                        total_value = sum(int(h.get('rmnd_qty', 0)) * int(h.get('cur_prc', 0)) for h in holdings)
+
+                    weights = []
+                    for h in holdings:
+                        value = int(h.get('eval_amt', 0))
+                        if value == 0:
+                            value = int(h.get('rmnd_qty', 0)) * int(h.get('cur_prc', 0))
+
+                        weight = (value / total_value * 100) if total_value > 0 else 0
+                        weights.append({
+                            'name': h.get('stk_nm', ''),
+                            'weight': round(weight, 2),
+                            'value': value
+                        })
+
+                    weights.sort(key=lambda x: x['weight'], reverse=True)
+
+                    # Check concentration
+                    max_weight = weights[0]['weight'] if weights else 0
+                    top3_weight = sum(w['weight'] for w in weights[:3]) if len(weights) >= 3 else 0
+
+                    if max_weight > 40:
+                        optimization['concentration_warning'] = True
+                        optimization['risk_level'] = 'high'
+                        optimization['status'] = 'needs_attention'
+                        optimization['suggestions'].append({
+                            'type': 'warning',
+                            'title': '과도한 집중도',
+                            'message': f'{weights[0]["name"]} 비중이 {max_weight:.1f}%로 과도합니다. 30% 이하로 조정 권장.',
+                            'action': f'{weights[0]["name"]} 일부 매도'
+                        })
+                    elif max_weight > 30:
+                        optimization['risk_level'] = 'medium'
+                        optimization['suggestions'].append({
+                            'type': 'info',
+                            'title': '집중도 주의',
+                            'message': f'{weights[0]["name"]} 비중이 {max_weight:.1f}%입니다. 모니터링 필요.',
+                            'action': '신규 종목 추가 고려'
+                        })
+
+                    # Check diversification
+                    if len(holdings) < 3:
+                        optimization['suggestions'].append({
+                            'type': 'warning',
+                            'title': '분산 투자 부족',
+                            'message': f'현재 {len(holdings)}개 종목만 보유 중입니다. 최소 5개 이상 권장.',
+                            'action': '추가 종목 투자로 분산'
+                        })
+                    elif len(holdings) < 5:
+                        optimization['suggestions'].append({
+                            'type': 'info',
+                            'title': '분산 투자 개선',
+                            'message': f'현재 {len(holdings)}개 종목 보유. 5-8개가 적정.',
+                            'action': '2-3개 종목 추가 고려'
+                        })
+
+                    # Check top 3 concentration
+                    if top3_weight > 70:
+                        optimization['suggestions'].append({
+                            'type': 'warning',
+                            'title': '상위 3종목 집중도 높음',
+                            'message': f'상위 3종목이 {top3_weight:.1f}% 차지. 60% 이하 권장.',
+                            'action': '나머지 종목 비중 확대'
+                        })
+
+                    # Rebalancing suggestion
+                    if max_weight > 35 or (len(holdings) >= 3 and top3_weight > 65):
+                        optimization['rebalance_needed'] = True
+                        optimization['suggestions'].append({
+                            'type': 'action',
+                            'title': '리밸런싱 필요',
+                            'message': '포트폴리오 리밸런싱을 통해 리스크를 줄이세요.',
+                            'action': '과비중 종목 일부 매도 후 저비중 종목 매수'
+                        })
+
+                    # Add weights to response
+                    optimization['weights'] = weights[:5]  # Top 5
+                    optimization['total_stocks'] = len(holdings)
+                    optimization['max_weight'] = round(max_weight, 2)
+                    optimization['top3_weight'] = round(top3_weight, 2)
+
+            except Exception as e:
+                print(f"Portfolio optimization error: {e}")
+                import traceback
+                traceback.print_exc()
+
+        return jsonify({
+            'success': True,
+            'optimization': optimization
+        })
+
+    except Exception as e:
+        print(f"Portfolio optimization API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })
+
+
+@ai_bp.route('/api/ai/performance-tracker')
+def get_performance_tracker():
+    """
+    실시간 성과 추적
+
+    기능:
+    - 오늘/이번주 손익
+    - 종목별 수익률
+    - 최고/최악 종목
+    - 승률 통계
+    """
+    try:
+        performance = {
+            'today': {'profit': 0, 'profit_pct': 0, 'trades': 0},
+            'week': {'profit': 0, 'profit_pct': 0, 'trades': 0},
+            'best_stock': None,
+            'worst_stock': None,
+            'statistics': {
+                'win_rate': 0,
+                'avg_profit': 0,
+                'avg_loss': 0,
+                'profit_factor': 0
+            }
+        }
+
+        if _bot_instance and hasattr(_bot_instance, 'account_api'):
+            try:
+                # Get current holdings for performance
+                holdings = _bot_instance.account_api.get_holdings()
+
+                stocks_performance = []
+                total_profit = 0
+                total_buy_value = 0
+
+                for h in holdings:
+                    quantity = int(h.get('rmnd_qty', 0))
+                    buy_price = int(h.get('pchs_avg_pric', 0))
+                    current_price = int(h.get('cur_prc', 0))
+
+                    if quantity == 0 or buy_price == 0:
+                        continue
+
+                    profit = (current_price - buy_price) * quantity
+                    buy_value = buy_price * quantity
+                    profit_pct = (profit / buy_value * 100) if buy_value > 0 else 0
+
+                    stocks_performance.append({
+                        'name': h.get('stk_nm', ''),
+                        'profit': profit,
+                        'profit_pct': profit_pct
+                    })
+
+                    total_profit += profit
+                    total_buy_value += buy_value
+
+                if stocks_performance:
+                    # Best and worst
+                    stocks_performance.sort(key=lambda x: x['profit_pct'], reverse=True)
+                    performance['best_stock'] = stocks_performance[0]
+                    performance['worst_stock'] = stocks_performance[-1]
+
+                    # Today's performance (approximate)
+                    performance['today']['profit'] = total_profit
+                    performance['today']['profit_pct'] = round((total_profit / total_buy_value * 100) if total_buy_value > 0 else 0, 2)
+
+                    # Statistics
+                    winners = [s for s in stocks_performance if s['profit_pct'] > 0]
+                    losers = [s for s in stocks_performance if s['profit_pct'] < 0]
+
+                    performance['statistics']['win_rate'] = round(len(winners) / len(stocks_performance) * 100, 1) if stocks_performance else 0
+                    performance['statistics']['avg_profit'] = round(sum(w['profit_pct'] for w in winners) / len(winners), 2) if winners else 0
+                    performance['statistics']['avg_loss'] = round(sum(l['profit_pct'] for l in losers) / len(losers), 2) if losers else 0
+
+                    if losers:
+                        total_win = sum(w['profit'] for w in winners)
+                        total_loss = abs(sum(l['profit'] for l in losers))
+                        performance['statistics']['profit_factor'] = round(total_win / total_loss, 2) if total_loss > 0 else 0
+
+            except Exception as e:
+                print(f"Performance tracker error: {e}")
+                import traceback
+                traceback.print_exc()
+
+        return jsonify({
+            'success': True,
+            'performance': performance
+        })
+
+    except Exception as e:
+        print(f"Performance tracker API error: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })
+
+
 @ai_bp.route('/api/ai/stock-recommendations')
 def get_stock_recommendations():
     """Get AI-powered stock recommendations based on current market conditions"""
@@ -858,53 +1250,124 @@ def get_ai_auto_analysis():
         }
 
         if _bot_instance and hasattr(_bot_instance, 'account_api'):
-            # Portfolio Analysis
-            try:
-                from ai.ensemble_analyzer import get_analyzer
-                analyzer = get_analyzer()
-
-                # Get current holdings
-                holdings = _bot_instance.account_api.get_holdings()
-                portfolio_data = {
-                    'holdings': holdings,
-                    'total_value': sum(int(h.get('eval_amt', 0)) for h in holdings)
-                }
-
-                portfolio_result = analyzer.analyze_portfolio(portfolio_data)
-                result['portfolio'] = portfolio_result
-
-            except Exception as e:
-                print(f"Portfolio analysis error: {e}")
-                result['portfolio'] = {
-                    'score': 0,
-                    'health': '분석 불가',
-                    'recommendations': []
-                }
-
-            # Sentiment Analysis (전체 시장 감성) - v5.7.5 개선 버전
+            # Portfolio Analysis - v5.7.5 더 실용적인 버전
             try:
                 holdings = _bot_instance.account_api.get_holdings()
 
                 if holdings and len(holdings) > 0:
-                    # 실제 감성 분석 시도
+                    # 실제 데이터 기반 분석
+                    total_value = sum(int(h.get('eval_amt', 0)) for h in holdings)
+                    if total_value == 0:
+                        total_value = sum(int(h.get('rmnd_qty', 0)) * int(h.get('cur_prc', 0)) for h in holdings)
+
+                    # Calculate portfolio metrics
+                    total_profit = 0
+                    total_buy_value = 0
+
+                    for h in holdings:
+                        quantity = int(h.get('rmnd_qty', 0))
+                        buy_price = int(h.get('pchs_avg_pric', 0))
+                        current_price = int(h.get('cur_prc', 0))
+
+                        if quantity > 0 and buy_price > 0:
+                            profit = (current_price - buy_price) * quantity
+                            total_profit += profit
+                            total_buy_value += buy_price * quantity
+
+                    # Calculate score (0-10)
+                    profit_pct = (total_profit / total_buy_value * 100) if total_buy_value > 0 else 0
+
+                    if profit_pct >= 15:
+                        score = 9.0
+                        health = '우수'
+                    elif profit_pct >= 10:
+                        score = 8.0
+                        health = '양호'
+                    elif profit_pct >= 5:
+                        score = 7.0
+                        health = '양호'
+                    elif profit_pct >= 0:
+                        score = 6.0
+                        health = '보통'
+                    elif profit_pct >= -5:
+                        score = 5.0
+                        health = '주의'
+                    elif profit_pct >= -10:
+                        score = 4.0
+                        health = '경고'
+                    else:
+                        score = 3.0
+                        health = '위험'
+
+                    # Generate recommendations
+                    recommendations = []
+                    if profit_pct < -5:
+                        recommendations.append('손실 종목 점검 필요')
+                    if len(holdings) < 3:
+                        recommendations.append('분산 투자 확대 권장')
+                    elif len(holdings) > 10:
+                        recommendations.append('과도한 분산 - 집중 투자 고려')
+
+                    if profit_pct > 10:
+                        recommendations.append('수익 실현 타이밍 검토')
+
+                    result['portfolio'] = {
+                        'score': score,
+                        'health': health,
+                        'recommendations': recommendations if recommendations else ['현재 상태 유지']
+                    }
+                else:
+                    result['portfolio'] = {
+                        'score': 5.0,
+                        'health': '보유 종목 없음',
+                        'recommendations': ['종목 매수 필요']
+                    }
+
+            except Exception as e:
+                print(f"Portfolio analysis error: {e}")
+                import traceback
+                traceback.print_exc()
+                result['portfolio'] = {
+                    'score': 5.0,
+                    'health': '분석 오류',
+                    'recommendations': ['데이터 확인 필요']
+                }
+
+            # Sentiment Analysis (전체 시장 감성) - v5.7.5 실용적 버전 (가격 모멘텀 기반)
+            try:
+                holdings = _bot_instance.account_api.get_holdings()
+
+                if holdings and len(holdings) > 0:
+                    # 가격 변동률 기반 감성 분석 (실제 데이터 사용)
                     sentiment_scores = []
                     analyzed_stocks = []
 
-                    for h in holdings[:3]:
-                        stock_code = h.get('stk_cd', '').replace('A', '')
+                    for h in holdings[:5]:  # 상위 5종목
                         stock_name = h.get('stk_nm', '')
+                        stock_code = h.get('stk_cd', '').replace('A', '')
 
-                        if stock_code:
-                            try:
-                                from ai.sentiment_analysis import SentimentAnalyzer
-                                sentiment_analyzer = SentimentAnalyzer()
-                                sentiment_report = sentiment_analyzer.analyze_complete(stock_code)
-                                sentiment_scores.append(sentiment_report.overall_sentiment)
-                                analyzed_stocks.append(stock_name)
-                            except:
-                                # 실제 분석 실패 시 모의 데이터 (0.5 = 중립)
-                                sentiment_scores.append(0.55)
-                                analyzed_stocks.append(stock_name)
+                        # 매입가 대비 현재가로 감성 추정
+                        quantity = int(h.get('rmnd_qty', 0))
+                        buy_price = int(h.get('pchs_avg_pric', 0))
+                        current_price = int(h.get('cur_prc', 0))
+
+                        if quantity > 0 and buy_price > 0:
+                            profit_pct = ((current_price - buy_price) / buy_price * 100)
+
+                            # 수익률을 0~1 감성 점수로 변환
+                            if profit_pct >= 10:
+                                score = 0.8
+                            elif profit_pct >= 5:
+                                score = 0.7
+                            elif profit_pct >= 0:
+                                score = 0.6
+                            elif profit_pct >= -5:
+                                score = 0.4
+                            else:
+                                score = 0.3
+
+                            sentiment_scores.append(score)
+                            analyzed_stocks.append(stock_name)
 
                     if sentiment_scores:
                         avg_score = sum(sentiment_scores) / len(sentiment_scores)
@@ -912,17 +1375,17 @@ def get_ai_auto_analysis():
                         overall_sentiment = avg_score * 10
 
                         # sentiment 상태 결정
-                        if avg_score > 0.6:
+                        if avg_score >= 0.6:
                             sentiment_status = '긍정적'
-                        elif avg_score < 0.4:
+                        elif avg_score <= 0.4:
                             sentiment_status = '부정적'
                         else:
                             sentiment_status = '중립'
 
                         result['sentiment'] = {
-                            'overall_sentiment': round(overall_sentiment, 2),  # JavaScript가 기대하는 필드
-                            'sentiment': sentiment_status,  # JavaScript가 기대하는 필드
-                            'overall_score': avg_score,  # 기존 호환성 유지
+                            'overall_sentiment': round(overall_sentiment, 2),
+                            'sentiment': sentiment_status,
+                            'overall_score': avg_score,
                             'count': len(sentiment_scores),
                             'status': sentiment_status,
                             'analyzed_stocks': analyzed_stocks,
@@ -937,12 +1400,12 @@ def get_ai_auto_analysis():
                             'sentiment': '중립',
                             'overall_score': 0.5,
                             'count': 0,
-                            'status': '분석 불가',
+                            'status': '데이터 부족',
                             'analyzed_stocks': [],
                             'details': None
                         }
                 else:
-                    # 보유 종목 없을 때도 데이터 반환
+                    # 보유 종목 없을 때
                     result['sentiment'] = {
                         'overall_sentiment': 5.0,
                         'sentiment': '중립',
@@ -956,7 +1419,6 @@ def get_ai_auto_analysis():
                 print(f"Sentiment analysis error: {e}")
                 import traceback
                 traceback.print_exc()
-                # 오류 발생 시에도 데이터 반환
                 result['sentiment'] = {
                     'overall_sentiment': 5.0,
                     'sentiment': '분석 오류',
