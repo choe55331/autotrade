@@ -126,7 +126,7 @@ class MarketAPI:
         else:
             logger.warning(f"현재가 조회 API 실패: {response.get('return_msg') if response else 'No response'}")
 
-        # Fallback: 호가 정보에서 현재가 추출 시도
+        # Fallback 1: 호가 정보에서 현재가 추출 시도 (NXT 코드)
         if use_fallback:
             logger.info(f"{stock_code} 호가 정보로 현재가 조회 시도...")
             orderbook = self.get_orderbook(stock_code)
@@ -139,6 +139,40 @@ class MarketAPI:
                     'source': 'orderbook',
                     'time': '',
                 }
+
+            # Fallback 2: NXT 시간대에 _NX 호가도 실패하면 기본 코드로 재시도
+            if is_nxt_hours() and nxt_stock_code != stock_code:
+                logger.info(f"{stock_code} NXT 호가 실패 - 기본 코드로 재시도...")
+                # get_orderbook 내부에서 _NX를 추가하므로, 강제로 기본 코드 사용
+                body_fallback = {"stk_cd": stock_code}
+                response_fallback = self.client.request(
+                    api_id="ka10004",
+                    body=body_fallback,
+                    path="mrkcond"
+                )
+                if response_fallback and response_fallback.get('return_code') == 0:
+                    sel_fpr_bid = response_fallback.get('sel_fpr_bid', '0').replace('+', '').replace('-', '')
+                    buy_fpr_bid = response_fallback.get('buy_fpr_bid', '0').replace('+', '').replace('-', '')
+
+                    sell_price = abs(int(sel_fpr_bid)) if sel_fpr_bid and sel_fpr_bid != '0' else 0
+                    buy_price = abs(int(buy_fpr_bid)) if buy_fpr_bid and buy_fpr_bid != '0' else 0
+
+                    if sell_price > 0 or buy_price > 0:
+                        # 중간가 계산
+                        if sell_price > 0 and buy_price > 0:
+                            current_price = (sell_price + buy_price) // 2
+                        elif sell_price > 0:
+                            current_price = sell_price
+                        else:
+                            current_price = buy_price
+
+                        logger.info(f"{stock_code} 현재가: {current_price:,}원 (출처: orderbook_basic_fallback)")
+                        return {
+                            'current_price': current_price,
+                            'cur_prc': current_price,
+                            'source': 'orderbook_basic_fallback',
+                            'time': '',
+                        }
 
         logger.error(f"{stock_code} 현재가 조회 완전 실패 (모든 소스)")
         return None
