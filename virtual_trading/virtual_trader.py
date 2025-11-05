@@ -1,12 +1,19 @@
 """
 virtual_trading/virtual_trader.py
 가상 트레이더 - 여러 전략 동시 테스트
+
+v5.7: 10가지 다양한 실전 매매 전략 적용
 """
 from typing import Dict, List, Optional, Callable
 from datetime import datetime, timedelta
 import logging
 
 from .virtual_account import VirtualAccount, VirtualPosition
+from .diverse_strategies import (
+    create_all_diverse_strategies,
+    DiverseTradingStrategy,
+    get_strategy_descriptions
+)
 
 
 logger = logging.getLogger(__name__)
@@ -115,39 +122,27 @@ class VirtualTrader:
         logger.info(f"💰 가상 트레이더 초기화 완료 (계좌당 {initial_cash:,}원)")
 
     def _create_default_strategies(self):
-        """기본 전략들 생성"""
-        # 1. 공격적 전략
-        aggressive = TradingStrategy("공격적", "높은 수익 추구")
-        aggressive.min_score = 120
-        aggressive.take_profit_rate = 0.15
-        aggressive.stop_loss_rate = -0.07
-        aggressive.max_positions = 7
-        aggressive.position_size_rate = 0.20
-        aggressive.max_holding_days = 3
-        self.add_strategy(aggressive)
+        """
+        기본 전략들 생성
 
-        # 2. 보수적 전략
-        conservative = TradingStrategy("보수적", "안정적 수익 추구")
-        conservative.min_score = 180
-        conservative.take_profit_rate = 0.08
-        conservative.stop_loss_rate = -0.04
-        conservative.max_positions = 3
-        conservative.position_size_rate = 0.10
-        conservative.max_holding_days = 7
-        self.add_strategy(conservative)
+        v5.7: 10가지 다양한 실전 매매 전략 적용
+        - 모멘텀추세, 평균회귀, 돌파매매, 가치투자, 스윙매매
+        - MACD크로스, 역발상, 섹터순환, 급등추격, 배당성장
+        """
+        diverse_strategies = create_all_diverse_strategies()
 
-        # 3. 균형 전략 (기본)
-        balanced = TradingStrategy("균형", "중도 전략")
-        balanced.min_score = 150
-        balanced.take_profit_rate = 0.10
-        balanced.stop_loss_rate = -0.05
-        balanced.max_positions = 5
-        balanced.position_size_rate = 0.15
-        balanced.max_holding_days = 5
-        self.add_strategy(balanced)
+        for strategy in diverse_strategies:
+            self.add_diverse_strategy(strategy)
+
+        logger.info(f"✅ 10가지 다양한 전략 생성 완료")
+
+        # 전략별 설명 로깅
+        descriptions = get_strategy_descriptions()
+        for name, desc in descriptions.items():
+            logger.info(f"  - {name}: {desc}")
 
     def add_strategy(self, strategy: TradingStrategy):
-        """전략 추가"""
+        """전략 추가 (레거시 TradingStrategy)"""
         self.strategies[strategy.name] = strategy
         self.accounts[strategy.name] = VirtualAccount(
             initial_cash=self.initial_cash,
@@ -155,13 +150,23 @@ class VirtualTrader:
         )
         logger.info(f"📊 전략 추가: {strategy.name}")
 
-    def process_buy_signal(self, stock_data: Dict, ai_analysis: Dict):
+    def add_diverse_strategy(self, strategy: DiverseTradingStrategy):
+        """v5.7: 다양한 전략 추가 (DiverseTradingStrategy)"""
+        self.strategies[strategy.name] = strategy
+        self.accounts[strategy.name] = VirtualAccount(
+            initial_cash=self.initial_cash,
+            name=f"가상계좌-{strategy.name}"
+        )
+        logger.info(f"📊 전략 추가: {strategy.name} - {strategy.description}")
+
+    def process_buy_signal(self, stock_data: Dict, ai_analysis: Dict = None, market_data: Dict = None):
         """
         매수 시그널 처리 - 모든 전략에 대해
 
         Args:
             stock_data: 종목 데이터 (code, name, price, score 등)
-            ai_analysis: AI 분석 결과 (signal, reasons 등)
+            ai_analysis: AI 분석 결과 (signal, reasons 등) - 레거시 전략용
+            market_data: 시장 데이터 (fear_greed_index, economic_cycle 등) - 다양한 전략용
         """
         stock_code = stock_data.get('stock_code')
         stock_name = stock_data.get('stock_name')
@@ -170,39 +175,59 @@ class VirtualTrader:
         if price == 0:
             return
 
+        # 기본값 설정
+        if ai_analysis is None:
+            ai_analysis = {}
+        if market_data is None:
+            market_data = {}
+
         # 각 전략별로 매수 판단
         for strategy_name, strategy in self.strategies.items():
             account = self.accounts[strategy_name]
 
-            # 매수 조건 확인
-            if strategy.should_buy(stock_data, ai_analysis, account):
-                # 수량 계산
-                quantity = strategy.calculate_quantity(price, account)
+            # v5.7: 다양한 전략 타입 지원
+            try:
+                if isinstance(strategy, DiverseTradingStrategy):
+                    # 새로운 다양한 전략
+                    should_buy = strategy.should_buy(stock_data, market_data, account)
+                else:
+                    # 레거시 전략
+                    should_buy = strategy.should_buy(stock_data, ai_analysis, account)
 
-                if quantity > 0 and account.can_buy(price, quantity):
-                    # 가상 매수 실행
-                    success = account.buy(
-                        stock_code=stock_code,
-                        stock_name=stock_name,
-                        price=price,
-                        quantity=quantity,
-                        strategy_name=strategy_name
-                    )
+                if should_buy:
+                    # 수량 계산
+                    quantity = strategy.calculate_quantity(price, account)
 
-                    if success:
-                        logger.info(
-                            f"🔵 [가상매수-{strategy_name}] {stock_name} "
-                            f"{quantity}주 @ {price:,}원 "
-                            f"(잔고: {account.cash:,}원)"
+                    if quantity > 0 and account.can_buy(price, quantity):
+                        # 가상 매수 실행
+                        success = account.buy(
+                            stock_code=stock_code,
+                            stock_name=stock_name,
+                            price=price,
+                            quantity=quantity,
+                            strategy_name=strategy_name
                         )
 
-    def check_sell_conditions(self, price_data: Dict[str, int]):
+                        if success:
+                            logger.info(
+                                f"🔵 [가상매수-{strategy_name}] {stock_name} "
+                                f"{quantity}주 @ {price:,}원 "
+                                f"(잔고: {account.cash:,}원)"
+                            )
+            except Exception as e:
+                logger.error(f"전략 {strategy_name} 매수 처리 오류: {e}")
+
+    def check_sell_conditions(self, price_data: Dict[str, int], stock_data_dict: Dict[str, Dict] = None):
         """
         매도 조건 확인 - 모든 계좌의 포지션 확인
 
         Args:
             price_data: {stock_code: current_price}
+            stock_data_dict: {stock_code: stock_data} - v5.7: 다양한 전략용 추가 데이터
         """
+        if stock_data_dict is None:
+            stock_data_dict = {}
+
         for strategy_name, account in self.accounts.items():
             strategy = self.strategies[strategy_name]
 
@@ -216,26 +241,37 @@ class VirtualTrader:
                 # 보유 기간 계산
                 days_held = (datetime.now() - position.entry_time).days
 
-                # 매도 조건 확인
-                should_sell, reason = strategy.should_sell(
-                    position, current_price, days_held
-                )
-
-                if should_sell:
-                    # 가상 매도 실행
-                    realized_pnl = account.sell(
-                        stock_code=stock_code,
-                        price=current_price,
-                        reason=reason
-                    )
-
-                    if realized_pnl is not None:
-                        pnl_sign = "+" if realized_pnl > 0 else ""
-                        logger.info(
-                            f"🔴 [가상매도-{strategy_name}] {position.stock_name} "
-                            f"{position.quantity}주 @ {current_price:,}원 "
-                            f"({reason}, {pnl_sign}{realized_pnl:,}원)"
+                # v5.7: 다양한 전략 타입 지원
+                try:
+                    if isinstance(strategy, DiverseTradingStrategy):
+                        # 새로운 다양한 전략 - stock_data 필요
+                        stock_data = stock_data_dict.get(stock_code, {})
+                        should_sell, reason = strategy.should_sell(
+                            position, current_price, stock_data, days_held
                         )
+                    else:
+                        # 레거시 전략
+                        should_sell, reason = strategy.should_sell(
+                            position, current_price, days_held
+                        )
+
+                    if should_sell:
+                        # 가상 매도 실행
+                        realized_pnl = account.sell(
+                            stock_code=stock_code,
+                            price=current_price,
+                            reason=reason
+                        )
+
+                        if realized_pnl is not None:
+                            pnl_sign = "+" if realized_pnl > 0 else ""
+                            logger.info(
+                                f"🔴 [가상매도-{strategy_name}] {position.stock_name} "
+                                f"{position.quantity}주 @ {current_price:,}원 "
+                                f"({reason}, {pnl_sign}{realized_pnl:,}원)"
+                            )
+                except Exception as e:
+                    logger.error(f"전략 {strategy_name} 매도 처리 오류 ({stock_code}): {e}")
 
     def update_all_prices(self, price_data: Dict[str, int]):
         """모든 계좌의 포지션 가격 업데이트"""

@@ -664,6 +664,31 @@
                 </button>
             </div>
 
+            <!-- v5.7.2: 수익 최적화 패널 -->
+            <div class="section-title" style="margin-top: 20px;">
+                <i class="fas fa-chart-line"></i> 수익 최적화 <span style="font-size: 10px; color: var(--color-success); margin-left: 5px;">NEW</span>
+            </div>
+            <div id="profit-optimization-panel" style="margin-bottom: 20px; padding: 12px; background: linear-gradient(135deg, rgba(16,185,129,0.1) 0%, rgba(59,130,246,0.1) 100%); border-radius: 8px; border: 1px solid rgba(16,185,129,0.3);">
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                    <div style="text-align: center; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 6px;">
+                        <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 3px;">매도 권장</div>
+                        <div id="opt-sell-count" style="font-size: 16px; font-weight: 700; color: var(--color-danger);">0</div>
+                    </div>
+                    <div style="text-align: center; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 6px;">
+                        <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 3px;">부분 익절</div>
+                        <div id="opt-partial-count" style="font-size: 16px; font-weight: 700; color: var(--color-warning);">0</div>
+                    </div>
+                    <div style="text-align: center; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 6px;">
+                        <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 3px;">보유 유지</div>
+                        <div id="opt-hold-count" style="font-size: 16px; font-weight: 700; color: var(--color-success);">0</div>
+                    </div>
+                </div>
+                <div style="font-size: 11px; color: var(--text-secondary); padding: 8px; background: rgba(0,0,0,0.1); border-radius: 6px;">
+                    <div style="margin-bottom: 3px;"><strong>현재 규칙:</strong> 균형 (손절 -6%, 익절 +12%)</div>
+                    <div style="font-size: 10px; opacity: 0.8;">트레일링 스톱: 활성 (최고가 대비 -4%)</div>
+                </div>
+            </div>
+
             <div class="section-title">
                 <i class="fas fa-broadcast-tower"></i> WebSocket 실시간 구독
             </div>
@@ -960,9 +985,12 @@
                 <div class="card" style="margin-top: 20px;">
                     <div class="card-header">
                         <div class="card-title">
-                            <i class="fas fa-history"></i> 최근 매매 기록 (전체 전략)
+                            <i class="fas fa-history"></i> 최근 매매 기록
                         </div>
-                        <div style="display: flex; gap: 8px;">
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <select id="strategy-filter" onchange="filterVirtualTrades()" style="padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-secondary); color: var(--text-primary); font-size: 12px; cursor: pointer;">
+                                <option value="all">전체 전략</option>
+                            </select>
                             <button onclick="loadVirtualTrades()" style="padding: 6px 12px; background: var(--color-primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 5px;">
                                 <i class="fas fa-sync-alt"></i> 새로고침
                             </button>
@@ -1583,7 +1611,7 @@
                 const originalText = statusText ? statusText.textContent : '';
                 if (statusText) statusText.textContent = '데이터 로딩 중...';
 
-                const [account, positions, candidates, status, activity, connections, wsSubscriptions, realHoldings] = await Promise.all([
+                const [account, positions, candidates, status, activity, connections, wsSubscriptions, realHoldings, optimization] = await Promise.all([
                     fetch('/api/account').then(r => r.json()).catch(e => {
                         console.error('Account API error:', e);
                         return {total_assets: 0, cash: 0, stock_value: 0, profit_loss: 0, profit_loss_percent: 0};
@@ -1594,7 +1622,8 @@
                     fetch('/api/trading-activity').then(r => r.json()).catch(() => ({success: false})),
                     fetch('/api/system-connections').then(r => r.json()).catch(() => ({rest_api: false, websocket: false, gemini: false})),
                     fetch('/api/websocket/subscriptions').then(r => r.json()).catch(() => ({success: false, data: {price: [], orderbook: [], execution: [], total: 0}})),
-                    fetch('/api/portfolio/real-holdings').then(r => r.json()).catch(() => ({success: false, data: []}))
+                    fetch('/api/portfolio/real-holdings').then(r => r.json()).catch(() => ({success: false, data: []})),
+                    fetch('/api/profit-optimization/summary').then(r => r.json()).catch(() => ({success: false, summary: {total_positions: 0, sell_recommended: 0, hold_recommended: 0, partial_sell_recommended: 0}}))
                 ]);
 
                 // v5.3: Check if bot is connected
@@ -1604,7 +1633,7 @@
                     showBotDisconnectedWarning();
                 }
 
-                updateAccount(account);
+                updateAccountSeamless(account);
                 updateStatus(status);
                 updateConnectionStatus(connections);
 
@@ -1616,6 +1645,9 @@
                 // v5.1: Update new sections
                 updateWebSocketSubscriptions(wsSubscriptions);
                 updateRealHoldingsTable(realHoldings);
+
+                // v5.7.2: Update profit optimization
+                updateOptimizationSeamless(optimization);
 
                 // v5.6: Update virtual trades only if auto-refresh is enabled
                 if (document.getElementById('auto-refresh-trades')?.checked) {
@@ -1737,6 +1769,186 @@
             }
         }
 
+        // v5.7.2: Seamless Update 시스템
+        // 사용자가 눈치채지 못하게 부드럽게 업데이트
+
+        // 이전 데이터 저장
+        let previousData = {
+            account: {},
+            positions: [],
+            optimization: {}
+        };
+
+        /**
+         * 부드러운 숫자 업데이트 (카운터 애니메이션)
+         */
+        function smoothUpdateNumber(elementId, newValue, prefix = '', suffix = '', duration = 500) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+
+            const oldText = element.textContent.replace(prefix, '').replace(suffix, '').replace(/[^0-9.-]/g, '');
+            const oldValue = parseFloat(oldText) || 0;
+            const newValueNum = parseFloat(newValue) || 0;
+
+            // 값이 같으면 스킵
+            if (oldValue === newValueNum) return;
+
+            const startTime = performance.now();
+            const diff = newValueNum - oldValue;
+
+            function animate(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+
+                // Easing function (easeOutCubic)
+                const easeProgress = 1 - Math.pow(1 - progress, 3);
+
+                const currentValue = oldValue + (diff * easeProgress);
+                element.textContent = prefix + formatNumber(Math.round(currentValue)) + suffix;
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    element.textContent = prefix + formatNumber(newValueNum) + suffix;
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        /**
+         * 부드러운 텍스트 업데이트 (fade transition)
+         */
+        function smoothUpdateText(elementId, newValue, applyColorClass = null) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+
+            const oldValue = element.textContent;
+
+            // 값이 같으면 스킵
+            if (oldValue === newValue) return;
+
+            // Fade out
+            element.style.transition = 'opacity 0.2s ease-out';
+            element.style.opacity = '0';
+
+            setTimeout(() => {
+                element.textContent = newValue;
+
+                // 색상 적용
+                if (applyColorClass) {
+                    element.className = applyColorClass;
+                }
+
+                // Fade in
+                element.style.opacity = '1';
+            }, 200);
+        }
+
+        /**
+         * 변경 감지 및 하이라이트
+         */
+        function highlightChange(elementId, color = 'rgba(16, 185, 129, 0.3)') {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+
+            // 배경색 플래시
+            element.style.transition = 'background-color 0.3s ease-out';
+            element.style.backgroundColor = color;
+
+            setTimeout(() => {
+                element.style.backgroundColor = 'transparent';
+            }, 300);
+        }
+
+        /**
+         * v5.7.2: Seamless Account Update
+         */
+        function updateAccountSeamless(data) {
+            // 총 자산
+            const totalAssets = data.total_assets || 0;
+            if (previousData.account.total_assets !== totalAssets) {
+                smoothUpdateNumber('total-assets', totalAssets, '₩', '', 800);
+                if (previousData.account.total_assets) {
+                    highlightChange('total-assets', 'rgba(59, 130, 246, 0.2)');
+                }
+            }
+
+            // 현금
+            const cash = data.cash || 0;
+            if (previousData.account.cash !== cash) {
+                smoothUpdateNumber('cash', cash, '₩', '', 600);
+            }
+
+            // 주식 가치
+            const stockValue = data.stock_value || 0;
+            if (previousData.account.stock_value !== stockValue) {
+                smoothUpdateNumber('stock-value', stockValue, '₩', '', 600);
+            }
+
+            // 손익
+            const pl = data.profit_loss || 0;
+            const plElement = document.getElementById('profit-loss');
+            if (previousData.account.profit_loss !== pl && plElement) {
+                const prefix = pl >= 0 ? '+₩' : '-₩';
+                smoothUpdateNumber('profit-loss', Math.abs(pl), prefix, '', 700);
+                plElement.style.color = pl >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
+
+                if (previousData.account.profit_loss) {
+                    highlightChange('profit-loss', pl >= 0 ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)');
+                }
+            }
+
+            // 손익률
+            const plPercent = data.profit_loss_percent || 0;
+            const plPercentElement = document.getElementById('profit-loss-percent');
+            if (previousData.account.profit_loss_percent !== plPercent && plPercentElement) {
+                const prefix = plPercent >= 0 ? '+' : '';
+                plPercentElement.textContent = prefix + plPercent.toFixed(2) + '%';
+                plPercentElement.style.color = plPercent >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
+            }
+
+            // 이전 데이터 저장
+            previousData.account = {...data};
+        }
+
+        /**
+         * v5.7.2: Seamless Optimization Update
+         */
+        function updateOptimizationSeamless(response) {
+            if (!response.success || !response.summary) {
+                return;
+            }
+
+            const summary = response.summary;
+
+            // 매도 권장
+            const sellCount = summary.sell_recommended || 0;
+            if (previousData.optimization.sell_recommended !== sellCount) {
+                smoothUpdateNumber('opt-sell-count', sellCount, '', '', 400);
+                if (sellCount > 0 && previousData.optimization.sell_recommended !== undefined) {
+                    highlightChange('opt-sell-count', 'rgba(239, 68, 68, 0.4)');
+                }
+            }
+
+            // 부분 익절
+            const partialCount = summary.partial_sell_recommended || 0;
+            if (previousData.optimization.partial_sell_recommended !== partialCount) {
+                smoothUpdateNumber('opt-partial-count', partialCount, '', '', 400);
+                if (partialCount > 0) {
+                    highlightChange('opt-partial-count', 'rgba(245, 158, 11, 0.4)');
+                }
+            }
+
+            // 보유 유지
+            const holdCount = summary.hold_recommended || 0;
+            if (previousData.optimization.hold_recommended !== holdCount) {
+                smoothUpdateNumber('opt-hold-count', holdCount, '', '', 400);
+            }
+
+            // 이전 데이터 저장
+            previousData.optimization = {...summary};
+        }
         function updateAccount(data) {
             document.getElementById('total-assets').textContent = '₩' + formatNumber(data.total_assets || 0);
             document.getElementById('cash').textContent = '₩' + formatNumber(data.cash || 0);
@@ -2759,7 +2971,92 @@
             }
         }
 
-        // v5.1: Virtual Trading History Update
+        // v5.6: Store virtual trades data globally for filtering
+        let virtualTradesData = null;
+
+        // v5.6: Filter virtual trades by strategy
+        function filterVirtualTrades() {
+            if (!virtualTradesData) return;
+
+            const selectedStrategy = document.getElementById('strategy-filter').value;
+            const container = document.getElementById('virtual-trades-list');
+
+            let allTrades = [];
+
+            // Collect trades based on selected strategy
+            for (const [strategyName, strategyData] of Object.entries(virtualTradesData)) {
+                if (selectedStrategy === 'all' || strategyName === selectedStrategy) {
+                    const trades = strategyData.trades || [];
+                    trades.forEach(trade => {
+                        trade.strategy = strategyName;
+                        allTrades.push(trade);
+                    });
+                }
+            }
+
+            // Sort by timestamp (latest first)
+            allTrades.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+            // Render trades
+            renderVirtualTrades(allTrades, container);
+        }
+
+        // v5.6: Render virtual trades (extracted for reuse)
+        function renderVirtualTrades(trades, container) {
+            if (trades.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-secondary);">거래 내역 없음</div>';
+                return;
+            }
+
+            let html = '';
+            trades.slice(0, 50).forEach(trade => {
+                const timestamp = trade.timestamp ? new Date(trade.timestamp).toLocaleString('ko-KR', {
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }) : 'N/A';
+
+                const strategyColor = trade.strategy === '공격적' ? '#ef4444' : trade.strategy === '보수적' ? '#3b82f6' : '#f59e0b';
+
+                if (trade.type === 'buy') {
+                    html += `
+                        <div style="padding: 10px; border-bottom: 1px solid var(--border-color); font-size: 12px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <span style="color: ${strategyColor}; font-weight: 600;">[${trade.strategy}]</span>
+                                <span style="color: var(--text-muted);">${timestamp}</span>
+                            </div>
+                            <div>🔵 <strong>매수</strong> ${trade.stock_name || trade.stock_code} ${trade.quantity}주 @ ₩${formatNumber(trade.price)}</div>
+                        </div>
+                    `;
+                } else {
+                    const pnl = trade.realized_pnl || 0;
+                    const pnlRate = trade.realized_pnl_rate || 0;
+                    const pnlColor = pnl >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
+                    const pnlSign = pnl >= 0 ? '✅' : '❌';
+
+                    html += `
+                        <div style="padding: 10px; border-bottom: 1px solid var(--border-color); font-size: 12px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <span style="color: ${strategyColor}; font-weight: 600;">[${trade.strategy}]</span>
+                                <span style="color: var(--text-muted);">${timestamp}</span>
+                            </div>
+                            <div>
+                                🔴 <strong>매도</strong> ${trade.stock_name || trade.stock_code} ${trade.quantity}주 @ ₩${formatNumber(trade.price)}
+                                <span style="color: ${pnlColor}; font-weight: 600;">
+                                    (${pnl >= 0 ? '+' : ''}₩${formatNumber(Math.abs(pnl))}, ${pnl >= 0 ? '+' : ''}${pnlRate.toFixed(2)}%)
+                                </span> ${pnlSign}
+                                ${trade.reason ? `<span style="color: var(--text-muted); font-size: 11px;">[${trade.reason}]</span>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            container.innerHTML = html;
+        }
+
+        // v5.6: Virtual Trading History Update (with strategy filter support)
         function updateVirtualTradesHistory(response) {
             const container = document.getElementById('virtual-trades-list');
 
@@ -2768,71 +3065,29 @@
                 return;
             }
 
-            const data = response.data;
-            let html = '';
-            let allTrades = [];
+            // Store data globally for filtering
+            virtualTradesData = response.data;
 
-            // 모든 전략의 거래를 모아서 시간순 정렬
-            for (const [strategyName, strategyData] of Object.entries(data)) {
-                const trades = strategyData.trades || [];
-                trades.forEach(trade => {
-                    trade.strategy = strategyName;
-                    allTrades.push(trade);
-                });
-            }
+            // Populate strategy dropdown
+            const strategyFilter = document.getElementById('strategy-filter');
+            const currentValue = strategyFilter.value;
+            const strategies = Object.keys(virtualTradesData);
 
-            // 최신순 정렬
-            allTrades.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            // Rebuild options
+            strategyFilter.innerHTML = '<option value="all">전체 전략</option>';
+            strategies.forEach(strategy => {
+                strategyFilter.innerHTML += `<option value="${strategy}">${strategy}</option>`;
+            });
 
-            if (allTrades.length === 0) {
-                html = '<div style="text-align: center; padding: 20px; color: var(--text-secondary);">거래 내역 없음</div>';
+            // Restore previous selection if it still exists
+            if (strategies.includes(currentValue)) {
+                strategyFilter.value = currentValue;
             } else {
-                allTrades.slice(0, 20).forEach(trade => {
-                    const timestamp = trade.timestamp ? new Date(trade.timestamp).toLocaleString('ko-KR', {
-                        month: '2-digit',
-                        day: '2-digit',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    }) : 'N/A';
-
-                    const strategyColor = trade.strategy === '공격적' ? '#ef4444' : trade.strategy === '보수적' ? '#3b82f6' : '#f59e0b';
-
-                    if (trade.type === 'buy') {
-                        html += `
-                            <div style="padding: 10px; border-bottom: 1px solid var(--border-color); font-size: 12px;">
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                                    <span style="color: ${strategyColor}; font-weight: 600;">[${trade.strategy}]</span>
-                                    <span style="color: var(--text-muted);">${timestamp}</span>
-                                </div>
-                                <div>🔵 <strong>매수</strong> ${trade.stock_name || trade.stock_code} ${trade.quantity}주 @ ₩${formatNumber(trade.price)}</div>
-                            </div>
-                        `;
-                    } else {
-                        const pnl = trade.realized_pnl || 0;
-                        const pnlRate = trade.realized_pnl_rate || 0;
-                        const pnlColor = pnl >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
-                        const pnlSign = pnl >= 0 ? '✅' : '❌';
-
-                        html += `
-                            <div style="padding: 10px; border-bottom: 1px solid var(--border-color); font-size: 12px;">
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                                    <span style="color: ${strategyColor}; font-weight: 600;">[${trade.strategy}]</span>
-                                    <span style="color: var(--text-muted);">${timestamp}</span>
-                                </div>
-                                <div>
-                                    🔴 <strong>매도</strong> ${trade.stock_name || trade.stock_code} ${trade.quantity}주 @ ₩${formatNumber(trade.price)}
-                                    <span style="color: ${pnlColor}; font-weight: 600;">
-                                        (${pnl >= 0 ? '+' : ''}₩${formatNumber(Math.abs(pnl))}, ${pnl >= 0 ? '+' : ''}${pnlRate.toFixed(2)}%)
-                                    </span> ${pnlSign}
-                                    ${trade.reason ? `<span style="color: var(--text-muted); font-size: 11px;">[${trade.reason}]</span>` : ''}
-                                </div>
-                            </div>
-                        `;
-                    }
-                });
+                strategyFilter.value = 'all';
             }
 
-            container.innerHTML = html;
+            // Apply filter to show trades
+            filterVirtualTrades();
         }
 
         // v5.1: Real Holdings with ATR Stops Update
@@ -2935,7 +3190,16 @@
         }
 
         async function sellAllPositions() {
-            if (!confirm('⚠️ 전체 매도: 모든 보유 종목을 시장가로 매도합니다.\n\n계속하시겠습니까?')) {
+            // 1단계: 첫 번째 확인
+            if (!confirm('⚠️ 전체 매도: 모든 보유 종목을 시장가로 매도합니다.\n\n이 작업은 되돌릴 수 없습니다!\n\n계속하시겠습니까?')) {
+                return;
+            }
+
+            // 2단계: YES 입력 요구
+            const userInput = prompt('⚠️ 정말로 전체 매도를 실행하시겠습니까?\n\n계속하려면 "YES"를 정확히 입력하세요 (대문자):');
+
+            if (userInput !== 'YES') {
+                showToast('❌ 취소되었습니다. "YES"를 정확히 입력해야 합니다.', 'warning');
                 return;
             }
 
@@ -3023,3 +3287,19 @@
     <script src="/static/js/advanced-chart.js"></script>
 </body>
 </html>
+
+        // v5.7.2: 수익 최적화 패널 업데이트
+        function updateOptimization(response) {
+            if (!response.success || !response.summary) {
+                document.getElementById('opt-sell-count').textContent = '0';
+                document.getElementById('opt-partial-count').textContent = '0';
+                document.getElementById('opt-hold-count').textContent = '0';
+                return;
+            }
+
+            const summary = response.summary;
+
+            document.getElementById('opt-sell-count').textContent = summary.sell_recommended || 0;
+            document.getElementById('opt-partial-count').textContent = summary.partial_sell_recommended || 0;
+            document.getElementById('opt-hold-count').textContent = summary.hold_recommended || 0;
+        }
