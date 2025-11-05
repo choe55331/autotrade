@@ -577,7 +577,14 @@ class ScoringSystem:
         # MACD (15점)
         macd_bullish = stock_data.get('macd_bullish_crossover', False)
         macd = stock_data.get('macd', None)
-        if macd_bullish or (macd is not None and macd.get('macd', 0) > 0 if isinstance(macd, dict) else macd > 0):
+        macd_positive = False
+        if macd is not None:
+            if isinstance(macd, dict):
+                macd_positive = macd.get('macd', 0) > 0
+            elif isinstance(macd, (int, float)):
+                macd_positive = macd > 0
+
+        if macd_bullish or macd_positive:
             macd_score = max_score * 0.375
             score += macd_score
             score_parts.append(f"MACD+{macd_score:.0f}")

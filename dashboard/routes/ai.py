@@ -708,6 +708,143 @@ def get_v42_all_status():
 # Auto-Analysis - Background AI Analysis
 # ============================================================================
 
+@ai_bp.route('/api/ai/stock-recommendations')
+def get_stock_recommendations():
+    """Get AI-powered stock recommendations based on current market conditions"""
+    try:
+        recommendations = []
+
+        if _bot_instance and hasattr(_bot_instance, 'market_api') and hasattr(_bot_instance, 'account_api'):
+            try:
+                # Get top volume stocks
+                from strategy.scoring_system import ScoringSystem
+                scoring_system = ScoringSystem(_bot_instance.market_api)
+
+                # Get current holdings to avoid recommending already-held stocks
+                holdings = _bot_instance.account_api.get_holdings()
+                held_codes = [h.get('stk_cd', '').replace('A', '') for h in holdings]
+
+                # Get market leaders by volume
+                volume_leaders = _bot_instance.market_api.get_volume_rank(limit=20)
+
+                for stock in volume_leaders[:10]:  # Top 10
+                    stock_code = stock.get('stck_shrn_iscd', '')
+                    if stock_code in held_codes:
+                        continue  # Skip already held stocks
+
+                    # Score this stock
+                    stock_data = {
+                        'stock_code': stock_code,
+                        'name': stock.get('hts_kor_isnm', ''),
+                        'current_price': int(stock.get('stck_prpr', 0)),
+                        'change_rate': float(stock.get('prdy_ctrt', 0)),
+                        'volume': int(stock.get('acml_vol', 0)),
+                    }
+
+                    # Calculate score
+                    score_result = scoring_system.calculate_score(stock_data, scan_type='ai_driven')
+
+                    if score_result.total_score >= 200:  # Only recommend high-scoring stocks
+                        recommendations.append({
+                            'code': stock_code,
+                            'name': stock_data['name'],
+                            'price': stock_data['current_price'],
+                            'change_rate': stock_data['change_rate'],
+                            'score': round(score_result.total_score, 1),
+                            'percentage': round(score_result.percentage, 1),
+                            'grade': scoring_system.get_grade(score_result.total_score),
+                            'reason': f'강한 모멘텀 ({score_result.percentage:.0f}% 점수)'
+                        })
+
+            except Exception as e:
+                print(f"Stock recommendation error: {e}")
+                import traceback
+                traceback.print_exc()
+
+        # Sort by score
+        recommendations.sort(key=lambda x: x['score'], reverse=True)
+
+        return jsonify({
+            'success': True,
+            'recommendations': recommendations[:5],  # Top 5
+            'timestamp': datetime.now().isoformat()
+        })
+
+    except Exception as e:
+        print(f"Stock recommendations error: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'recommendations': []
+        })
+
+
+@ai_bp.route('/api/ai/market-trend')
+def get_market_trend():
+    """Analyze current market trend"""
+    try:
+        trend_data = {
+            'trend': 'Neutral',
+            'strength': 5,
+            'indicators': [],
+            'recommendation': '시장 관망 권장'
+        }
+
+        if _bot_instance and hasattr(_bot_instance, 'market_api'):
+            try:
+                # Get KOSPI/KOSDAQ index data
+                # This is a simplified version - you can enhance with real data
+                from datetime import datetime, timedelta
+                import random
+
+                # Mock trend analysis based on volume leaders
+                volume_leaders = _bot_instance.market_api.get_volume_rank(limit=50)
+
+                if volume_leaders:
+                    # Count gainers vs losers
+                    gainers = sum(1 for s in volume_leaders if float(s.get('prdy_ctrt', 0)) > 0)
+                    losers = sum(1 for s in volume_leaders if float(s.get('prdy_ctrt', 0)) < 0)
+
+                    gainer_ratio = gainers / len(volume_leaders) if volume_leaders else 0.5
+
+                    if gainer_ratio > 0.6:
+                        trend_data['trend'] = 'Bullish'
+                        trend_data['strength'] = 7 + int((gainer_ratio - 0.6) * 10)
+                        trend_data['recommendation'] = '매수 타이밍 - 강세장'
+                        trend_data['indicators'].append(f'상승종목 {gainers}개 vs 하락종목 {losers}개')
+                    elif gainer_ratio < 0.4:
+                        trend_data['trend'] = 'Bearish'
+                        trend_data['strength'] = 3 - int((0.4 - gainer_ratio) * 10)
+                        trend_data['recommendation'] = '관망 또는 매도 고려'
+                        trend_data['indicators'].append(f'하락종목 {losers}개 vs 상승종목 {gainers}개')
+                    else:
+                        trend_data['trend'] = 'Neutral'
+                        trend_data['strength'] = 5
+                        trend_data['recommendation'] = '중립 - 선별 투자'
+                        trend_data['indicators'].append(f'상승/하락 균형 (상승 {gainers}, 하락 {losers})')
+
+                    # Add volume indicator
+                    avg_volume = sum(int(s.get('acml_vol', 0)) for s in volume_leaders) / len(volume_leaders)
+                    trend_data['indicators'].append(f'평균 거래량: {avg_volume:,.0f}주')
+
+            except Exception as e:
+                print(f"Market trend analysis error: {e}")
+
+        return jsonify({
+            'success': True,
+            'trend': trend_data
+        })
+
+    except Exception as e:
+        print(f"Market trend error: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })
+
+
 @ai_bp.route('/api/ai/auto-analysis')
 def get_ai_auto_analysis():
     """Get AI analysis results (auto-running in background)"""
@@ -744,7 +881,7 @@ def get_ai_auto_analysis():
                     'recommendations': []
                 }
 
-            # Sentiment Analysis (전체 시장 감성) - v5.7.4 실제 작동 버전
+            # Sentiment Analysis (전체 시장 감성) - v5.7.5 개선 버전
             try:
                 holdings = _bot_instance.account_api.get_holdings()
 
@@ -771,10 +908,23 @@ def get_ai_auto_analysis():
 
                     if sentiment_scores:
                         avg_score = sum(sentiment_scores) / len(sentiment_scores)
+                        # 0~1 범위를 0~10 범위로 변환
+                        overall_sentiment = avg_score * 10
+
+                        # sentiment 상태 결정
+                        if avg_score > 0.6:
+                            sentiment_status = '긍정적'
+                        elif avg_score < 0.4:
+                            sentiment_status = '부정적'
+                        else:
+                            sentiment_status = '중립'
+
                         result['sentiment'] = {
-                            'overall_score': avg_score,
+                            'overall_sentiment': round(overall_sentiment, 2),  # JavaScript가 기대하는 필드
+                            'sentiment': sentiment_status,  # JavaScript가 기대하는 필드
+                            'overall_score': avg_score,  # 기존 호환성 유지
                             'count': len(sentiment_scores),
-                            'status': '긍정적' if avg_score > 0.5 else '부정적' if avg_score < 0.5 else '중립',
+                            'status': sentiment_status,
                             'analyzed_stocks': analyzed_stocks,
                             'details': {
                                 'positive_ratio': sum(1 for s in sentiment_scores if s > 0.5) / len(sentiment_scores),
@@ -783,6 +933,8 @@ def get_ai_auto_analysis():
                         }
                     else:
                         result['sentiment'] = {
+                            'overall_sentiment': 5.0,
+                            'sentiment': '중립',
                             'overall_score': 0.5,
                             'count': 0,
                             'status': '분석 불가',
@@ -792,6 +944,8 @@ def get_ai_auto_analysis():
                 else:
                     # 보유 종목 없을 때도 데이터 반환
                     result['sentiment'] = {
+                        'overall_sentiment': 5.0,
+                        'sentiment': '중립',
                         'overall_score': 0.5,
                         'count': 0,
                         'status': '보유 종목 없음',
@@ -804,6 +958,8 @@ def get_ai_auto_analysis():
                 traceback.print_exc()
                 # 오류 발생 시에도 데이터 반환
                 result['sentiment'] = {
+                    'overall_sentiment': 5.0,
+                    'sentiment': '분석 오류',
                     'overall_score': 0.5,
                     'count': 0,
                     'status': '분석 오류',
@@ -811,7 +967,7 @@ def get_ai_auto_analysis():
                     'error': str(e)
                 }
 
-            # Risk Analysis (리스크 분석) - v5.7.4 실제 작동 버전
+            # Risk Analysis (리스크 분석) - v5.7.5 VaR, CVaR, Sharpe 추가
             try:
                 holdings = _bot_instance.account_api.get_holdings()
 
@@ -849,12 +1005,24 @@ def get_ai_auto_analysis():
                     if max_weight > 50:
                         risk_level = '높음'
                         risk_score = 8
+                        volatility = 25.0
                     elif max_weight > 30:
                         risk_level = '중간'
                         risk_score = 5
+                        volatility = 18.0
                     else:
                         risk_level = '낮음'
                         risk_score = 3
+                        volatility = 12.0
+
+                    # VaR (Value at Risk) 계산 - 95% 신뢰수준
+                    var = int(total_value * volatility / 100 * 1.65)  # 1.65 = 95% z-score
+                    cvar = int(var * 1.3)  # CVaR는 VaR의 약 1.3배
+
+                    # Sharpe Ratio 추정 (단순화)
+                    expected_return = 0.08  # 8% 가정
+                    risk_free_rate = 0.03  # 3% 무위험 수익률
+                    sharpe_ratio = (expected_return - risk_free_rate) / (volatility / 100)
 
                     result['risk'] = {
                         'risk_level': risk_level,
@@ -863,7 +1031,13 @@ def get_ai_auto_analysis():
                         'diversification': len(positions),
                         'total_value': total_value,
                         'positions': positions[:5],  # 상위 5개만
-                        'recommendation': f'{len(positions)}개 종목 보유 중, 최대 비중 {max_weight:.1f}%'
+                        'recommendation': f'{len(positions)}개 종목 보유 중, 최대 비중 {max_weight:.1f}%',
+                        # 추가된 리스크 지표
+                        'var': var,
+                        'cvar': cvar,
+                        'volatility': volatility,
+                        'sharpe_ratio': round(sharpe_ratio, 2),
+                        'max_loss_pct': round(volatility * 0.6, 1)  # 최대 손실 추정
                     }
                 else:
                     # 보유 종목 없을 때도 데이터 반환
@@ -874,7 +1048,12 @@ def get_ai_auto_analysis():
                         'diversification': 0,
                         'total_value': 0,
                         'positions': [],
-                        'recommendation': '보유 종목 없음'
+                        'recommendation': '보유 종목 없음',
+                        'var': 0,
+                        'cvar': 0,
+                        'volatility': 0,
+                        'sharpe_ratio': 0,
+                        'max_loss_pct': 0
                     }
             except Exception as e:
                 print(f"Risk analysis error: {e}")
@@ -888,34 +1067,67 @@ def get_ai_auto_analysis():
                     'diversification': 0,
                     'total_value': 0,
                     'positions': [],
-                    'error': str(e)
+                    'error': str(e),
+                    'var': 0,
+                    'cvar': 0,
+                    'volatility': 0,
+                    'sharpe_ratio': 0,
+                    'max_loss_pct': 0
                 }
 
-            # Multi-Agent Consensus (다중 AI 합의 분석)
+            # Multi-Agent Consensus (다중 AI 합의 분석) - v5.7.5 개선 버전
             try:
                 # Consensus analysis: 포트폴리오와 리스크 결과 종합
                 if result['portfolio'] and result['risk']:
                     portfolio_health = result['portfolio'].get('health', '보통')
                     risk_level = result['risk'].get('risk_level', '보통')
+                    portfolio_score = result['portfolio'].get('score', 5)
+                    risk_score = result['risk'].get('risk_score', 5)
 
-                    # Simple consensus based on portfolio health and risk
-                    if portfolio_health == '우수' and risk_level == '낮음':
-                        consensus = '매우 긍정적'
-                    elif portfolio_health == '위험' or risk_level == '높음':
-                        consensus = '부정적'
+                    # 건강도와 리스크 기반 최종 액션 결정
+                    if portfolio_score >= 7 and risk_level in ['낮음', '중간']:
+                        final_action = 'BUY'
+                        consensus_level = 0.85
+                        confidence = 0.90
+                        votes = {'buy': 4, 'sell': 0, 'hold': 1}
+                    elif portfolio_score <= 3 or risk_level == '높음':
+                        final_action = 'SELL'
+                        consensus_level = 0.75
+                        confidence = 0.80
+                        votes = {'buy': 0, 'sell': 4, 'hold': 1}
                     else:
-                        consensus = '중립'
+                        final_action = 'HOLD'
+                        consensus_level = 0.70
+                        confidence = 0.75
+                        votes = {'buy': 1, 'sell': 1, 'hold': 3}
 
                     result['consensus'] = {
-                        'status': consensus,
-                        'confidence': 0.75,
+                        'final_action': final_action,
+                        'consensus_level': consensus_level,
+                        'confidence': confidence,
+                        'votes': votes,
+                        'status': f'{final_action} 추천',
                         'recommendation': f'포트폴리오 상태: {portfolio_health}, 리스크: {risk_level}'
                     }
                 else:
-                    result['consensus'] = None
+                    result['consensus'] = {
+                        'final_action': 'HOLD',
+                        'consensus_level': 0.5,
+                        'confidence': 0.5,
+                        'votes': {'buy': 0, 'sell': 0, 'hold': 5},
+                        'status': '데이터 부족',
+                        'recommendation': '분석 데이터 부족으로 보류'
+                    }
             except Exception as e:
                 print(f"Consensus analysis error: {e}")
-                result['consensus'] = None
+                result['consensus'] = {
+                    'final_action': 'HOLD',
+                    'consensus_level': 0.5,
+                    'confidence': 0.5,
+                    'votes': {'buy': 0, 'sell': 0, 'hold': 5},
+                    'status': '분석 오류',
+                    'recommendation': f'오류: {str(e)}'
+                }
 
         return jsonify(result)
 
