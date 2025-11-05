@@ -961,12 +961,56 @@
             </div>
         </div>
 
-        <!-- Current Positions -->
+        <!-- WebSocket Subscriptions -->
         <div class="card fade-in" style="animation-delay: 0.8s; margin-top: 24px;">
             <div class="card-header">
                 <h3 class="card-title">
+                    <i class="fas fa-broadcast-tower"></i>
+                    WebSocket 실시간 구독
+                </h3>
+                <span class="badge success" id="ws-total-badge">0</span>
+            </div>
+            <div style="padding: 10px 0;">
+                <div style="margin-bottom: 15px;">
+                    <strong style="color: var(--color-primary);">📊 현재가 구독 (KA10003):</strong>
+                    <div id="ws-price-list" style="margin-left: 20px; margin-top: 5px; font-size: 0.9em; color: var(--text-secondary);">
+                        없음
+                    </div>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <strong style="color: var(--color-success);">📈 호가 구독 (KA10004):</strong>
+                    <div id="ws-orderbook-list" style="margin-left: 20px; margin-top: 5px; font-size: 0.9em; color: var(--text-secondary);">
+                        없음
+                    </div>
+                </div>
+                <div>
+                    <strong style="color: var(--color-warning);">⚡ 체결 구독 (KA10005):</strong>
+                    <div id="ws-execution-list" style="margin-left: 20px; margin-top: 5px; font-size: 0.9em; color: var(--text-secondary);">
+                        없음
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Virtual Trading Performance by Strategy -->
+        <div class="card fade-in" style="animation-delay: 0.85s; margin-top: 24px;">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-chart-bar"></i>
+                    가상매매 전략별 거래 내역
+                </h3>
+            </div>
+            <div id="virtual-trading-container">
+                <p style="text-align: center; padding: 20px; color: var(--text-secondary);">가상매매 데이터 로딩 중...</p>
+            </div>
+        </div>
+
+        <!-- Current Positions with ATR Stops -->
+        <div class="card fade-in" style="animation-delay: 0.9s; margin-top: 24px;">
+            <div class="card-header">
+                <h3 class="card-title">
                     <i class="fas fa-list"></i>
-                    Current Positions
+                    실제 보유 종목 (ATR 기반 손익 관리)
                 </h3>
             </div>
             <div class="table-container">
@@ -977,13 +1021,14 @@
                             <th>Qty</th>
                             <th>Avg Price</th>
                             <th>Current</th>
-                            <th>Stop Loss</th>
+                            <th>Stop Loss (ATR)</th>
+                            <th>Take Profit (ATR)</th>
                             <th>P/L %</th>
                             <th>Value</th>
                         </tr>
                     </thead>
                     <tbody id="positions-table">
-                        <tr><td colspan="7" style="text-align: center; padding: 40px;">No positions</td></tr>
+                        <tr><td colspan="8" style="text-align: center; padding: 40px;">No positions</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -1099,14 +1144,17 @@
         async function loadData() {
             try {
                 // Load all data in parallel
-                const [status, account, positions, candidates, scanProgress, activities, performance] = await Promise.all([
+                const [status, account, positions, candidates, scanProgress, activities, performance, wsSubscriptions, virtualTrades, realHoldings] = await Promise.all([
                     fetch('/api/status').then(r => r.json()),
                     fetch('/api/account').then(r => r.json()),
                     fetch('/api/positions').then(r => r.json()),
                     fetch('/api/candidates').then(r => r.json()),
                     fetch('/api/scan-progress').then(r => r.json()),
                     fetch('/api/activities').then(r => r.json()),
-                    fetch('/api/performance').then(r => r.json())
+                    fetch('/api/performance').then(r => r.json()),
+                    fetch('/api/websocket/subscriptions').then(r => r.json()).catch(() => ({success: false, data: {price: [], orderbook: [], execution: [], total: 0}})),
+                    fetch('/api/virtual-trades').then(r => r.json()).catch(() => ({success: false})),
+                    fetch('/api/portfolio/real-holdings').then(r => r.json()).catch(() => ({success: false, data: []}))
                 ]);
 
                 updateStatus(status);
@@ -1116,6 +1164,9 @@
                 updateScanProgress(scanProgress);
                 updateActivities(activities);
                 updatePerformanceChart(performance);
+                updateWebSocketSubscriptions(wsSubscriptions);
+                updateVirtualTrades(virtualTrades);
+                updateRealHoldings(realHoldings);
             } catch (error) {
                 console.error('Error loading data:', error);
             }
@@ -1275,6 +1326,173 @@
                             <div class="activity-message">${a.message}</div>
                         </div>
                     </div>
+                `;
+            }).join('');
+        }
+
+        function updateWebSocketSubscriptions(response) {
+            if (!response.success || !response.data) {
+                document.getElementById('ws-total-badge').textContent = '0';
+                return;
+            }
+
+            const data = response.data;
+            document.getElementById('ws-total-badge').textContent = data.total || 0;
+
+            // 현재가 구독
+            const priceList = document.getElementById('ws-price-list');
+            if (data.price && data.price.length > 0) {
+                priceList.innerHTML = data.price.map(s =>
+                    `<span class="badge info" style="margin-right: 5px; margin-bottom: 5px;">${s.stock_name} (${s.stock_code})</span>`
+                ).join('');
+            } else {
+                priceList.textContent = '없음';
+            }
+
+            // 호가 구독
+            const orderbookList = document.getElementById('ws-orderbook-list');
+            if (data.orderbook && data.orderbook.length > 0) {
+                orderbookList.innerHTML = data.orderbook.map(s =>
+                    `<span class="badge success" style="margin-right: 5px; margin-bottom: 5px;">${s.stock_name} (${s.stock_code})</span>`
+                ).join('');
+            } else {
+                orderbookList.textContent = '없음';
+            }
+
+            // 체결 구독
+            const executionList = document.getElementById('ws-execution-list');
+            if (data.execution && data.execution.length > 0) {
+                executionList.innerHTML = data.execution.map(s =>
+                    `<span class="badge warning" style="margin-right: 5px; margin-bottom: 5px;">${s.stock_name} (${s.stock_code})</span>`
+                ).join('');
+            } else {
+                executionList.textContent = '없음';
+            }
+        }
+
+        function updateVirtualTrades(response) {
+            const container = document.getElementById('virtual-trading-container');
+
+            if (!response.success || !response.data) {
+                container.innerHTML = '<p style="text-align: center; padding: 20px; color: var(--text-secondary);">가상매매 미활성화</p>';
+                return;
+            }
+
+            const data = response.data;
+            let html = '';
+
+            for (const [strategyName, strategyData] of Object.entries(data)) {
+                const summary = strategyData.summary;
+                const trades = strategyData.trades || [];
+
+                const plColor = summary.total_pnl >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
+                const plSign = summary.total_pnl >= 0 ? '+' : '';
+
+                html += `
+                    <div style="margin-bottom: 25px; padding: 15px; background: var(--bg-secondary); border-radius: var(--border-radius-sm);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <h4 style="margin: 0; font-size: 16px; font-weight: 600;">${strategyName}</h4>
+                            <div style="text-align: right;">
+                                <div style="font-size: 18px; font-weight: 700; color: ${plColor};">
+                                    ${plSign}${formatNumber(summary.total_pnl)}원 (${plSign}${summary.total_pnl_rate.toFixed(2)}%)
+                                </div>
+                                <div style="font-size: 12px; color: var(--text-secondary);">
+                                    거래: ${summary.total_trades}건 | 승률: ${summary.win_rate.toFixed(1)}% | 승: ${summary.wins} / 패: ${summary.losses}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 10px; font-size: 13px;">
+                            <strong>최근 거래 내역 (최대 10건):</strong>
+                            <div style="margin-top: 5px; max-height: 200px; overflow-y: auto;">
+                `;
+
+                if (trades.length === 0) {
+                    html += '<div style="padding: 10px; color: var(--text-secondary);">거래 내역 없음</div>';
+                } else {
+                    trades.slice(0, 10).forEach((trade, idx) => {
+                        const timestamp = trade.timestamp ? new Date(trade.timestamp).toLocaleString('ko-KR', {
+                            month: '2-digit',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit'
+                        }) : 'N/A';
+
+                        if (trade.type === 'buy') {
+                            html += `
+                                <div style="padding: 8px; border-bottom: 1px solid var(--border-color); font-size: 12px;">
+                                    🔵 [${timestamp}] 매수 ${trade.stock_name || trade.stock_code} ${trade.quantity}주 @ ${formatNumber(trade.price)}원 = ${formatNumber(trade.amount)}원
+                                </div>
+                            `;
+                        } else {
+                            const pnl = trade.realized_pnl || 0;
+                            const pnlRate = trade.realized_pnl_rate || 0;
+                            const reason = trade.reason || '';
+                            const pnlSign = pnl >= 0 ? '✅' : '❌';
+                            const pnlColor = pnl >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
+
+                            html += `
+                                <div style="padding: 8px; border-bottom: 1px solid var(--border-color); font-size: 12px;">
+                                    🔴 [${timestamp}] 매도 ${trade.stock_name || trade.stock_code} ${trade.quantity}주 @ ${formatNumber(trade.price)}원
+                                    <span style="color: ${pnlColor};">(${pnl >= 0 ? '+' : ''}${formatNumber(pnl)}원, ${pnl >= 0 ? '+' : ''}${pnlRate.toFixed(2)}%)</span> ${pnlSign}
+                                    <span style="color: var(--text-tertiary);">[${reason}]</span>
+                                </div>
+                            `;
+                        }
+                    });
+                }
+
+                html += `
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function updateRealHoldings(response) {
+            const tbody = document.getElementById('positions-table');
+
+            if (!response.success || !response.data || response.data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">No positions</td></tr>';
+                return;
+            }
+
+            const holdings = response.data;
+
+            tbody.innerHTML = holdings.map(h => {
+                const stopLossDistance = h.distance_to_stop || 0;
+                const takeProfitDistance = h.distance_to_target || 0;
+                const plColor = h.pnl_rate >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
+
+                return `
+                    <tr>
+                        <td>
+                            <strong>${h.stock_name}</strong><br>
+                            <small style="color: var(--text-secondary);">${h.stock_code}</small>
+                        </td>
+                        <td>${h.quantity}</td>
+                        <td>₩${formatNumber(h.avg_price)}</td>
+                        <td>₩${formatNumber(h.current_price)}</td>
+                        <td style="color: var(--color-danger); font-size: 0.9em;">
+                            ₩${formatNumber(h.stop_loss_price)}<br>
+                            <small>(${stopLossDistance >= 0 ? '+' : ''}${stopLossDistance.toFixed(1)}%)</small>
+                            ${h.atr_based ? '<br><span class="badge danger" style="font-size: 0.75em;">ATR</span>' : ''}
+                        </td>
+                        <td style="color: var(--color-success); font-size: 0.9em;">
+                            ₩${formatNumber(h.take_profit_price)}<br>
+                            <small>(${takeProfitDistance >= 0 ? '+' : ''}${takeProfitDistance.toFixed(1)}%)</small>
+                            ${h.atr_based ? '<br><span class="badge success" style="font-size: 0.75em;">ATR</span>' : ''}
+                        </td>
+                        <td style="color: ${plColor}; font-weight: 600;">
+                            ${h.pnl_rate >= 0 ? '+' : ''}${h.pnl_rate.toFixed(2)}%<br>
+                            <small>(${h.pnl >= 0 ? '+' : ''}${formatNumber(h.pnl)}원)</small>
+                        </td>
+                        <td>₩${formatNumber(h.eval_amount)}</td>
+                    </tr>
                 `;
             }).join('');
         }
