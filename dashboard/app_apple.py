@@ -2993,7 +2993,7 @@ def get_real_holdings():
                         # ATR 조회 (14일 기준)
                         if hasattr(bot_instance, 'market_api'):
                             # 일봉 데이터로 ATR 계산
-                            daily_data = bot_instance.market_api.get_daily_price(stock_code, days=20)
+                            daily_data = bot_instance.market_api.get_daily_chart(stock_code, days=20)
 
                             if daily_data and len(daily_data) >= 14:
                                 # ATR 계산 (True Range 평균)
@@ -3103,7 +3103,7 @@ def get_real_holdings():
                             risk_reward_ratio = 2.0
 
                     except Exception as e:
-                        logger.debug(f"Advanced metrics calculation failed ({stock_code}): {e}")
+                        print(f"⚠️ Advanced metrics calculation failed ({stock_code}): {e}")
                         # 기본값 사용
                         stop_loss_price = int(avg_price * 0.95)
                         take_profit_price = int(avg_price * 1.10)
@@ -3147,7 +3147,7 @@ def get_real_holdings():
         })
 
     except Exception as e:
-        logger.error(f"실제 보유 종목 조회 실패: {e}", exc_info=True)
+        print(f"❌ 실제 보유 종목 조회 실패: {e}")
         return jsonify({
             'success': False,
             'message': str(e)
