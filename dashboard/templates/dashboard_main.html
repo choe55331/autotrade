@@ -1997,6 +1997,11 @@
         // Initialize Paper Equity Chart
         function initializePaperEquityChart() {
             const ctx = document.getElementById('paper-equity-chart');
+            if (!ctx) {
+                console.log('Paper equity chart canvas not found - skipping initialization');
+                return;
+            }
+
             paperEquityChart = new Chart(ctx, {
                 type: 'line',
                 data: {

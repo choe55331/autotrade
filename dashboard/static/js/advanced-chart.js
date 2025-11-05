@@ -299,7 +299,14 @@ class AdvancedTradingChart {
 
     initRSIChart() {
         const container = document.getElementById('rsi-chart-container');
-        if (!container) return;
+        if (!container) {
+            console.log('RSI chart container not found');
+            return;
+        }
+        if (!this.mainChart) {
+            console.log('Main chart not initialized, skipping RSI chart sync');
+            return;
+        }
 
         this.rsiChart = LightweightCharts.createChart(container, {
             width: container.clientWidth,
@@ -357,7 +364,14 @@ class AdvancedTradingChart {
 
     initMACDChart() {
         const container = document.getElementById('macd-chart-container');
-        if (!container) return;
+        if (!container) {
+            console.log('MACD chart container not found');
+            return;
+        }
+        if (!this.mainChart) {
+            console.log('Main chart not initialized, skipping MACD chart sync');
+            return;
+        }
 
         this.macdChart = LightweightCharts.createChart(container, {
             width: container.clientWidth,
@@ -413,7 +427,14 @@ class AdvancedTradingChart {
 
     initVolumeChart() {
         const container = document.getElementById('volume-chart-container');
-        if (!container) return;
+        if (!container) {
+            console.log('Volume chart container not found');
+            return;
+        }
+        if (!this.mainChart) {
+            console.log('Main chart not initialized, skipping Volume chart sync');
+            return;
+        }
 
         this.volumeChart = LightweightCharts.createChart(container, {
             width: container.clientWidth,
