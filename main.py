@@ -1134,12 +1134,26 @@ class TradingBotV2:
                     # 가상 매매 시스템에도 매수 신호 전달
                     if self.virtual_trader:
                         try:
+                            # v5.7.5: Deep Scan 데이터 포함한 전체 필드 전달
                             stock_data = {
+                                # 기본 정보
                                 'stock_code': candidate.code,
                                 'stock_name': candidate.name,
                                 'current_price': candidate.price,
                                 'change_rate': candidate.rate,
                                 'volume': getattr(candidate, 'volume', 0),
+
+                                # Deep Scan 데이터 (가상매매 전략들이 필요로 하는 필드)
+                                'institutional_net_buy': getattr(candidate, 'institutional_net_buy', 0),
+                                'foreign_net_buy': getattr(candidate, 'foreign_net_buy', 0),
+                                'bid_ask_ratio': getattr(candidate, 'bid_ask_ratio', 0),
+                                'institutional_trend': getattr(candidate, 'institutional_trend', None),
+                                'avg_volume': getattr(candidate, 'avg_volume', None),
+                                'volatility': getattr(candidate, 'volatility', None),
+                                'top_broker_buy_count': getattr(candidate, 'top_broker_buy_count', 0),
+                                'top_broker_net_buy': getattr(candidate, 'top_broker_net_buy', 0),
+                                'execution_intensity': getattr(candidate, 'execution_intensity', None),
+                                'program_net_buy': getattr(candidate, 'program_net_buy', None),
                             }
                             ai_analysis_data = {
                                 'signal': ai_signal,
@@ -1148,7 +1162,7 @@ class TradingBotV2:
                                 'score': scoring_result.total_score,
                             }
                             self.virtual_trader.process_buy_signal(stock_data, ai_analysis_data)
-                            print(f"   📝 가상 매매: 3가지 전략으로 매수 시그널 처리 완료")
+                            print(f"   📝 가상 매매: 10가지 전략으로 매수 시그널 처리 완료 (전체 데이터 전달)")
                         except Exception as e:
                             logger.warning(f"가상 매매 매수 처리 실패: {e}")
 
