@@ -2761,11 +2761,16 @@ def get_system_connections():
             'websocket': False,
             'gemini': False,
             'test_mode': False,
-            'database': False
+            'database': False,
+            'bot_connected': bot_instance is not None  # v5.2: Bot 연결 상태
         }
 
+        if not bot_instance:
+            # v5.2: Bot이 연결되지 않은 경우 명확히 표시
+            return jsonify(connections)
+
         # REST API 체크
-        if bot_instance and hasattr(bot_instance, 'client'):
+        if hasattr(bot_instance, 'client'):
             connections['rest_api'] = True
 
         # WebSocket 체크 (구 websocket_client는 비활성화, 신 websocket_manager 사용)
