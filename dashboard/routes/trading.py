@@ -642,15 +642,14 @@ def quick_buy():
         # 매수 주문 실행
         if hasattr(_bot_instance, 'order_api'):
             # 지정가 주문 (현재가 기준)
-            order_response = _bot_instance.order_api.place_order(
+            order_response = _bot_instance.order_api.buy(
                 stock_code=stock_code,
-                order_type='buy',
                 quantity=quantity,
                 price=price,
-                order_method='limit'  # 지정가
+                order_type='02'  # 02: 지정가
             )
 
-            if order_response and order_response.get('return_code') == 0:
+            if order_response and order_response.get('status') == 'ordered':
                 logger.info(f"✅ Quick buy success: {stock_name}({stock_code}) {quantity}주 @ {price:,}원")
 
                 # 소켓으로 알림
@@ -667,12 +666,12 @@ def quick_buy():
                 return jsonify({
                     'success': True,
                     'message': f'{stock_name} {quantity}주 매수 주문 완료',
-                    'order_id': order_response.get('order_id', ''),
+                    'order_no': order_response.get('order_no', ''),
                     'quantity': quantity,
                     'price': price
                 })
             else:
-                error_msg = order_response.get('return_msg', '알 수 없는 오류') if order_response else '주문 응답 없음'
+                error_msg = order_response.get('error', '알 수 없는 오류') if order_response else '주문 응답 없음'
                 logger.error(f"❌ Quick buy failed: {error_msg}")
                 return jsonify({'success': False, 'error': error_msg}), 500
         else:
