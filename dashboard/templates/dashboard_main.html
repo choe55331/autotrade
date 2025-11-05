@@ -2422,27 +2422,101 @@
             }
 
             let html = '';
-            candidates.forEach(c => {
+            candidates.forEach((c, index) => {
+                const aiScore = c.ai_score || 0;
+                const scoreColor = aiScore >= 70 ? '#10b981' : aiScore >= 40 ? '#f59e0b' : '#ef4444';
+                const confidence = c.confidence || 0.85;
+
+                // 타이밍 신호 (점수 기반)
+                let timingSignal = 'wait';
+                let timingText = '분석 중';
+                if (aiScore >= 70) {
+                    timingSignal = 'buy';
+                    timingText = '매수 적기!';
+                } else if (aiScore >= 50) {
+                    timingSignal = 'wait';
+                    timingText = '관망';
+                } else {
+                    timingSignal = 'sell';
+                    timingText = '위험';
+                }
+
+                // Shimmer 효과 (상위 3개)
+                const shimmerClass = index < 3 ? 'shimmer' : '';
+
                 html += `
-                    <div class="candidate-item" onclick="loadChartData('${c.code}')">
-                        <div class="candidate-header">
-                            <div class="candidate-name">${c.name}</div>
-                            <div class="candidate-score">${c.ai_score.toFixed(1)}</div>
+                    <div class="gradient-hover ${shimmerClass}" style="padding: 12px; border-bottom: 1px solid var(--border-color); cursor: pointer; border-radius: 6px; margin-bottom: 6px; position: relative;" onclick="loadChartData('${c.code}')">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                    <span class="timing-signal ${timingSignal}" title="${timingText}"></span>
+                                    <strong style="font-size: 13px;">${c.name}</strong>
+                                    ${index < 3 ? '<span style="background: linear-gradient(90deg, #ef4444, #f59e0b); color: white; padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 700; margin-left: 4px;">TOP ${index + 1}</span>' : ''}
+                                </div>
+                                <div style="font-size: 11px; color: var(--text-secondary); margin-bottom: 4px;">
+                                    ${c.code} · ₩${formatNumber(c.price)}
+                                </div>
+                                <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                                    <span class="signal-badge buy" style="font-size: 10px; padding: 3px 8px;">${c.signal || 'BUY'}</span>
+                                    <span class="signal-badge" style="background: rgba(59, 130, 246, 0.1); color: var(--color-primary); font-size: 10px; padding: 3px 8px;">
+                                        신뢰도 ${Math.round(confidence * 100)}%
+                                    </span>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div class="ai-score-gauge" style="--gauge-percentage: ${aiScore}%; --gauge-color: ${scoreColor}; width: 50px; height: 50px;">
+                                    <div class="ai-score-gauge-value" style="font-size: 12px;">${Math.round(aiScore)}</div>
+                                </div>
+                                <button onclick="event.stopPropagation(); quickBuy('${c.code}', '${c.name}', ${c.price})"
+                                        style="padding: 8px 16px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 600; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3); transition: transform 0.2s;"
+                                        onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                                    <i class="fas fa-bolt"></i> 빠른 매수
+                                </button>
+                            </div>
                         </div>
-                        <div class="candidate-info">
-                            ${c.code} · ₩${formatNumber(c.price)}
-                        </div>
-                        <div class="candidate-signals">
-                            <span class="signal-badge buy">${c.signal || 'BUY'}</span>
-                            <span class="signal-badge" style="background: rgba(59, 130, 246, 0.1); color: var(--color-primary);">
-                                신뢰도 ${Math.round((c.confidence || 0.85) * 100)}%
-                            </span>
+                        <div class="gradient-progress">
+                            <div class="gradient-progress-bar" style="width: ${aiScore}%;"></div>
                         </div>
                     </div>
                 `;
             });
 
             container.innerHTML = html;
+        }
+
+        // 빠른 매수 함수
+        async function quickBuy(code, name, price) {
+            if (!confirm(`${name}(${code})를 ₩${formatNumber(price)}에 매수하시겠습니까?`)) {
+                return;
+            }
+
+            try {
+                showToast(`🚀 ${name} 매수 주문 전송 중...`, 'info');
+
+                const response = await fetch('/api/quick-buy', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        stock_code: code,
+                        stock_name: name,
+                        price: price
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showToast(`✅ ${name} 매수 주문 완료!`, 'success');
+                    showBrowserNotification('매수 완료', `${name} 매수 주문이 접수되었습니다.`, 'success');
+                    playAlertSound('success');
+                    loadAllData(); // 데이터 새로고침
+                } else {
+                    showToast(`❌ 매수 실패: ${data.error || '알 수 없는 오류'}`, 'error');
+                }
+            } catch (error) {
+                console.error('Quick buy error:', error);
+                showToast(`❌ 매수 오류: ${error.message}`, 'error');
+            }
         }
 
         function updateStatus(data) {
