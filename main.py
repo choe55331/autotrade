@@ -633,8 +633,9 @@ class TradingBotV2:
         self.is_running = True
 
         try:
-            # 🧪 삼성전자 테스트 매매 실행
-            self._test_samsung_trade()
+            # v5.7.5: 삼성전자 자동 매매 제거 (사용자 요청)
+            # # 🧪 삼성전자 테스트 매매 실행
+            # self._test_samsung_trade()
 
             # 메인 루프 시작
             self._main_loop()
