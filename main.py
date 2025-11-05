@@ -907,6 +907,14 @@ class TradingBotV2:
             self.scan_progress['rejected'] = []
             self.scan_progress['approved'] = []
 
+            # v5.7.5: 전략명을 scan_type으로 매핑
+            strategy_to_scan_type = {
+                '거래량 순위': 'volume_based',
+                '상승률 순위': 'price_change',
+                'AI 매매 분석': 'ai_driven',
+            }
+            scan_type = strategy_to_scan_type.get(strategy_name, 'default')
+
             if not final_candidates:
                 print("✅ 스캐닝 완료: 최종 후보 없음")
                 logger.info("✅ 스캐닝 완료: 최종 후보 없음")
@@ -947,7 +955,8 @@ class TradingBotV2:
 
                     # 기술적 지표는 없지만 가격/거래량 데이터로 추정 가능 (scoring_system에서 처리)
                 }
-                scoring_result = self.scoring_system.calculate_score(stock_data)
+                # v5.7.5: scan_type 전달하여 스캔별 차별화된 가중치 적용
+                scoring_result = self.scoring_system.calculate_score(stock_data, scan_type=scan_type)
                 candidate_scores[candidate.code] = scoring_result
                 candidate.final_score = scoring_result.total_score
 

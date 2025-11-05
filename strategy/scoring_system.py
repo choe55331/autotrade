@@ -81,47 +81,107 @@ class ScoringSystem:
 
         logger.info("📊 10가지 기준 스코어링 시스템 초기화 완료")
 
-    def calculate_score(self, stock_data: Dict[str, Any]) -> ScoringResult:
+        # v5.7.5: 스캔 타입별 가중치 프로파일
+        self.scan_type_weights = {
+            # VolumeBasedStrategy: 거래량, 체결강도, 호가비율 중시
+            'volume_based': {
+                'volume_surge': 1.5,
+                'price_momentum': 0.8,
+                'institutional_buying': 1.0,
+                'bid_strength': 1.3,
+                'execution_intensity': 1.5,
+                'broker_activity': 1.1,
+                'program_trading': 1.0,
+                'technical_indicators': 0.7,
+                'theme_news': 0.9,
+                'volatility_pattern': 1.0,
+            },
+            # PriceChangeStrategy: 가격모멘텀, 기술지표, 변동성 중시
+            'price_change': {
+                'volume_surge': 0.9,
+                'price_momentum': 1.5,
+                'institutional_buying': 1.0,
+                'bid_strength': 0.8,
+                'execution_intensity': 0.9,
+                'broker_activity': 1.0,
+                'program_trading': 1.0,
+                'technical_indicators': 1.4,
+                'theme_news': 1.2,
+                'volatility_pattern': 1.3,
+            },
+            # AIDrivenStrategy: 기관매수, 증권사, 프로그램매매 중시
+            'ai_driven': {
+                'volume_surge': 1.0,
+                'price_momentum': 1.0,
+                'institutional_buying': 1.5,
+                'bid_strength': 1.1,
+                'execution_intensity': 1.2,
+                'broker_activity': 1.5,
+                'program_trading': 1.5,
+                'technical_indicators': 1.1,
+                'theme_news': 1.3,
+                'volatility_pattern': 0.9,
+            },
+            # Default: 모든 항목 동일 가중치
+            'default': {
+                'volume_surge': 1.0,
+                'price_momentum': 1.0,
+                'institutional_buying': 1.0,
+                'bid_strength': 1.0,
+                'execution_intensity': 1.0,
+                'broker_activity': 1.0,
+                'program_trading': 1.0,
+                'technical_indicators': 1.0,
+                'theme_news': 1.0,
+                'volatility_pattern': 1.0,
+            },
+        }
+
+    def calculate_score(self, stock_data: Dict[str, Any], scan_type: str = 'default') -> ScoringResult:
         """
         종목 종합 점수 계산
 
         Args:
             stock_data: 종목 데이터
+            scan_type: 스캔 타입 ('volume_based', 'price_change', 'ai_driven', 'default')
 
         Returns:
             ScoringResult 객체
         """
         result = ScoringResult()
 
+        # v5.7.5: 스캔 타입별 가중치 적용
+        weights = self.scan_type_weights.get(scan_type, self.scan_type_weights['default'])
+
         # 1. 거래량 급증 (60점)
-        result.volume_surge_score = self._score_volume_surge(stock_data)
+        result.volume_surge_score = self._score_volume_surge(stock_data) * weights['volume_surge']
 
         # 2. 가격 모멘텀 (60점)
-        result.price_momentum_score = self._score_price_momentum(stock_data)
+        result.price_momentum_score = self._score_price_momentum(stock_data) * weights['price_momentum']
 
         # 3. 기관 매수세 (60점)
-        result.institutional_buying_score = self._score_institutional_buying(stock_data)
+        result.institutional_buying_score = self._score_institutional_buying(stock_data) * weights['institutional_buying']
 
         # 4. 매수 호가 강도 (40점)
-        result.bid_strength_score = self._score_bid_strength(stock_data)
+        result.bid_strength_score = self._score_bid_strength(stock_data) * weights['bid_strength']
 
         # 5. 체결 강도 (40점)
-        result.execution_intensity_score = self._score_execution_intensity(stock_data)
+        result.execution_intensity_score = self._score_execution_intensity(stock_data) * weights['execution_intensity']
 
         # 6. 주요 증권사 활동 (40점)
-        result.broker_activity_score = self._score_broker_activity(stock_data)
+        result.broker_activity_score = self._score_broker_activity(stock_data) * weights['broker_activity']
 
         # 7. 프로그램 매매 (40점)
-        result.program_trading_score = self._score_program_trading(stock_data)
+        result.program_trading_score = self._score_program_trading(stock_data) * weights['program_trading']
 
         # 8. 기술적 지표 (40점)
-        result.technical_indicators_score = self._score_technical_indicators(stock_data)
+        result.technical_indicators_score = self._score_technical_indicators(stock_data) * weights['technical_indicators']
 
         # 9. 시장 모멘텀 (40점)
-        result.theme_news_score = self._score_market_momentum(stock_data)
+        result.theme_news_score = self._score_market_momentum(stock_data) * weights['theme_news']
 
         # 10. 변동성 패턴 (20점)
-        result.volatility_pattern_score = self._score_volatility_pattern(stock_data)
+        result.volatility_pattern_score = self._score_volatility_pattern(stock_data) * weights['volatility_pattern']
 
         # 총점 계산
         result.total_score = (
@@ -139,8 +199,16 @@ class ScoringSystem:
 
         result.calculate_percentage()
 
+        # v5.7.5: 스캔 타입 로깅
+        scan_type_display = {
+            'volume_based': '거래량 기반',
+            'price_change': '상승률 기반',
+            'ai_driven': 'AI 기반',
+            'default': '기본'
+        }.get(scan_type, scan_type)
+
         logger.info(
-            f"📊 스코어링 완료: {stock_data.get('name', stock_data.get('code', 'Unknown'))} "
+            f"📊 스코어링 완료 [{scan_type_display}]: {stock_data.get('name', stock_data.get('code', 'Unknown'))} "
             f"총점 {result.total_score:.1f}/{result.max_score} ({result.percentage:.1f}%)"
         )
 
