@@ -1,0 +1,737 @@
+"""
+virtual_trading/diverse_strategies.py
+10가지 다양한 실전 매매 전략 구현
+
+User Requirement:
+"시중에 나온 다양한 매매 전략법을 완전 다른걸로 10개 해서 유리한 조합 테스트"
+Not simple score variations - fundamentally different trading approaches.
+"""
+from typing import Dict, Optional
+from datetime import datetime
+from .virtual_account import VirtualAccount, VirtualPosition
+
+
+class DiverseTradingStrategy:
+    """다양한 실전 매매 전략의 베이스 클래스"""
+
+    def __init__(self, name: str, description: str):
+        self.name = name
+        self.description = description
+
+        # 공통 설정
+        self.max_positions = 5
+        self.position_size_rate = 0.15
+        self.min_price = 1000  # 최소 주가 (저가주 필터)
+
+    def should_buy(self, stock_data: Dict, market_data: Dict, account: VirtualAccount) -> bool:
+        """매수 조건 확인 (전략별로 오버라이드)"""
+        raise NotImplementedError
+
+    def should_sell(self, position: VirtualPosition, current_price: int,
+                    stock_data: Dict, days_held: int) -> tuple[bool, str]:
+        """매도 조건 확인 (전략별로 오버라이드)"""
+        raise NotImplementedError
+
+    def calculate_quantity(self, price: int, account: VirtualAccount) -> int:
+        """매수 수량 계산"""
+        available_cash = account.cash
+        target_amount = int(available_cash * self.position_size_rate)
+        quantity = target_amount // price
+        return max(quantity, 1)
+
+
+# ============================================================================
+# 전략 1: 모멘텀 추세 전략 (Momentum Trend Following)
+# ============================================================================
+class MomentumStrategy(DiverseTradingStrategy):
+    """
+    강한 상승 추세를 따라가는 전략
+    - 거래량 급증 + 주가 상승 종목에 진입
+    - 추세 약화시 빠르게 청산
+    """
+
+    def __init__(self):
+        super().__init__("모멘텀추세", "강한 상승세 포착 후 추세 추종")
+        self.max_positions = 6
+        self.position_size_rate = 0.18
+        self.min_volume_ratio = 2.0  # 평균 거래량 대비 2배 이상
+        self.min_price_change = 3.0  # 최소 3% 상승
+
+    def should_buy(self, stock_data: Dict, market_data: Dict, account: VirtualAccount) -> bool:
+        if len(account.positions) >= self.max_positions:
+            return False
+
+        # 거래량 급증 확인
+        volume_ratio = stock_data.get('volume_ratio', 1.0)
+        if volume_ratio < self.min_volume_ratio:
+            return False
+
+        # 주가 상승 확인
+        price_change = stock_data.get('price_change_percent', 0)
+        if price_change < self.min_price_change:
+            return False
+
+        # RSI 과열 방지 (70 이하)
+        rsi = stock_data.get('rsi', 50)
+        if rsi > 70:
+            return False
+
+        return True
+
+    def should_sell(self, position: VirtualPosition, current_price: int,
+                    stock_data: Dict, days_held: int) -> tuple[bool, str]:
+        position.update_price(current_price)
+        pnl_rate = position.unrealized_pnl_rate
+
+        # 익절: 12% 이상
+        if pnl_rate >= 12.0:
+            return True, f"모멘텀 익절 {pnl_rate:.1f}%"
+
+        # 손절: -6% 이하
+        if pnl_rate <= -6.0:
+            return True, f"모멘텀 손절 {pnl_rate:.1f}%"
+
+        # 추세 약화 감지 (거래량 감소)
+        volume_ratio = stock_data.get('volume_ratio', 1.0)
+        if volume_ratio < 0.7 and pnl_rate < 3.0:
+            return True, "거래량 감소로 청산"
+
+        # 최대 보유 기간: 7일
+        if days_held >= 7:
+            return True, f"보유 {days_held}일 경과"
+
+        return False, ""
+
+
+# ============================================================================
+# 전략 2: 평균회귀 전략 (Mean Reversion)
+# ============================================================================
+class MeanReversionStrategy(DiverseTradingStrategy):
+    """
+    과매도 구간에서 반등 포착 전략
+    - RSI 30 이하 과매도 구간 진입
+    - 단기 반등 노리고 빠른 익절
+    """
+
+    def __init__(self):
+        super().__init__("평균회귀", "과매도 구간 반등 노림")
+        self.max_positions = 4
+        self.position_size_rate = 0.20
+        self.max_rsi = 35  # RSI 35 이하
+        self.min_days_down = 3  # 최소 3일 하락
+
+    def should_buy(self, stock_data: Dict, market_data: Dict, account: VirtualAccount) -> bool:
+        if len(account.positions) >= self.max_positions:
+            return False
+
+        # RSI 과매도 확인
+        rsi = stock_data.get('rsi', 50)
+        if rsi > self.max_rsi:
+            return False
+
+        # 연속 하락 확인
+        consecutive_down = stock_data.get('consecutive_down_days', 0)
+        if consecutive_down < self.min_days_down:
+            return False
+
+        # 하락률 -5% 이상 (너무 급락한 종목 제외)
+        price_change = stock_data.get('price_change_percent', 0)
+        if price_change < -10.0:
+            return False
+
+        return True
+
+    def should_sell(self, position: VirtualPosition, current_price: int,
+                    stock_data: Dict, days_held: int) -> tuple[bool, str]:
+        position.update_price(current_price)
+        pnl_rate = position.unrealized_pnl_rate
+
+        # 빠른 익절: 5% 이상
+        if pnl_rate >= 5.0:
+            return True, f"평균회귀 익절 {pnl_rate:.1f}%"
+
+        # 손절: -4% 이하
+        if pnl_rate <= -4.0:
+            return True, f"평균회귀 손절 {pnl_rate:.1f}%"
+
+        # RSI 반등 확인 후 매도 (60 이상)
+        rsi = stock_data.get('rsi', 50)
+        if rsi >= 60 and pnl_rate > 2.0:
+            return True, "RSI 회복으로 익절"
+
+        # 최대 보유: 5일
+        if days_held >= 5:
+            return True, f"보유 {days_held}일 경과"
+
+        return False, ""
+
+
+# ============================================================================
+# 전략 3: 돌파 매매 전략 (Breakout Trading)
+# ============================================================================
+class BreakoutStrategy(DiverseTradingStrategy):
+    """
+    저항선 돌파 시 진입 전략
+    - 52주 신고가 돌파
+    - 박스권 상단 돌파
+    """
+
+    def __init__(self):
+        super().__init__("돌파매매", "저항선 돌파 포착")
+        self.max_positions = 5
+        self.position_size_rate = 0.16
+        self.breakout_threshold = 0.98  # 52주 고가의 98% 이상
+
+    def should_buy(self, stock_data: Dict, market_data: Dict, account: VirtualAccount) -> bool:
+        if len(account.positions) >= self.max_positions:
+            return False
+
+        # 52주 신고가 근접 확인
+        current_price = stock_data.get('current_price', 0)
+        high_52w = stock_data.get('high_52week', current_price * 1.5)
+
+        if current_price < high_52w * self.breakout_threshold:
+            return False
+
+        # 거래량 증가 확인 (돌파 신뢰성)
+        volume_ratio = stock_data.get('volume_ratio', 1.0)
+        if volume_ratio < 1.5:
+            return False
+
+        # 상승률 1% 이상 (돌파 확인)
+        price_change = stock_data.get('price_change_percent', 0)
+        if price_change < 1.0:
+            return False
+
+        return True
+
+    def should_sell(self, position: VirtualPosition, current_price: int,
+                    stock_data: Dict, days_held: int) -> tuple[bool, str]:
+        position.update_price(current_price)
+        pnl_rate = position.unrealized_pnl_rate
+
+        # 익절: 15% 이상 (큰 수익 추구)
+        if pnl_rate >= 15.0:
+            return True, f"돌파 익절 {pnl_rate:.1f}%"
+
+        # 트레일링 스탑: 최고가 대비 -7% 하락시
+        highest_rate = position.highest_price / position.average_price * 100 - 100
+        if highest_rate > 8.0:
+            current_rate = current_price / position.average_price * 100 - 100
+            if current_rate < highest_rate - 7.0:
+                return True, f"트레일링 스탑 (최고 {highest_rate:.1f}% → 현재 {current_rate:.1f}%)"
+
+        # 손절: -5% 이하
+        if pnl_rate <= -5.0:
+            return True, f"돌파 실패 손절 {pnl_rate:.1f}%"
+
+        # 최대 보유: 10일
+        if days_held >= 10:
+            return True, f"보유 {days_held}일 경과"
+
+        return False, ""
+
+
+# ============================================================================
+# 전략 4: 가치투자 전략 (Value Investing)
+# ============================================================================
+class ValueInvestingStrategy(DiverseTradingStrategy):
+    """
+    저평가 우량주 장기 보유 전략
+    - PER, PBR 낮은 종목
+    - 배당 수익률 높은 종목
+    """
+
+    def __init__(self):
+        super().__init__("가치투자", "저평가 우량주 장기 보유")
+        self.max_positions = 3
+        self.position_size_rate = 0.25
+        self.max_per = 12.0  # PER 12 이하
+        self.max_pbr = 1.2   # PBR 1.2 이하
+        self.min_dividend = 2.0  # 배당수익률 2% 이상
+
+    def should_buy(self, stock_data: Dict, market_data: Dict, account: VirtualAccount) -> bool:
+        if len(account.positions) >= self.max_positions:
+            return False
+
+        # PER 확인
+        per = stock_data.get('per', 999)
+        if per > self.max_per or per <= 0:
+            return False
+
+        # PBR 확인
+        pbr = stock_data.get('pbr', 999)
+        if pbr > self.max_pbr or pbr <= 0:
+            return False
+
+        # 배당수익률 확인
+        dividend_yield = stock_data.get('dividend_yield', 0)
+        if dividend_yield < self.min_dividend:
+            return False
+
+        # 안정적인 종목 선호 (급등/급락 제외)
+        price_change = stock_data.get('price_change_percent', 0)
+        if abs(price_change) > 5.0:
+            return False
+
+        return True
+
+    def should_sell(self, position: VirtualPosition, current_price: int,
+                    stock_data: Dict, days_held: int) -> tuple[bool, str]:
+        position.update_price(current_price)
+        pnl_rate = position.unrealized_pnl_rate
+
+        # 목표 수익: 20% 이상 (장기 보유 목표)
+        if pnl_rate >= 20.0:
+            return True, f"가치투자 익절 {pnl_rate:.1f}%"
+
+        # 손절: -8% 이하 (여유 있는 손절)
+        if pnl_rate <= -8.0:
+            return True, f"가치투자 손절 {pnl_rate:.1f}%"
+
+        # 밸류에이션 악화 확인
+        per = stock_data.get('per', 0)
+        if per > 20.0 and pnl_rate > 10.0:
+            return True, "밸류에이션 악화로 익절"
+
+        # 최대 보유: 30일 (장기 보유)
+        if days_held >= 30:
+            return True, f"보유 {days_held}일 경과"
+
+        return False, ""
+
+
+# ============================================================================
+# 전략 5: 스윙 트레이딩 전략 (Swing Trading)
+# ============================================================================
+class SwingTradingStrategy(DiverseTradingStrategy):
+    """
+    단기 변동성을 이용한 스윙 전략
+    - 볼린저밴드 하단 매수, 상단 매도
+    - 3-7일 단기 보유
+    """
+
+    def __init__(self):
+        super().__init__("스윙매매", "단기 변동성 활용")
+        self.max_positions = 7
+        self.position_size_rate = 0.12
+        self.bb_lower_threshold = 0.95  # 볼린저 하단 근처
+
+    def should_buy(self, stock_data: Dict, market_data: Dict, account: VirtualAccount) -> bool:
+        if len(account.positions) >= self.max_positions:
+            return False
+
+        # 볼린저밴드 하단 근처 확인
+        bb_position = stock_data.get('bb_position', 0.5)  # 0: 하단, 1: 상단
+        if bb_position > 0.3:
+            return False
+
+        # 변동성 확인 (ATR)
+        volatility = stock_data.get('volatility', 0)
+        if volatility < 2.0:  # 최소 2% 변동성
+            return False
+
+        # RSI 40 이하
+        rsi = stock_data.get('rsi', 50)
+        if rsi > 40:
+            return False
+
+        return True
+
+    def should_sell(self, position: VirtualPosition, current_price: int,
+                    stock_data: Dict, days_held: int) -> tuple[bool, str]:
+        position.update_price(current_price)
+        pnl_rate = position.unrealized_pnl_rate
+
+        # 익절: 8% 이상
+        if pnl_rate >= 8.0:
+            return True, f"스윙 익절 {pnl_rate:.1f}%"
+
+        # 손절: -4% 이하
+        if pnl_rate <= -4.0:
+            return True, f"스윙 손절 {pnl_rate:.1f}%"
+
+        # 볼린저밴드 상단 도달시 익절
+        bb_position = stock_data.get('bb_position', 0.5)
+        if bb_position > 0.7 and pnl_rate > 3.0:
+            return True, "볼린저 상단 도달 익절"
+
+        # 최대 보유: 7일
+        if days_held >= 7:
+            return True, f"보유 {days_held}일 경과"
+
+        return False, ""
+
+
+# ============================================================================
+# 전략 6: MACD 크로스오버 전략 (MACD Crossover)
+# ============================================================================
+class MACDStrategy(DiverseTradingStrategy):
+    """
+    MACD 지표 기반 전략
+    - MACD 골든크로스 매수
+    - MACD 데드크로스 매도
+    """
+
+    def __init__(self):
+        super().__init__("MACD크로스", "MACD 시그널 추종")
+        self.max_positions = 5
+        self.position_size_rate = 0.17
+
+    def should_buy(self, stock_data: Dict, market_data: Dict, account: VirtualAccount) -> bool:
+        if len(account.positions) >= self.max_positions:
+            return False
+
+        # MACD 골든크로스 확인
+        macd = stock_data.get('macd', 0)
+        macd_signal = stock_data.get('macd_signal', 0)
+        if macd <= macd_signal:
+            return False
+
+        # MACD 히스토그램 양수 확인
+        macd_hist = stock_data.get('macd_histogram', 0)
+        if macd_hist <= 0:
+            return False
+
+        # 상승 추세 확인 (MA20 위)
+        price = stock_data.get('current_price', 0)
+        ma20 = stock_data.get('ma20', price)
+        if price < ma20:
+            return False
+
+        return True
+
+    def should_sell(self, position: VirtualPosition, current_price: int,
+                    stock_data: Dict, days_held: int) -> tuple[bool, str]:
+        position.update_price(current_price)
+        pnl_rate = position.unrealized_pnl_rate
+
+        # MACD 데드크로스 감지
+        macd = stock_data.get('macd', 0)
+        macd_signal = stock_data.get('macd_signal', 0)
+        if macd < macd_signal and pnl_rate > -3.0:
+            return True, f"MACD 데드크로스 {pnl_rate:.1f}%"
+
+        # 익절: 10% 이상
+        if pnl_rate >= 10.0:
+            return True, f"MACD 익절 {pnl_rate:.1f}%"
+
+        # 손절: -5% 이하
+        if pnl_rate <= -5.0:
+            return True, f"MACD 손절 {pnl_rate:.1f}%"
+
+        # 최대 보유: 15일
+        if days_held >= 15:
+            return True, f"보유 {days_held}일 경과"
+
+        return False, ""
+
+
+# ============================================================================
+# 전략 7: 역발상 전략 (Contrarian Strategy)
+# ============================================================================
+class ContrarianStrategy(DiverseTradingStrategy):
+    """
+    시장 공포/탐욕 지수를 역으로 활용
+    - 공포 극대화 시점에 매수
+    - 탐욕 극대화 시점에 매도
+    """
+
+    def __init__(self):
+        super().__init__("역발상", "시장 감정의 반대편 베팅")
+        self.max_positions = 4
+        self.position_size_rate = 0.22
+        self.fear_threshold = 30  # 공포지수 30 이하
+        self.greed_threshold = 70  # 탐욕지수 70 이상
+
+    def should_buy(self, stock_data: Dict, market_data: Dict, account: VirtualAccount) -> bool:
+        if len(account.positions) >= self.max_positions:
+            return False
+
+        # 시장 공포 지수 확인
+        fear_greed_index = market_data.get('fear_greed_index', 50)
+        if fear_greed_index > self.fear_threshold:
+            return False
+
+        # 급락 종목 선호 (3일간 -10% 이상)
+        price_change_3d = stock_data.get('price_change_3day', 0)
+        if price_change_3d > -5.0:
+            return False
+
+        # 거래량 증가 확인 (패닉셀 확인)
+        volume_ratio = stock_data.get('volume_ratio', 1.0)
+        if volume_ratio < 1.3:
+            return False
+
+        # 우량주 필터 (시가총액 1천억 이상)
+        market_cap = stock_data.get('market_cap', 0)
+        if market_cap < 100_000_000_000:
+            return False
+
+        return True
+
+    def should_sell(self, position: VirtualPosition, current_price: int,
+                    stock_data: Dict, days_held: int) -> tuple[bool, str]:
+        position.update_price(current_price)
+        pnl_rate = position.unrealized_pnl_rate
+
+        # 시장 탐욕 극대화 확인
+        market_data = stock_data.get('market_data', {})
+        fear_greed_index = market_data.get('fear_greed_index', 50)
+        if fear_greed_index > self.greed_threshold and pnl_rate > 5.0:
+            return True, f"탐욕 극대화 익절 {pnl_rate:.1f}%"
+
+        # 익절: 18% 이상
+        if pnl_rate >= 18.0:
+            return True, f"역발상 익절 {pnl_rate:.1f}%"
+
+        # 손절: -7% 이하
+        if pnl_rate <= -7.0:
+            return True, f"역발상 손절 {pnl_rate:.1f}%"
+
+        # 최대 보유: 20일
+        if days_held >= 20:
+            return True, f"보유 {days_held}일 경과"
+
+        return False, ""
+
+
+# ============================================================================
+# 전략 8: 섹터 로테이션 전략 (Sector Rotation)
+# ============================================================================
+class SectorRotationStrategy(DiverseTradingStrategy):
+    """
+    경기 사이클에 따른 섹터 순환 전략
+    - 경기 확장기: IT, 경기소비재
+    - 경기 둔화기: 필수소비재, 유틸리티
+    """
+
+    def __init__(self):
+        super().__init__("섹터순환", "경기 사이클별 섹터 선택")
+        self.max_positions = 6
+        self.position_size_rate = 0.15
+
+        # 경기 사이클별 선호 섹터
+        self.cycle_sectors = {
+            'expansion': ['IT', '경기소비재', '산업재'],
+            'peak': ['에너지', '금융'],
+            'contraction': ['필수소비재', '헬스케어', '유틸리티'],
+            'trough': ['경기소비재', 'IT']
+        }
+
+    def should_buy(self, stock_data: Dict, market_data: Dict, account: VirtualAccount) -> bool:
+        if len(account.positions) >= self.max_positions:
+            return False
+
+        # 현재 경기 사이클 확인
+        cycle_phase = market_data.get('economic_cycle', 'expansion')
+        preferred_sectors = self.cycle_sectors.get(cycle_phase, [])
+
+        # 종목의 섹터 확인
+        sector = stock_data.get('sector', '')
+        if sector not in preferred_sectors:
+            return False
+
+        # 섹터 강도 확인 (섹터 상대 강도 > 1.05)
+        sector_strength = stock_data.get('sector_relative_strength', 1.0)
+        if sector_strength < 1.05:
+            return False
+
+        # 종목 모멘텀 확인
+        price_change = stock_data.get('price_change_percent', 0)
+        if price_change < 2.0:
+            return False
+
+        return True
+
+    def should_sell(self, position: VirtualPosition, current_price: int,
+                    stock_data: Dict, days_held: int) -> tuple[bool, str]:
+        position.update_price(current_price)
+        pnl_rate = position.unrealized_pnl_rate
+
+        # 섹터 강도 약화 확인
+        sector_strength = stock_data.get('sector_relative_strength', 1.0)
+        if sector_strength < 0.95 and pnl_rate > 0:
+            return True, f"섹터 약화 익절 {pnl_rate:.1f}%"
+
+        # 익절: 12% 이상
+        if pnl_rate >= 12.0:
+            return True, f"섹터 익절 {pnl_rate:.1f}%"
+
+        # 손절: -5% 이하
+        if pnl_rate <= -5.0:
+            return True, f"섹터 손절 {pnl_rate:.1f}%"
+
+        # 최대 보유: 14일
+        if days_held >= 14:
+            return True, f"보유 {days_held}일 경과"
+
+        return False, ""
+
+
+# ============================================================================
+# 전략 9: 급등주 추격 전략 (Hot Stock Chasing)
+# ============================================================================
+class HotStockStrategy(DiverseTradingStrategy):
+    """
+    단기 급등주 추격 전략
+    - 당일 급등 종목 진입
+    - 빠른 익절/손절
+    """
+
+    def __init__(self):
+        super().__init__("급등추격", "당일 급등주 단타")
+        self.max_positions = 8
+        self.position_size_rate = 0.10
+        self.min_price_surge = 5.0  # 최소 5% 상승
+        self.max_price_surge = 20.0  # 최대 20% 상승 (과열 제외)
+
+    def should_buy(self, stock_data: Dict, market_data: Dict, account: VirtualAccount) -> bool:
+        if len(account.positions) >= self.max_positions:
+            return False
+
+        # 당일 급등 확인
+        price_change = stock_data.get('price_change_percent', 0)
+        if not (self.min_price_surge <= price_change <= self.max_price_surge):
+            return False
+
+        # 거래량 폭증 확인 (평균의 3배 이상)
+        volume_ratio = stock_data.get('volume_ratio', 1.0)
+        if volume_ratio < 3.0:
+            return False
+
+        # 시가총액 필터 (500억 이상 - 작전주 제외)
+        market_cap = stock_data.get('market_cap', 0)
+        if market_cap < 50_000_000_000:
+            return False
+
+        # 52주 신고가 근접 (활력 있는 종목)
+        current_price = stock_data.get('current_price', 0)
+        high_52w = stock_data.get('high_52week', current_price * 2)
+        if current_price < high_52w * 0.90:
+            return False
+
+        return True
+
+    def should_sell(self, position: VirtualPosition, current_price: int,
+                    stock_data: Dict, days_held: int) -> tuple[bool, str]:
+        position.update_price(current_price)
+        pnl_rate = position.unrealized_pnl_rate
+
+        # 빠른 익절: 6% 이상
+        if pnl_rate >= 6.0:
+            return True, f"급등 익절 {pnl_rate:.1f}%"
+
+        # 빠른 손절: -3% 이하
+        if pnl_rate <= -3.0:
+            return True, f"급등 손절 {pnl_rate:.1f}%"
+
+        # 당일 마감 (익절/손절 안된 경우)
+        if days_held >= 1:
+            return True, f"당일 마감 {pnl_rate:.1f}%"
+
+        return False, ""
+
+
+# ============================================================================
+# 전략 10: 배당 성장주 전략 (Dividend Growth)
+# ============================================================================
+class DividendGrowthStrategy(DiverseTradingStrategy):
+    """
+    배당 성장주 장기 보유 전략
+    - 배당 성장률 높은 종목
+    - 안정적인 현금 흐름
+    """
+
+    def __init__(self):
+        super().__init__("배당성장", "배당 증가 우량주 장기 보유")
+        self.max_positions = 4
+        self.position_size_rate = 0.23
+        self.min_dividend_yield = 2.5  # 최소 2.5% 배당수익률
+        self.min_dividend_growth = 5.0  # 배당 연평균 5% 성장
+
+    def should_buy(self, stock_data: Dict, market_data: Dict, account: VirtualAccount) -> bool:
+        if len(account.positions) >= self.max_positions:
+            return False
+
+        # 배당수익률 확인
+        dividend_yield = stock_data.get('dividend_yield', 0)
+        if dividend_yield < self.min_dividend_yield:
+            return False
+
+        # 배당 성장률 확인
+        dividend_growth = stock_data.get('dividend_growth_rate', 0)
+        if dividend_growth < self.min_dividend_growth:
+            return False
+
+        # 배당 커버리지 확인 (EPS > DPS)
+        eps = stock_data.get('eps', 0)
+        dps = stock_data.get('dps', 0)
+        if dps == 0 or eps / dps < 1.5:
+            return False
+
+        # 부채비율 낮은 종목 선호
+        debt_ratio = stock_data.get('debt_ratio', 999)
+        if debt_ratio > 100:
+            return False
+
+        return True
+
+    def should_sell(self, position: VirtualPosition, current_price: int,
+                    stock_data: Dict, days_held: int) -> tuple[bool, str]:
+        position.update_price(current_price)
+        pnl_rate = position.unrealized_pnl_rate
+
+        # 배당 감소 확인 (배당 보호)
+        dividend_growth = stock_data.get('dividend_growth_rate', 0)
+        if dividend_growth < 0 and pnl_rate > -5.0:
+            return True, f"배당 감소로 청산 {pnl_rate:.1f}%"
+
+        # 목표 수익: 25% 이상 (장기 보유 목표)
+        if pnl_rate >= 25.0:
+            return True, f"배당 성장주 익절 {pnl_rate:.1f}%"
+
+        # 손절: -10% 이하 (여유 있는 손절)
+        if pnl_rate <= -10.0:
+            return True, f"배당 성장주 손절 {pnl_rate:.1f}%"
+
+        # 최대 보유: 60일 (장기 보유)
+        if days_held >= 60:
+            return True, f"보유 {days_held}일 경과"
+
+        return False, ""
+
+
+# ============================================================================
+# 전략 팩토리
+# ============================================================================
+def create_all_diverse_strategies() -> list:
+    """10가지 다양한 전략 생성"""
+    return [
+        MomentumStrategy(),
+        MeanReversionStrategy(),
+        BreakoutStrategy(),
+        ValueInvestingStrategy(),
+        SwingTradingStrategy(),
+        MACDStrategy(),
+        ContrarianStrategy(),
+        SectorRotationStrategy(),
+        HotStockStrategy(),
+        DividendGrowthStrategy()
+    ]
+
+
+def get_strategy_descriptions() -> Dict[str, str]:
+    """전략별 상세 설명"""
+    return {
+        "모멘텀추세": "강한 상승 추세를 따라가는 전략. 거래량 급증 + 주가 상승 시 진입.",
+        "평균회귀": "과매도 구간 반등 포착. RSI 30 이하에서 진입.",
+        "돌파매매": "52주 신고가 돌파 시 진입. 큰 수익 추구.",
+        "가치투자": "저평가 우량주 장기 보유. PER/PBR 낮고 배당 높은 종목.",
+        "스윙매매": "단기 변동성 활용. 볼린저밴드 하단 매수, 상단 매도.",
+        "MACD크로스": "MACD 지표 기반. 골든크로스 매수, 데드크로스 매도.",
+        "역발상": "시장 감정의 반대편 베팅. 공포 시 매수, 탐욕 시 매도.",
+        "섹터순환": "경기 사이클에 따른 섹터 선택. 경기 확장기엔 IT, 둔화기엔 필수소비재.",
+        "급등추격": "당일 급등주 단타. 빠른 익절/손절.",
+        "배당성장": "배당 성장주 장기 보유. 안정적 현금 흐름."
+    }
