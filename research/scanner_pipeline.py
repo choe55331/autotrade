@@ -15,6 +15,12 @@ from config.config_manager import get_config
 logger = get_logger()
 
 
+# Deep Scan 데이터 캐시 (메모리 기반)
+# {stock_code: {'data': {...}, 'timestamp': datetime, 'ttl': 300}}
+_deep_scan_cache = {}
+CACHE_TTL_SECONDS = 300  # 5분
+
+
 @dataclass
 class StockCandidate:
     """종목 후보 데이터 클래스"""
@@ -385,37 +391,53 @@ class ScannerPipeline:
                         print(f"   ⚠️  증권사 데이터 조회 실패: {e}")
                         logger.debug(f"증권사 데이터 조회 실패: {e}")
 
-                    # 체결강도 조회 (ka10047)
+                    # 체결강도 조회 (ka10047) - 캐시 우선
                     print(f"   📊 체결강도 조회 중...")
-                    try:
-                        execution_data = self.market_api.get_execution_intensity(
-                            stock_code=candidate.code
-                        )
+                    cache_key_exec = f"execution_{candidate.code}"
+                    cached_exec = self._get_from_cache(cache_key_exec)
 
-                        if execution_data:
-                            candidate.execution_intensity = execution_data.get('execution_intensity')
-                            print(f"   ✓ 체결강도: {candidate.execution_intensity:.1f}" if candidate.execution_intensity else "   ⚠️  체결강도: 0")
-                        else:
-                            print(f"   ⚠️  체결강도 데이터 없음")
-                    except Exception as e:
-                        print(f"   ⚠️  체결강도 조회 실패: {e}")
-                        logger.debug(f"체결강도 조회 실패: {e}")
+                    if cached_exec:
+                        candidate.execution_intensity = cached_exec.get('execution_intensity')
+                        print(f"   ✓ 체결강도: {candidate.execution_intensity:.1f} [캐시]" if candidate.execution_intensity else "   ⚠️  체결강도: 0 [캐시]")
+                    else:
+                        try:
+                            execution_data = self.market_api.get_execution_intensity(
+                                stock_code=candidate.code
+                            )
 
-                    # 프로그램매매 조회 (ka90013)
+                            if execution_data:
+                                candidate.execution_intensity = execution_data.get('execution_intensity')
+                                self._save_to_cache(cache_key_exec, execution_data)
+                                print(f"   ✓ 체결강도: {candidate.execution_intensity:.1f}" if candidate.execution_intensity else "   ⚠️  체결강도: 0")
+                            else:
+                                print(f"   ⚠️  체결강도 데이터 없음")
+                        except Exception as e:
+                            print(f"   ⚠️  체결강도 조회 실패 (캐시도 없음): {e}")
+                            logger.debug(f"체결강도 조회 실패: {e}")
+
+                    # 프로그램매매 조회 (ka90013) - 캐시 우선
                     print(f"   📊 프로그램매매 조회 중...")
-                    try:
-                        program_data = self.market_api.get_program_trading(
-                            stock_code=candidate.code
-                        )
+                    cache_key_prog = f"program_{candidate.code}"
+                    cached_prog = self._get_from_cache(cache_key_prog)
 
-                        if program_data:
-                            candidate.program_net_buy = program_data.get('program_net_buy')
-                            print(f"   ✓ 프로그램순매수: {candidate.program_net_buy:,}원" if candidate.program_net_buy else "   ⚠️  프로그램순매수: 0원")
-                        else:
-                            print(f"   ⚠️  프로그램매매 데이터 없음")
-                    except Exception as e:
-                        print(f"   ⚠️  프로그램매매 조회 실패: {e}")
-                        logger.debug(f"프로그램매매 조회 실패: {e}")
+                    if cached_prog:
+                        candidate.program_net_buy = cached_prog.get('program_net_buy')
+                        print(f"   ✓ 프로그램순매수: {candidate.program_net_buy:,}원 [캐시]" if candidate.program_net_buy else "   ⚠️  프로그램순매수: 0원 [캐시]")
+                    else:
+                        try:
+                            program_data = self.market_api.get_program_trading(
+                                stock_code=candidate.code
+                            )
+
+                            if program_data:
+                                candidate.program_net_buy = program_data.get('program_net_buy')
+                                self._save_to_cache(cache_key_prog, program_data)
+                                print(f"   ✓ 프로그램순매수: {candidate.program_net_buy:,}원" if candidate.program_net_buy else "   ⚠️  프로그램순매수: 0원")
+                            else:
+                                print(f"   ⚠️  프로그램매매 데이터 없음")
+                        except Exception as e:
+                            print(f"   ⚠️  프로그램매매 조회 실패 (캐시도 없음): {e}")
+                            logger.debug(f"프로그램매매 조회 실패: {e}")
 
                     # Deep Scan 점수 계산
                     candidate.deep_scan_score = self._calculate_deep_score(candidate)
@@ -710,6 +732,33 @@ class ScannerPipeline:
                 'count': len(self.ai_scan_results),
                 'last_run': datetime.fromtimestamp(self.last_ai_scan).isoformat() if self.last_ai_scan else None,
             },
+        }
+
+    def _get_from_cache(self, cache_key: str) -> Optional[Dict]:
+        """캐시에서 데이터 조회"""
+        global _deep_scan_cache
+
+        if cache_key not in _deep_scan_cache:
+            return None
+
+        entry = _deep_scan_cache[cache_key]
+        timestamp = entry['timestamp']
+
+        # TTL 체크
+        if (datetime.now() - timestamp).total_seconds() > CACHE_TTL_SECONDS:
+            # 만료됨 - 삭제
+            del _deep_scan_cache[cache_key]
+            return None
+
+        return entry['data']
+
+    def _save_to_cache(self, cache_key: str, data: Dict):
+        """캐시에 데이터 저장"""
+        global _deep_scan_cache
+
+        _deep_scan_cache[cache_key] = {
+            'data': data,
+            'timestamp': datetime.now()
         }
 
 
