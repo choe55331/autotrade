@@ -234,7 +234,8 @@ def get_account():
             deposit_amount = int(str(deposit.get('entr', '0')).replace(',', '')) if deposit else 0
             cash = int(str(deposit.get('100stk_ord_alow_amt', '0')).replace(',', '')) if deposit else 0
             stock_value = sum(int(str(h.get('eval_amt', 0)).replace(',', '')) for h in holdings) if holdings else 0
-            total_assets = deposit_amount + stock_value
+            # 총 자산 = 주문가능금액 + 주식평가금액 (v5.3.2 수정)
+            total_assets = cash + stock_value
 
             # 손익 계산
             total_buy_amount = sum(int(str(h.get('pchs_amt', 0)).replace(',', '')) for h in holdings) if holdings else 0
@@ -281,11 +282,25 @@ def get_account():
 def get_positions():
     """Get current positions from real API (kt00004 API 응답 필드 사용)"""
     try:
-        if bot_instance and hasattr(bot_instance, 'account_api'):
-            holdings = bot_instance.account_api.get_holdings()
+        # v5.3.2: bot_instance 체크 강화
+        if not bot_instance:
+            print("Error: bot_instance is None")
+            return jsonify([])
 
-            positions = []
-            for h in holdings:
+        if not hasattr(bot_instance, 'account_api'):
+            print("Error: bot_instance has no account_api")
+            return jsonify([])
+
+        # v5.3.2: 보유 종목 조회
+        holdings = bot_instance.account_api.get_holdings()
+
+        if not holdings:
+            print("No holdings found")
+            return jsonify([])
+
+        positions = []
+        for h in holdings:
+            try:
                 # kt00004 API 응답 필드 사용 (동일한 필드: main.py:856-864)
                 code = str(h.get('stk_cd', '')).strip()  # 종목코드
                 # A 접두사 제거 (키움증권 API에서 A005930 형식으로 올 수 있음)
@@ -294,6 +309,11 @@ def get_positions():
 
                 name = h.get('stk_nm', '')  # 종목명
                 quantity = int(str(h.get('rmnd_qty', 0)).replace(',', ''))  # 보유수량
+
+                # v5.3.2: 수량 0인 종목 스킵
+                if quantity <= 0:
+                    continue
+
                 avg_price = int(str(h.get('avg_prc', 0)).replace(',', ''))  # 평균단가
                 current_price = int(str(h.get('cur_prc', 0)).replace(',', ''))  # 현재가
                 value = int(str(h.get('eval_amt', 0)).replace(',', ''))  # 평가금액
@@ -304,8 +324,11 @@ def get_positions():
                 # 손절가 계산 (dynamic_risk_manager 사용)
                 stop_loss_price = avg_price
                 if bot_instance and hasattr(bot_instance, 'dynamic_risk_manager'):
-                    thresholds = bot_instance.dynamic_risk_manager.get_exit_thresholds(avg_price)
-                    stop_loss_price = thresholds.get('stop_loss', avg_price)
+                    try:
+                        thresholds = bot_instance.dynamic_risk_manager.get_exit_thresholds(avg_price)
+                        stop_loss_price = thresholds.get('stop_loss', avg_price)
+                    except Exception as e:
+                        print(f"Error getting exit thresholds for {code}: {e}")
 
                 positions.append({
                     'code': code,
@@ -318,10 +341,12 @@ def get_positions():
                     'value': value,
                     'stop_loss_price': stop_loss_price
                 })
+            except Exception as e:
+                print(f"Error processing holding {h}: {e}")
+                continue
 
-            return jsonify(positions)
-        else:
-            return jsonify([])
+        return jsonify(positions)
+
     except Exception as e:
         print(f"Error getting positions: {e}")
         import traceback
@@ -333,27 +358,43 @@ def get_positions():
 def get_candidates():
     """Get AI-approved buy candidates with split buy strategy"""
     try:
-        if bot_instance and hasattr(bot_instance, 'ai_approved_candidates'):
-            # AI 승인 매수 후보 가져오기
-            approved = bot_instance.ai_approved_candidates
+        # v5.3.2: bot_instance 체크 강화
+        if not bot_instance:
+            print("Error: bot_instance is None")
+            return jsonify([])
 
-            candidates = []
-            for cand in approved:
+        if not hasattr(bot_instance, 'ai_approved_candidates'):
+            print("Error: bot_instance has no ai_approved_candidates")
+            return jsonify([])
+
+        # AI 승인 매수 후보 가져오기
+        approved = bot_instance.ai_approved_candidates
+
+        if not approved:
+            print("No AI approved candidates")
+            return jsonify([])
+
+        candidates = []
+        for cand in approved:
+            try:
+                # v5.3.2: 안전한 필드 접근
                 candidates.append({
-                    'code': cand['stock_code'],
-                    'name': cand['stock_name'],
-                    'price': cand['current_price'],
-                    'change_rate': cand['change_rate'],
-                    'ai_score': cand['score'],
+                    'code': cand.get('stock_code', ''),
+                    'name': cand.get('stock_name', ''),
+                    'price': cand.get('current_price', 0),
+                    'change_rate': cand.get('change_rate', 0),
+                    'ai_score': cand.get('score', 0),
                     'signal': 'BUY',
                     'split_strategy': cand.get('split_strategy', ''),
                     'reason': cand.get('ai_reason', ''),
                     'timestamp': cand.get('timestamp', '')
                 })
-            return jsonify(candidates)
+            except Exception as e:
+                print(f"Error processing candidate {cand}: {e}")
+                continue
 
-        # 데이터가 없으면 빈 배열
-        return jsonify([])
+        return jsonify(candidates)
+
     except Exception as e:
         print(f"Error getting candidates: {e}")
         import traceback
@@ -2899,32 +2940,59 @@ def get_websocket_subscriptions():
             'total': 0
         }
 
-        # WebSocketManager 사용 (있는 경우)
+        # WebSocketManager 사용 (있는 경우) - v5.3.2 수정
         if bot_instance and hasattr(bot_instance, 'websocket_manager'):
             ws_manager = bot_instance.websocket_manager
-            if ws_manager and hasattr(ws_manager, 'get_subscription_summary'):
+            if ws_manager and hasattr(ws_manager, 'get_subscription_info'):
                 try:
-                    summary = ws_manager.get_subscription_summary()
-                    subscriptions = summary
-                except:
-                    pass
+                    # get_subscription_info() 반환값: {'connected': bool, 'logged_in': bool, 'subscriptions': {...}, 'ws_url': str}
+                    info = ws_manager.get_subscription_info()
+                    subs = info.get('subscriptions', {})
 
-        # TODO: 실제 구독 종목 리스트 추가 (구현 필요)
-        # 현재는 보유 종목만 표시
-        if bot_instance and hasattr(bot_instance, 'get_holdings'):
+                    # subscriptions는 {grp_no: {stock_codes: [...], types: [...], ...}} 형식
+                    for grp_no, sub_info in subs.items():
+                        stock_codes = sub_info.get('stock_codes', [])
+                        types = sub_info.get('types', [])
+
+                        for stock_code in stock_codes:
+                            for sub_type in types:
+                                item = {
+                                    'stock_code': stock_code,
+                                    'stock_name': stock_code,  # 종목명은 별도 조회 필요
+                                    'type': sub_type,
+                                    'grp_no': grp_no
+                                }
+
+                                # 타입별로 분류
+                                if sub_type in ['0B', '0A']:  # 주식체결, 주식기세
+                                    subscriptions['price'].append(item)
+                                elif sub_type in ['0D', '0C']:  # 주식호가잔량, 주식우선호가
+                                    subscriptions['orderbook'].append(item)
+                                elif sub_type in ['00', '04']:  # 주문체결, 잔고
+                                    subscriptions['execution'].append(item)
+                except Exception as e:
+                    print(f"웹소켓 구독 정보 조회 오류: {e}")
+
+        # 보유 종목 추가 (WebSocket에 없는 경우)
+        if bot_instance and hasattr(bot_instance, 'account_api'):
             try:
-                holdings = bot_instance.get_holdings()
+                holdings = bot_instance.account_api.get_holdings()
                 if holdings:
+                    existing_codes = {item['stock_code'] for item in subscriptions['price']}
                     for holding in holdings:
-                        stock_code = holding.get('stk_cd')
-                        stock_name = holding.get('stk_nm', stock_code)
-                        subscriptions['price'].append({
-                            'stock_code': stock_code,
-                            'stock_name': stock_name,
-                            'type': 'holdings'
-                        })
-            except:
-                pass
+                        stock_code = str(holding.get('stk_cd', '')).strip()
+                        if stock_code.startswith('A'):
+                            stock_code = stock_code[1:]
+
+                        if stock_code and stock_code not in existing_codes:
+                            stock_name = holding.get('stk_nm', stock_code)
+                            subscriptions['price'].append({
+                                'stock_code': stock_code,
+                                'stock_name': stock_name,
+                                'type': 'holdings'
+                            })
+            except Exception as e:
+                print(f"보유 종목 조회 오류: {e}")
 
         subscriptions['total'] = (
             len(subscriptions['price']) +
@@ -2953,7 +3021,9 @@ def get_websocket_subscriptions():
 def get_real_holdings():
     """실제 보유 종목 상세 정보 (수익률, ATR 기반 손절/익절)"""
     try:
+        # v5.3.2: bot_instance 체크 강화
         if not bot_instance:
+            print("Error: bot_instance is None")
             return jsonify({
                 'success': False,
                 'message': 'Bot not initialized'
@@ -2962,184 +3032,191 @@ def get_real_holdings():
         holdings = []
 
         # 실제 보유 종목 조회
-        if hasattr(bot_instance, 'account_api'):
-            raw_holdings = bot_instance.account_api.get_holdings()
+        if not hasattr(bot_instance, 'account_api'):
+            print("Error: bot_instance has no account_api")
+            return jsonify({
+                'success': False,
+                'message': 'Account API not available'
+            })
 
-            if raw_holdings:
-                for holding in raw_holdings:
-                    stock_code = str(holding.get('stk_cd', '')).strip()
-                    # A 접두사 제거
-                    if stock_code.startswith('A'):
-                        stock_code = stock_code[1:]
+        raw_holdings = bot_instance.account_api.get_holdings()
 
-                    stock_name = holding.get('stk_nm', stock_code)
-                    quantity = int(str(holding.get('rmnd_qty', 0)).replace(',', ''))
-                    avg_price = int(str(holding.get('avg_prc', 0)).replace(',', ''))
-                    current_price = int(str(holding.get('cur_prc', 0)).replace(',', ''))
-                    eval_amount = int(str(holding.get('eval_amt', 0)).replace(',', ''))
+        if not raw_holdings:
+            print("No holdings found")
+            return jsonify({
+                'success': True,
+                'data': []
+            })
 
-                    if quantity <= 0:
-                        continue
+        print(f"Processing {len(raw_holdings)} holdings...")
 
-                    # 수익률 계산
-                    pnl = (current_price - avg_price) * quantity
-                    pnl_rate = ((current_price - avg_price) / avg_price * 100) if avg_price > 0 else 0
+        # v5.3.2: 각 종목 처리를 try-except로 감싸서 하나가 실패해도 다른 종목은 계속 처리
+        for idx, holding in enumerate(raw_holdings):
+            try:
+                stock_code = str(holding.get('stk_cd', '')).strip()
+                # A 접두사 제거
+                if stock_code.startswith('A'):
+                    stock_code = stock_code[1:]
 
-                    # ATR 기반 동적 손절/익절 계산
-                    stop_loss_price = avg_price
-                    take_profit_price = avg_price
+                stock_name = holding.get('stk_nm', stock_code)
+                quantity = int(str(holding.get('rmnd_qty', 0)).replace(',', ''))
 
-                    try:
-                        # ATR 조회 (14일 기준)
-                        if hasattr(bot_instance, 'market_api'):
-                            # 일봉 데이터로 ATR 계산
-                            daily_data = bot_instance.market_api.get_daily_chart(stock_code, period=20)
+                if quantity <= 0:
+                    continue
 
-                            if daily_data and len(daily_data) >= 14:
-                                # ATR 계산 (True Range 평균)
-                                atr_values = []
-                                for i in range(1, min(15, len(daily_data))):
-                                    high = daily_data[i].get('high', 0)
-                                    low = daily_data[i].get('low', 0)
-                                    prev_close = daily_data[i-1].get('close', 0)
+                avg_price = int(str(holding.get('avg_prc', 0)).replace(',', ''))
+                current_price = int(str(holding.get('cur_prc', 0)).replace(',', ''))
+                eval_amount = int(str(holding.get('eval_amt', 0)).replace(',', ''))
 
-                                    tr = max(
-                                        high - low,
-                                        abs(high - prev_close),
-                                        abs(low - prev_close)
-                                    )
-                                    atr_values.append(tr)
+                # 수익률 계산
+                pnl = (current_price - avg_price) * quantity
+                pnl_rate = ((current_price - avg_price) / avg_price * 100) if avg_price > 0 else 0
 
-                                if atr_values:
-                                    atr = sum(atr_values) / len(atr_values)
+                # v5.3.2: 기본값 설정 (ATR 계산 실패 시 사용)
+                stop_loss_price = int(avg_price * 0.95)  # -5%
+                take_profit_price = int(avg_price * 1.10)  # +10%
+                kelly_fraction = 0.10
+                sharpe_ratio = 0
+                max_dd = 0
+                rsi = 50
+                bb_position = 0.5
+                risk_reward_ratio = 2.0
 
-                                    # ATR 기반 손절/익절 (2 ATR)
-                                    stop_loss_price = int(avg_price - (atr * 2))
-                                    take_profit_price = int(avg_price + (atr * 3))
+                # ATR 기반 동적 손절/익절 계산 (선택적)
+                try:
+                    # ATR 조회 (14일 기준)
+                    if hasattr(bot_instance, 'market_api'):
+                        print(f"  [{idx+1}/{len(raw_holdings)}] Fetching daily data for {stock_code}...")
+                        # 일봉 데이터로 ATR 계산
+                        daily_data = bot_instance.market_api.get_daily_chart(stock_code, period=20)
 
-                                    # Kelly Criterion 계산 (승률 60%, Risk/Reward 1.5배 가정)
-                                    win_rate = 0.60
-                                    avg_win_loss_ratio = 1.5
-                                    kelly_fraction = (win_rate * avg_win_loss_ratio - (1 - win_rate)) / avg_win_loss_ratio
-                                    kelly_fraction = max(0, min(kelly_fraction, 0.25))  # 최대 25%로 제한
+                        if daily_data and len(daily_data) >= 14:
+                            # ATR 계산 (True Range 평균)
+                            atr_values = []
+                            for i in range(1, min(15, len(daily_data))):
+                                high = daily_data[i].get('high', 0)
+                                low = daily_data[i].get('low', 0)
+                                prev_close = daily_data[i-1].get('close', 0)
 
-                                    # Sharpe Ratio 추정 (최근 20일 수익률 기반)
-                                    returns = []
-                                    for i in range(1, len(daily_data)):
-                                        close_today = daily_data[i-1].get('close', 0)
-                                        close_yesterday = daily_data[i].get('close', 0)
-                                        if close_yesterday > 0:
-                                            ret = (close_today - close_yesterday) / close_yesterday
-                                            returns.append(ret)
+                                tr = max(
+                                    high - low,
+                                    abs(high - prev_close),
+                                    abs(low - prev_close)
+                                )
+                                atr_values.append(tr)
 
-                                    if returns:
-                                        avg_return = sum(returns) / len(returns)
-                                        variance = sum((r - avg_return) ** 2 for r in returns) / len(returns)
-                                        std_return = variance ** 0.5
-                                        sharpe_ratio = (avg_return / std_return * (252 ** 0.5)) if std_return > 0 else 0
-                                    else:
-                                        sharpe_ratio = 0
+                            if atr_values:
+                                atr = sum(atr_values) / len(atr_values)
 
-                                    # Maximum Drawdown 계산
-                                    peak = daily_data[0].get('close', current_price)
-                                    max_dd = 0
-                                    for data in daily_data:
-                                        price = data.get('close', 0)
-                                        if price > peak:
-                                            peak = price
-                                        dd = (peak - price) / peak if peak > 0 else 0
-                                        if dd > max_dd:
-                                            max_dd = dd
+                                # ATR 기반 손절/익절 (2 ATR)
+                                stop_loss_price = int(avg_price - (atr * 2))
+                                take_profit_price = int(avg_price + (atr * 3))
 
-                                    # RSI 계산 (14일)
-                                    gains = []
-                                    losses = []
-                                    for i in range(1, min(15, len(daily_data))):
-                                        change = daily_data[i-1].get('close', 0) - daily_data[i].get('close', 0)
-                                        if change > 0:
-                                            gains.append(change)
-                                            losses.append(0)
-                                        else:
-                                            gains.append(0)
-                                            losses.append(abs(change))
+                                # Kelly Criterion 계산 (승률 60%, Risk/Reward 1.5배 가정)
+                                win_rate = 0.60
+                                avg_win_loss_ratio = 1.5
+                                kelly_fraction = (win_rate * avg_win_loss_ratio - (1 - win_rate)) / avg_win_loss_ratio
+                                kelly_fraction = max(0, min(kelly_fraction, 0.25))  # 최대 25%로 제한
 
-                                    avg_gain = sum(gains) / len(gains) if gains else 0
-                                    avg_loss = sum(losses) / len(losses) if losses else 0.01
-                                    rs = avg_gain / avg_loss if avg_loss > 0 else 0
-                                    rsi = 100 - (100 / (1 + rs)) if rs > 0 else 50
+                                # Sharpe Ratio 추정 (최근 20일 수익률 기반)
+                                returns = []
+                                for j in range(1, len(daily_data)):
+                                    close_today = daily_data[j-1].get('close', 0)
+                                    close_yesterday = daily_data[j].get('close', 0)
+                                    if close_yesterday > 0:
+                                        ret = (close_today - close_yesterday) / close_yesterday
+                                        returns.append(ret)
 
-                                    # Bollinger Bands 위치 (20일 SMA, 2 표준편차)
-                                    closes = [d.get('close', 0) for d in daily_data[:20]]
-                                    sma_20 = sum(closes) / len(closes) if closes else current_price
-                                    variance_bb = sum((c - sma_20) ** 2 for c in closes) / len(closes) if closes else 0
-                                    std_20 = variance_bb ** 0.5
-                                    bb_upper = sma_20 + (std_20 * 2)
-                                    bb_lower = sma_20 - (std_20 * 2)
-                                    bb_position = ((current_price - bb_lower) / (bb_upper - bb_lower)) if (bb_upper - bb_lower) > 0 else 0.5
+                                if returns:
+                                    avg_return = sum(returns) / len(returns)
+                                    variance = sum((r - avg_return) ** 2 for r in returns) / len(returns)
+                                    std_return = variance ** 0.5
+                                    sharpe_ratio = (avg_return / std_return * (252 ** 0.5)) if std_return > 0 else 0
+                                else:
+                                    sharpe_ratio = 0
 
-                                    # Risk/Reward Ratio
-                                    potential_loss = current_price - stop_loss_price
-                                    potential_gain = take_profit_price - current_price
-                                    risk_reward_ratio = potential_gain / potential_loss if potential_loss > 0 else 0
-                            else:
-                                # ATR 계산 불가 시 고정값 사용
-                                stop_loss_price = int(avg_price * 0.95)  # -5%
-                                take_profit_price = int(avg_price * 1.10)  # +10%
-                                kelly_fraction = 0.10
-                                sharpe_ratio = 0
+                                # Maximum Drawdown 계산
+                                peak = daily_data[0].get('close', current_price)
                                 max_dd = 0
-                                rsi = 50
-                                bb_position = 0.5
-                                risk_reward_ratio = 2.0
-                        else:
-                            # market_api 없으면 고정값
-                            stop_loss_price = int(avg_price * 0.95)
-                            take_profit_price = int(avg_price * 1.10)
-                            kelly_fraction = 0.10
-                            sharpe_ratio = 0
-                            max_dd = 0
-                            rsi = 50
-                            bb_position = 0.5
-                            risk_reward_ratio = 2.0
+                                for data in daily_data:
+                                    price = data.get('close', 0)
+                                    if price > peak:
+                                        peak = price
+                                    dd = (peak - price) / peak if peak > 0 else 0
+                                    if dd > max_dd:
+                                        max_dd = dd
 
-                    except Exception as e:
-                        print(f"⚠️ Advanced metrics calculation failed ({stock_code}): {e}")
-                        # 기본값 사용
-                        stop_loss_price = int(avg_price * 0.95)
-                        take_profit_price = int(avg_price * 1.10)
-                        kelly_fraction = 0.10
-                        sharpe_ratio = 0
-                        max_dd = 0
-                        rsi = 50
-                        bb_position = 0.5
-                        risk_reward_ratio = 2.0
+                                # RSI 계산 (14일)
+                                gains = []
+                                losses = []
+                                for k in range(1, min(15, len(daily_data))):
+                                    change = daily_data[k-1].get('close', 0) - daily_data[k].get('close', 0)
+                                    if change > 0:
+                                        gains.append(change)
+                                        losses.append(0)
+                                    else:
+                                        gains.append(0)
+                                        losses.append(abs(change))
 
-                    # 손절/익절까지 거리 계산
-                    distance_to_stop = ((stop_loss_price - current_price) / current_price * 100) if current_price > 0 else 0
-                    distance_to_target = ((take_profit_price - current_price) / current_price * 100) if current_price > 0 else 0
+                                avg_gain = sum(gains) / len(gains) if gains else 0
+                                avg_loss = sum(losses) / len(losses) if losses else 0.01
+                                rs = avg_gain / avg_loss if avg_loss > 0 else 0
+                                rsi = 100 - (100 / (1 + rs)) if rs > 0 else 50
 
-                    holdings.append({
-                        'stock_code': stock_code,
-                        'stock_name': stock_name,
-                        'quantity': quantity,
-                        'avg_price': avg_price,
-                        'current_price': current_price,
-                        'eval_amount': eval_amount,
-                        'pnl': pnl,
-                        'pnl_rate': round(pnl_rate, 2),
-                        'stop_loss_price': stop_loss_price,
-                        'take_profit_price': take_profit_price,
-                        'distance_to_stop': round(distance_to_stop, 2),
-                        'distance_to_target': round(distance_to_target, 2),
-                        'atr_based': True,  # ATR 기반 여부
-                        # 진보된 지표들
-                        'kelly_fraction': round(kelly_fraction, 3),
-                        'sharpe_ratio': round(sharpe_ratio, 2),
-                        'max_drawdown': round(max_dd * 100, 2),
-                        'rsi': round(rsi, 1),
-                        'bb_position': round(bb_position, 2),
-                        'risk_reward_ratio': round(risk_reward_ratio, 2)
-                    })
+                                # Bollinger Bands 위치 (20일 SMA, 2 표준편차)
+                                closes = [d.get('close', 0) for d in daily_data[:20]]
+                                sma_20 = sum(closes) / len(closes) if closes else current_price
+                                variance_bb = sum((c - sma_20) ** 2 for c in closes) / len(closes) if closes else 0
+                                std_20 = variance_bb ** 0.5
+                                bb_upper = sma_20 + (std_20 * 2)
+                                bb_lower = sma_20 - (std_20 * 2)
+                                bb_position = ((current_price - bb_lower) / (bb_upper - bb_lower)) if (bb_upper - bb_lower) > 0 else 0.5
+
+                                # Risk/Reward Ratio
+                                potential_loss = current_price - stop_loss_price
+                                potential_gain = take_profit_price - current_price
+                                risk_reward_ratio = potential_gain / potential_loss if potential_loss > 0 else 0
+
+                                print(f"    ✓ ATR-based metrics calculated for {stock_code}")
+
+                except Exception as e:
+                    print(f"⚠️ Advanced metrics calculation failed ({stock_code}): {e}")
+                    # 기본값은 이미 설정됨 (3075-3083번 줄)
+
+                # 손절/익절까지 거리 계산
+                distance_to_stop = ((stop_loss_price - current_price) / current_price * 100) if current_price > 0 else 0
+                distance_to_target = ((take_profit_price - current_price) / current_price * 100) if current_price > 0 else 0
+
+                holdings.append({
+                    'stock_code': stock_code,
+                    'stock_name': stock_name,
+                    'quantity': quantity,
+                    'avg_price': avg_price,
+                    'current_price': current_price,
+                    'eval_amount': eval_amount,
+                    'pnl': pnl,
+                    'pnl_rate': round(pnl_rate, 2),
+                    'stop_loss_price': stop_loss_price,
+                    'take_profit_price': take_profit_price,
+                    'distance_to_stop': round(distance_to_stop, 2),
+                    'distance_to_target': round(distance_to_target, 2),
+                    'atr_based': True,  # ATR 기반 여부
+                    # 진보된 지표들
+                    'kelly_fraction': round(kelly_fraction, 3),
+                    'sharpe_ratio': round(sharpe_ratio, 2),
+                    'max_drawdown': round(max_dd * 100, 2),
+                    'rsi': round(rsi, 1),
+                    'bb_position': round(bb_position, 2),
+                    'risk_reward_ratio': round(risk_reward_ratio, 2)
+                })
+
+                print(f"  [{idx+1}/{len(raw_holdings)}] ✓ {stock_code} processed")
+
+            except Exception as e:
+                print(f"  [{idx+1}/{len(raw_holdings)}] ❌ Error processing holding: {e}")
+                continue
+
+        print(f"Successfully processed {len(holdings)} holdings")
 
         return jsonify({
             'success': True,
