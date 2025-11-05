@@ -868,7 +868,84 @@
                 </div>
 
                 <!-- v5.7.5: New Features -->
+                <!-- Performance Summary Banner -->
+                <div class="card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; margin-bottom: 20px;">
+                    <div style="padding: 20px;">
+                        <div style="font-size: 13px; opacity: 0.9; margin-bottom: 12px;">
+                            <i class="fas fa-chart-area"></i> 실시간 포트폴리오 성과
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;">
+                            <div>
+                                <div style="font-size: 11px; opacity: 0.8; margin-bottom: 4px;">총 평가액</div>
+                                <div style="font-size: 20px; font-weight: 700;" id="perf-total-value">₩0</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 11px; opacity: 0.8; margin-bottom: 4px;">총 손익</div>
+                                <div style="font-size: 20px; font-weight: 700;" id="perf-total-profit">₩0</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 11px; opacity: 0.8; margin-bottom: 4px;">수익률</div>
+                                <div style="font-size: 20px; font-weight: 700;" id="perf-profit-pct">0%</div>
+                            </div>
+                            <div>
+                                <div style="font-size: 11px; opacity: 0.8; margin-bottom: 4px;">승률</div>
+                                <div style="font-size: 20px; font-weight: 700;" id="perf-win-rate">0%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Alerts -->
+                <div id="ai-alerts-container" style="display: none; margin-bottom: 20px;">
+                    <div class="card" style="background: #fff1f2; border-left: 4px solid #ef4444; border-radius: 8px;">
+                        <div style="padding: 15px;">
+                            <div style="font-weight: 600; margin-bottom: 10px; color: #ef4444; font-size: 13px;">
+                                <i class="fas fa-exclamation-triangle"></i> 긴급 알림
+                            </div>
+                            <div id="ai-alerts" style="font-size: 12px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Position Monitor -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fas fa-crosshairs"></i>
+                            실시간 포지션 모니터링 & AI 매매 신호
+                        </div>
+                        <button onclick="loadPositionMonitor()" style="padding: 5px 12px; background: var(--color-primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 11px;">
+                            <i class="fas fa-sync-alt"></i> 새로고침
+                        </button>
+                    </div>
+                    <div id="position-monitor" style="overflow-x: auto;">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <p>분석 중...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Portfolio Optimization & Market Trend -->
                 <div class="grid-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <i class="fas fa-balance-scale"></i>
+                                포트폴리오 최적화 제안
+                            </div>
+                            <button onclick="loadPortfolioOptimization()" style="padding: 4px 10px; background: var(--color-primary); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">
+                                <i class="fas fa-sync-alt"></i> 갱신
+                            </button>
+                        </div>
+                        <div id="portfolio-optimization">
+                            <div class="loading">
+                                <div class="spinner"></div>
+                                <p>분석 중...</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="card">
                         <div class="card-header">
                             <div class="card-title">
@@ -886,22 +963,23 @@
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-title">
-                                <i class="fas fa-lightbulb"></i>
-                                AI 추천 종목 (Top 5)
-                            </div>
-                            <button onclick="loadStockRecommendations()" style="padding: 4px 10px; background: var(--color-primary); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">
-                                <i class="fas fa-sync-alt"></i> 갱신
-                            </button>
+                <!-- Stock Recommendations -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <i class="fas fa-lightbulb"></i>
+                            AI 추천 종목 (Top 5)
                         </div>
-                        <div id="stock-recommendations">
-                            <div class="loading">
-                                <div class="spinner"></div>
-                                <p>분석 중...</p>
-                            </div>
+                        <button onclick="loadStockRecommendations()" style="padding: 4px 10px; background: var(--color-primary); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 11px;">
+                            <i class="fas fa-sync-alt"></i> 갱신
+                        </button>
+                    </div>
+                    <div id="stock-recommendations">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <p>분석 중...</p>
                         </div>
                     </div>
                 </div>
@@ -1361,7 +1439,11 @@
 
             // Load tab-specific data
             if (index === 1) {
-                loadAIAnalysis();
+                // v5.7.5: Load all AI analysis features
+                loadPositionMonitor();
+                loadPortfolioOptimization();
+                loadMarketTrend();
+                loadStockRecommendations();
             } else if (index === 2) {
                 // v5.6: Load virtual trades once when tab is opened
                 loadPaperTradingData();
@@ -2337,6 +2419,183 @@
             } catch (error) {
                 console.error('Market trend error:', error);
                 document.getElementById('market-trend-analysis').innerHTML =
+                    '<div style="padding: 15px; color: var(--color-danger); font-size: 12px;">오류 발생</div>';
+            }
+        }
+
+        // v5.7.5: Load Position Monitor
+        async function loadPositionMonitor() {
+            try {
+                const response = await fetch('/api/ai/position-monitor');
+                const data = await response.json();
+
+                const container = document.getElementById('position-monitor');
+                if (!data.success || !data.positions || data.positions.length === 0) {
+                    container.innerHTML = '<div style="padding: 15px; color: var(--text-secondary); font-size: 12px;">보유 종목 없음</div>';
+                    return;
+                }
+
+                // Update performance summary
+                const summary = data.summary;
+                document.getElementById('perf-total-value').textContent = '₩' + formatNumber(summary.total_value);
+                document.getElementById('perf-total-profit').textContent = (summary.total_profit >= 0 ? '+' : '') + '₩' + formatNumber(summary.total_profit);
+                document.getElementById('perf-total-profit').style.color = summary.total_profit >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
+                document.getElementById('perf-profit-pct').textContent = (summary.total_profit_pct >= 0 ? '+' : '') + summary.total_profit_pct.toFixed(2) + '%';
+                document.getElementById('perf-profit-pct').style.color = summary.total_profit_pct >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
+                const winRate = summary.holding_count > 0 ? (summary.winning_count / summary.holding_count * 100).toFixed(1) : 0;
+                document.getElementById('perf-win-rate').textContent = winRate + '%';
+
+                // Show alerts if any
+                if (data.alerts && data.alerts.length > 0) {
+                    document.getElementById('ai-alerts-container').style.display = 'block';
+                    let alertsHtml = '';
+                    data.alerts.forEach(alert => {
+                        alertsHtml += `<div style="padding: 8px; background: white; border-radius: 4px; margin-bottom: 5px; color: #991b1b;">
+                            <strong>${alert.stock}</strong>: ${alert.message}
+                        </div>`;
+                    });
+                    document.getElementById('ai-alerts').innerHTML = alertsHtml;
+                } else {
+                    document.getElementById('ai-alerts-container').style.display = 'none';
+                }
+
+                // Build positions table
+                let html = `
+                    <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                        <thead>
+                            <tr style="background: var(--bg-secondary); text-align: left;">
+                                <th style="padding: 10px; border-bottom: 1px solid var(--border-color);">종목</th>
+                                <th style="padding: 10px; border-bottom: 1px solid var(--border-color);">매입가</th>
+                                <th style="padding: 10px; border-bottom: 1px solid var(--border-color);">현재가</th>
+                                <th style="padding: 10px; border-bottom: 1px solid var(--border-color);">손익률</th>
+                                <th style="padding: 10px; border-bottom: 1px solid var(--border-color);">AI 등급</th>
+                                <th style="padding: 10px; border-bottom: 1px solid var(--border-color);">신호</th>
+                                <th style="padding: 10px; border-bottom: 1px solid var(--border-color);">손절가</th>
+                                <th style="padding: 10px; border-bottom: 1px solid var(--border-color);">익절가</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                data.positions.forEach(pos => {
+                    const profitColor = pos.profit_pct >= 0 ? 'var(--color-success)' : 'var(--color-danger)';
+                    const gradeColor = pos.ai_grade === 'S' ? '#fbbf24' :
+                                     pos.ai_grade === 'A' ? '#10b981' :
+                                     pos.ai_grade === 'B' ? '#3b82f6' : '#9ca3af';
+
+                    html += `
+                        <tr style="border-bottom: 1px solid var(--border-color);" onmouseover="this.style.background='var(--bg-primary)'" onmouseout="this.style.background='transparent'">
+                            <td style="padding: 10px;">
+                                <div style="font-weight: 600;">${pos.name}</div>
+                                <div style="font-size: 10px; color: var(--text-muted);">${pos.code}</div>
+                            </td>
+                            <td style="padding: 10px;">₩${formatNumber(pos.buy_price)}</td>
+                            <td style="padding: 10px;">₩${formatNumber(pos.current_price)}</td>
+                            <td style="padding: 10px; color: ${profitColor}; font-weight: 600;">
+                                ${pos.profit_pct >= 0 ? '+' : ''}${pos.profit_pct}%
+                                <div style="font-size: 10px;">${pos.profit >= 0 ? '+' : ''}₩${formatNumber(pos.profit)}</div>
+                            </td>
+                            <td style="padding: 10px;">
+                                <span style="background: ${gradeColor}; color: black; padding: 2px 8px; border-radius: 4px; font-weight: 700;">${pos.ai_grade}</span>
+                                <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">${pos.ai_score.toFixed(0)}점</div>
+                            </td>
+                            <td style="padding: 10px;">
+                                <div style="color: ${pos.signal_color}; font-weight: 600;">${pos.signal}</div>
+                                <div style="font-size: 10px; color: var(--text-muted);">${pos.signal_reason}</div>
+                            </td>
+                            <td style="padding: 10px; color: var(--color-danger);">₩${formatNumber(pos.stop_loss_price)}</td>
+                            <td style="padding: 10px; color: var(--color-success);">₩${formatNumber(pos.take_profit_price)}</td>
+                        </tr>
+                    `;
+                });
+
+                html += '</tbody></table>';
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('Position monitor error:', error);
+                document.getElementById('position-monitor').innerHTML =
+                    '<div style="padding: 15px; color: var(--color-danger); font-size: 12px;">오류 발생</div>';
+            }
+        }
+
+        // v5.7.5: Load Portfolio Optimization
+        async function loadPortfolioOptimization() {
+            try {
+                const response = await fetch('/api/ai/portfolio-optimization');
+                const data = await response.json();
+
+                const container = document.getElementById('portfolio-optimization');
+                if (!data.success || !data.optimization) {
+                    container.innerHTML = '<div style="padding: 15px; color: var(--text-secondary); font-size: 12px;">데이터 없음</div>';
+                    return;
+                }
+
+                const opt = data.optimization;
+                const statusColor = opt.status === 'optimal' ? 'var(--color-success)' :
+                                  opt.status === 'needs_attention' ? 'var(--color-warning)' : 'var(--color-danger)';
+
+                let html = `
+                    <div style="padding: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <div>
+                                <div style="font-size: 11px; color: var(--text-secondary);">상태</div>
+                                <div style="font-size: 18px; font-weight: 700; color: ${statusColor};">
+                                    ${opt.status === 'optimal' ? '✓ 최적화됨' : '⚠ 조정 필요'}
+                                </div>
+                            </div>
+                            <div>
+                                <div style="font-size: 11px; color: var(--text-secondary);">리스크</div>
+                                <div style="font-size: 18px; font-weight: 700;">${opt.risk_level}</div>
+                            </div>
+                        </div>
+                `;
+
+                // Show suggestions
+                if (opt.suggestions && opt.suggestions.length > 0) {
+                    html += '<div style="margin-top: 15px;">';
+                    opt.suggestions.forEach(sug => {
+                        const icon = sug.type === 'warning' ? '⚠' :
+                                   sug.type === 'info' ? 'ℹ' : '→';
+                        const bgColor = sug.type === 'warning' ? '#fff1f2' :
+                                      sug.type === 'info' ? '#eff6ff' : '#f0fdf4';
+                        const borderColor = sug.type === 'warning' ? '#ef4444' :
+                                          sug.type === 'info' ? '#3b82f6' : '#10b981';
+
+                        html += `
+                            <div style="background: ${bgColor}; border-left: 3px solid ${borderColor}; padding: 10px; margin-bottom: 8px; border-radius: 4px;">
+                                <div style="font-size: 12px; font-weight: 600; margin-bottom: 4px;">${icon} ${sug.title}</div>
+                                <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">${sug.message}</div>
+                                <div style="font-size: 11px; color: var(--color-primary);">→ ${sug.action}</div>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                }
+
+                // Show weights
+                if (opt.weights && opt.weights.length > 0) {
+                    html += '<div style="margin-top: 15px; font-size: 11px; color: var(--text-secondary);">종목 비중:</div>';
+                    opt.weights.forEach(w => {
+                        const barWidth = Math.min(w.weight, 100);
+                        html += `
+                            <div style="margin-top: 5px;">
+                                <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 2px;">
+                                    <span>${w.name}</span>
+                                    <span style="font-weight: 600;">${w.weight.toFixed(1)}%</span>
+                                </div>
+                                <div style="width: 100%; height: 6px; background: var(--bg-secondary); border-radius: 3px; overflow: hidden;">
+                                    <div style="width: ${barWidth}%; height: 100%; background: linear-gradient(90deg, #3b82f6, #8b5cf6);"></div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+
+                html += '</div>';
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('Portfolio optimization error:', error);
+                document.getElementById('portfolio-optimization').innerHTML =
                     '<div style="padding: 15px; color: var(--color-danger); font-size: 12px;">오류 발생</div>';
             }
         }
