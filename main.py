@@ -45,6 +45,7 @@ from strategy.dynamic_risk_manager import DynamicRiskManager
 from strategy import PortfolioManager
 from ai.mock_analyzer import MockAnalyzer  # 테스트: Mock 직접 사용
 from utils.activity_monitor import get_monitor
+from utils.alert_manager import get_alert_manager  # v5.7.5: 알림 시스템
 
 # 가상 매매 시스템
 from virtual_trading import VirtualTrader, TradeLogger
@@ -113,6 +114,9 @@ class TradingBotV2:
 
         # 활동 모니터
         self.monitor = get_monitor()
+
+        # v5.7.5: 알림 관리자
+        self.alert_manager = get_alert_manager()
 
         # 데이터베이스 세션
         self.db_session = None
@@ -857,6 +861,16 @@ class TradingBotV2:
                 profit_loss = (current_price - buy_price) * quantity
                 profit_loss_rate = ((current_price - buy_price) / buy_price) * 100 if buy_price > 0 else 0
 
+                # v5.7.5: 손익 알림 체크
+                self.alert_manager.check_position_alerts(
+                    stock_code=stock_code,
+                    stock_name=stock_name,
+                    current_price=current_price,
+                    buy_price=buy_price,
+                    profit_loss_rate=profit_loss_rate,
+                    profit_loss_amount=profit_loss
+                )
+
                 # 청산 임계값 가져오기
                 thresholds = self.dynamic_risk_manager.get_exit_thresholds(buy_price)
 
@@ -1296,6 +1310,14 @@ class TradingBotV2:
 
                 logger.info(f"✅ {stock_name} 매수 성공 (주문번호: {order_no})")
 
+                # v5.7.5: 매수 알림
+                self.alert_manager.alert_position_opened(
+                    stock_code=stock_code,
+                    stock_name=stock_name,
+                    buy_price=current_price,
+                    quantity=quantity
+                )
+
                 self.monitor.log_activity(
                     'buy',
                     f'✅ {stock_name} 매수: {quantity}주 @ {current_price:,}원',
@@ -1372,6 +1394,16 @@ class TradingBotV2:
 
                 log_level = 'success' if profit_loss >= 0 else 'warning'
                 logger.info(f"✅ {stock_name} 매도 성공 (주문번호: {order_no})")
+
+                # v5.7.5: 매도 알림
+                self.alert_manager.alert_position_closed(
+                    stock_code=stock_code,
+                    stock_name=stock_name,
+                    sell_price=price,
+                    profit_loss_rate=profit_loss_rate,
+                    profit_loss_amount=profit_loss,
+                    reason=reason
+                )
 
                 self.monitor.log_activity(
                     'sell',
