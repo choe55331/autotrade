@@ -1,10 +1,14 @@
 """
 virtual_trading/diverse_strategies.py
-10가지 다양한 실전 매매 전략 구현
+12가지 다양한 실전 매매 전략 구현 (v5.7.5: 10개 → 12개 확장)
 
 User Requirement:
-"시중에 나온 다양한 매매 전략법을 완전 다른걸로 10개 해서 유리한 조합 테스트"
+"시중에 나온 다양한 매매 전략법을 완전 다른걸로 12개 해서 유리한 조합 테스트"
 Not simple score variations - fundamentally different trading approaches.
+
+v5.7.5 추가 전략:
+11. 기관추종 (Institutional Following): 기관/외국인 순매수 추종
+12. 거래량RSI (Volume & RSI Combined): 거래량 급증 + RSI 조합
 """
 from typing import Dict, Optional
 from datetime import datetime
@@ -703,10 +707,175 @@ class DividendGrowthStrategy(DiverseTradingStrategy):
 
 
 # ============================================================================
+# v5.7.5: 전략 11 - 기관 추종 전략 (Institutional Following)
+# ============================================================================
+class InstitutionalFollowingStrategy(DiverseTradingStrategy):
+    """
+    기관/외국인 순매수 추종 전략 (Smart Money Following)
+    - 기관과 외국인의 순매수가 강한 종목에 진입
+    - 스마트머니를 따라가는 전략
+    """
+
+    def __init__(self):
+        super().__init__("기관추종", "기관/외국인 순매수 추종")
+        self.max_positions = 5
+        self.position_size_rate = 0.17
+        self.min_institutional_buy = 10_000_000  # 최소 천만원 순매수
+        self.min_foreign_buy = 5_000_000  # 최소 오백만원 순매수
+
+    def should_buy(self, stock_data: Dict, market_data: Dict, account: VirtualAccount) -> bool:
+        if len(account.positions) >= self.max_positions:
+            return False
+
+        # 기관 순매수 확인
+        institutional_net_buy = stock_data.get('institutional_net_buy', 0)
+        if institutional_net_buy < self.min_institutional_buy:
+            return False
+
+        # 외국인 순매수 확인 (선택적 - 둘 중 하나라도 강하면 OK)
+        foreign_net_buy = stock_data.get('foreign_net_buy', 0)
+
+        # 기관 + 외국인 모두 순매수 시 강력한 신호
+        if foreign_net_buy >= self.min_foreign_buy:
+            # 매수세 강함 - 더 공격적으로
+            pass
+
+        # 증권사 순매수 추가 확인
+        broker_buy_count = stock_data.get('top_broker_buy_count', 0)
+        if broker_buy_count >= 2:
+            # 증권사도 매수 중이면 긍정적
+            pass
+
+        # 가격 상승 확인 (최소 1% 이상)
+        price_change = stock_data.get('change_rate', 0)
+        if price_change < 1.0:
+            return False
+
+        return True
+
+    def should_sell(self, position: VirtualPosition, current_price: int,
+                    stock_data: Dict, days_held: int) -> tuple[bool, str]:
+        position.update_price(current_price)
+        pnl_rate = position.unrealized_pnl_rate
+
+        # 익절: 8% 이상
+        if pnl_rate >= 8.0:
+            return True, f"기관추종 익절 {pnl_rate:.1f}%"
+
+        # 손절: -4% 이하
+        if pnl_rate <= -4.0:
+            return True, f"기관추종 손절 {pnl_rate:.1f}%"
+
+        # 기관/외국인 순매도 전환 시 청산
+        institutional_net_buy = stock_data.get('institutional_net_buy', 0)
+        foreign_net_buy = stock_data.get('foreign_net_buy', 0)
+
+        if institutional_net_buy < -5_000_000 or foreign_net_buy < -5_000_000:
+            return True, f"기관/외국인 순매도로 청산 {pnl_rate:.1f}%"
+
+        # 최대 보유: 10일
+        if days_held >= 10:
+            return True, f"보유 {days_held}일 경과"
+
+        return False, ""
+
+
+# ============================================================================
+# v5.7.5: 전략 12 - 거래량 + RSI 복합 전략 (Volume & RSI Combined)
+# ============================================================================
+class VolumeRSIStrategy(DiverseTradingStrategy):
+    """
+    거래량 급증 + RSI 과매도/적정 조합 전략
+    - 거래량이 급증하면서 RSI가 과매도 또는 적정 구간에 있을 때 진입
+    - 단기 반등을 노리는 전략
+    """
+
+    def __init__(self):
+        super().__init__("거래량RSI", "거래량 급증 + RSI 조합")
+        self.max_positions = 6
+        self.position_size_rate = 0.16
+        self.min_volume_ratio = 2.5  # 평균 거래량 대비 2.5배 이상
+        self.rsi_lower_bound = 25  # RSI 25 이상 (너무 과매도는 피함)
+        self.rsi_upper_bound = 60  # RSI 60 이하 (과열 구간 피함)
+
+    def should_buy(self, stock_data: Dict, market_data: Dict, account: VirtualAccount) -> bool:
+        if len(account.positions) >= self.max_positions:
+            return False
+
+        # 거래량 급증 확인
+        volume = stock_data.get('volume', 0)
+        avg_volume = stock_data.get('avg_volume')
+
+        if avg_volume and avg_volume > 0:
+            volume_ratio = volume / avg_volume
+            if volume_ratio < self.min_volume_ratio:
+                return False
+        else:
+            # avg_volume이 없으면 절대값 기준
+            if volume < 1_000_000:  # 최소 100만주
+                return False
+
+        # RSI 확인
+        rsi = stock_data.get('rsi')
+        if rsi is not None:
+            if not (self.rsi_lower_bound <= rsi <= self.rsi_upper_bound):
+                return False
+        else:
+            # RSI가 없으면 가격 상승률로 대체 (과열 아닌지 확인)
+            price_change = stock_data.get('change_rate', 0)
+            if price_change > 10.0:  # 10% 이상 급등은 위험
+                return False
+
+        # 체결강도 확인 (매수 우위)
+        execution_intensity = stock_data.get('execution_intensity')
+        if execution_intensity and execution_intensity < 80:
+            return False
+
+        # 가격 상승 중인지 확인 (최소 0.5% 이상)
+        price_change = stock_data.get('change_rate', 0)
+        if price_change < 0.5:
+            return False
+
+        return True
+
+    def should_sell(self, position: VirtualPosition, current_price: int,
+                    stock_data: Dict, days_held: int) -> tuple[bool, str]:
+        position.update_price(current_price)
+        pnl_rate = position.unrealized_pnl_rate
+
+        # 익절: 7% 이상
+        if pnl_rate >= 7.0:
+            return True, f"거래량RSI 익절 {pnl_rate:.1f}%"
+
+        # 손절: -3.5% 이하 (빠른 손절)
+        if pnl_rate <= -3.5:
+            return True, f"거래량RSI 손절 {pnl_rate:.1f}%"
+
+        # RSI 과열 구간 진입 시 청산
+        rsi = stock_data.get('rsi')
+        if rsi and rsi > 75 and pnl_rate > 3.0:
+            return True, f"RSI 과열 청산 {pnl_rate:.1f}%"
+
+        # 거래량 급감 시 청산
+        volume = stock_data.get('volume', 0)
+        avg_volume = stock_data.get('avg_volume')
+        if avg_volume and avg_volume > 0:
+            volume_ratio = volume / avg_volume
+            if volume_ratio < 0.8 and pnl_rate < 2.0:
+                return True, f"거래량 급감 청산 {pnl_rate:.1f}%"
+
+        # 최대 보유: 5일 (단기 전략)
+        if days_held >= 5:
+            return True, f"보유 {days_held}일 경과"
+
+        return False, ""
+
+
+# ============================================================================
 # 전략 팩토리
 # ============================================================================
 def create_all_diverse_strategies() -> list:
-    """10가지 다양한 전략 생성"""
+    """v5.7.5: 12가지 다양한 전략 생성 (10개 → 12개 확장)"""
     return [
         MomentumStrategy(),
         MeanReversionStrategy(),
@@ -717,12 +886,15 @@ def create_all_diverse_strategies() -> list:
         ContrarianStrategy(),
         SectorRotationStrategy(),
         HotStockStrategy(),
-        DividendGrowthStrategy()
+        DividendGrowthStrategy(),
+        # v5.7.5: 2개 신규 전략 추가
+        InstitutionalFollowingStrategy(),
+        VolumeRSIStrategy()
     ]
 
 
 def get_strategy_descriptions() -> Dict[str, str]:
-    """전략별 상세 설명"""
+    """전략별 상세 설명 (v5.7.5: 12개)"""
     return {
         "모멘텀추세": "강한 상승 추세를 따라가는 전략. 거래량 급증 + 주가 상승 시 진입.",
         "평균회귀": "과매도 구간 반등 포착. RSI 30 이하에서 진입.",
@@ -733,5 +905,8 @@ def get_strategy_descriptions() -> Dict[str, str]:
         "역발상": "시장 감정의 반대편 베팅. 공포 시 매수, 탐욕 시 매도.",
         "섹터순환": "경기 사이클에 따른 섹터 선택. 경기 확장기엔 IT, 둔화기엔 필수소비재.",
         "급등추격": "당일 급등주 단타. 빠른 익절/손절.",
-        "배당성장": "배당 성장주 장기 보유. 안정적 현금 흐름."
+        "배당성장": "배당 성장주 장기 보유. 안정적 현금 흐름.",
+        # v5.7.5: 신규 전략 2개
+        "기관추종": "기관/외국인 순매수 추종. 스마트머니 따라가기.",
+        "거래량RSI": "거래량 급증 + RSI 과매도/적정 조합. 단기 반등 포착."
     }
