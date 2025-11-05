@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AutoTrade Pro v5.1 - AI 자동매매</title>
+    <title>AutoTrade Pro v5.2 - AI 자동매매</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -589,7 +589,7 @@
         <header class="header">
             <div class="logo">
                 <i class="fas fa-chart-line"></i>
-                <span>AutoTrade Pro v5.1 AI</span>
+                <span>AutoTrade Pro v5.2 AI</span>
             </div>
             <div style="display: flex; align-items: center; gap: 15px;">
                 <a href="/settings" target="_blank" class="settings-btn" title="설정">
@@ -1513,6 +1513,13 @@
                     fetch('/api/portfolio/real-holdings').then(r => r.json()).catch(() => ({success: false, data: []}))
                 ]);
 
+                // v5.2: Check if bot is connected
+                const isBotConnected = account && account.total_assets !== undefined && (connections.rest_api || connections.websocket || connections.gemini);
+
+                if (!isBotConnected && account.total_assets === 0) {
+                    showBotDisconnectedWarning();
+                }
+
                 updateAccount(account);
                 updateStatus(status);
                 updateConnectionStatus(connections);
@@ -1528,6 +1535,45 @@
                 updateRealHoldingsTable(realHoldings);
             } catch (error) {
                 console.error('Error loading data:', error);
+            }
+        }
+
+        // v5.2: Show warning when bot is not connected
+        let warningShown = false;
+        function showBotDisconnectedWarning() {
+            if (warningShown) return;
+            warningShown = true;
+
+            // Update status badge
+            const statusBadge = document.getElementById('status-badge');
+            if (statusBadge) {
+                statusBadge.className = 'status-badge disconnected';
+                statusBadge.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Bot 미연결';
+            }
+
+            // Show warning in portfolio-summary
+            const portfolioSummary = document.getElementById('portfolio-summary');
+            if (portfolioSummary) {
+                portfolioSummary.innerHTML = `
+                    <div style="padding: 20px; text-align: center; color: var(--color-warning);">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 32px; margin-bottom: 10px;"></i>
+                        <div style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">Trading Bot 미연결</div>
+                        <div style="font-size: 11px; color: var(--text-secondary); line-height: 1.4;">
+                            대시보드만 실행 중입니다.<br>
+                            <code style="background: var(--bg-secondary); padding: 2px 6px; border-radius: 4px;">python main.py</code>를 실행하세요.
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Show warning in candidates-list
+            const candidatesList = document.getElementById('candidates-list');
+            if (candidatesList) {
+                candidatesList.innerHTML = `
+                    <div style="padding: 20px; text-align: center; color: var(--text-secondary); font-size: 11px;">
+                        Bot 연결 후 후보 종목이 표시됩니다.
+                    </div>
+                `;
             }
         }
 
