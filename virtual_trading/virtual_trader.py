@@ -2,7 +2,7 @@
 virtual_trading/virtual_trader.py
 가상 트레이더 - 여러 전략 동시 테스트
 
-v5.7: 10가지 다양한 실전 매매 전략 적용
+v5.7.5: 12가지 다양한 실전 매매 전략 적용 (10개 → 12개 확장)
 """
 from typing import Dict, List, Optional, Callable
 from datetime import datetime, timedelta
@@ -125,16 +125,17 @@ class VirtualTrader:
         """
         기본 전략들 생성
 
-        v5.7: 10가지 다양한 실전 매매 전략 적용
+        v5.7.5: 12가지 다양한 실전 매매 전략 적용 (10개 → 12개 확장)
         - 모멘텀추세, 평균회귀, 돌파매매, 가치투자, 스윙매매
         - MACD크로스, 역발상, 섹터순환, 급등추격, 배당성장
+        - 기관추종, 거래량RSI (v5.7.5 신규)
         """
         diverse_strategies = create_all_diverse_strategies()
 
         for strategy in diverse_strategies:
             self.add_diverse_strategy(strategy)
 
-        logger.info(f"✅ 10가지 다양한 전략 생성 완료")
+        logger.info(f"✅ 12가지 다양한 전략 생성 완료 (v5.7.5)")
 
         # 전략별 설명 로깅
         descriptions = get_strategy_descriptions()

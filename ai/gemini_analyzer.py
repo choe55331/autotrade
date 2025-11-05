@@ -69,9 +69,13 @@ class GeminiAnalyzer(BaseAnalyzer):
         else:
             self.api_key = api_key
             self.model_name = model_name or 'gemini-2.5-flash'
-        
+
         self.model = None
-        
+
+        # v5.7.5: AI 분석 TTL 캐시 (5분)
+        self._analysis_cache = {}
+        self._cache_ttl = 300  # 5분 (초)
+
         logger.info(f"GeminiAnalyzer 초기화 (모델: {self.model_name})")
     
     def initialize(self) -> bool:
@@ -130,6 +134,27 @@ class GeminiAnalyzer(BaseAnalyzer):
         is_valid, msg = self.validate_stock_data(stock_data)
         if not is_valid:
             return self._get_error_result(msg)
+
+        # v5.7.5: 캐시 확인 (종목코드 + 점수 기준)
+        stock_code = stock_data.get('stock_code', '')
+        score = score_info.get('score', 0) if score_info else 0
+        cache_key = f"{stock_code}_{int(score)}"  # 점수는 정수로 (소수점 무시)
+
+        # 캐시에서 조회
+        if cache_key in self._analysis_cache:
+            cached_entry = self._analysis_cache[cache_key]
+            cached_time = cached_entry['timestamp']
+            cached_result = cached_entry['result']
+
+            # TTL 체크
+            if (time.time() - cached_time) < self._cache_ttl:
+                logger.info(f"AI 분석 캐시 히트: {stock_code} (캐시 유효시간: {int(self._cache_ttl - (time.time() - cached_time))}초)")
+                print(f"   💾 AI 분석 캐시 사용 (캐시 유효: {int(self._cache_ttl - (time.time() - cached_time))}초)")
+                return cached_result
+            else:
+                # TTL 만료 - 캐시 삭제
+                del self._analysis_cache[cache_key]
+                logger.info(f"AI 분석 캐시 만료: {stock_code}")
 
         # 분석 시작
         start_time = time.time()
@@ -204,6 +229,13 @@ class GeminiAnalyzer(BaseAnalyzer):
 
                 # 응답 파싱
                 result = self._parse_stock_analysis_response(response.text, stock_data)
+
+                # v5.7.5: 캐시에 저장
+                self._analysis_cache[cache_key] = {
+                    'timestamp': time.time(),
+                    'result': result
+                }
+                logger.info(f"AI 분석 결과 캐시 저장: {stock_code} (TTL: {self._cache_ttl}초)")
 
                 # 통계 업데이트
                 elapsed_time = time.time() - start_time

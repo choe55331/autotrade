@@ -66,7 +66,7 @@ realtime_chart_manager = None
 # Import all route blueprints
 from .routes import (
     account_bp, trading_bp, ai_bp, market_bp,
-    portfolio_bp, system_bp, pages_bp
+    portfolio_bp, system_bp, pages_bp, alerts_bp  # v5.7.5: 알림 시스템
 )
 
 # Import route setter functions
@@ -89,6 +89,7 @@ app.register_blueprint(market_bp)
 app.register_blueprint(portfolio_bp)
 app.register_blueprint(system_bp)
 app.register_blueprint(pages_bp)
+app.register_blueprint(alerts_bp)  # v5.7.5: 알림 시스템
 
 # Register WebSocket handlers
 from .websocket import register_websocket_handlers

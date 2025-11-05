@@ -81,47 +81,107 @@ class ScoringSystem:
 
         logger.info("📊 10가지 기준 스코어링 시스템 초기화 완료")
 
-    def calculate_score(self, stock_data: Dict[str, Any]) -> ScoringResult:
+        # v5.7.5: 스캔 타입별 가중치 프로파일
+        self.scan_type_weights = {
+            # VolumeBasedStrategy: 거래량, 체결강도, 호가비율 중시
+            'volume_based': {
+                'volume_surge': 1.5,
+                'price_momentum': 0.8,
+                'institutional_buying': 1.0,
+                'bid_strength': 1.3,
+                'execution_intensity': 1.5,
+                'broker_activity': 1.1,
+                'program_trading': 1.0,
+                'technical_indicators': 0.7,
+                'theme_news': 0.9,
+                'volatility_pattern': 1.0,
+            },
+            # PriceChangeStrategy: 가격모멘텀, 기술지표, 변동성 중시
+            'price_change': {
+                'volume_surge': 0.9,
+                'price_momentum': 1.5,
+                'institutional_buying': 1.0,
+                'bid_strength': 0.8,
+                'execution_intensity': 0.9,
+                'broker_activity': 1.0,
+                'program_trading': 1.0,
+                'technical_indicators': 1.4,
+                'theme_news': 1.2,
+                'volatility_pattern': 1.3,
+            },
+            # AIDrivenStrategy: 기관매수, 증권사, 프로그램매매 중시
+            'ai_driven': {
+                'volume_surge': 1.0,
+                'price_momentum': 1.0,
+                'institutional_buying': 1.5,
+                'bid_strength': 1.1,
+                'execution_intensity': 1.2,
+                'broker_activity': 1.5,
+                'program_trading': 1.5,
+                'technical_indicators': 1.1,
+                'theme_news': 1.3,
+                'volatility_pattern': 0.9,
+            },
+            # Default: 모든 항목 동일 가중치
+            'default': {
+                'volume_surge': 1.0,
+                'price_momentum': 1.0,
+                'institutional_buying': 1.0,
+                'bid_strength': 1.0,
+                'execution_intensity': 1.0,
+                'broker_activity': 1.0,
+                'program_trading': 1.0,
+                'technical_indicators': 1.0,
+                'theme_news': 1.0,
+                'volatility_pattern': 1.0,
+            },
+        }
+
+    def calculate_score(self, stock_data: Dict[str, Any], scan_type: str = 'default') -> ScoringResult:
         """
         종목 종합 점수 계산
 
         Args:
             stock_data: 종목 데이터
+            scan_type: 스캔 타입 ('volume_based', 'price_change', 'ai_driven', 'default')
 
         Returns:
             ScoringResult 객체
         """
         result = ScoringResult()
 
+        # v5.7.5: 스캔 타입별 가중치 적용
+        weights = self.scan_type_weights.get(scan_type, self.scan_type_weights['default'])
+
         # 1. 거래량 급증 (60점)
-        result.volume_surge_score = self._score_volume_surge(stock_data)
+        result.volume_surge_score = self._score_volume_surge(stock_data) * weights['volume_surge']
 
         # 2. 가격 모멘텀 (60점)
-        result.price_momentum_score = self._score_price_momentum(stock_data)
+        result.price_momentum_score = self._score_price_momentum(stock_data) * weights['price_momentum']
 
         # 3. 기관 매수세 (60점)
-        result.institutional_buying_score = self._score_institutional_buying(stock_data)
+        result.institutional_buying_score = self._score_institutional_buying(stock_data) * weights['institutional_buying']
 
         # 4. 매수 호가 강도 (40점)
-        result.bid_strength_score = self._score_bid_strength(stock_data)
+        result.bid_strength_score = self._score_bid_strength(stock_data) * weights['bid_strength']
 
         # 5. 체결 강도 (40점)
-        result.execution_intensity_score = self._score_execution_intensity(stock_data)
+        result.execution_intensity_score = self._score_execution_intensity(stock_data) * weights['execution_intensity']
 
         # 6. 주요 증권사 활동 (40점)
-        result.broker_activity_score = self._score_broker_activity(stock_data)
+        result.broker_activity_score = self._score_broker_activity(stock_data) * weights['broker_activity']
 
         # 7. 프로그램 매매 (40점)
-        result.program_trading_score = self._score_program_trading(stock_data)
+        result.program_trading_score = self._score_program_trading(stock_data) * weights['program_trading']
 
         # 8. 기술적 지표 (40점)
-        result.technical_indicators_score = self._score_technical_indicators(stock_data)
+        result.technical_indicators_score = self._score_technical_indicators(stock_data) * weights['technical_indicators']
 
         # 9. 시장 모멘텀 (40점)
-        result.theme_news_score = self._score_market_momentum(stock_data)
+        result.theme_news_score = self._score_market_momentum(stock_data) * weights['theme_news']
 
         # 10. 변동성 패턴 (20점)
-        result.volatility_pattern_score = self._score_volatility_pattern(stock_data)
+        result.volatility_pattern_score = self._score_volatility_pattern(stock_data) * weights['volatility_pattern']
 
         # 총점 계산
         result.total_score = (
@@ -139,8 +199,16 @@ class ScoringSystem:
 
         result.calculate_percentage()
 
+        # v5.7.5: 스캔 타입 로깅
+        scan_type_display = {
+            'volume_based': '거래량 기반',
+            'price_change': '상승률 기반',
+            'ai_driven': 'AI 기반',
+            'default': '기본'
+        }.get(scan_type, scan_type)
+
         logger.info(
-            f"📊 스코어링 완료: {stock_data.get('name', stock_data.get('code', 'Unknown'))} "
+            f"📊 스코어링 완료 [{scan_type_display}]: {stock_data.get('name', stock_data.get('code', 'Unknown'))} "
             f"총점 {result.total_score:.1f}/{result.max_score} ({result.percentage:.1f}%)"
         )
 
@@ -161,28 +229,54 @@ class ScoringSystem:
         volume = stock_data.get('volume', 0)
         avg_volume = stock_data.get('avg_volume', None)
 
+        # v5.7.5: 상세 로그
+        stock_code = stock_data.get('stock_code', 'Unknown')
+
         # avg_volume이 있으면 비율 계산
         if avg_volume and avg_volume > 0:
             volume_ratio = volume / avg_volume
+            print(f"   [거래량] {stock_code}: 현재={volume:,}주, 평균={avg_volume:,.0f}주, 비율={volume_ratio:.2f}배", end="")
+
             if volume_ratio >= 5.0:
+                print(f" → {max_score}점 (5배 이상)")
                 return max_score
             elif volume_ratio >= 3.0:
-                return max_score * 0.75
+                score = max_score * 0.75
+                print(f" → {score:.0f}점 (3배 이상)")
+                return score
             elif volume_ratio >= 2.0:
-                return max_score * 0.5
+                score = max_score * 0.5
+                print(f" → {score:.0f}점 (2배 이상)")
+                return score
             elif volume_ratio >= 1.0:
-                return max_score * 0.25
+                score = max_score * 0.25
+                print(f" → {score:.0f}점 (평균 이상)")
+                return score
+            else:
+                print(f" → 0점 (평균 미만)")
+                return 0.0
 
-        # avg_volume이 없으면 절대값 기준 (강화)
-        if volume >= 5_000_000:  # 500만주 이상
-            return max_score * 0.8
-        elif volume >= 2_000_000:  # 200만주
-            return max_score * 0.6
-        elif volume >= 1_000_000:  # 100만주
-            return max_score * 0.4
-        elif volume >= 500_000:  # 50만주
-            return max_score * 0.2
+        # avg_volume이 없으면 절대값 기준
+        print(f"   [거래량] {stock_code}: 현재={volume:,}주 (평균 데이터 없음)", end="")
 
+        if volume >= 5_000_000:
+            score = max_score * 0.8
+            print(f" → {score:.0f}점 (500만주 이상)")
+            return score
+        elif volume >= 2_000_000:
+            score = max_score * 0.6
+            print(f" → {score:.0f}점 (200만주 이상)")
+            return score
+        elif volume >= 1_000_000:
+            score = max_score * 0.4
+            print(f" → {score:.0f}점 (100만주 이상)")
+            return score
+        elif volume >= 500_000:
+            score = max_score * 0.2
+            print(f" → {score:.0f}점 (50만주 이상)")
+            return score
+
+        print(f" → 0점 (50만주 미만)")
         return 0.0
 
     def _score_price_momentum(self, stock_data: Dict[str, Any]) -> float:
@@ -235,52 +329,67 @@ class ScoringSystem:
 
         institutional_net_buy = stock_data.get('institutional_net_buy', 0)
         foreign_net_buy = stock_data.get('foreign_net_buy', 0)
-        institutional_trend = stock_data.get('institutional_trend', None)  # ⭐ ka10045 데이터
+        institutional_trend = stock_data.get('institutional_trend', None)
 
         min_net_buy = config.get('min_net_buy', 10_000_000)
 
+        # v5.7.5: 상세 로그
+        stock_code = stock_data.get('stock_code', 'Unknown')
+        print(f"   [기관매수] {stock_code}: 기관={institutional_net_buy:,}원, 외국인={foreign_net_buy:,}원", end="")
+
         score = 0.0
+        score_details = []
 
         # 1) 기관 순매수 - 일별 (40점)
         if institutional_net_buy >= min_net_buy * 5:
-            score += 40.0  # max_score * 0.67
+            score += 40.0
+            score_details.append("기관+40")
         elif institutional_net_buy >= min_net_buy * 3:
-            score += 30.0  # max_score * 0.5
+            score += 30.0
+            score_details.append("기관+30")
         elif institutional_net_buy >= min_net_buy:
-            score += 20.0  # max_score * 0.33
+            score += 20.0
+            score_details.append("기관+20")
 
         # 2) 외국인 순매수 - 일별 (10점)
         if foreign_net_buy >= min_net_buy:
-            score += 10.0  # max_score * 0.33 (20점) → 10점으로 조정
+            score += 10.0
+            score_details.append("외국인+10")
         elif foreign_net_buy >= min_net_buy * 0.5:
-            score += 5.0   # max_score * 0.2 (12점) → 5점으로 조정
+            score += 5.0
+            score_details.append("외국인+5")
 
-        # 3) 기관/외국인 매매 추이 - 5일 (10점) ⭐ NEW
+        # 3) 기관/외국인 매매 추이 - 5일 (10점)
         if institutional_trend:
             trend_score = 0.0
             try:
-                # institutional_trend는 dict 형태: {'stk_orgn_for_trde_trnd': [...], ...}
                 for key, values in institutional_trend.items():
                     if isinstance(values, list) and len(values) > 0:
-                        recent = values[0]  # 최근 데이터
+                        recent = values[0]
 
-                        # 기관 순매수량이 양수면 +5점
                         orgn_net = recent.get('orgn_netslmt', '0')
                         if orgn_net and not str(orgn_net).startswith('-'):
                             trend_score += 5.0
 
-                        # 외국인 순매수량이 양수면 +5점
                         for_net = recent.get('for_netslmt', '0')
                         if for_net and not str(for_net).startswith('-'):
                             trend_score += 5.0
 
-                        break  # 첫 번째 키만 사용
+                        break
 
-                score += trend_score
+                if trend_score > 0:
+                    score += trend_score
+                    score_details.append(f"추이+{trend_score:.0f}")
             except Exception as e:
                 logger.debug(f"institutional_trend 파싱 실패: {e}")
 
-        return min(score, max_score)
+        final_score = min(score, max_score)
+        if score_details:
+            print(f" → {final_score:.0f}점 ({', '.join(score_details)})")
+        else:
+            print(f" → 0점 (기준 미달)")
+
+        return final_score
 
     def _score_bid_strength(self, stock_data: Dict[str, Any]) -> float:
         """
@@ -441,44 +550,64 @@ class ScoringSystem:
         max_score = 40
         score = 0.0
 
+        # v5.7.5: 상세 로그
+        stock_code = stock_data.get('stock_code', 'Unknown')
+        score_parts = []
+
         # RSI (15점)
         rsi = stock_data.get('rsi', None)
         if rsi is not None:
             if 30 <= rsi <= 70:  # 과매도/과매수 아님
-                score += max_score * 0.375
+                rsi_score = max_score * 0.375
+                score += rsi_score
+                score_parts.append(f"RSI({rsi:.0f})+{rsi_score:.0f}")
         else:
-            # RSI 없으면 상승률로 추정 (강화)
+            # RSI 없으면 상승률로 추정
             change_rate = stock_data.get('change_rate', 0)
-            if 0.5 <= change_rate <= 20.0:  # 상승 중이면서 과열 아님
-                # 상승률에 비례한 점수 (3% = 최고점)
+            if 0.5 <= change_rate <= 20.0:
                 score_ratio = min(change_rate / 10.0, 1.0)
-                score += max_score * 0.375 * score_ratio
+                rsi_score = max_score * 0.375 * score_ratio
+                score += rsi_score
+                score_parts.append(f"RSI추정+{rsi_score:.0f}")
             elif change_rate > 0:
-                score += max_score * 0.25  # 최소 점수
+                rsi_score = max_score * 0.25
+                score += rsi_score
+                score_parts.append(f"RSI추정+{rsi_score:.0f}")
 
         # MACD (15점)
         macd_bullish = stock_data.get('macd_bullish_crossover', False)
         macd = stock_data.get('macd', None)
-        if macd_bullish or (macd is not None and macd > 0):
-            score += max_score * 0.375
+        if macd_bullish or (macd is not None and macd.get('macd', 0) > 0 if isinstance(macd, dict) else macd > 0):
+            macd_score = max_score * 0.375
+            score += macd_score
+            score_parts.append(f"MACD+{macd_score:.0f}")
         else:
-            # MACD 없으면 거래량+상승률로 추정 (강화)
+            # MACD 없으면 거래량+상승률로 추정
             change_rate = stock_data.get('change_rate', 0)
             volume = stock_data.get('volume', 0)
-            if change_rate > 0 and volume > 500_000:  # 거래량 동반 상승
-                score += max_score * 0.3
+            if change_rate > 0 and volume > 500_000:
+                macd_score = max_score * 0.3
+                score += macd_score
+                score_parts.append(f"MACD추정+{macd_score:.0f}")
             elif change_rate > 0:
-                score += max_score * 0.2
+                macd_score = max_score * 0.2
+                score += macd_score
+                score_parts.append(f"MACD추정+{macd_score:.0f}")
 
         # 볼린저밴드 (BB) (5점)
-        bb_position = stock_data.get('bb_position', None)
-        if bb_position is not None and 0.2 <= bb_position <= 0.8:  # 중간 위치
-            score += max_score * 0.125
+        bollinger_bands = stock_data.get('bollinger_bands', None)
+        bb_position = bollinger_bands.get('position') if isinstance(bollinger_bands, dict) else stock_data.get('bb_position', None)
+
+        if bb_position is not None and 0.2 <= bb_position <= 0.8:
+            bb_score = max_score * 0.125
+            score += bb_score
+            score_parts.append(f"BB+{bb_score:.0f}")
         else:
-            # BB 없으면 변동성 기준
             change_rate = stock_data.get('change_rate', 0)
-            if abs(change_rate) < 15:  # 과도한 변동 아님
-                score += max_score * 0.1
+            if abs(change_rate) < 15:
+                bb_score = max_score * 0.1
+                score += bb_score
+                score_parts.append(f"BB추정+{bb_score:.0f}")
 
         # 이동평균 (MA) (5점)
         ma5 = stock_data.get('ma5', None)
@@ -486,11 +615,19 @@ class ScoringSystem:
         current_price = stock_data.get('current_price', 0)
 
         if ma5 and ma20 and ma5 > ma20:
-            score += max_score * 0.125
+            ma_score = max_score * 0.125
+            score += ma_score
+            score_parts.append(f"MA+{ma_score:.0f}")
         elif current_price > 0:
-            # MA 없으면 가격 건전성으로 추정
-            if current_price >= 1000:  # 최소 가격 기준
-                score += max_score * 0.1
+            if current_price >= 1000:
+                ma_score = max_score * 0.1
+                score += ma_score
+                score_parts.append(f"MA추정+{ma_score:.0f}")
+
+        if score_parts:
+            print(f"   [기술지표] {stock_code}: {', '.join(score_parts)} = {score:.0f}점")
+        else:
+            print(f"   [기술지표] {stock_code}: 0점 (데이터 없음)")
 
         return score
 

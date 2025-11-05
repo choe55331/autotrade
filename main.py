@@ -45,6 +45,7 @@ from strategy.dynamic_risk_manager import DynamicRiskManager
 from strategy import PortfolioManager
 from ai.mock_analyzer import MockAnalyzer  # 테스트: Mock 직접 사용
 from utils.activity_monitor import get_monitor
+from utils.alert_manager import get_alert_manager  # v5.7.5: 알림 시스템
 
 # 가상 매매 시스템
 from virtual_trading import VirtualTrader, TradeLogger
@@ -113,6 +114,9 @@ class TradingBotV2:
 
         # 활동 모니터
         self.monitor = get_monitor()
+
+        # v5.7.5: 알림 관리자
+        self.alert_manager = get_alert_manager()
 
         # 데이터베이스 세션
         self.db_session = None
@@ -633,8 +637,9 @@ class TradingBotV2:
         self.is_running = True
 
         try:
-            # 🧪 삼성전자 테스트 매매 실행
-            self._test_samsung_trade()
+            # v5.7.5: 삼성전자 자동 매매 제거 (사용자 요청)
+            # # 🧪 삼성전자 테스트 매매 실행
+            # self._test_samsung_trade()
 
             # 메인 루프 시작
             self._main_loop()
@@ -856,6 +861,16 @@ class TradingBotV2:
                 profit_loss = (current_price - buy_price) * quantity
                 profit_loss_rate = ((current_price - buy_price) / buy_price) * 100 if buy_price > 0 else 0
 
+                # v5.7.5: 손익 알림 체크
+                self.alert_manager.check_position_alerts(
+                    stock_code=stock_code,
+                    stock_name=stock_name,
+                    current_price=current_price,
+                    buy_price=buy_price,
+                    profit_loss_rate=profit_loss_rate,
+                    profit_loss_amount=profit_loss
+                )
+
                 # 청산 임계값 가져오기
                 thresholds = self.dynamic_risk_manager.get_exit_thresholds(buy_price)
 
@@ -906,6 +921,14 @@ class TradingBotV2:
             self.scan_progress['rejected'] = []
             self.scan_progress['approved'] = []
 
+            # v5.7.5: 전략명을 scan_type으로 매핑
+            strategy_to_scan_type = {
+                '거래량 순위': 'volume_based',
+                '상승률 순위': 'price_change',
+                'AI 매매 분석': 'ai_driven',
+            }
+            scan_type = strategy_to_scan_type.get(strategy_name, 'default')
+
             if not final_candidates:
                 print("✅ 스캐닝 완료: 최종 후보 없음")
                 logger.info("✅ 스캐닝 완료: 최종 후보 없음")
@@ -946,7 +969,8 @@ class TradingBotV2:
 
                     # 기술적 지표는 없지만 가격/거래량 데이터로 추정 가능 (scoring_system에서 처리)
                 }
-                scoring_result = self.scoring_system.calculate_score(stock_data)
+                # v5.7.5: scan_type 전달하여 스캔별 차별화된 가중치 적용
+                scoring_result = self.scoring_system.calculate_score(stock_data, scan_type=scan_type)
                 candidate_scores[candidate.code] = scoring_result
                 candidate.final_score = scoring_result.total_score
 
@@ -1133,12 +1157,31 @@ class TradingBotV2:
                     # 가상 매매 시스템에도 매수 신호 전달
                     if self.virtual_trader:
                         try:
+                            # v5.7.5: Deep Scan 데이터 포함한 전체 필드 전달
                             stock_data = {
+                                # 기본 정보
                                 'stock_code': candidate.code,
                                 'stock_name': candidate.name,
                                 'current_price': candidate.price,
                                 'change_rate': candidate.rate,
                                 'volume': getattr(candidate, 'volume', 0),
+
+                                # Deep Scan 데이터 (가상매매 전략들이 필요로 하는 필드)
+                                'institutional_net_buy': getattr(candidate, 'institutional_net_buy', 0),
+                                'foreign_net_buy': getattr(candidate, 'foreign_net_buy', 0),
+                                'bid_ask_ratio': getattr(candidate, 'bid_ask_ratio', 0),
+                                'institutional_trend': getattr(candidate, 'institutional_trend', None),
+                                'avg_volume': getattr(candidate, 'avg_volume', None),
+                                'volatility': getattr(candidate, 'volatility', None),
+                                'top_broker_buy_count': getattr(candidate, 'top_broker_buy_count', 0),
+                                'top_broker_net_buy': getattr(candidate, 'top_broker_net_buy', 0),
+                                'execution_intensity': getattr(candidate, 'execution_intensity', None),
+                                'program_net_buy': getattr(candidate, 'program_net_buy', None),
+
+                                # v5.7.5: 기술적 지표 (Technical Indicators)
+                                'rsi': getattr(candidate, 'rsi', None),
+                                'macd': getattr(candidate, 'macd', None),
+                                'bollinger_bands': getattr(candidate, 'bollinger_bands', None),
                             }
                             ai_analysis_data = {
                                 'signal': ai_signal,
@@ -1147,7 +1190,7 @@ class TradingBotV2:
                                 'score': scoring_result.total_score,
                             }
                             self.virtual_trader.process_buy_signal(stock_data, ai_analysis_data)
-                            print(f"   📝 가상 매매: 3가지 전략으로 매수 시그널 처리 완료")
+                            print(f"   📝 가상 매매: 10가지 전략으로 매수 시그널 처리 완료 (전체 데이터 전달)")
                         except Exception as e:
                             logger.warning(f"가상 매매 매수 처리 실패: {e}")
 
@@ -1267,6 +1310,14 @@ class TradingBotV2:
 
                 logger.info(f"✅ {stock_name} 매수 성공 (주문번호: {order_no})")
 
+                # v5.7.5: 매수 알림
+                self.alert_manager.alert_position_opened(
+                    stock_code=stock_code,
+                    stock_name=stock_name,
+                    buy_price=current_price,
+                    quantity=quantity
+                )
+
                 self.monitor.log_activity(
                     'buy',
                     f'✅ {stock_name} 매수: {quantity}주 @ {current_price:,}원',
@@ -1343,6 +1394,16 @@ class TradingBotV2:
 
                 log_level = 'success' if profit_loss >= 0 else 'warning'
                 logger.info(f"✅ {stock_name} 매도 성공 (주문번호: {order_no})")
+
+                # v5.7.5: 매도 알림
+                self.alert_manager.alert_position_closed(
+                    stock_code=stock_code,
+                    stock_name=stock_name,
+                    sell_price=price,
+                    profit_loss_rate=profit_loss_rate,
+                    profit_loss_amount=profit_loss,
+                    reason=reason
+                )
 
                 self.monitor.log_activity(
                     'sell',
