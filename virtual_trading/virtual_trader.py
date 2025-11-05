@@ -289,6 +289,35 @@ class VirtualTrader:
             print(f"  승률: {win_rate:.1f}%")
             print(f"  포지션: {summary['position_count']}개")
 
+            # 거래 내역 출력 (최근 10건)
+            account = self.accounts[strategy_name]
+            if account.trade_history:
+                print(f"\n  📝 거래 내역 (최근 {min(10, len(account.trade_history))}건):")
+                for i, trade in enumerate(account.trade_history[-10:], 1):
+                    trade_type = trade['type']
+                    timestamp = trade.get('timestamp', 'N/A')
+                    # ISO 형식 파싱하여 읽기 쉽게 변환
+                    try:
+                        dt = datetime.fromisoformat(timestamp)
+                        time_str = dt.strftime('%m/%d %H:%M:%S')
+                    except:
+                        time_str = timestamp
+
+                    stock_name = trade.get('stock_name', trade.get('stock_code', 'Unknown'))
+                    price = trade.get('price', 0)
+                    quantity = trade.get('quantity', 0)
+                    amount = trade.get('amount', 0)
+
+                    if trade_type == 'buy':
+                        print(f"     {i}. [{time_str}] 🔵 매수 {stock_name} {quantity}주 @ {price:,}원 = {amount:,}원")
+                    else:  # sell
+                        pnl = trade.get('realized_pnl', 0)
+                        pnl_rate = trade.get('realized_pnl_rate', 0.0)
+                        reason = trade.get('reason', '')
+                        pnl_sign = "✅" if pnl > 0 else "❌"
+                        print(f"     {i}. [{time_str}] 🔴 매도 {stock_name} {quantity}주 @ {price:,}원 "
+                              f"({pnl:+,}원, {pnl_rate:+.2f}%) {pnl_sign} [{reason}]")
+
         # 최고 전략
         best = self.get_best_strategy()
         if best:
