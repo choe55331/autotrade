@@ -229,13 +229,24 @@ def get_account():
             deposit = bot_instance.account_api.get_deposit()
             holdings = bot_instance.account_api.get_holdings()
 
+            # v5.3.3: 디버깅 로그 추가
+            print(f"[DEBUG] deposit response: {deposit}")
+            print(f"[DEBUG] holdings count: {len(holdings) if holdings else 0}")
+
             # 계좌 정보 계산 (kt00001 API 응답 구조에 맞게 수정)
             # entr: 예수금, 100stk_ord_alow_amt: 100% 주문가능금액 (실제 사용가능액)
             deposit_amount = int(str(deposit.get('entr', '0')).replace(',', '')) if deposit else 0
             cash = int(str(deposit.get('100stk_ord_alow_amt', '0')).replace(',', '')) if deposit else 0
             stock_value = sum(int(str(h.get('eval_amt', 0)).replace(',', '')) for h in holdings) if holdings else 0
+
+            print(f"[DEBUG] deposit_amount (예수금): {deposit_amount:,}원")
+            print(f"[DEBUG] cash (주문가능금액): {cash:,}원")
+            print(f"[DEBUG] stock_value (주식평가금액): {stock_value:,}원")
+
             # 총 자산 = 예수금 + 주식평가금액 (v5.3.3 재수정)
             total_assets = deposit_amount + stock_value
+
+            print(f"[DEBUG] total_assets (총자산): {total_assets:,}원")
 
             # 손익 계산
             total_buy_amount = sum(int(str(h.get('pchs_amt', 0)).replace(',', '')) for h in holdings) if holdings else 0
