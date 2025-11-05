@@ -14,6 +14,41 @@ from research.scanner_pipeline import StockCandidate
 logger = get_logger()
 
 
+# Deep Scan 데이터 캐시 (메모리 기반) - scanner_pipeline.py와 동일
+# {stock_code: {'data': {...}, 'timestamp': datetime, 'ttl': 300}}
+_deep_scan_cache = {}
+CACHE_TTL_SECONDS = 300  # 5분
+
+
+def _get_from_cache(cache_key: str) -> Optional[Dict]:
+    """캐시에서 데이터 조회"""
+    global _deep_scan_cache
+
+    if cache_key not in _deep_scan_cache:
+        return None
+
+    entry = _deep_scan_cache[cache_key]
+    timestamp = entry['timestamp']
+
+    # TTL 체크
+    if (datetime.now() - timestamp).total_seconds() > CACHE_TTL_SECONDS:
+        # 만료됨 - 삭제
+        del _deep_scan_cache[cache_key]
+        return None
+
+    return entry['data']
+
+
+def _save_to_cache(cache_key: str, data: Dict):
+    """캐시에 데이터 저장"""
+    global _deep_scan_cache
+
+    _deep_scan_cache[cache_key] = {
+        'data': data,
+        'timestamp': datetime.now()
+    }
+
+
 class ScanStrategy(ABC):
     """스캔 전략 추상 클래스"""
 
@@ -279,27 +314,49 @@ class VolumeBasedStrategy(ScanStrategy):
                     else:
                         print(f"      증권사: 순매수 없음")
 
-                    # 6. 체결강도 조회 (ka10047)
-                    execution_data = self.market_api.get_execution_intensity(candidate.code)
-                    if execution_data:
-                        candidate.execution_intensity = execution_data.get('execution_intensity')
-                        if candidate.execution_intensity:
-                            print(f"      체결강도={candidate.execution_intensity:.1f}")
-                        else:
-                            print(f"      체결강도: 값 없음")
-                    else:
-                        print(f"      체결강도: 데이터 없음")
+                    # 6. 체결강도 조회 (ka10047) - 캐시 우선
+                    cache_key_exec = f"execution_{candidate.code}"
+                    cached_exec = _get_from_cache(cache_key_exec)
 
-                    # 7. 프로그램매매 조회 (ka90013)
-                    program_data = self.market_api.get_program_trading(candidate.code)
-                    if program_data:
-                        candidate.program_net_buy = program_data.get('program_net_buy')
-                        if candidate.program_net_buy:
-                            print(f"      프로그램순매수={candidate.program_net_buy:,}")
+                    if cached_exec:
+                        candidate.execution_intensity = cached_exec.get('execution_intensity')
+                        if candidate.execution_intensity:
+                            print(f"      체결강도={candidate.execution_intensity:.1f} [캐시]")
                         else:
-                            print(f"      프로그램매매: 값 없음")
+                            print(f"      체결강도: 값 없음 [캐시]")
                     else:
-                        print(f"      프로그램매매: 데이터 없음")
+                        execution_data = self.market_api.get_execution_intensity(candidate.code)
+                        if execution_data:
+                            candidate.execution_intensity = execution_data.get('execution_intensity')
+                            _save_to_cache(cache_key_exec, execution_data)
+                            if candidate.execution_intensity:
+                                print(f"      체결강도={candidate.execution_intensity:.1f}")
+                            else:
+                                print(f"      체결강도: 값 없음")
+                        else:
+                            print(f"      체결강도: 데이터 없음")
+
+                    # 7. 프로그램매매 조회 (ka90013) - 캐시 우선
+                    cache_key_prog = f"program_{candidate.code}"
+                    cached_prog = _get_from_cache(cache_key_prog)
+
+                    if cached_prog:
+                        candidate.program_net_buy = cached_prog.get('program_net_buy')
+                        if candidate.program_net_buy:
+                            print(f"      프로그램순매수={candidate.program_net_buy:,} [캐시]")
+                        else:
+                            print(f"      프로그램매매: 값 없음 [캐시]")
+                    else:
+                        program_data = self.market_api.get_program_trading(candidate.code)
+                        if program_data:
+                            candidate.program_net_buy = program_data.get('program_net_buy')
+                            _save_to_cache(cache_key_prog, program_data)
+                            if candidate.program_net_buy:
+                                print(f"      프로그램순매수={candidate.program_net_buy:,}")
+                            else:
+                                print(f"      프로그램매매: 값 없음")
+                        else:
+                            print(f"      프로그램매매: 데이터 없음")
 
                     time.sleep(0.1)  # API 호출 간격 (7개 API + 증권사 5개)
 
