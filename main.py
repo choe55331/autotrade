@@ -486,29 +486,15 @@ class TradingBotV2:
             current_price = None
 
             try:
-                # ka10003 체결정보요청으로 현재가 조회
+                # get_stock_price()는 내부적으로 fallback 처리 (체결정보 → 호가 → 기본 호가)
                 quote = self.market_api.get_stock_price(samsung_code)
                 if quote and quote.get('current_price', 0) > 0:
                     current_price = int(quote.get('current_price', 0))
-                    logger.info(f"✓ {samsung_name} 현재가: {current_price:,}원 (체결정보)")
+                    source = quote.get('source', 'unknown')
+                    logger.info(f"✓ {samsung_name} 현재가: {current_price:,}원 (출처: {source})")
                 else:
-                    # 체결정보 없으면 호가로 시도
-                    logger.warning(f"⚠️ 체결정보 없음 - 호가 조회 시도 중...")
-                    orderbook = self.market_api.get_orderbook(samsung_code)
-                    if orderbook and orderbook.get('mid_price', 0) > 0:
-                        current_price = int(orderbook.get('mid_price', 0))
-                        logger.info(f"✓ {samsung_name} 현재가: {current_price:,}원 (호가 기준)")
-                    else:
-                        # NXT 시간대는 전일 종가 사용
-                        logger.warning(f"⚠️ 호가 조회 실패 - NXT 시간대는 전일 종가 사용")
-                        daily_data = self.market_api.get_daily_chart(samsung_code, period=2)
-                        if daily_data and len(daily_data) > 0:
-                            # 가장 최근 데이터의 종가
-                            current_price = int(daily_data[0].get('close', 0))
-                            logger.info(f"✓ {samsung_name} 전일 종가 사용: {current_price:,}원")
-                        else:
-                            logger.error(f"❌ 전일 종가 조회 실패 - 테스트 중단")
-                            return
+                    logger.error(f"❌ {samsung_name} 현재가 조회 실패 (모든 소스)")
+                    return
 
             except Exception as e:
                 logger.error(f"❌ 가격 조회 실패: {e}")
@@ -573,9 +559,10 @@ class TradingBotV2:
                 quote = self.market_api.get_stock_price(samsung_code)
                 if quote and quote.get('current_price', 0) > 0:
                     sell_price = int(quote.get('current_price', 0))
-                    logger.info(f"✓ {samsung_name} 현재가 (매도): {sell_price:,}원 (체결정보)")
+                    source = quote.get('source', 'unknown')
+                    logger.info(f"✓ {samsung_name} 현재가 (매도): {sell_price:,}원 (출처: {source})")
                 else:
-                    logger.warning(f"⚠️ 체결정보 없음 - 매수가 사용: {sell_price:,}원")
+                    logger.warning(f"⚠️ 현재가 조회 실패 - 매수가 사용: {sell_price:,}원")
 
             except Exception as e:
                 logger.warning(f"⚠️ 가격 재조회 실패: {e} - 매수가 사용: {sell_price:,}원")
