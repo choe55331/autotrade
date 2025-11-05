@@ -1154,6 +1154,11 @@ class TradingBotV2:
                                 'top_broker_net_buy': getattr(candidate, 'top_broker_net_buy', 0),
                                 'execution_intensity': getattr(candidate, 'execution_intensity', None),
                                 'program_net_buy': getattr(candidate, 'program_net_buy', None),
+
+                                # v5.7.5: 기술적 지표 (Technical Indicators)
+                                'rsi': getattr(candidate, 'rsi', None),
+                                'macd': getattr(candidate, 'macd', None),
+                                'bollinger_bands': getattr(candidate, 'bollinger_bands', None),
                             }
                             ai_analysis_data = {
                                 'signal': ai_signal,

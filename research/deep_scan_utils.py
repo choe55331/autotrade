@@ -18,6 +18,77 @@ _deep_scan_cache = {}
 CACHE_TTL_SECONDS = 300  # 5분
 
 
+def _calculate_rsi(prices: List[float], period: int = 14) -> Optional[float]:
+    """RSI (Relative Strength Index) 계산"""
+    if len(prices) < period + 1:
+        return None
+
+    deltas = [prices[i] - prices[i-1] for i in range(1, len(prices))]
+    gains = [d if d > 0 else 0 for d in deltas]
+    losses = [-d if d < 0 else 0 for d in deltas]
+
+    avg_gain = sum(gains[:period]) / period
+    avg_loss = sum(losses[:period]) / period
+
+    if avg_loss == 0:
+        return 100.0
+
+    rs = avg_gain / avg_loss
+    rsi = 100 - (100 / (1 + rs))
+    return rsi
+
+
+def _calculate_macd(prices: List[float]) -> Optional[Dict[str, float]]:
+    """MACD (Moving Average Convergence Divergence) 계산"""
+    if len(prices) < 26:
+        return None
+
+    def ema(data: List[float], period: int) -> float:
+        """지수 이동 평균"""
+        multiplier = 2 / (period + 1)
+        ema_value = sum(data[:period]) / period
+
+        for price in data[period:]:
+            ema_value = (price - ema_value) * multiplier + ema_value
+
+        return ema_value
+
+    ema12 = ema(prices, 12)
+    ema26 = ema(prices, 26)
+    macd_line = ema12 - ema26
+
+    return {
+        'macd': macd_line,
+        'ema12': ema12,
+        'ema26': ema26
+    }
+
+
+def _calculate_bollinger_bands(prices: List[float], period: int = 20) -> Optional[Dict[str, float]]:
+    """볼린저 밴드 계산"""
+    if len(prices) < period:
+        return None
+
+    import statistics
+
+    recent_prices = prices[-period:]
+    ma = sum(recent_prices) / period
+    std_dev = statistics.stdev(recent_prices)
+
+    upper_band = ma + (2 * std_dev)
+    lower_band = ma - (2 * std_dev)
+
+    current_price = prices[-1]
+    bb_position = (current_price - lower_band) / (upper_band - lower_band) if upper_band != lower_band else 0.5
+
+    return {
+        'upper': upper_band,
+        'middle': ma,
+        'lower': lower_band,
+        'position': bb_position  # 0~1 사이, 0.5가 중간
+    }
+
+
 def _get_from_cache(cache_key: str) -> Optional[Dict]:
     """캐시에서 데이터 조회"""
     global _deep_scan_cache
@@ -146,9 +217,36 @@ def enrich_candidates_with_deep_scan(
                     candidate.volatility = statistics.stdev(rates)
                     if verbose:
                         print(f"      일봉: 변동성={candidate.volatility*100:.2f}%")
+
+                # v5.7.5: 기술적 지표 계산 (RSI, MACD, BB)
+                closes = [d.get('close', 0) for d in daily_data if d.get('close')]
+                if len(closes) >= 14:
+                    # RSI 계산
+                    candidate.rsi = _calculate_rsi(closes)
+                    if verbose and candidate.rsi:
+                        print(f"      기술: RSI={candidate.rsi:.1f}")
+
+                    # MACD 계산
+                    candidate.macd = _calculate_macd(closes)
+                    if verbose and candidate.macd:
+                        print(f"      기술: MACD={candidate.macd['macd']:.2f}")
+
+                    # 볼린저 밴드 계산
+                    candidate.bollinger_bands = _calculate_bollinger_bands(closes)
+                    if verbose and candidate.bollinger_bands:
+                        bb_pos = candidate.bollinger_bands['position']
+                        bb_status = "상단" if bb_pos > 0.8 else "하단" if bb_pos < 0.2 else "중간"
+                        print(f"      기술: BB위치={bb_status} ({bb_pos*100:.0f}%)")
+                else:
+                    candidate.rsi = None
+                    candidate.macd = None
+                    candidate.bollinger_bands = None
             else:
                 if verbose:
                     print(f"      일봉: 데이터 없음")
+                candidate.rsi = None
+                candidate.macd = None
+                candidate.bollinger_bands = None
 
             # 5. 증권사별매매 조회 (ka10078)
             major_firms = [
@@ -273,6 +371,9 @@ def enrich_candidates_with_deep_scan(
             candidate.top_broker_net_buy = 0
             candidate.execution_intensity = None
             candidate.program_net_buy = None
+            candidate.rsi = None
+            candidate.macd = None
+            candidate.bollinger_bands = None
             continue
 
     if verbose:
