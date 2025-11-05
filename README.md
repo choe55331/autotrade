@@ -1,6 +1,10 @@
-# AI 자동매매 시스템 🚀
+# AutoTrade Pro v5.6.0 🚀
 
 **Kiwoom API + Gemini AI 기반 자동매매 봇**
+
+[![Version](https://img.shields.io/badge/version-5.6.0-blue.svg)](CHANGELOG.md)
+[![Python](https://img.shields.io/badge/python-3.8+-green.svg)](https://www.python.org/)
+[![License](https://img.shields.io/badge/license-Proprietary-red.svg)](LICENSE)
 
 ---
 
@@ -212,3 +216,48 @@ python main.py
 ```
 
 **Happy Trading! 💰📈**
+
+---
+
+## 📚 Documentation
+
+- **[CHANGELOG.md](CHANGELOG.md)** - Version history and release notes
+- **[OPTIMIZATION_NOTES_v5.5.md](OPTIMIZATION_NOTES_v5.5.md)** - Future optimization opportunities
+- **[docs/](docs/)** - Additional documentation
+  - [Quick Start Guide](docs/QUICK_START.md)
+  - [Windows Installation](docs/INSTALL_WINDOWS.md)
+  - [Project Structure](docs/PROJECT_STRUCTURE.md)
+  - [Guides](docs/guides/) - Feature-specific guides
+  - [Archive](docs/archive/) - Historical documentation
+
+---
+
+## 🔄 Recent Updates
+
+### v5.6.0 (2025-11-05)
+- ✅ Fixed virtual trading history auto-refresh issue (now manually controlled)
+- ✅ Added JSON download for virtual trades
+- ✅ Improved dashboard UX and version display
+- ✅ Cleaned up verbose DEBUG logs
+- ✅ Consolidated documentation
+
+### v5.5.1 (2025-11-05)
+- ✅ Removed obsolete app_apple.py (3,249 lines cleanup)
+- ✅ Updated deployment scripts
+- ✅ Documented future optimization opportunities
+
+### v5.5.0 (2025-11-05)
+- ✅ Fixed critical account balance 2x duplication bug
+- ✅ Improved balance accuracy (99.98% match with mobile)
+
+See [CHANGELOG.md](CHANGELOG.md) for complete version history.
+
+---
+
+## 🤝 Support
+
+For issues, questions, or contributions, please contact the development team.
+
+---
+
+**AutoTrade Pro** - Powered by AI, Built for Performance 🚀
