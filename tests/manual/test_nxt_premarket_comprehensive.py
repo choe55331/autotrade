@@ -37,7 +37,8 @@ class NXTPremarketTester:
     """NXT 프리마켓 현재가 조회 종합 테스트"""
 
     def __init__(self):
-        self.client = KiwoomRESTClient.get_instance()
+        # KiwoomRESTClient는 싱글톤 패턴이므로 직접 생성자 호출
+        self.client = KiwoomRESTClient()
         self.results = []
         self.test_stocks = [
             "005930",  # 삼성전자
