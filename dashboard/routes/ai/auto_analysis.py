@@ -978,7 +978,9 @@ def get_market_trend():
                 price_gainers = bot_instance.market_api.get_price_change_rank(market='ALL', sort='rise', limit=30)
                 price_losers = bot_instance.market_api.get_price_change_rank(market='ALL', sort='fall', limit=30)
 
-                if volume_leaders:
+                print(f"[Market Trend] volume_leaders: {len(volume_leaders) if volume_leaders else 0}, gainers: {len(price_gainers) if price_gainers else 0}, losers: {len(price_losers) if price_losers else 0}")
+
+                if volume_leaders and len(volume_leaders) > 0:
                     # Count gainers vs losers
                     gainers = sum(1 for s in volume_leaders if float(s.get('prdy_ctrt', 0)) > 0)
                     losers = sum(1 for s in volume_leaders if float(s.get('prdy_ctrt', 0)) < 0)
