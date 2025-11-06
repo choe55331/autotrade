@@ -3,6 +3,7 @@ virtual_trading/virtual_trader.py
 가상 트레이더 - 여러 전략 동시 테스트
 
 v5.7.5: 12가지 다양한 실전 매매 전략 적용 (10개 → 12개 확장)
+v6.0: Data enrichment 추가 - 모든 전략이 필요로 하는 데이터 자동 보강
 """
 from typing import Dict, List, Optional, Callable
 from datetime import datetime, timedelta
@@ -14,6 +15,7 @@ from .diverse_strategies import (
     DiverseTradingStrategy,
     get_strategy_descriptions
 )
+from .data_enricher import create_enricher
 
 
 logger = logging.getLogger(__name__)
@@ -116,10 +118,13 @@ class VirtualTrader:
         self.accounts: Dict[str, VirtualAccount] = {}
         self.strategies: Dict[str, TradingStrategy] = {}
 
+        # v6.0: Data enricher 초기화
+        self.data_enricher = create_enricher()
+
         # 기본 전략들 생성
         self._create_default_strategies()
 
-        logger.info(f"💰 가상 트레이더 초기화 완료 (계좌당 {initial_cash:,}원)")
+        logger.info(f"💰 가상 트레이더 초기화 완료 (계좌당 {initial_cash:,}원, Data Enricher 활성화)")
 
     def _create_default_strategies(self):
         """
@@ -182,6 +187,10 @@ class VirtualTrader:
         if market_data is None:
             market_data = {}
 
+        # v6.0: Data enrichment - 전략들이 필요로 하는 데이터 자동 보강
+        enriched_stock_data = self.data_enricher.enrich_stock_data(stock_data)
+        enriched_market_data = self.data_enricher.enrich_market_context(market_data)
+
         # 각 전략별로 매수 판단
         for strategy_name, strategy in self.strategies.items():
             account = self.accounts[strategy_name]
@@ -189,11 +198,11 @@ class VirtualTrader:
             # v5.7: 다양한 전략 타입 지원
             try:
                 if isinstance(strategy, DiverseTradingStrategy):
-                    # 새로운 다양한 전략
-                    should_buy = strategy.should_buy(stock_data, market_data, account)
+                    # v6.0: enriched data 사용
+                    should_buy = strategy.should_buy(enriched_stock_data, enriched_market_data, account)
                 else:
                     # 레거시 전략
-                    should_buy = strategy.should_buy(stock_data, ai_analysis, account)
+                    should_buy = strategy.should_buy(enriched_stock_data, ai_analysis, account)
 
                 # v5.9: 디버깅 로그 (should_buy 결과 확인)
                 if should_buy:
@@ -249,10 +258,11 @@ class VirtualTrader:
                 # v5.7: 다양한 전략 타입 지원
                 try:
                     if isinstance(strategy, DiverseTradingStrategy):
-                        # 새로운 다양한 전략 - stock_data 필요
+                        # v6.0: enriched data 사용
                         stock_data = stock_data_dict.get(stock_code, {})
+                        enriched_stock_data = self.data_enricher.enrich_stock_data(stock_data)
                         should_sell, reason = strategy.should_sell(
-                            position, current_price, stock_data, days_held
+                            position, current_price, enriched_stock_data, days_held
                         )
                     else:
                         # 레거시 전략

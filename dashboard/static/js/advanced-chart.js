@@ -480,7 +480,9 @@ class AdvancedTradingChart {
                 this.currentTimeframe = timeframe;
             }
 
-            const url = `/api/chart/${stockCode}?timeframe=D`; // Always fetch daily data first
+            // v6.0: Request correct timeframe from API (daily or minute)
+            const url = `/api/chart/${stockCode}?timeframe=${this.currentTimeframe}`;
+            console.log(`📡 Fetching chart data: ${url}`);
             const response = await fetch(url);
             const data = await response.json();
 
@@ -490,10 +492,12 @@ class AdvancedTradingChart {
                 return;
             }
 
-            // Store raw data for timeframe conversion
-            this.rawData = data;
+            // Store raw data for timeframe conversion (only for D/W/M aggregation)
+            if (this.currentTimeframe === 'D') {
+                this.rawData = data;
+            }
 
-            // Convert data based on timeframe
+            // Convert data based on timeframe (only for W/M aggregation)
             const processedData = this.convertTimeframe(data.data, this.currentTimeframe);
 
             // Update chart
