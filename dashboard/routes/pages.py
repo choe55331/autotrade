@@ -9,8 +9,14 @@ pages_bp = Blueprint('pages', __name__)
 
 @pages_bp.route('/')
 def index():
-    """Serve main dashboard with tabs (no scroll)"""
+    """Serve main dashboard with tabs (v6.1 Enhanced UI)"""
     return render_template('dashboard_main.html')
+
+
+@pages_bp.route('/modern')
+def modern_dashboard():
+    """Serve v6.1 Modern Dashboard with GSAP (Coming Soon)"""
+    return render_template('dashboard_v6_modern.html')
 
 
 @pages_bp.route('/old')

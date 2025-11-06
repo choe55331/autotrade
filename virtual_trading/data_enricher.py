@@ -5,7 +5,6 @@ Missing fields를 채워서 모든 전략이 작동하도록 함
 """
 import logging
 from typing import Dict, Optional
-import pandas as pd
 
 logger = logging.getLogger(__name__)
 
