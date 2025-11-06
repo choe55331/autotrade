@@ -87,24 +87,22 @@ async def test_websocket_realtime():
             ("217270", "넵튠", "NXT"),
         ]
     else:
-        # NXT 시간: 고거래량 종목 + NXT 종목 혼합 테스트
+        # NXT 시간: 실제 NXT 거래 종목만 테스트
         test_stocks = [
-            # 고거래량 종목 (NXT로 구독 시도)
-            ("005930", "삼성전자", "NXT"),
-            ("000660", "SK하이닉스", "NXT"),
-            ("035720", "카카오", "NXT"),
-            ("005380", "현대차", "NXT"),
-            ("051910", "LG화학", "NXT"),
-            # 일반 NXT 종목
             ("249420", "일동제약", "NXT"),
             ("052020", "에프엔에스테크", "NXT"),
             ("900290", "GRT", "NXT"),
+            ("900340", "윙입푸드", "NXT"),
             ("900250", "크리스탈신소재", "NXT"),
+            ("900270", "헝셩그룹", "NXT"),
             ("217270", "넵튠", "NXT"),
+            ("900300", "오가닉티코스메틱", "NXT"),
+            ("900110", "이스트아시아홀딩스", "NXT"),
+            ("900260", "로스웰", "NXT"),
         ]
         print(f"\n{YELLOW}⚠️  현재 시각 {now.strftime('%H:%M')} - 정규장 종료{RESET}")
-        print(f"{YELLOW}   대형주 5개(NXT 구독) + NXT 종목 5개로 테스트합니다.{RESET}")
-        print(f"{YELLOW}   대형주는 호가 데이터가 남아있을 수 있습니다.{RESET}")
+        print(f"{YELLOW}   실제 NXT 거래 가능 종목 10개로 테스트합니다.{RESET}")
+        print(f"{YELLOW}   참고: 삼성전자 등 대형주는 NXT에 상장되지 않음!{RESET}")
 
     print(f"\n{CYAN}테스트 종목 ({len(test_stocks)}개):{RESET}")
 
@@ -218,13 +216,13 @@ async def test_websocket_realtime():
                 items_for_subscription.append(code)
 
         print(f"\n{CYAN}종목 구독 중...{RESET}")
-        print(f"  Type: 0A (주식기세 - 호가변동시 수신)")
+        print(f"  Type: 0B (주식체결)")
         print(f"  Items: {len(items_for_subscription)}개 (KRX: 기본코드, NXT: _NX 접미사)")
         print(f"  구독 코드: {', '.join(items_for_subscription[:3])}...")
 
         success = await ws_manager.subscribe(
             stock_codes=items_for_subscription,
-            types=["0A"]  # 0B->0A 변경: 호가 변동시마다 수신
+            types=["0B"]  # 주식체결 - 19:48에 REAL 받았을 때 사용한 타입
         )
 
         if not success:
