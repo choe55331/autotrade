@@ -263,7 +263,7 @@ class WebSocketManager:
                     data = json.loads(message)
                     trnm = data.get('trnm', '')
 
-                    print(f"📩 메시지
+                    print(f"📩 메시지 {message_count}: trnm={trnm}")
 
                     if trnm == 'REAL':
                         print(f"   📊 REAL 데이터: {json.dumps(data, ensure_ascii=False)[:200]}...")
