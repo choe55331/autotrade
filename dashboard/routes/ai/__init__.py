@@ -10,8 +10,9 @@ Modules:
 - advanced_systems: Advanced Systems v4.2 (Sentiment, Multi-Agent, Risk, Regime, Options, HFT)
 - auto_analysis: Auto-Analysis (position monitor, portfolio optimization, alerts)
 - market_commentary: Real-time AI market commentary
+- multi_model: Multi-Model AI v1.0 (consensus analysis, model performance tracking)
 
-Refactored from monolithic ai.py (2,045 lines) to modular structure (6 modules)
+Refactored from monolithic ai.py (2,045 lines) to modular structure (7 modules)
 from flask import Blueprint
 
 from .ai_mode import ai_mode_bp
@@ -20,6 +21,7 @@ from .deep_learning import deep_learning_bp
 from .advanced_systems import advanced_systems_bp
 from .auto_analysis import auto_analysis_bp
 from .market_commentary import market_commentary_bp
+from .multi_model import multi_model_bp
 
 from .common import set_bot_instance, get_bot_instance
 
@@ -43,15 +45,17 @@ def register_ai_routes(app):
     app.register_blueprint(advanced_systems_bp)
     app.register_blueprint(auto_analysis_bp)
     app.register_blueprint(market_commentary_bp)
+    app.register_blueprint(multi_model_bp)
 
-    print("✓ Registered 6 AI route modules:")
+    print("✓ Registered 7 AI route modules:")
     print("  - AI Mode v3.6 (5 endpoints)")
     print("  - Advanced AI v4.0 (5 endpoints)")
     print("  - Deep Learning v4.1 (7 endpoints)")
+    print("  - Multi-Model AI v1.0 (4 endpoints)")
     print("  - Advanced Systems v4.2 (7 endpoints)")
     print("  - Auto-Analysis (9 endpoints)")
     print("  - Market Commentary (1 endpoint)")
-    print("  Total: 34 AI endpoints")
+    print("  Total: 38 AI endpoints")
 
 
 __all__ = [
