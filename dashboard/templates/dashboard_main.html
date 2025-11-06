@@ -1318,36 +1318,15 @@
                             <div style="width: 100%; margin-top: 10px;">
                                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                                     <span style="font-size: 11px; color: var(--text-secondary);">
-                                        <i class="fab fa-google"></i> Gemini
+                                        <i class="fab fa-google"></i> Gemini AI
                                     </span>
-                                    <span style="font-size: 11px; font-weight: 600;" id="gemini-confidence">92%</span>
+                                    <span style="font-size: 11px; font-weight: 600;" id="gemini-confidence">0%</span>
                                 </div>
-                                <div style="width: 100%; height: 4px; background: rgba(139, 92, 246, 0.1); border-radius: 2px; overflow: hidden;">
-                                    <div id="gemini-bar" style="width: 92%; height: 100%; background: linear-gradient(90deg, #8b5cf6, #a78bfa); transition: width 1s ease;"></div>
+                                <div style="width: 100%; height: 8px; background: rgba(139, 92, 246, 0.1); border-radius: 4px; overflow: hidden;">
+                                    <div id="gemini-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #8b5cf6, #a78bfa); transition: width 1s ease;"></div>
                                 </div>
-                            </div>
-
-                            <div style="width: 100%; margin-top: 8px;">
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                    <span style="font-size: 11px; color: var(--text-secondary);">
-                                        <i class="fas fa-robot"></i> Claude
-                                    </span>
-                                    <span style="font-size: 11px; font-weight: 600;" id="claude-confidence">85%</span>
-                                </div>
-                                <div style="width: 100%; height: 4px; background: rgba(59, 130, 246, 0.1); border-radius: 2px; overflow: hidden;">
-                                    <div id="claude-bar" style="width: 85%; height: 100%; background: linear-gradient(90deg, #3b82f6, #60a5fa); transition: width 1s ease;"></div>
-                                </div>
-                            </div>
-
-                            <div style="width: 100%; margin-top: 8px;">
-                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                                    <span style="font-size: 11px; color: var(--text-secondary);">
-                                        <i class="fas fa-brain"></i> GPT-4
-                                    </span>
-                                    <span style="font-size: 11px; font-weight: 600;" id="gpt4-confidence">84%</span>
-                                </div>
-                                <div style="width: 100%; height: 4px; background: rgba(16, 185, 129, 0.1); border-radius: 2px; overflow: hidden;">
-                                    <div id="gpt4-bar" style="width: 84%; height: 100%; background: linear-gradient(90deg, #10b981, #34d399); transition: width 1s ease;"></div>
+                                <div style="margin-top: 8px; font-size: 10px; color: var(--text-secondary); text-align: center;">
+                                    Primary AI Provider
                                 </div>
                             </div>
                         </div>
@@ -5139,15 +5118,13 @@
                 // Calculate overall confidence (default to 0 if no data)
                 const overallConfidence = count > 0 ? Math.round(totalConfidence / count) : 0;
 
-                // For individual AI models, use realistic variations
+                // Gemini only (single AI provider)
                 const confidenceData = {
                     overall: overallConfidence,
-                    gemini: Math.min(100, Math.max(0, overallConfidence + 5)),
-                    claude: Math.min(100, Math.max(0, overallConfidence - 2)),
-                    gpt4: Math.min(100, Math.max(0, overallConfidence - 3))
+                    gemini: overallConfidence
                 };
 
-                console.log('[AI Visualization] Loaded from', count, 'candidates, avg confidence:', overallConfidence);
+                console.log('[AI Visualization] Loaded from', count, 'candidates, avg confidence:', overallConfidence, '(Gemini)');
 
                 // Update gauge
                 const circumference = 2 * Math.PI * 85;
@@ -5160,10 +5137,8 @@
                     gaugeText.textContent = confidenceData.overall + '%';
                 }
 
-                // Update individual AI bars
+                // Update Gemini bar only
                 updateAIConfidenceBar('gemini', confidenceData.gemini);
-                updateAIConfidenceBar('claude', confidenceData.claude);
-                updateAIConfidenceBar('gpt4', confidenceData.gpt4);
 
             } catch (error) {
                 console.error('Failed to load AI visualization:', error);
@@ -5175,8 +5150,6 @@
                     gaugeText.textContent = '0%';
                 }
                 updateAIConfidenceBar('gemini', 0);
-                updateAIConfidenceBar('claude', 0);
-                updateAIConfidenceBar('gpt4', 0);
             }
         }
 

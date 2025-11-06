@@ -17,8 +17,8 @@ class GeminiAnalyzer(BaseAnalyzer):
     Gemini API를 사용한 종목/시장 분석
     """
 
-    # 종목 분석 프롬프트 템플릿 (v5.10 - ENHANCED)
-    STOCK_ANALYSIS_PROMPT_TEMPLATE = """# 🎯 PROFESSIONAL QUANTITATIVE TRADING ANALYSIS REQUEST (v5.10)
+    # 종목 분석 프롬프트 템플릿 (v6.1 - ULTRA ENHANCED)
+    STOCK_ANALYSIS_PROMPT_TEMPLATE = """# 🎯 PROFESSIONAL QUANTITATIVE TRADING ANALYSIS REQUEST (v6.1 - Gemini Pro)
 
 당신은 20년 이상의 경력을 가진 퀀트 헤지펀드 매니저이자 리스크 관리 전문가입니다.
 다음 한국 주식에 대한 심층 분석을 수행해주세요.
@@ -109,6 +109,37 @@ class GeminiAnalyzer(BaseAnalyzer):
 - 기대 수익률: ___% (확률 가중 평균)
 - 최대 손실 예상: ___%
 
+### 7. SENSITIVITY ANALYSIS (민감도 분석)
+**시장 변동에 대한 민감도**:
+- KOSPI ±1% 변동 시 예상 가격 변화: 베타 계수 기반 추정
+- 거래량 급증/급감 시 가격 영향
+- 외환(달러) 변동 영향 (수출/수입 업종)
+- 금리 변동 민감도
+
+**Delta (가격 민감도)**:
+- 단기 저항선까지 거리: ___원 (___%)
+- 단기 지지선까지 거리: ___원 (___%)
+- 손익분기점 분석
+
+### 8. MARKET MICROSTRUCTURE (시장 미세구조 분석)
+- 호가창 분석: 매수/매도 벽 위치 및 강도
+- 체결강도 분석: 시장가 vs 호가 체결 비율
+- 틱(Tick) 방향성: 상승틱 vs 하락틱 비율
+- 유동성 분석: 스프레드, 주문 깊이
+- 내부자 거래 의심 신호 (급격한 거래 패턴 변화)
+
+### 9. CORRELATION & REGIME ANALYSIS (상관관계 및 레짐 분석)
+- 업종 평균 대비 상대 강도
+- 주요 경쟁사 대비 모멘텀
+- 시장 레짐: 강세장/약세장/횡보장
+- 섹터 로테이션 관점에서의 위치
+
+### 10. BEHAVIORAL & SENTIMENT ANALYSIS (행동 패턴 분석)
+- 개인 투자자 패닉 매수/매도 징후
+- 기관의 분산 매수/매도 패턴
+- 뉴스 및 공시 임팩트 평가
+- 소셜 미디어 센티먼트 (가능한 경우)
+
 ---
 
 ## 📋 REQUIRED OUTPUT FORMAT (JSON 형식):
@@ -147,6 +178,45 @@ class GeminiAnalyzer(BaseAnalyzer):
       {"type": "technical|fundamental|market|liquidity|event", "description": "...", "severity": <1-10>}
     ],
     "risk_mitigation": ["action1", "action2"]
+  },
+
+  "sensitivity_analysis": {
+    "market_beta": <number, e.g., 1.2 means 20% more volatile than market>,
+    "support_distance_pct": <number, % distance to nearest support>,
+    "resistance_distance_pct": <number, % distance to nearest resistance>,
+    "key_price_levels": {
+      "strong_support": [price1, price2],
+      "weak_support": [price1, price2],
+      "weak_resistance": [price1, price2],
+      "strong_resistance": [price1, price2]
+    }
+  },
+
+  "market_microstructure": {
+    "bid_ask_spread_pct": <number>,
+    "order_book_imbalance": "Strong Buy" | "Buy" | "Neutral" | "Sell" | "Strong Sell",
+    "tick_direction": <-100 to +100, negative=down ticks, positive=up ticks>,
+    "liquidity_score": <0-100>,
+    "unusual_activity_detected": true | false,
+    "unusual_activity_description": "..."
+  },
+
+  "correlation_analysis": {
+    "sector_relative_strength": <-100 to +100>,
+    "market_regime": "Bull Market" | "Bear Market" | "Sideways Market" | "Transitioning",
+    "sector_rotation_signal": "Sector In" | "Sector Out" | "Neutral",
+    "peer_comparison": {
+      "rank": <1-10>,
+      "top_peer": "company name",
+      "momentum_vs_peers": "Leading" | "Inline" | "Lagging"
+    }
+  },
+
+  "behavioral_analysis": {
+    "retail_sentiment": "Panic Buy" | "Euphoria" | "FOMO" | "Neutral" | "Fear" | "Panic Sell",
+    "institutional_pattern": "Accumulation" | "Distribution" | "Neutral",
+    "news_impact_score": <0-100>,
+    "social_sentiment": "Very Positive" | "Positive" | "Neutral" | "Negative" | "Very Negative"
   },
 
   "scenario_analysis": {

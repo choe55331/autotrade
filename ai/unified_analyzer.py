@@ -1,6 +1,6 @@
 """
-Unified AI Analyzer v6.0
-통합 AI 분석기 - Gemini, Claude, GPT-4 지원
+Unified AI Analyzer v6.1
+통합 AI 분석기 - Gemini 전용 (최적화)
 고도화된 프롬프트 엔지니어링 적용
 """
 
@@ -11,24 +11,12 @@ from typing import Dict, List, Optional, Any
 from datetime import datetime
 from abc import ABC, abstractmethod
 
-# AI Provider imports
+# AI Provider imports (Gemini only)
 try:
     import google.generativeai as genai
     GEMINI_AVAILABLE = True
 except ImportError:
     GEMINI_AVAILABLE = False
-
-try:
-    from anthropic import Anthropic
-    CLAUDE_AVAILABLE = True
-except ImportError:
-    CLAUDE_AVAILABLE = False
-
-try:
-    from openai import OpenAI
-    GPT4_AVAILABLE = True
-except ImportError:
-    GPT4_AVAILABLE = False
 
 
 class AIProvider(ABC):
@@ -41,7 +29,7 @@ class AIProvider(ABC):
 
 
 class GeminiProvider(AIProvider):
-    """Gemini AI Provider"""
+    """Gemini AI Provider - Primary and Only AI Provider"""
 
     def __init__(self, api_key: str):
         if not GEMINI_AVAILABLE:
@@ -57,97 +45,37 @@ class GeminiProvider(AIProvider):
         return response.text
 
 
-class ClaudeProvider(AIProvider):
-    """Claude AI Provider"""
-
-    def __init__(self, api_key: str):
-        if not CLAUDE_AVAILABLE:
-            raise ImportError("anthropic not installed")
-
-        self.client = Anthropic(api_key=api_key)
-
-    async def analyze(self, prompt: str) -> str:
-        response = await asyncio.to_thread(
-            self.client.messages.create,
-            model="claude-3-5-sonnet-20241022",
-            max_tokens=2000,
-            messages=[{"role": "user", "content": prompt}]
-        )
-        return response.content[0].text
-
-
-class GPT4Provider(AIProvider):
-    """GPT-4 AI Provider"""
-
-    def __init__(self, api_key: str):
-        if not GPT4_AVAILABLE:
-            raise ImportError("openai not installed")
-
-        self.client = OpenAI(api_key=api_key)
-
-    async def analyze(self, prompt: str) -> str:
-        response = await asyncio.to_thread(
-            self.client.chat.completions.create,
-            model="gpt-4-turbo-preview",
-            messages=[{"role": "user", "content": prompt}]
-        )
-        return response.choices[0].message.content
-
-
 class UnifiedAnalyzer:
     """
-    통합 AI 분석기
+    통합 AI 분석기 (Gemini 전용)
 
     Features:
-    - 3개 AI 모델 지원 (Gemini, Claude, GPT-4)
-    - 앙상블 분석 (다중 모델 투표)
+    - Gemini Pro 모델 사용
     - 고도화된 프롬프트 엔지니어링
-    - 컨텍스트 기반 분석 (RAG 준비)
+    - 컨텍스트 기반 분석
+    - 자동 폴백 (Mock 분석)
     """
 
     def __init__(self):
         self.providers: Dict[str, AIProvider] = {}
-        self.default_provider = None
+        self.default_provider = 'gemini'
         self._initialize_providers()
 
     def _initialize_providers(self):
-        """AI Provider 초기화"""
+        """AI Provider 초기화 (Gemini만 사용)"""
 
-        # Gemini
+        # Gemini (Primary and Only Provider)
         gemini_key = os.getenv('GEMINI_API_KEY')
         if gemini_key and GEMINI_AVAILABLE:
             try:
                 self.providers['gemini'] = GeminiProvider(gemini_key)
-                if not self.default_provider:
-                    self.default_provider = 'gemini'
-                print("✓ Gemini AI initialized")
+                self.default_provider = 'gemini'
+                print("✓ Gemini AI initialized (Primary Provider)")
             except Exception as e:
                 print(f"⚠️ Gemini initialization failed: {e}")
-
-        # Claude
-        claude_key = os.getenv('ANTHROPIC_API_KEY')
-        if claude_key and CLAUDE_AVAILABLE:
-            try:
-                self.providers['claude'] = ClaudeProvider(claude_key)
-                if not self.default_provider:
-                    self.default_provider = 'claude'
-                print("✓ Claude AI initialized")
-            except Exception as e:
-                print(f"⚠️ Claude initialization failed: {e}")
-
-        # GPT-4
-        openai_key = os.getenv('OPENAI_API_KEY')
-        if openai_key and GPT4_AVAILABLE:
-            try:
-                self.providers['gpt4'] = GPT4Provider(openai_key)
-                if not self.default_provider:
-                    self.default_provider = 'gpt4'
-                print("✓ GPT-4 initialized")
-            except Exception as e:
-                print(f"⚠️ GPT-4 initialization failed: {e}")
-
-        if not self.providers:
-            print("⚠️ No AI providers available - using Mock")
+                print("⚠️ Falling back to Mock analyzer")
+        else:
+            print("⚠️ Gemini API key not found - using Mock analyzer")
 
     def _build_advanced_prompt(
         self,
@@ -285,20 +213,16 @@ JSON 형식을 정확히 지켜주세요.
         stock_data: Dict[str, Any],
         score_info: Optional[Dict[str, Any]] = None,
         portfolio_info: Optional[str] = None,
-        market_context: Optional[Dict[str, Any]] = None,
-        provider: Optional[str] = None,
-        ensemble: bool = False
+        market_context: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
-        종목 분석
+        종목 분석 (Gemini 전용)
 
         Args:
             stock_data: 종목 데이터
             score_info: 스코어링 정보
             portfolio_info: 포트폴리오 정보
             market_context: 시장 컨텍스트
-            provider: AI 제공자 ('gemini', 'claude', 'gpt4', None=기본값)
-            ensemble: 앙상블 모드 (다중 모델 투표)
 
         Returns:
             분석 결과
@@ -312,16 +236,8 @@ JSON 형식을 정확히 지켜주세요.
             stock_data, score_info, portfolio_info, market_context
         )
 
-        if ensemble and len(self.providers) > 1:
-            # 앙상블 분석 (다중 모델)
-            return await self._ensemble_analyze(prompt)
-        else:
-            # 단일 모델 분석
-            provider_name = provider or self.default_provider
-            if provider_name not in self.providers:
-                provider_name = self.default_provider
-
-            return await self._single_analyze(prompt, provider_name)
+        # Gemini 분석 실행
+        return await self._single_analyze(prompt, 'gemini')
 
     async def _single_analyze(self, prompt: str, provider_name: str) -> Dict[str, Any]:
         """단일 모델 분석"""
@@ -348,53 +264,6 @@ JSON 형식을 정확히 지켜주세요.
             print(f"❌ {provider_name} analysis failed: {e}")
             return self._mock_analysis({}, None)
 
-    async def _ensemble_analyze(self, prompt: str) -> Dict[str, Any]:
-        """앙상블 분석 (다중 모델 투표)"""
-
-        tasks = [
-            self._single_analyze(prompt, name)
-            for name in self.providers.keys()
-        ]
-
-        results = await asyncio.gather(*tasks, return_exceptions=True)
-
-        # 예외 제거
-        valid_results = [r for r in results if isinstance(r, dict)]
-
-        if not valid_results:
-            return self._mock_analysis({}, None)
-
-        # 투표
-        buy_votes = sum(1 for r in valid_results if r.get('signal') == 'buy')
-        hold_votes = sum(1 for r in valid_results if r.get('signal') == 'hold')
-        sell_votes = sum(1 for r in valid_results if r.get('signal') == 'sell')
-
-        total_votes = len(valid_results)
-
-        # 최종 신호
-        if buy_votes >= total_votes / 2:
-            final_signal = 'buy'
-        elif sell_votes >= total_votes / 2:
-            final_signal = 'sell'
-        else:
-            final_signal = 'hold'
-
-        # 평균 신뢰도
-        avg_confidence = sum(r.get('confidence', 0.5) for r in valid_results) / total_votes
-
-        return {
-            'signal': final_signal,
-            'confidence': avg_confidence,
-            'ensemble': True,
-            'votes': {
-                'buy': buy_votes,
-                'hold': hold_votes,
-                'sell': sell_votes
-            },
-            'models': [r.get('provider') for r in valid_results],
-            'individual_results': valid_results,
-            'analysis_text': f"앙상블 분석 ({total_votes}개 모델): {final_signal.upper()}"
-        }
 
     def _fallback_parse(self, response_text: str, provider_name: str) -> Dict[str, Any]:
         """JSON 파싱 실패 시 폴백"""
