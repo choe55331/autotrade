@@ -396,7 +396,7 @@ async def search_stocks(query: str = "", limit: int = 20):
 
 @app.get("/api/market/stock/{stock_code}")
 async def get_stock_detail(stock_code: str):
-    """종목 상세 정보"""
+    """종목 상세 정보 (✅ v5.15: NXT 시간대 실시간 현재가 반영)"""
     try:
         if bot_instance is None or bot_instance.market_api is None:
             logger.warning("Bot instance not initialized")
@@ -408,8 +408,38 @@ async def get_stock_detail(stock_code: str):
                 "volume": 0
             }
 
-        # 종목 현재가 조회
-        price_info = bot_instance.market_api.get_stock_price(stock_code)
+        # ✅ v5.15: NXT 실시간 가격 관리자 사용
+        from utils.nxt_realtime_price import get_nxt_price_manager
+        nxt_manager = get_nxt_price_manager(bot_instance.market_api)
+
+        # 종목 현재가 조회 (NXT 시간대 자동 처리)
+        price_result = nxt_manager.get_realtime_price(stock_code)
+
+        if not price_result:
+            # Fallback to direct API call
+            price_result = bot_instance.market_api.get_stock_price(stock_code)
+            if not price_result:
+                logger.error(f"Failed to get stock price for {stock_code}")
+                return {
+                    "code": stock_code,
+                    "name": "Unknown",
+                    "current_price": 0,
+                    "change_rate": 0,
+                    "volume": 0
+                }
+            # Convert to expected format
+            price_info = price_result
+        else:
+            # NXT manager returns different format - convert to API format
+            price_info = {
+                'stock_name': stock_code,  # Will try to get from orderbook
+                'current_price': price_result['current_price'],
+                'change_rate': price_result.get('change_rate', 0),
+                'volume': price_result.get('volume', 0),
+                'high_price': 0,
+                'low_price': 0,
+                'open_price': 0
+            }
 
         if not price_info:
             logger.error(f"Failed to get stock price for {stock_code}")

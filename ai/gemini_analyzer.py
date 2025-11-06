@@ -17,39 +17,193 @@ class GeminiAnalyzer(BaseAnalyzer):
     Gemini API를 사용한 종목/시장 분석
     """
 
-    # 종목 분석 프롬프트 템플릿
-    STOCK_ANALYSIS_PROMPT_TEMPLATE = """[종목 정보]
-종목명: {stock_name} ({stock_code})
-현재가: {current_price:,}원 (등락률: {change_rate:+.2f}%)
-거래량: {volume:,}주
-종합 점수: {score}/440점 ({percentage:.1f}%)
+    # 종목 분석 프롬프트 템플릿 (v5.10 - ENHANCED)
+    STOCK_ANALYSIS_PROMPT_TEMPLATE = """# 🎯 PROFESSIONAL QUANTITATIVE TRADING ANALYSIS REQUEST (v5.10)
 
-[10가지 세부 점수]
+당신은 20년 이상의 경력을 가진 퀀트 헤지펀드 매니저이자 리스크 관리 전문가입니다.
+다음 한국 주식에 대한 심층 분석을 수행해주세요.
+
+## 📊 STOCK IDENTIFICATION
+**종목**: {stock_name} ({stock_code})
+**현재가**: {current_price:,}원
+**등락률**: {change_rate:+.2f}%
+**거래량**: {volume:,}주
+
+## 🔢 QUANTITATIVE SCORING SYSTEM (440점 만점)
+**종합 점수**: {score}/440점 ({percentage:.1f}%)
+
+### 세부 점수 분석 (10개 지표):
 {score_breakdown_detailed}
 
-[투자자 동향]
-기관 순매수: {institutional_net_buy:,}원
-외국인 순매수: {foreign_net_buy:,}원
-매수호가강도: {bid_ask_ratio:.2f}
+**점수 해석 가이드**:
+- 350점 이상 (80%+): S등급 - 매우 강력한 매수 신호
+- 300-349점 (68-79%): A등급 - 강력한 매수 신호
+- 250-299점 (57-68%): B등급 - 긍정적 신호
+- 200-249점 (45-56%): C등급 - 중립
+- 200점 미만 (45%-): D/F등급 - 부정적 신호
 
-[현재 포트폴리오]
+## 💰 INVESTOR FLOW ANALYSIS (스마트머니 추적)
+**기관 순매수**: {institutional_net_buy:,}원
+**외국인 순매수**: {foreign_net_buy:,}원
+**매수호가 강도**: {bid_ask_ratio:.2f}
+
+**투자자 흐름 해석**:
+- 외국인+기관 동시 순매수 = 강력한 상승 신호
+- 외국인 순매도 + 개인 순매수 = 경고 신호
+- 매수호가강도 > 1.5 = 강한 매수세
+- 매수호가강도 < 0.7 = 강한 매도세
+
+## 📈 CURRENT PORTFOLIO CONTEXT
 {portfolio_info}
 
-[분석 요청]
-위 데이터를 종합하여 다음을 분석해주세요:
+---
 
-1. 종합 점수 {percentage:.1f}%의 타당성 (10가지 세부 점수 고려)
-2. 투자자 동향이 보여주는 시그널
-3. 단기 급등 vs 추세 전환 판단
-4. 주요 리스크 요인
+## 🎓 REQUIRED COMPREHENSIVE ANALYSIS
 
-[응답 형식]
-관심도: [높음/보통]
-분할매수: [높음이면 구체적으로 3단계로 제시]
-  예시) 1차 40% 현재가, 2차 30% -2%, 3차 20% -4%
-근거: [2-3줄, 점수와 투자자 동향 언급]
-경고: [1-2줄, 구체적 리스크]
-"""
+### 1. TECHNICAL SCORE VALIDATION (점수 타당성 분석)
+- 10가지 세부 점수를 개별적으로 평가
+- 각 점수가 실제 시장 상황과 부합하는지 검증
+- 과대평가되었거나 과소평가된 지표 식별
+- 점수의 신뢰도 평가 (0-100%)
+
+### 2. SMART MONEY FLOW ANALYSIS (스마트머니 흐름)
+- 기관/외국인 매매 패턴 해석
+- 개인 vs 기관/외국인 포지션 비교
+- 누적 매수/매도 흐름 분석
+- 스마트머니가 보내는 신호 해독
+
+### 3. PRICE ACTION & MOMENTUM (가격 행동 분석)
+- 단기 급등 vs 추세 전환 vs 조정 후 재상승 구분
+- 현재 모멘텀의 지속 가능성 평가
+- 과매수/과매도 상태 판단
+- 변동성 분석 및 예상 가격 범위
+
+### 4. RISK-REWARD ASSESSMENT (위험-보상 분석)
+**주요 리스크 요인**:
+- 기술적 리스크 (저항선, 지지선 이탈 가능성)
+- 펀더멘털 리스크 (밸류에이션, 업종 리스크)
+- 시장 리스크 (전체 시장 약세, 변동성 확대)
+- 유동성 리스크
+- 이벤트 리스크 (실적 발표, 규제 등)
+
+**예상 시나리오**:
+- 🐂 Bull Case (확률 ___%): [상승 시나리오]
+- 📊 Base Case (확률 ___%): [기본 시나리오]
+- 🐻 Bear Case (확률 ___%): [하락 시나리오]
+
+### 5. TRADING STRATEGY (구체적 매매 전략)
+**진입 전략**:
+- 즉시 매수 vs 대기 vs 분할 매수
+- 최적 진입 가격 및 타이밍
+- 포지션 크기 권장 (포트폴리오 대비 %)
+
+**리스크 관리**:
+- 손절가 설정 (가격 및 근거)
+- 익절 목표가 (1차, 2차, 3차)
+- 최대 보유 기간
+- 손익비 (Risk-Reward Ratio)
+
+### 6. PROBABILITY ASSESSMENT (확률 기반 평가)
+- 수익 확률: ___%
+- 손실 확률: ___%
+- 기대 수익률: ___% (확률 가중 평균)
+- 최대 손실 예상: ___%
+
+---
+
+## 📋 REQUIRED OUTPUT FORMAT (JSON 형식):
+
+```json
+{
+  "signal": "STRONG_BUY" | "BUY" | "WEAK_BUY" | "HOLD" | "WEAK_SELL" | "SELL" | "STRONG_SELL",
+  "confidence_level": "Very High" | "High" | "Medium" | "Low" | "Very Low",
+  "overall_score": <0-10 with 0.1 precision>,
+
+  "score_validation": {
+    "is_score_reliable": true | false,
+    "score_confidence": <0-100 percentage>,
+    "overvalued_indicators": ["indicator1", ...],
+    "undervalued_indicators": ["indicator1", ...],
+    "key_score_drivers": ["driver1", "driver2", "driver3"]
+  },
+
+  "investor_flow_signal": {
+    "institutional_sentiment": "Strong Buy" | "Buy" | "Neutral" | "Sell" | "Strong Sell",
+    "foreign_sentiment": "Strong Buy" | "Buy" | "Neutral" | "Sell" | "Strong Sell",
+    "smart_money_signal": "Strong Accumulation" | "Accumulation" | "Neutral" | "Distribution" | "Strong Distribution",
+    "flow_confidence": <0-100>
+  },
+
+  "price_action_analysis": {
+    "pattern": "Sharp Rally" | "Trend Reversal" | "Post-Correction Rally" | "Consolidation" | "Breakdown",
+    "momentum_sustainability": "Very High" | "High" | "Medium" | "Low" | "Very Low",
+    "overbought_oversold": "Severely Overbought" | "Overbought" | "Neutral" | "Oversold" | "Severely Oversold",
+    "expected_price_range_7d": {"low": <price>, "high": <price>}
+  },
+
+  "risk_analysis": {
+    "overall_risk": "Very Low" | "Low" | "Medium" | "High" | "Very High",
+    "key_risks": [
+      {"type": "technical|fundamental|market|liquidity|event", "description": "...", "severity": <1-10>}
+    ],
+    "risk_mitigation": ["action1", "action2"]
+  },
+
+  "scenario_analysis": {
+    "bull_case": {"probability": <0-100>, "description": "...", "target_price": <price>},
+    "base_case": {"probability": <0-100>, "description": "...", "target_price": <price>},
+    "bear_case": {"probability": <0-100>, "description": "...", "target_price": <price>}
+  },
+
+  "trading_plan": {
+    "entry_strategy": "Immediate" | "Wait for Pullback" | "Wait for Breakout" | "Avoid",
+    "position_size_pct": <0-100, as % of portfolio>,
+    "entry_prices": [
+      {"percentage": <%, e.g. 40>, "price": <price>, "condition": "Market/Limit/-2%/-4%"}
+    ],
+    "stop_loss": <price>,
+    "take_profit_targets": [
+      {"percentage_to_sell": <%, e.g. 30>, "price": <price>, "rationale": "..."}
+    ],
+    "max_holding_days": <number or null>,
+    "risk_reward_ratio": <number>
+  },
+
+  "probability_metrics": {
+    "success_probability": <0-100>,
+    "loss_probability": <0-100>,
+    "expected_return": <percentage, probability-weighted>,
+    "max_drawdown_estimate": <percentage>
+  },
+
+  "key_insights": [
+    "Most critical insight #1",
+    "Most critical insight #2",
+    "Most critical insight #3"
+  ],
+
+  "warnings": [
+    "Critical warning #1",
+    "Critical warning #2"
+  ],
+
+  "detailed_reasoning": "<3-5 paragraph comprehensive analysis covering all aspects>",
+
+  "analyst_conviction": "Very High" | "High" | "Medium" | "Low" | "Very Low"
+}
+```
+
+## ⚠️ CRITICAL ANALYSIS GUIDELINES:
+
+1. **Be Brutally Honest**: Don't sugarcoat risks or force a bullish view
+2. **Probabilistic Thinking**: Express everything in probabilities, not certainties
+3. **Risk-First Mindset**: Always assess downside before upside
+4. **Contrarian Awareness**: Question if the market is overreacting or underreacting
+5. **Evidence-Based**: Root all conclusions in the actual data provided
+6. **Actionable**: Provide specific, executable trading recommendations
+7. **Intellectual Honesty**: If signals are mixed or data insufficient, say "HOLD - Insufficient Edge"
+
+**특히 중요**: 점수가 높다고 무조건 매수 추천하지 말 것. 스마트머니 흐름과 가격 액션을 종합적으로 고려할 것."""
 
     def __init__(self, api_key: str = None, model_name: str = None):
         """
