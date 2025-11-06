@@ -62,6 +62,11 @@ class AdvancedTradingChart {
             macd: true,
             volume: true
         };
+
+        // v6.1: Multi-chart comparison
+        this.comparisonStocks = []; // [{code, name, series, color}]
+        this.comparisonColors = ['#f59e0b', '#10b981', '#8b5cf6', '#ec4899', '#14b8a6'];
+        this.nextColorIndex = 0;
     }
 
     initialize() {
@@ -140,24 +145,45 @@ class AdvancedTradingChart {
                     </div>
                 </div>
 
-                <!-- Drawing Tools Group -->
+                <!-- Drawing Tools Group (v6.1: Enhanced) -->
                 <div class="toolbar-section">
                     <div class="toolbar-section-title">
                         <i class="fas fa-pen"></i> 그리기
                     </div>
                     <div class="toolbar-button-group">
                         <button class="draw-btn" onclick="advancedChart.setDrawingMode('trendline')" title="추세선">
-                            <i class="fas fa-slash"></i>
+                            <i class="fas fa-slash"></i> 추세선
+                        </button>
+                        <button class="draw-btn" onclick="advancedChart.setDrawingMode('fibonacci')" title="피보나치 되돌림">
+                            <i class="fas fa-layer-group"></i> 피보나치
                         </button>
                         <button class="draw-btn" onclick="advancedChart.setDrawingMode('horizontal')" title="수평선">
                             <i class="fas fa-minus"></i>
                         </button>
-                        <button class="draw-btn" onclick="advancedChart.setDrawingMode('vertical')" title="수직선">
-                            <i class="fas fa-grip-lines-vertical"></i>
+                        <button class="draw-btn" onclick="advancedChart.setDrawingMode('rectangle')" title="사각형">
+                            <i class="far fa-square"></i>
                         </button>
                         <button class="draw-btn" onclick="advancedChart.clearDrawings()" title="모두 지우기">
-                            <i class="fas fa-eraser"></i>
+                            <i class="fas fa-eraser"></i> 지우기
                         </button>
+                    </div>
+                </div>
+
+                <!-- Multi-Chart Comparison (v6.1: NEW) -->
+                <div class="toolbar-section">
+                    <div class="toolbar-section-title">
+                        <i class="fas fa-layer-group"></i> 차트 비교
+                    </div>
+                    <div class="toolbar-button-group">
+                        <button class="ctrl-btn" onclick="advancedChart.toggleComparisonMode()" title="비교 모드">
+                            <i class="fas fa-plus"></i> 종목 추가
+                        </button>
+                        <button class="ctrl-btn" onclick="advancedChart.clearComparison()" title="비교 종목 제거">
+                            <i class="fas fa-times"></i> 초기화
+                        </button>
+                    </div>
+                    <div id="comparison-stocks" style="display: flex; gap: 4px; flex-wrap: wrap; margin-top: 8px;">
+                        <!-- 비교 종목 태그들이 여기에 표시됨 -->
                     </div>
                 </div>
 
@@ -180,14 +206,16 @@ class AdvancedTradingChart {
                 </div>
             </div>
 
-            <!-- Chart Panels -->
-            <div style="position: relative;">
-                <canvas id="drawing-canvas" style="position: absolute; top: 0; left: 0; z-index: 10; pointer-events: auto;"></canvas>
-                <div id="main-chart-container" class="chart-panel-enhanced" style="height: 380px; position: relative;"></div>
+            <!-- Chart Panels (v6.1: Flexible Layout) -->
+            <div id="chart-panels-wrapper" style="display: flex; flex-direction: column; height: calc(100vh - 300px); min-height: 600px;">
+                <div style="position: relative; flex: 1 1 auto; min-height: 300px;">
+                    <canvas id="drawing-canvas" style="position: absolute; top: 0; left: 0; z-index: 10; pointer-events: auto;"></canvas>
+                    <div id="main-chart-container" class="chart-panel-enhanced" style="height: 100%; position: relative;"></div>
+                </div>
+                <div id="rsi-chart-container" class="chart-panel-enhanced indicator-panel" style="flex: 0 0 100px; margin-top: 5px; min-height: 80px;"></div>
+                <div id="macd-chart-container" class="chart-panel-enhanced indicator-panel" style="flex: 0 0 120px; margin-top: 5px; min-height: 90px;"></div>
+                <div id="volume-chart-container" class="chart-panel-enhanced indicator-panel" style="flex: 0 0 90px; margin-top: 5px; min-height: 70px;"></div>
             </div>
-            <div id="rsi-chart-container" class="chart-panel-enhanced indicator-panel" style="height: 100px; margin-top: 5px;"></div>
-            <div id="macd-chart-container" class="chart-panel-enhanced indicator-panel" style="height: 120px; margin-top: 5px;"></div>
-            <div id="volume-chart-container" class="chart-panel-enhanced indicator-panel" style="height: 90px; margin-top: 5px;"></div>
         `;
     }
 
@@ -933,6 +961,15 @@ class AdvancedTradingChart {
         } else if (this.drawingMode === 'vertical') {
             this.ctx.moveTo(this.startPoint.x, 0);
             this.ctx.lineTo(this.startPoint.x, this.canvas.height);
+        } else if (this.drawingMode === 'rectangle') {
+            // v6.1: Rectangle drawing
+            const width = currentPoint.x - this.startPoint.x;
+            const height = currentPoint.y - this.startPoint.y;
+            this.ctx.rect(this.startPoint.x, this.startPoint.y, width, height);
+        } else if (this.drawingMode === 'fibonacci') {
+            // v6.1: Fibonacci retracement preview
+            this.drawFibonacci(this.startPoint, currentPoint, true);
+            return; // Skip default stroke
         }
 
         this.ctx.stroke();
@@ -972,15 +1009,58 @@ class AdvancedTradingChart {
             if (drawing.type === 'trendline') {
                 this.ctx.moveTo(drawing.start.x, drawing.start.y);
                 this.ctx.lineTo(drawing.end.x, drawing.end.y);
+                this.ctx.stroke();
             } else if (drawing.type === 'horizontal') {
                 this.ctx.moveTo(0, drawing.start.y);
                 this.ctx.lineTo(this.canvas.width, drawing.start.y);
+                this.ctx.stroke();
             } else if (drawing.type === 'vertical') {
                 this.ctx.moveTo(drawing.start.x, 0);
                 this.ctx.lineTo(drawing.start.x, this.canvas.height);
+                this.ctx.stroke();
+            } else if (drawing.type === 'rectangle') {
+                // v6.1: Rectangle
+                const width = drawing.end.x - drawing.start.x;
+                const height = drawing.end.y - drawing.start.y;
+                this.ctx.rect(drawing.start.x, drawing.start.y, width, height);
+                this.ctx.stroke();
+            } else if (drawing.type === 'fibonacci') {
+                // v6.1: Fibonacci retracement
+                this.drawFibonacci(drawing.start, drawing.end, false);
             }
+        });
+    }
 
+    // v6.1: Draw Fibonacci retracement levels
+    drawFibonacci(start, end, isPreview) {
+        const levels = [
+            { ratio: 0, label: '0.0%', color: '#ef4444' },
+            { ratio: 0.236, label: '23.6%', color: '#f59e0b' },
+            { ratio: 0.382, label: '38.2%', color: '#eab308' },
+            { ratio: 0.5, label: '50.0%', color: '#84cc16' },
+            { ratio: 0.618, label: '61.8%', color: '#10b981' },
+            { ratio: 1.0, label: '100%', color: '#3b82f6' }
+        ];
+
+        const height = end.y - start.y;
+
+        levels.forEach(level => {
+            const y = start.y + (height * level.ratio);
+
+            this.ctx.strokeStyle = level.color;
+            this.ctx.lineWidth = isPreview ? 1 : 2;
+            this.ctx.setLineDash(isPreview ? [5, 5] : []);
+            this.ctx.beginPath();
+            this.ctx.moveTo(0, y);
+            this.ctx.lineTo(this.canvas.width, y);
             this.ctx.stroke();
+
+            // Draw label
+            if (!isPreview) {
+                this.ctx.fillStyle = level.color;
+                this.ctx.font = '12px sans-serif';
+                this.ctx.fillText(level.label, 10, y - 5);
+            }
         });
     }
 
@@ -990,22 +1070,35 @@ class AdvancedTradingChart {
         const macdContainer = document.getElementById('macd-chart-container');
         const volumeContainer = document.getElementById('volume-chart-container');
 
+        // v6.1: Dynamic height support for flexible layout
         if (this.mainChart && mainContainer) {
-            this.mainChart.applyOptions({ width: mainContainer.clientWidth });
+            this.mainChart.applyOptions({
+                width: mainContainer.clientWidth,
+                height: mainContainer.clientHeight
+            });
         }
-        if (this.rsiChart && rsiContainer) {
-            this.rsiChart.applyOptions({ width: rsiContainer.clientWidth });
+        if (this.rsiChart && rsiContainer && this.panelsVisible.rsi) {
+            this.rsiChart.applyOptions({
+                width: rsiContainer.clientWidth,
+                height: rsiContainer.clientHeight
+            });
         }
-        if (this.macdChart && macdContainer) {
-            this.macdChart.applyOptions({ width: macdContainer.clientWidth });
+        if (this.macdChart && macdContainer && this.panelsVisible.macd) {
+            this.macdChart.applyOptions({
+                width: macdContainer.clientWidth,
+                height: macdContainer.clientHeight
+            });
         }
-        if (this.volumeChart && volumeContainer) {
-            this.volumeChart.applyOptions({ width: volumeContainer.clientWidth });
+        if (this.volumeChart && volumeContainer && this.panelsVisible.volume) {
+            this.volumeChart.applyOptions({
+                width: volumeContainer.clientWidth,
+                height: volumeContainer.clientHeight
+            });
         }
 
         if (this.canvas && mainContainer) {
             this.canvas.width = mainContainer.clientWidth;
-            this.canvas.height = mainContainer.offsetHeight;
+            this.canvas.height = mainContainer.clientHeight;
             this.redrawCanvas();
         }
     }
@@ -1068,6 +1161,155 @@ class AdvancedTradingChart {
             toast.classList.remove('show');
             setTimeout(() => toast.remove(), 300);
         }, 4000);
+    }
+
+    // ============================================================
+    // v6.1: Multi-Chart Comparison Functions
+    // ============================================================
+
+    toggleComparisonMode() {
+        const stockCode = prompt('비교할 종목 코드를 입력하세요 (예: 000660):', '');
+        if (!stockCode) return;
+
+        this.addComparisonStock(stockCode.trim());
+    }
+
+    async addComparisonStock(stockCode) {
+        // Check if already added
+        if (this.comparisonStocks.find(s => s.code === stockCode)) {
+            this.showWarning('이미 추가된 종목입니다');
+            return;
+        }
+
+        // Check limit (max 5 comparison stocks)
+        if (this.comparisonStocks.length >= 5) {
+            this.showWarning('최대 5개 종목까지 비교 가능합니다');
+            return;
+        }
+
+        try {
+            this.showLoading();
+
+            // Fetch stock data
+            const response = await fetch(`/api/chart/${stockCode}?timeframe=D`);
+            const data = await response.json();
+
+            if (!data.success || !data.data || data.data.length === 0) {
+                this.showError('종목 데이터를 불러올 수 없습니다');
+                this.hideLoading();
+                return;
+            }
+
+            // Get next color
+            const color = this.comparisonColors[this.nextColorIndex % this.comparisonColors.length];
+            this.nextColorIndex++;
+
+            // Create line series for comparison
+            const lineSeries = this.mainChart.addLineSeries({
+                color: color,
+                lineWidth: 2,
+                title: data.name || stockCode
+            });
+
+            // Convert data format
+            const lineData = data.data.map(candle => ({
+                time: candle.time,
+                value: candle.close
+            }));
+
+            lineSeries.setData(lineData);
+
+            // Store comparison stock
+            this.comparisonStocks.push({
+                code: stockCode,
+                name: data.name || stockCode,
+                series: lineSeries,
+                color: color
+            });
+
+            // Update UI
+            this.updateComparisonUI();
+            this.hideLoading();
+            this.showToast(`${data.name || stockCode} 종목이 추가되었습니다`, 'info');
+
+        } catch (error) {
+            console.error('Failed to add comparison stock:', error);
+            this.showError('종목 추가 실패: ' + error.message);
+            this.hideLoading();
+        }
+    }
+
+    removeComparisonStock(stockCode) {
+        const index = this.comparisonStocks.findIndex(s => s.code === stockCode);
+        if (index === -1) return;
+
+        const stock = this.comparisonStocks[index];
+
+        // Remove series from chart
+        this.mainChart.removeSeries(stock.series);
+
+        // Remove from array
+        this.comparisonStocks.splice(index, 1);
+
+        // Update UI
+        this.updateComparisonUI();
+        this.showToast(`${stock.name} 종목이 제거되었습니다`, 'info');
+    }
+
+    clearComparison() {
+        // Remove all comparison series
+        this.comparisonStocks.forEach(stock => {
+            this.mainChart.removeSeries(stock.series);
+        });
+
+        // Clear array
+        this.comparisonStocks = [];
+        this.nextColorIndex = 0;
+
+        // Update UI
+        this.updateComparisonUI();
+        this.showToast('모든 비교 종목이 제거되었습니다', 'info');
+    }
+
+    updateComparisonUI() {
+        const container = document.getElementById('comparison-stocks');
+        if (!container) return;
+
+        if (this.comparisonStocks.length === 0) {
+            container.innerHTML = '<span style="font-size: 11px; color: var(--text-muted);">비교 종목이 없습니다</span>';
+            return;
+        }
+
+        container.innerHTML = this.comparisonStocks.map(stock => `
+            <div style="
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 4px 10px;
+                background: ${stock.color}22;
+                border: 1px solid ${stock.color};
+                border-radius: 12px;
+                font-size: 11px;
+                font-weight: 500;
+            ">
+                <span style="color: ${stock.color};">⬤</span>
+                <span>${stock.name}</span>
+                <button
+                    onclick="advancedChart.removeComparisonStock('${stock.code}')"
+                    style="
+                        background: none;
+                        border: none;
+                        color: ${stock.color};
+                        cursor: pointer;
+                        padding: 0;
+                        margin-left: 4px;
+                        font-size: 14px;
+                        line-height: 1;
+                    "
+                    title="제거"
+                >×</button>
+            </div>
+        `).join('');
     }
 }
 

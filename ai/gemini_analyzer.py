@@ -544,33 +544,58 @@ class GeminiAnalyzer(BaseAnalyzer):
         response_text: str,
         stock_data: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """종목 분석 응답 파싱 - JSON 또는 텍스트 형식 모두 지원"""
+        """종목 분석 응답 파싱 - JSON 또는 텍스트 형식 모두 지원 (v6.1 강화)"""
 
-        # v6.0.1: JSON 응답 처리 추가
+        # v6.1: 더 강력한 JSON 파싱
         try:
-            # JSON 블록 찾기 (```json ... ``` 또는 { ... })
             import re
             import json
 
-            # Clean response text - remove leading/trailing whitespace
+            # Clean response text
             cleaned_text = response_text.strip()
 
-            # Try to extract JSON from markdown code blocks
+            # Try multiple JSON extraction strategies
+            json_str = None
+
+            # Strategy 1: Extract from ```json code block
             json_match = re.search(r'```json\s*\n(.*?)\n```', cleaned_text, re.DOTALL)
             if json_match:
                 json_str = json_match.group(1)
-            else:
-                # Try to find raw JSON object
-                json_match = re.search(r'\{.*\}', cleaned_text, re.DOTALL)
+                logger.debug("Found JSON in code block")
+
+            # Strategy 2: Extract from ``` code block (without json)
+            if not json_str:
+                json_match = re.search(r'```\s*\n(.*?)\n```', cleaned_text, re.DOTALL)
                 if json_match:
-                    json_str = json_match.group(0)
-                else:
-                    json_str = None
+                    potential_json = json_match.group(1).strip()
+                    if potential_json.startswith('{'):
+                        json_str = potential_json
+                        logger.debug("Found JSON in generic code block")
+
+            # Strategy 3: Find largest {...} block
+            if not json_str:
+                json_blocks = re.findall(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', cleaned_text, re.DOTALL)
+                if json_blocks:
+                    # Get the largest JSON block
+                    json_str = max(json_blocks, key=len)
+                    logger.debug("Found JSON block in text")
+
+            # Strategy 4: Try parsing entire response as JSON
+            if not json_str:
+                if cleaned_text.startswith('{'):
+                    json_str = cleaned_text
+                    logger.debug("Entire response appears to be JSON")
 
             # Try parsing JSON
             if json_str:
                 try:
-                    data = json.loads(json_str.strip())
+                    # Clean common JSON issues
+                    json_str = json_str.strip()
+                    # Remove trailing commas
+                    json_str = re.sub(r',\s*}', '}', json_str)
+                    json_str = re.sub(r',\s*]', ']', json_str)
+
+                    data = json.loads(json_str)
 
                     # Extract values from JSON response
                     signal_map = {
@@ -583,30 +608,32 @@ class GeminiAnalyzer(BaseAnalyzer):
                         'STRONG_SELL': 'sell'
                     }
 
-                    signal = signal_map.get(data.get('signal', 'HOLD').upper(), 'hold')
+                    signal = signal_map.get(str(data.get('signal', 'HOLD')).upper(), 'hold')
 
                     # Extract detailed reasoning
                     reasons = []
                     if 'detailed_reasoning' in data:
                         reasons.append(data['detailed_reasoning'])
-                    if 'key_insights' in data:
+                    if 'key_insights' in data and isinstance(data.get('key_insights'), list):
                         reasons.extend(data['key_insights'])
 
                     # Extract warnings
                     warnings = data.get('warnings', [])
+                    if isinstance(warnings, str):
+                        warnings = [warnings]
 
                     # Extract trading plan
                     trading_plan = data.get('trading_plan', {})
-                    entry_strategy = trading_plan.get('entry_strategy', '')
+                    entry_strategy = trading_plan.get('entry_strategy', '') if isinstance(trading_plan, dict) else ''
 
                     result = {
-                        'score': 0,  # AI는 점수 안 줌 (scoring_system이 계산)
+                        'score': 0,
                         'signal': signal,
                         'split_strategy': entry_strategy,
                         'confidence': data.get('confidence_level', 'Medium'),
                         'recommendation': signal,
-                        'reasons': reasons if reasons else [cleaned_text],
-                        'risks': warnings,
+                        'reasons': reasons if reasons else ['AI 분석 완료'],
+                        'risks': warnings if isinstance(warnings, list) else [],
                         'target_price': int(stock_data.get('current_price', 0) * 1.1),
                         'stop_loss_price': int(stock_data.get('current_price', 0) * 0.95),
                         'analysis_text': cleaned_text,
@@ -616,111 +643,41 @@ class GeminiAnalyzer(BaseAnalyzer):
                     return result
 
                 except json.JSONDecodeError as e:
-                    logger.warning(f"JSON 파싱 실패, 텍스트 파싱으로 전환: {e}")
-                    # Fall through to text parsing
+                    logger.warning(f"JSON 파싱 실패 (위치: {e.pos}), 텍스트 파싱으로 전환")
+                except Exception as e:
+                    logger.warning(f"JSON 처리 중 에러: {e}, 텍스트 파싱으로 전환")
 
         except Exception as e:
-            logger.warning(f"JSON 처리 중 에러, 텍스트 파싱으로 전환: {e}")
-            # Fall through to text parsing
+            logger.warning(f"JSON 추출 실패: {e}, 텍스트 파싱으로 전환")
 
-        # ===== 기존 텍스트 파싱 로직 (Fallback) =====
-        lines = response_text.split('\n')
+        # ===== Fallback: 간단한 텍스트 파싱 =====
+        logger.info("텍스트 파싱 모드로 전환")
 
-        # 관심도 찾기 (높음 → buy, 보통 → hold)
+        # 기본 신호 추출 (buy/sell/hold 키워드 찾기)
+        text_lower = response_text.lower()
         signal = 'hold'  # 기본값
-        for line in lines:
-            line_lower = line.lower()
-            if '관심도:' in line or '관심도 :' in line:
-                if '높음' in line:
-                    signal = 'buy'
-                break
-            # 영어/이전 형식도 지원 (fallback)
-            if '평가:' in line or 'rating:' in line_lower:
-                if '긍정' in line or 'positive' in line_lower or '높음' in line:
-                    signal = 'buy'
-                break
 
-        # 분할매수 전략 찾기 (여러 줄 가능)
-        split_strategy_lines = []
-        in_split_section = False
-        for line in lines:
-            if '분할매수:' in line or '분할매수 :' in line:
-                in_split_section = True
-                # 첫 줄의 콜론 뒤 내용도 추가
-                if ':' in line:
-                    first_part = line.split(':', 1)[1].strip()
-                    if first_part:
-                        split_strategy_lines.append(first_part)
-                continue
-            if in_split_section:
-                # 다음 필드가 나오면 중단
-                if '근거:' in line or '경고:' in line or line.strip().startswith('['):
-                    break
-                # 공백이 아닌 줄만 추가
-                if line.strip():
-                    split_strategy_lines.append(line.strip())
-
-        split_strategy = '\n'.join(split_strategy_lines) if split_strategy_lines else ''
-
-        # 근거 찾기 (여러 줄 가능)
-        reason_lines = []
-        in_reason_section = False
-        for line in lines:
-            if '근거:' in line or '근거 :' in line or '이유:' in line:
-                in_reason_section = True
-                # 첫 줄의 콜론 뒤 내용도 추가
-                if ':' in line:
-                    first_part = line.split(':', 1)[1].strip()
-                    if first_part:
-                        reason_lines.append(first_part)
-                continue
-            if in_reason_section:
-                # 다음 필드가 나오면 중단
-                if '경고:' in line or line.strip().startswith('['):
-                    break
-                # 공백이 아닌 줄만 추가
-                if line.strip():
-                    reason_lines.append(line.strip())
-
-        reason = ' '.join(reason_lines) if reason_lines else ''
-
-        # 경고 찾기 (여러 줄 가능)
-        warning_lines = []
-        in_warning_section = False
-        for line in lines:
-            if '경고:' in line or '경고 :' in line:
-                in_warning_section = True
-                # 첫 줄의 콜론 뒤 내용도 추가
-                if ':' in line:
-                    first_part = line.split(':', 1)[1].strip()
-                    if first_part:
-                        warning_lines.append(first_part)
-                continue
-            if in_warning_section:
-                # 다음 필드가 나오면 중단
-                if line.strip().startswith('['):
-                    break
-                # 공백이 아닌 줄만 추가
-                if line.strip():
-                    warning_lines.append(line.strip())
-
-        warning = ' '.join(warning_lines) if warning_lines else ''
+        if 'strong buy' in text_lower or 'strong_buy' in text_lower:
+            signal = 'buy'
+        elif 'buy' in text_lower and 'not' not in text_lower[:text_lower.find('buy')] if 'buy' in text_lower else False:
+            signal = 'buy'
+        elif 'sell' in text_lower:
+            signal = 'sell'
 
         result = {
-            'score': 0,  # AI는 점수 안 줌 (scoring_system이 계산)
+            'score': 0,
             'signal': signal,
-            'split_strategy': split_strategy,
+            'split_strategy': '',
             'confidence': 'Medium',
             'recommendation': signal,
-            'reasons': [reason or response_text.strip()],
-            'risks': [warning] if warning else [],
+            'reasons': [response_text[:200] if len(response_text) > 200 else response_text],
+            'risks': [],
             'target_price': int(stock_data.get('current_price', 0) * 1.1),
             'stop_loss_price': int(stock_data.get('current_price', 0) * 0.95),
             'analysis_text': response_text,
         }
 
-        logger.debug(f"텍스트 파싱: AI 결정={signal}")
-
+        logger.info(f"텍스트 파싱 완료: {signal}")
         return result
     
     def _parse_market_analysis_response(self, response_text: str) -> Dict[str, Any]:
