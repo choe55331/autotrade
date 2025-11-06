@@ -125,10 +125,24 @@ async def test_websocket_realtime():
                 if not isinstance(data, dict):
                     return
 
+                # 디버깅: 전체 메시지 출력
+                trnm = data.get('trnm', '')
+                if trnm == 'REAL':
+                    print(f"\n{CYAN}🔍 REAL 메시지 전체:{RESET}")
+                    print(f"  {json.dumps(data, ensure_ascii=False)[:500]}")
+
                 data_list = data.get('data', [])
-                for item in data_list:
+                for idx, item in enumerate(data_list):
+                    # 디버깅: 각 item 구조 출력
+                    print(f"\n{CYAN}  Item #{idx+1}:{RESET}")
+                    print(f"    Keys: {list(item.keys())}")
+
                     item_code = item.get('item', '')
                     values = item.get('values', {})
+
+                    print(f"    item_code: '{item_code}'")
+                    print(f"    현재가(10): {values.get('10', 'N/A')}")
+                    print(f"    체결시간(20): {values.get('20', 'N/A')}")
 
                     # _NX 제거하여 기본 코드 추출
                     base_code = item_code.replace('_NX', '')
@@ -136,24 +150,26 @@ async def test_websocket_realtime():
                     if base_code in price_history:
                         # 필드 10: 현재가
                         cur_prc_str = values.get('10', '0')
-                        # 필드 9081: 거래소구분
-                        stex_tp = values.get('9081', '')
-                        # 필드 20: 체결시간
-                        time_str = values.get('20', '')
 
                         try:
-                            cur_prc = abs(int(cur_prc_str.replace('+', '').replace('-', '')))
+                            cur_prc = abs(int(cur_prc_str.replace('+', '').replace('-', '').replace(',', '')))
 
                             # 기록 저장
                             price_history[base_code]['prices'].append(cur_prc)
                             price_history[base_code]['timestamps'].append(datetime.now().strftime('%H:%M:%S'))
 
                             received_count[0] += 1
+                            print(f"    {GREEN}✅ 저장 성공: {price_history[base_code]['name']} = {cur_prc:,}원{RESET}")
 
-                        except:
-                            pass
+                        except Exception as e:
+                            print(f"    {RED}❌ 파싱 실패: {e}{RESET}")
+                    else:
+                        print(f"    {YELLOW}⚠️  종목코드 '{base_code}' 매칭 실패{RESET}")
+
             except Exception as e:
-                pass
+                print(f"{RED}콜백 오류: {e}{RESET}")
+                import traceback
+                traceback.print_exc()
 
         # 콜백 등록
         ws_manager.register_callback('test', on_realtime_data)
