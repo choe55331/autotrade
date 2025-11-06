@@ -217,8 +217,8 @@ def main():
 
         credentials = get_credentials()
         client = KiwoomRESTClient(
-            app_key=credentials.app_key,
-            app_secret=credentials.app_secret
+            app_key=credentials.KIWOOM_REST_APPKEY,
+            app_secret=credentials.KIWOOM_REST_SECRETKEY
         )
 
         if not client.is_connected:
