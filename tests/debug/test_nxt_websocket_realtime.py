@@ -184,13 +184,13 @@ async def test_websocket_realtime():
                 items_for_subscription.append(code)
 
         print(f"\n{CYAN}종목 구독 중...{RESET}")
-        print(f"  Type: 0B (주식체결)")
+        print(f"  Type: 0A (주식기세 - 호가변동시 수신)")
         print(f"  Items: {len(items_for_subscription)}개 (KRX: 기본코드, NXT: _NX 접미사)")
         print(f"  구독 코드: {', '.join(items_for_subscription[:3])}...")
 
         success = await ws_manager.subscribe(
             stock_codes=items_for_subscription,
-            types=["0B"]
+            types=["0A"]  # 0B->0A 변경: 호가 변동시마다 수신
         )
 
         if not success:
