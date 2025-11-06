@@ -44,8 +44,8 @@ class AISignalTester:
         genai.configure(api_key=self.api_key)
 
         model_names = [
+            'gemini-2.5-flash',  # 우선순위 1: 최신 정식 모델 (Thinking 엔진 탑재)
             'gemini-2.0-flash-exp',
-            'gemini-2.5-flash',
             'gemini-1.5-flash',
             'gemini-1.5-pro',
         ]
@@ -420,12 +420,12 @@ Your Output:
         print(f"테스트 종목: {stock_data['stock_name']}")
         print("="*80)
 
-        # 우선순위가 높은 조합
+        # 우선순위가 높은 조합 (2.5 Flash 우선)
         test_configs = [
+            ('gemini-2.5-flash', 'Simple', self.prompt_strategy_1_simple, 'Aggressive', self.parse_strategy_5_aggressive),
+            ('gemini-2.5-flash', 'Minimal', self.prompt_strategy_3_minimal_fields, 'Aggressive', self.parse_strategy_5_aggressive),
+            ('gemini-2.5-flash', 'Structured', self.prompt_strategy_2_structured, 'CodeBlock', self.parse_strategy_2_code_block),
             ('gemini-2.0-flash-exp', 'Simple', self.prompt_strategy_1_simple, 'Aggressive', self.parse_strategy_5_aggressive),
-            ('gemini-2.0-flash-exp', 'Minimal', self.prompt_strategy_3_minimal_fields, 'Aggressive', self.parse_strategy_5_aggressive),
-            ('gemini-1.5-flash', 'Simple', self.prompt_strategy_1_simple, 'Aggressive', self.parse_strategy_5_aggressive),
-            ('gemini-1.5-flash', 'Structured', self.prompt_strategy_2_structured, 'CodeBlock', self.parse_strategy_2_code_block),
         ]
 
         for model_name, prompt_name, prompt_func, parse_name, parse_func in test_configs:
