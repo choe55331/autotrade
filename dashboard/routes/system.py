@@ -10,6 +10,8 @@ from typing import Dict, Any, Optional
 from flask import Blueprint, jsonify, request
 import yaml
 
+from dashboard.utils.caching import cache_json, cached
+
 system_bp = Blueprint('system', __name__)
 
 logger = logging.getLogger(__name__)
@@ -84,6 +86,7 @@ def set_control_status(enabled: bool) -> bool:
 
 
 @system_bp.route('/api/status')
+@cache_json(ttl=5, key_prefix='system_status')
 def get_status():
     """Get system status"""
     control = get_control_status()
@@ -256,6 +259,7 @@ def get_system_connections():
 
 
 @system_bp.route('/api/candidates')
+@cache_json(ttl=10, key_prefix='candidates')
 def get_candidates():
     """Get AI-approved buy candidates with split buy strategy"""
     try:
@@ -334,6 +338,7 @@ def get_scan_progress():
 
 
 @system_bp.route('/api/activities')
+@cache_json(ttl=3, key_prefix='activities')
 def get_activities():
     """Get recent activities from activity monitor (real-time, no hardcoding)"""
     activities = []
@@ -744,6 +749,66 @@ def get_websocket_subscriptions():
 
     except Exception as e:
         logger.error(f"웹소켓 구독 리스트 조회 실패: {e}", exc_info=True)
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
+
+
+@system_bp.route('/api/cache/stats')
+@cache_json(ttl=5, key_prefix='cache_stats')
+def get_cache_stats():
+    """Get cache statistics"""
+    from dashboard.utils.caching import get_cache_stats
+
+    try:
+        stats = get_cache_stats()
+        return {
+            'success': True,
+            'data': stats
+        }
+    except Exception as e:
+        logger.error(f"캐시 통계 조회 실패: {e}")
+        return {
+            'success': False,
+            'message': str(e)
+        }
+
+
+@system_bp.route('/api/cache/clear', methods=['POST'])
+def clear_cache():
+    """Clear all cache"""
+    from dashboard.utils.caching import invalidate_cache
+
+    try:
+        invalidate_cache()
+        logger.info("✓ 전체 캐시 클리어됨")
+        return jsonify({
+            'success': True,
+            'message': 'Cache cleared successfully'
+        })
+    except Exception as e:
+        logger.error(f"캐시 클리어 실패: {e}")
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
+
+
+@system_bp.route('/api/cache/cleanup', methods=['POST'])
+def cleanup_expired_cache():
+    """Clean up expired cache entries"""
+    from dashboard.utils.caching import cleanup_cache
+
+    try:
+        cleanup_cache()
+        logger.info("✓ 만료된 캐시 정리됨")
+        return jsonify({
+            'success': True,
+            'message': 'Expired cache cleaned up'
+        })
+    except Exception as e:
+        logger.error(f"캐시 정리 실패: {e}")
         return jsonify({
             'success': False,
             'message': str(e)

@@ -465,6 +465,10 @@
             }
         }
     </style>
+
+    <!-- Custom Enhanced CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/animations.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modern-effects.css') }}">
 </head>
 <body>
     <!-- 헤더 -->
@@ -773,6 +777,35 @@
 
         // 5초마다 데이터 갱신
         setInterval(fetchDashboardData, 5000);
+    </script>
+
+    <!-- Real-time Enhancer -->
+    <script type="module" src="{{ url_for('static', filename='js/realtime-enhancer.js') }}"></script>
+    <script>
+        // Apply modern effects to dashboard elements
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add glass effect to cards
+            document.querySelectorAll('.card, .metric-card').forEach(card => {
+                card.classList.add('glass-card', 'card-hover');
+            });
+
+            // Add glow effect to interactive elements
+            document.querySelectorAll('.btn, button').forEach(btn => {
+                btn.classList.add('glow-on-hover', 'neuro-button');
+            });
+
+            // Add smooth scrollbar
+            document.body.classList.add('smooth-scrollbar');
+
+            // Apply floating animation to key metrics
+            document.querySelectorAll('.metric-value').forEach(el => {
+                if (Math.random() > 0.5) {
+                    el.classList.add('floating');
+                }
+            });
+
+            console.log('✨ Modern UI effects applied');
+        });
     </script>
 </body>
 </html>
