@@ -597,22 +597,34 @@ class NXTPriceDiscovery:
 
 def main():
     """메인 실행"""
-    print(f"\n{BLUE}키움증권 클라이언트 초기화 중...{RESET}")
+    print(f"\n{BLUE}TradingBot 초기화 중 (클라이언트 포함)...{RESET}")
 
-    # 환경변수 로드
-    from dotenv import load_dotenv
-    import os
-    load_dotenv()
+    # main.py의 TradingBotV2를 import하여 초기화
+    try:
+        from main import TradingBotV2
 
-    # 클라이언트 초기화
-    from core.rest_client import KiwoomRESTClient
-    client = KiwoomRESTClient(
-        app_key=os.getenv('APP_KEY'),
-        app_secret=os.getenv('APP_SECRET'),
-        account_no=os.getenv('ACCOUNT_NO')
-    )
+        # 봇 초기화 (클라이언트 자동 초기화됨)
+        bot = TradingBotV2()
 
-    print(f"{GREEN}클라이언트 초기화 완료{RESET}")
+        # 봇에서 클라이언트 가져오기
+        if not bot.client:
+            print(f"{RED}클라이언트 초기화 실패{RESET}")
+            return
+
+        client = bot.client
+        print(f"{GREEN}클라이언트 초기화 완료 (from TradingBotV2){RESET}")
+
+    except Exception as e:
+        print(f"{RED}TradingBot 초기화 실패: {e}{RESET}")
+        print(f"{YELLOW}Fallback: 직접 클라이언트 초기화 시도...{RESET}")
+
+        try:
+            from core.rest_client import KiwoomRESTClient
+            client = KiwoomRESTClient()  # 인자 없이 초기화
+            print(f"{GREEN}클라이언트 직접 초기화 완료{RESET}")
+        except Exception as e2:
+            print(f"{RED}클라이언트 직접 초기화도 실패: {e2}{RESET}")
+            return
 
     # 테스트 실행
     discovery = NXTPriceDiscovery(client)
