@@ -605,7 +605,7 @@ def main():
     load_dotenv()
 
     # 클라이언트 초기화
-    from api.client import KiwoomRESTClient
+    from core.rest_client import KiwoomRESTClient
     client = KiwoomRESTClient(
         app_key=os.getenv('APP_KEY'),
         app_secret=os.getenv('APP_SECRET'),
