@@ -6,6 +6,9 @@ import logging
 from typing import Dict, Any, Optional
 from .base_strategy import BaseStrategy
 
+# 공통 유틸리티 임포트
+from utils.position_calculator import calculate_position_size_by_ratio
+
 logger = logging.getLogger(__name__)
 
 
@@ -195,34 +198,37 @@ class MomentumStrategy(BaseStrategy):
         available_cash: int
     ) -> int:
         """
-        포지션 크기 계산
-        
+        포지션 크기 계산 (공통 유틸리티 사용)
+
         Args:
             stock_code: 종목코드
             current_price: 현재가
             available_cash: 가용 현금
-        
+
         Returns:
             매수 수량
         """
         if current_price == 0:
             return 0
-        
+
         # 포지션 크기 비율
         position_size_rate = self.get_config('position_size_rate', 0.20)
-        
-        # 투자 금액 계산
+
+        # 공통 유틸리티를 사용한 포지션 사이즈 계산
+        quantity = calculate_position_size_by_ratio(
+            capital=available_cash,
+            price=current_price,
+            ratio=position_size_rate,
+            commission_rate=0.00015,
+            min_quantity=1
+        )
+
         invest_amount = int(available_cash * position_size_rate)
-        
-        # 수수료 고려 (0.015%)
-        commission_rate = 0.00015
-        quantity = int(invest_amount / (current_price * (1 + commission_rate)))
-        
         logger.info(
             f"{stock_code} 포지션 크기 계산: "
             f"{quantity}주 (투자금액: {invest_amount:,}원)"
         )
-        
+
         return quantity
     
     def get_strategy_info(self) -> Dict[str, Any]:
