@@ -8,6 +8,7 @@ from .base_strategy import BaseStrategy
 from .momentum_strategy import MomentumStrategy
 from .portfolio_manager import PortfolioManager
 from .risk_manager import RiskManager
+from .risk.advanced_risk_manager import AdvancedRiskManager, RiskMode, get_advanced_risk_manager
 
 try:
     from .trailing_stop_manager import TrailingStopManager, TrailingStopState
@@ -33,6 +34,9 @@ __all__ = [
     'MomentumStrategy',
     'PortfolioManager',
     'RiskManager',
+    'AdvancedRiskManager',
+    'RiskMode',
+    'get_advanced_risk_manager',
     'TrailingStopManager',
     'TrailingStopState',
     'VolatilityBreakoutStrategy',

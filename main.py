@@ -35,7 +35,7 @@ from api import AccountAPI, MarketAPI, OrderAPI
 from research import Screener, DataFetcher
 from research.strategy_manager import StrategyManager
 from strategy.scoring_system import ScoringSystem
-from strategy.dynamic_risk_manager import DynamicRiskManager
+from strategy.risk.advanced_risk_manager import AdvancedRiskManager, RiskMode
 from strategy import PortfolioManager
 from ai.mock_analyzer import MockAnalyzer
 from utils.activity_monitor import get_monitor
@@ -289,10 +289,10 @@ class TradingBotV2:
             self.scoring_system = ScoringSystem(market_api=self.market_api)
             logger.info("✓ 10가지 스코어링 시스템 초기화 완료")
 
-            logger.info("🛡️ 동적 리스크 관리자 초기화 중...")
+            logger.info("🛡️ Advanced Risk Manager v7.0 초기화 중...")
             initial_capital = self._get_initial_capital()
-            self.dynamic_risk_manager = DynamicRiskManager(initial_capital=initial_capital)
-            logger.info("✓ 동적 리스크 관리자 초기화 완료")
+            self.dynamic_risk_manager = AdvancedRiskManager(initial_capital=initial_capital, mode=RiskMode.NORMAL)
+            logger.info("✓ Advanced Risk Manager v7.0 초기화 완료")
 
             logger.info("💼 포트폴리오 관리자 초기화 중...")
             self.portfolio_manager = PortfolioManager(self.client)
