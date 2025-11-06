@@ -102,6 +102,10 @@ async def test_websocket_realtime():
 
         print(f"{GREEN}✅ WebSocket 연결 성공{RESET}")
 
+        # ⭐ 중요: receive_loop를 백그라운드 태스크로 시작!
+        print(f"{CYAN}실시간 데이터 수신 루프 시작...{RESET}")
+        receive_task = asyncio.create_task(ws_manager.receive_loop())
+
         # 가격 기록 저장소
         price_history = {code: {'name': name, 'prices': [], 'timestamps': []}
                         for code, name in test_stocks}
@@ -278,6 +282,12 @@ async def test_websocket_realtime():
             print(f"{GREEN}   → {stocks_with_change}개 종목에서 실시간 가격 변동 확인{RESET}")
 
         # WebSocket 해제
+        print(f"\n{CYAN}WebSocket 연결 해제 중...{RESET}")
+        receive_task.cancel()  # 백그라운드 태스크 취소
+        try:
+            await receive_task
+        except asyncio.CancelledError:
+            pass
         await ws_manager.disconnect()
 
     except Exception as e:
