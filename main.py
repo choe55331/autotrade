@@ -1442,7 +1442,10 @@ class TradingBotV2:
             logger.error(f"포트폴리오 스냅샷 저장 실패: {e}")
 
     def _get_virtual_trading_prices(self) -> dict:
-        """가상 매매용 현재 가격 조회"""
+        """
+        가상 매매용 현재 가격 조회
+        ✅ v5.15: NXT 시간대(15:30~20:00) 실시간 현재가 정확 반영
+        """
         try:
             if not self.virtual_trader:
                 return {}
@@ -1455,14 +1458,20 @@ class TradingBotV2:
             if not all_stock_codes:
                 return {}
 
-            # 각 종목의 현재가 조회
+            # NXT 실시간 가격 관리자 사용
+            from utils.nxt_realtime_price import get_nxt_price_manager
+            nxt_manager = get_nxt_price_manager(self.market_api)
+
+            # 각 종목의 현재가 조회 (NXT 시간대 자동 처리)
             price_data = {}
             for stock_code in all_stock_codes:
                 try:
-                    # 현재가 조회
-                    quote = self.market_api.get_stock_price(stock_code)
-                    if quote:
-                        price_data[stock_code] = int(quote.get('current_price', 0))
+                    # ✅ NXT 시간대 실시간 현재가 조회 (종가 아님!)
+                    price_info = nxt_manager.get_realtime_price(stock_code)
+                    if price_info:
+                        price_data[stock_code] = price_info['current_price']
+                        if price_info.get('is_nxt_hours'):
+                            logger.debug(f"NXT 실시간 가격: {stock_code} {price_info['current_price']:,}원")
                 except Exception as e:
                     logger.warning(f"가격 조회 실패 ({stock_code}): {e}")
                     continue
