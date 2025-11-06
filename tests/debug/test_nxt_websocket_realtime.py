@@ -102,10 +102,6 @@ async def test_websocket_realtime():
 
         print(f"{GREEN}✅ WebSocket 연결 성공{RESET}")
 
-        # ⭐ 중요: receive_loop를 백그라운드 태스크로 시작!
-        print(f"{CYAN}실시간 데이터 수신 루프 시작...{RESET}")
-        receive_task = asyncio.create_task(ws_manager.receive_loop())
-
         # 가격 기록 저장소
         price_history = {code: {'name': name, 'prices': [], 'timestamps': []}
                         for code, name in test_stocks}
@@ -169,6 +165,13 @@ async def test_websocket_realtime():
             return
 
         print(f"{GREEN}✅ 구독 성공!{RESET}")
+
+        # ⭐ 구독 완료 후 receive_loop 시작!
+        print(f"{CYAN}실시간 데이터 수신 루프 시작...{RESET}")
+        receive_task = asyncio.create_task(ws_manager.receive_loop())
+
+        # 루프가 시작될 시간 대기
+        await asyncio.sleep(0.5)
 
         # 10회 체크 (5초 간격)
         print(f"\n{MAGENTA}{'='*100}{RESET}")
