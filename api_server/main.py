@@ -285,6 +285,11 @@ async def get_positions():
             output2 = balance_krx.get('output2', [])
             for item in output2:
                 stock_code = item.get('종목코드', '')
+
+                # ✅ v5.15: NXT 종목 코드 정규화 (_NX 제거)
+                if stock_code.endswith('_NX'):
+                    stock_code = stock_code[:-3]
+
                 stock_name = item.get('종목명', '')
                 quantity = int(item.get('보유수량', 0) or 0)
                 avg_price = float(item.get('매입단가', 0) or 0)
@@ -313,6 +318,11 @@ async def get_positions():
             output2 = balance_nxt.get('output2', [])
             for item in output2:
                 stock_code = item.get('종목코드', '')
+
+                # ✅ v5.15: NXT 종목 코드 정규화 (_NX 제거)
+                if stock_code.endswith('_NX'):
+                    stock_code = stock_code[:-3]
+
                 stock_name = item.get('종목명', '')
                 quantity = int(item.get('보유수량', 0) or 0)
                 avg_price = float(item.get('매입단가', 0) or 0)

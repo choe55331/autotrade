@@ -466,6 +466,15 @@ class AccountAPI:
                 holdings = result.get(holdings_key, [])
 
                 if holdings:
+                    # ✅ v5.15: NXT 종목 코드 정규화 (_NX 제거)
+                    # 테스트 결과: _NX 접미사는 현재가 조회 시 실패 (0% 성공률)
+                    # 기본 코드만 작동 (100% 성공률)
+                    for holding in holdings:
+                        if 'stk_cd' in holding and holding['stk_cd'].endswith('_NX'):
+                            original_code = holding['stk_cd']
+                            holding['stk_cd'] = holding['stk_cd'][:-3]
+                            logger.debug(f"종목코드 정규화: {original_code} → {holding['stk_cd']}")
+
                     logger.info(f"보유 종목 조회 성공 (kt00004): {len(holdings)}개")
                     return holdings
                 else:
