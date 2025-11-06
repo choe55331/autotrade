@@ -16,7 +16,7 @@ market_commentary_bp = Blueprint('market_commentary', __name__)
 
 @market_commentary_bp.route('/api/ai/market-commentary')
 def get_market_commentary():
-    """AI 실시간 시장 코멘터리"""
+    """AI 실시간 시장 코멘터리 (Enhanced v5.8)"""
     try:
         commentary = {
             'market_summary': '',
@@ -24,7 +24,13 @@ def get_market_commentary():
             'opportunities': [],
             'risks': [],
             'speak': False,
-            'speak_text': ''
+            'speak_text': '',
+            # v5.8: Enhanced fields
+            'market_trend': '',
+            'key_issues': [],
+            'strategy_recommendation': '',
+            'expected_volatility': 'Medium',
+            'trading_strategy': '',
         }
 
         # 계좌 정보 가져오기
@@ -127,8 +133,85 @@ def get_market_commentary():
         # 시간대별 조언
         if 9 <= current_hour < 10:
             commentary['opportunities'].append("장 시작 30분은 변동성이 큽니다. 신중한 진입이 필요합니다.")
+            commentary['expected_volatility'] = 'High'
         elif 14 <= current_hour < 15:
             commentary['risks'].append("장 마감 전 물량 정리가 일어날 수 있습니다.")
+            commentary['expected_volatility'] = 'Medium-High'
+        else:
+            commentary['expected_volatility'] = 'Medium'
+
+        # v5.8: Enhanced market analysis
+        try:
+            # Market trend analysis
+            if bot_instance and hasattr(bot_instance, 'market_api'):
+                # Get market leaders
+                volume_leaders = bot_instance.market_api.get_volume_rank(limit=50)
+                gainers_list = bot_instance.market_api.get_price_change_rank(market='ALL', sort='rise', limit=20)
+
+                if volume_leaders:
+                    gainers = sum(1 for s in volume_leaders if float(s.get('prdy_ctrt', 0)) > 0)
+                    losers = sum(1 for s in volume_leaders if float(s.get('prdy_ctrt', 0)) < 0)
+                    gainer_ratio = gainers / len(volume_leaders)
+
+                    # Market trend
+                    if gainer_ratio > 0.6:
+                        commentary['market_trend'] = f'📈 강세장 (상승종목 {gainers}개 vs 하락종목 {losers}개)'
+                        commentary['trading_strategy'] = '적극적 매수 전략 - 모멘텀 종목 위주 투자'
+                    elif gainer_ratio < 0.4:
+                        commentary['market_trend'] = f'📉 약세장 (하락종목 {losers}개 vs 상승종목 {gainers}개)'
+                        commentary['trading_strategy'] = '방어적 전략 - 보유 종목 손절 검토, 신규 진입 자제'
+                    else:
+                        commentary['market_trend'] = f'📊 중립장 (상승 {gainers}, 하락 {losers})'
+                        commentary['trading_strategy'] = '선별적 투자 - 우량주 위주 투자, 리스크 관리 강화'
+
+                    # Key issues (based on top gainers)
+                    if gainers_list:
+                        # Sector analysis
+                        sectors = {}
+                        for stock in gainers_list[:10]:
+                            name = stock.get('name', '')
+                            if '바이오' in name or '제약' in name:
+                                sectors['바이오/제약'] = sectors.get('바이오/제약', 0) + 1
+                            elif '전자' in name or '반도체' in name:
+                                sectors['IT/반도체'] = sectors.get('IT/반도체', 0) + 1
+                            elif '2차전지' in name or '배터리' in name:
+                                sectors['2차전지'] = sectors.get('2차전지', 0) + 1
+
+                        if sectors:
+                            top_sector = max(sectors.items(), key=lambda x: x[1])
+                            commentary['key_issues'].append(f'🔥 {top_sector[0]} 섹터 강세 ({top_sector[1]}개 종목 상승)')
+
+                        # High momentum stocks
+                        high_momentum = [s for s in gainers_list if float(s.get('change_rate', 0)) > 15]
+                        if len(high_momentum) >= 5:
+                            commentary['key_issues'].append(f'⚡ 급등주 다수 출현 ({len(high_momentum)}개) - 시장 과열 주의')
+                        elif len(high_momentum) >= 3:
+                            commentary['key_issues'].append(f'💫 단기 급등주 증가 ({len(high_momentum)}개) - 변동성 확대')
+
+                # Strategy recommendation
+                if portfolio_info and len(portfolio_info) > 0:
+                    # Calculate avg profit
+                    avg_profit = sum(p.get('profit_loss_percent', 0) for p in portfolio_info) / len(portfolio_info)
+
+                    if avg_profit > 10:
+                        commentary['strategy_recommendation'] = '🎯 수익 실현 단계 - 일부 익절 후 재진입 타이밍 포착'
+                    elif avg_profit > 5:
+                        commentary['strategy_recommendation'] = '📈 안정적 수익 유지 - 트레일링 스톱 설정으로 수익 보호'
+                    elif avg_profit < -5:
+                        commentary['strategy_recommendation'] = '⚠️ 손실 관리 필요 - 손절 또는 분할 매도 검토'
+                    elif avg_profit < -2:
+                        commentary['strategy_recommendation'] = '📊 관망 모드 - 신규 진입 자제, 보유 종목 모니터링 강화'
+                    else:
+                        commentary['strategy_recommendation'] = '🔄 리밸런싱 시기 - 수익 종목 일부 익절, 손실 종목 재검토'
+                else:
+                    # No portfolio
+                    if gainer_ratio > 0.6:
+                        commentary['strategy_recommendation'] = '💰 진입 타이밍 - 강세장에서 우량 종목 발굴'
+                    else:
+                        commentary['strategy_recommendation'] = '⏳ 관망 추천 - 시장 방향성 확인 후 진입'
+
+        except Exception as e:
+            print(f"Enhanced market analysis error: {e}")
 
         return jsonify({
             'success': True,
