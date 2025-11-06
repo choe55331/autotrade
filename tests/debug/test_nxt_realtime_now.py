@@ -211,17 +211,12 @@ def main():
     print(f"\n{GREEN}✅ 지금이 NXT 거래 시간입니다! 테스트를 시작합니다.{RESET}")
 
     try:
-        # REST Client 직접 초기화
+        # REST Client 직접 초기화 (싱글톤 - 인자 없음)
         from core.rest_client import KiwoomRESTClient
-        from config.credentials import get_credentials
 
-        credentials = get_credentials()
-        client = KiwoomRESTClient(
-            app_key=credentials.KIWOOM_REST_APPKEY,
-            app_secret=credentials.KIWOOM_REST_SECRETKEY
-        )
+        client = KiwoomRESTClient()
 
-        if not client.is_connected:
+        if not client.token:
             print(f"{RED}❌ API 연결 실패{RESET}")
             return
 
