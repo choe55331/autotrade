@@ -133,8 +133,15 @@ class DataFetcher:
         output_list = balance.get('acnt_evlt_remn_indv_tot', [])
 
         for item in output_list:
+            stock_code = item.get('stk_cd', '')
+
+            # ✅ v5.15: NXT 종목 코드 정규화 (_NX 제거)
+            # 테스트 결과: _NX 접미사는 현재가 조회 시 실패 (0% 성공률)
+            if stock_code.endswith('_NX'):
+                stock_code = stock_code[:-3]
+
             holding = {
-                'stock_code': item.get('stk_cd', ''),
+                'stock_code': stock_code,
                 'stock_name': item.get('stk_nm', ''),
                 'quantity': int(item.get('rmnd_qty', 0)),
                 'purchase_price': float(item.get('pur_pric', 0)),
