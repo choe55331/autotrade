@@ -4,11 +4,13 @@ NXT 시장가격 조회 수정 패치
 해결: 시간대별로 적절한 API 호출
 """
 
+"""
 다양한 접근법:
 1. approach_1: 시간 체크 후 적절한 API 호출
 2. approach_2: NXT 전용 API 사용
 3. approach_3: 보유종목의 현재가 활용
 4. approach_4: 여러 소스 시도 (fallback)
+"""
 
 from typing import Dict, Any, Optional
 from datetime import datetime, time

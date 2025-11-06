@@ -270,7 +270,7 @@ def run_tests():
 
     for i, test_case in enumerate(TEST_CASES, 1):
         print(f"\n{'='*80}")
-        print(f"테스트 케이스
+        print(f"테스트 케이스")
         print(f"{'='*80}")
         print(f"응답 샘플:\n{test_case['response'][:100]}...")
         print(f"예상 신호: {test_case['expected_signal']}")

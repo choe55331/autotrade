@@ -3,7 +3,9 @@ config/api_loader.py
 검증된 API 사양 로더
 """
 
+"""
 _immutable/api_specs/ 폴더의 검증된 API 목록을 로드하고 제공합니다.
+"""
 import json
 from pathlib import Path
 from typing import Dict, List, Optional, Any

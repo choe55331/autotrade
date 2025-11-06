@@ -3,7 +3,9 @@ config/demo_stocks.py
 데모/테스트용 종목 리스트
 """
 
+"""
 시세 API가 구현되기 전까지 사용할 고정 종목 리스트
+"""
 
 DEMO_STOCKS = [
     {

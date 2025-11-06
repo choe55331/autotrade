@@ -3,9 +3,11 @@ NXT 시간외 거래 매수/매도 조합 테스트
 다양한 파라미터 조합을 시도해서 정답을 찾습니다.
 """
 
+"""
 ⚠️ 주의: 실제 주문이 체결됩니다!
 - 소액(1주)으로 테스트합니다
 - 테스트 후 즉시 정리합니다
+"""
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))

@@ -3,9 +3,11 @@ strategy 패키지
 매매 전략 모듈
 """
 
+"""
 v4.2 Changes:
 - Position now imported from core (standardized)
 - PositionManager still available for backward compatibility
+"""
 from .base_strategy import BaseStrategy
 from .momentum_strategy import MomentumStrategy
 from .portfolio_manager import PortfolioManager

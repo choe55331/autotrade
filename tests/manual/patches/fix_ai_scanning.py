@@ -4,11 +4,13 @@ AI 스캐닝 종목 연동 수정 패치
 해결: scanner_pipeline의 결과를 대시보드에 올바르게 전달
 """
 
+"""
 다양한 접근법:
 1. approach_1: scanner_pipeline 직접 접근
 2. approach_2: scan_progress 업데이트 로직 추가
 3. approach_3: 실시간 스캔 상태 반영
 4. approach_4: 캐시와 실시간 데이터 결합
+"""
 
 from typing import Dict, Any, Optional, List
 from datetime import datetime

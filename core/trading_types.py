@@ -3,10 +3,12 @@ AutoTrade Pro - Core Type Definitions
 표준 데이터 타입 정의 (v4.2 CRITICAL
 """
 
+"""
 CRITICAL 개선:
 - 4개의 Position 클래스 통합 → 단일 표준 Position
 - 모든 모듈에서 이 타입 사용
 - Type safety 향상
+"""
 from dataclasses import dataclass, field, asdict
 from typing import Dict, Any, Optional
 from datetime import datetime

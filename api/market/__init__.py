@@ -3,12 +3,14 @@ api/market/__init__.py
 시장 정보 API 통합 모듈
 """
 
+"""
 모듈화 구조:
 - market_data.py: 시세/호가 데이터
 - chart_data.py: 차트 데이터
 - ranking.py: 순위 정보
 - investor_data.py: 투자자 매매 데이터
 - stock_info.py: 종목/업종/테마 정보
+"""
 from .market_data import MarketDataAPI
 from .chart_data import ChartDataAPI, get_daily_chart
 from .ranking import RankingAPI

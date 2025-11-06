@@ -2,8 +2,10 @@
 NXT 종가 조회 테스트
 """
 
+"""
 WebSocket 실시간 대신 REST API로 NXT 종가를 조회
 _NX 접미사 사용 여부 테스트
+"""
 import sys
 from pathlib import Path
 from datetime import datetime

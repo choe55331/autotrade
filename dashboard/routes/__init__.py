@@ -11,6 +11,7 @@ from .portfolio import portfolio_bp
 from .system import system_bp
 from .pages import pages_bp
 from .alerts import alerts_bp
+from .monitoring import monitoring_bp
 
 __all__ = [
     'account_bp',
@@ -20,7 +21,8 @@ __all__ = [
     'portfolio_bp',
     'system_bp',
     'pages_bp',
-    'alerts_bp'
+    'alerts_bp',
+    'monitoring_bp'
 ]
 
 

@@ -344,8 +344,8 @@ class ComprehensiveNXTTest:
     async def run_all_tests(self):
         """모든 테스트 실행"""
         print(f"\n{BLUE}{'#'*80}{RESET}")
-        print(f"{BLUE}
-        print(f"{BLUE}
+        print(f"{BLUE}")
+        print(f"{BLUE}")
         print(f"{BLUE}{'#'*80}{RESET}\n")
 
         self.run_rest_tests()

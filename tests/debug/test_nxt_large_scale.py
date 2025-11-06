@@ -2,11 +2,13 @@
 NXT 실시간 가격 조회 대규모 테스트
 """
 
+"""
 목적:
 - 10개 종목으로 테스트 확대
 - 5초 간격 10회 조회
 - 가격 변동 여부 상세 확인
 - NXT 시간대에 실시간 가격 조회 가능 여부 최종 판정
+"""
 import sys
 from pathlib import Path
 from datetime import datetime

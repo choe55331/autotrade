@@ -3,8 +3,10 @@ Real-time Data Processing System
 WebSocket-based streaming and event-driven trading
 """
 
+"""
 Author: AutoTrade Pro
 Version: 4.2
+"""
 
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional, Callable

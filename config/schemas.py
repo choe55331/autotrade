@@ -3,6 +3,7 @@ AutoTrade Pro - Unified Configuration Schema
 Pydantic 기반 통합 설정 스키마 (v5.6+ Comprehensive)
 """
 
+"""
 COMPREHENSIVE 개선:
 - 5개 설정 시스템 통합 → 단일 Pydantic 스키마
 - unified_settings.py의 모든 설정 포함
@@ -10,6 +11,7 @@ COMPREHENSIVE 개선:
 - Dot notation access: config.get('risk_management.max_position_size')
 - Event listeners for dynamic settings
 - JSON/YAML import/export
+"""
 from pydantic import BaseModel, Field, field_validator
 from typing import Dict, Any, Optional, List, Tuple
 from pathlib import Path

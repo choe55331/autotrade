@@ -3,10 +3,12 @@ setup_secrets.py
 API 키 및 민감정보 안전 설정 스크립트
 """
 
+"""
 이 스크립트는:
 1. 사용자로부터 API 키를 안전하게 입력받습니다 (복사 붙여넣기 가능)
 2. _immutable/credentials/secrets.json 파일을 생성합니다
 3. 파일을 읽기 전용(400)으로 설정하여 실수로 수정되지 않도록 보호합니다
+"""
 
 import json
 import os

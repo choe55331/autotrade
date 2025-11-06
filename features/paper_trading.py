@@ -3,6 +3,7 @@ Paper Trading Engine
 Real-time virtual trading system for strategy testing and AI learning
 """
 
+"""
 Features:
 - Multiple strategies running simultaneously
 - Separate virtual accounts per strategy
@@ -10,6 +11,7 @@ Features:
 - 24/7 background execution
 - Performance tracking and ranking
 - AI learning data source
+"""
 import json
 import threading
 import time
