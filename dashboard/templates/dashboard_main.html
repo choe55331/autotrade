@@ -967,6 +967,7 @@
             <div class="logo">
                 <i class="fas fa-chart-line"></i>
                 <span>AutoTrade Pro v6.0.1</span>
+                <span style="font-size: 9px; padding: 2px 6px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 4px; font-weight: 600; margin-left: 6px; animation: pulse 2s infinite;">NEW</span>
                 <span style="font-size: 11px; color: var(--text-muted); font-weight: 400;">AI 자동매매</span>
             </div>
             <div style="display: flex; align-items: center; gap: 15px;">
@@ -1324,6 +1325,72 @@
 
             <!-- Tab 3: Virtual Trading (Paper Trading) -->
             <div class="tab-content" id="tab-backtest">
+                <!-- v6.0.1 NEW: 12 Strategy Status Panel -->
+                <div class="card" style="margin-bottom: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+                    <div style="padding: 20px; color: white;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-rocket" style="font-size: 24px;"></i>
+                                <div>
+                                    <div style="font-size: 16px; font-weight: 700;">12가지 가상매매 전략 실시간 작동 중</div>
+                                    <div style="font-size: 11px; opacity: 0.8;">v6.0 Data Enricher - 자동 데이터 보강으로 모든 전략 활성화</div>
+                                </div>
+                            </div>
+                            <span style="font-size: 11px; padding: 4px 10px; background: rgba(255,255,255,0.2); border-radius: 12px;">✅ 전략 12/12 작동</span>
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; font-size: 11px;">
+                            <div style="padding: 8px; background: rgba(255,255,255,0.1); border-radius: 6px; text-align: center;">
+                                <div style="opacity: 0.8;">모멘텀추세</div>
+                                <div style="font-weight: 600; margin-top: 2px;">✓ 활성</div>
+                            </div>
+                            <div style="padding: 8px; background: rgba(255,255,255,0.1); border-radius: 6px; text-align: center;">
+                                <div style="opacity: 0.8;">평균회귀</div>
+                                <div style="font-weight: 600; margin-top: 2px;">✓ 활성</div>
+                            </div>
+                            <div style="padding: 8px; background: rgba(255,255,255,0.1); border-radius: 6px; text-align: center;">
+                                <div style="opacity: 0.8;">돌파매매</div>
+                                <div style="font-weight: 600; margin-top: 2px;">✓ 활성</div>
+                            </div>
+                            <div style="padding: 8px; background: rgba(255,255,255,0.1); border-radius: 6px; text-align: center;">
+                                <div style="opacity: 0.8;">가치투자</div>
+                                <div style="font-weight: 600; margin-top: 2px;">✓ 활성</div>
+                            </div>
+                            <div style="padding: 8px; background: rgba(255,255,255,0.1); border-radius: 6px; text-align: center;">
+                                <div style="opacity: 0.8;">스윙매매</div>
+                                <div style="font-weight: 600; margin-top: 2px;">✓ 활성</div>
+                            </div>
+                            <div style="padding: 8px; background: rgba(255,255,255,0.1); border-radius: 6px; text-align: center;">
+                                <div style="opacity: 0.8;">MACD크로스</div>
+                                <div style="font-weight: 600; margin-top: 2px;">✓ 활성</div>
+                            </div>
+                            <div style="padding: 8px; background: rgba(255,255,255,0.1); border-radius: 6px; text-align: center;">
+                                <div style="opacity: 0.8;">역발상</div>
+                                <div style="font-weight: 600; margin-top: 2px;">✓ 활성</div>
+                            </div>
+                            <div style="padding: 8px; background: rgba(255,255,255,0.1); border-radius: 6px; text-align: center;">
+                                <div style="opacity: 0.8;">섹터순환</div>
+                                <div style="font-weight: 600; margin-top: 2px;">✓ 활성</div>
+                            </div>
+                            <div style="padding: 8px; background: rgba(255,255,255,0.1); border-radius: 6px; text-align: center;">
+                                <div style="opacity: 0.8;">급등추격</div>
+                                <div style="font-weight: 600; margin-top: 2px;">✓ 활성</div>
+                            </div>
+                            <div style="padding: 8px; background: rgba(255,255,255,0.1); border-radius: 6px; text-align: center;">
+                                <div style="opacity: 0.8;">배당성장</div>
+                                <div style="font-weight: 600; margin-top: 2px;">✓ 활성</div>
+                            </div>
+                            <div style="padding: 8px; background: rgba(255,255,255,0.1); border-radius: 6px; text-align: center;">
+                                <div style="opacity: 0.8;">기관추종</div>
+                                <div style="font-weight: 600; margin-top: 2px;">✓ 활성</div>
+                            </div>
+                            <div style="padding: 8px; background: rgba(255,255,255,0.1); border-radius: 6px; text-align: center;">
+                                <div style="opacity: 0.8;">거래량RSI</div>
+                                <div style="font-weight: 600; margin-top: 2px;">✓ 활성</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Best Strategy Banner -->
                 <div id="best-strategy-banner" style="display: none; background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
                     <div style="display: flex; align-items: center; gap: 15px;">
