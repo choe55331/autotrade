@@ -1,5 +1,5 @@
 """
-NXT WebSocket 실시간 현재가 조회 테스트
+WebSocket 실시간 현재가 조회 테스트 - KRX + NXT 혼합
 
 핵심 발견:
 - WebSocket 실시간 구독에서는 _NX 접미사 사용 필수!
@@ -8,9 +8,10 @@ NXT WebSocket 실시간 현재가 조회 테스트
 - 필드 9081: 거래소구분
 
 테스트:
-- 10개 NXT 종목 구독
+- 5개 고거래량 KRX 종목 + 5개 NXT 종목 구독
 - 5초마다 현재가 체크 (10회)
 - 가격 변동 추적
+- KRX 고거래량 종목으로 WebSocket 작동 여부 확인
 """
 import sys
 from pathlib import Path
@@ -56,26 +57,35 @@ def is_nxt_hours():
 async def test_websocket_realtime():
     """WebSocket 실시간 가격 테스트"""
     print(f"\n{BLUE}{'='*100}{RESET}")
-    print(f"{BLUE}🔍 NXT WebSocket 실시간 가격 모니터링{RESET}")
+    print(f"{BLUE}🔍 WebSocket 실시간 가격 모니터링 (KRX + NXT 혼합){RESET}")
     print(f"{BLUE}{'='*100}{RESET}")
 
-    # 테스트 종목 10개 (NXT 거래 활발한 종목)
+    # 테스트 종목 10개: 5개 고거래량 KRX + 5개 NXT
+    # (code, name, market_type)
     test_stocks = [
-        ("249420", "일동제약"),
-        ("052020", "에프엔에스테크"),
-        ("900290", "GRT"),
-        ("900340", "윙입푸드"),
-        ("900250", "크리스탈신소재"),
-        ("900270", "헝셩그룹"),
-        ("217270", "넵튠"),
-        ("900300", "오가닉티코스메틱"),
-        ("900110", "이스트아시아홀딩스"),
-        ("900260", "로스웰"),
+        # 5개 고거래량 KRX 종목 (WebSocket 작동 확인용)
+        ("005930", "삼성전자", "KRX"),
+        ("000660", "SK하이닉스", "KRX"),
+        ("035720", "카카오", "KRX"),
+        ("005380", "현대차", "KRX"),
+        ("051910", "LG화학", "KRX"),
+
+        # 5개 NXT 종목
+        ("249420", "일동제약", "NXT"),
+        ("052020", "에프엔에스테크", "NXT"),
+        ("900290", "GRT", "NXT"),
+        ("900250", "크리스탈신소재", "NXT"),
+        ("217270", "넵튠", "NXT"),
     ]
 
     print(f"\n{CYAN}테스트 종목 ({len(test_stocks)}개):{RESET}")
-    for i, (code, name) in enumerate(test_stocks, 1):
-        print(f"  {i:2}. {name:20} ({code}_NX)")
+    print(f"\n{GREEN}[KRX 고거래량 종목 - 5개]{RESET}")
+    for i, (code, name, market) in enumerate([s for s in test_stocks if s[2] == "KRX"], 1):
+        print(f"  {i}. {name:20} ({code})")
+
+    print(f"\n{YELLOW}[NXT 종목 - 5개]{RESET}")
+    for i, (code, name, market) in enumerate([s for s in test_stocks if s[2] == "NXT"], 1):
+        print(f"  {i}. {name:20} ({code}_NX)")
 
     try:
         # WebSocketManager 초기화
@@ -103,8 +113,8 @@ async def test_websocket_realtime():
         print(f"{GREEN}✅ WebSocket 연결 성공{RESET}")
 
         # 가격 기록 저장소
-        price_history = {code: {'name': name, 'prices': [], 'timestamps': []}
-                        for code, name in test_stocks}
+        price_history = {code: {'name': name, 'market': market, 'prices': [], 'timestamps': []}
+                        for code, name, market in test_stocks}
 
         # 실시간 데이터 수신 콜백
         received_count = [0]  # 수신된 데이터 카운터
@@ -148,15 +158,22 @@ async def test_websocket_realtime():
         # 콜백 등록
         ws_manager.register_callback('test', on_realtime_data)
 
-        # 종목 구독 (0B: 주식체결, _NX 접미사 필수!)
-        items_with_nx = [f"{code}_NX" for code, _ in test_stocks]
+        # 종목 구독 (0B: 주식체결)
+        # KRX: 기본 코드, NXT: _NX 접미사
+        items_for_subscription = []
+        for code, name, market in test_stocks:
+            if market == "NXT":
+                items_for_subscription.append(f"{code}_NX")
+            else:
+                items_for_subscription.append(code)
 
         print(f"\n{CYAN}종목 구독 중...{RESET}")
         print(f"  Type: 0B (주식체결)")
-        print(f"  Items: {len(items_with_nx)}개 (_NX 접미사 포함)")
+        print(f"  Items: {len(items_for_subscription)}개 (KRX: 기본코드, NXT: _NX 접미사)")
+        print(f"  구독 코드: {', '.join(items_for_subscription[:3])}...")
 
         success = await ws_manager.subscribe(
-            stock_codes=items_with_nx,
+            stock_codes=items_for_subscription,
             types=["0B"]
         )
 
@@ -190,6 +207,7 @@ async def test_websocket_realtime():
                     stocks_with_data += 1
                     latest_price = data['prices'][-1]
                     latest_time = data['timestamps'][-1]
+                    market = data['market']
 
                     # 변동 계산
                     change_symbol = ""
@@ -203,7 +221,15 @@ async def test_websocket_realtime():
                         else:
                             change_symbol = " ➡️  변동없음"
 
-                    print(f"  🟢 {data['name']:15} ({code}_NX) | {latest_price:7,}원 @ {latest_time}{change_symbol}")
+                    # 시장별 아이콘 및 코드 표시
+                    if market == "KRX":
+                        icon = "🔵"
+                        code_display = code
+                    else:
+                        icon = "🟢"
+                        code_display = f"{code}_NX"
+
+                    print(f"  {icon} {data['name']:15} ({code_display:10}) | {latest_price:7,}원 @ {latest_time}{change_symbol}")
 
             if stocks_with_data == 0:
                 print(f"  {YELLOW}⚠️  아직 데이터 수신 없음...{RESET}")
@@ -221,16 +247,30 @@ async def test_websocket_realtime():
         stocks_with_change = 0
         stocks_with_data = 0
 
+        krx_with_data = 0
+        nxt_with_data = 0
+        krx_with_change = 0
+        nxt_with_change = 0
+
         for code, data in price_history.items():
             prices = data['prices']
             name = data['name']
+            market = data['market']
+
+            # 코드 표시
+            code_display = f"{code}_NX" if market == "NXT" else code
+            market_icon = "🟢" if market == "NXT" else "🔵"
 
             if not prices:
-                print(f"\n{YELLOW}{name} ({code}_NX){RESET}")
+                print(f"\n{YELLOW}{market_icon} {name} ({code_display}){RESET}")
                 print(f"  ❌ 데이터 수신 없음")
                 continue
 
             stocks_with_data += 1
+            if market == "KRX":
+                krx_with_data += 1
+            else:
+                nxt_with_data += 1
 
             # 가격 변동 분석
             unique_prices = set(prices)
@@ -238,6 +278,10 @@ async def test_websocket_realtime():
 
             if has_change:
                 stocks_with_change += 1
+                if market == "KRX":
+                    krx_with_change += 1
+                else:
+                    nxt_with_change += 1
 
             # 개별 종목 요약
             min_price = min(prices)
@@ -246,7 +290,7 @@ async def test_websocket_realtime():
 
             change_icon = "✅" if has_change else "❌"
 
-            print(f"\n{WHITE}{name} ({code}_NX){RESET}")
+            print(f"\n{WHITE}{market_icon} {name} ({code_display}) [{market}]{RESET}")
             print(f"  {change_icon} 가격 변동: {'있음' if has_change else '없음'} (최소: {min_price:,}원, 최대: {max_price:,}원, 범위: {price_range:,}원)")
             print(f"  📊 수신 횟수: {len(prices)}회")
 
@@ -256,33 +300,62 @@ async def test_websocket_realtime():
         print(f"{MAGENTA}{'='*100}{RESET}")
 
         print(f"\n{CYAN}수신 통계:{RESET}")
-        print(f"  • 총 종목 수: {total_stocks}개")
+        print(f"  • 총 종목 수: {total_stocks}개 (KRX: 5개, NXT: 5개)")
         print(f"  • 데이터 수신: {stocks_with_data}개 ({stocks_with_data/total_stocks*100:.1f}%)")
+        print(f"    - 🔵 KRX: {krx_with_data}/5개")
+        print(f"    - 🟢 NXT: {nxt_with_data}/5개")
         print(f"  • 수신 없음: {total_stocks - stocks_with_data}개")
         print(f"  • 총 수신 건수: {received_count[0]}건")
 
         print(f"\n{CYAN}가격 변동 분석:{RESET}")
         if stocks_with_data > 0:
             print(f"  • 가격 변동 있음: {stocks_with_change}개 ({stocks_with_change/stocks_with_data*100:.1f}%)")
+            print(f"    - 🔵 KRX: {krx_with_change}/{krx_with_data}개" + (f" ({krx_with_change/krx_with_data*100:.1f}%)" if krx_with_data > 0 else ""))
+            print(f"    - 🟢 NXT: {nxt_with_change}/{nxt_with_data}개" + (f" ({nxt_with_change/nxt_with_data*100:.1f}%)" if nxt_with_data > 0 else ""))
             print(f"  • 가격 변동 없음: {stocks_with_data - stocks_with_change}개")
         else:
             print(f"  • 데이터 없음")
 
         # 최종 판정
+        print(f"\n{MAGENTA}{'='*100}{RESET}")
+        print(f"{MAGENTA}📋 판정 결과{RESET}")
+        print(f"{MAGENTA}{'='*100}{RESET}")
+
         if stocks_with_data == 0:
-            print(f"\n{RED}❌ WebSocket 실시간 데이터 수신 실패{RESET}")
+            print(f"\n{RED}❌ WebSocket 실시간 데이터 수신 완전 실패{RESET}")
             print(f"{YELLOW}가능한 원인:{RESET}")
-            print(f"  1. _NX 접미사 형식 문제")
-            print(f"  2. WebSocket 연결 불안정")
-            print(f"  3. 구독 타입(0B) 문제")
-            print(f"  4. NXT 시간대가 아님")
-        elif stocks_with_change == 0:
-            print(f"\n{YELLOW}⚠️  데이터 수신은 됐으나 가격 변동 없음{RESET}")
-            print(f"{YELLOW}   → 실시간 가격이 아니거나, 테스트 기간 동안 변동 없음{RESET}")
-        elif stocks_with_change > 0:
-            print(f"\n{GREEN}✅ WebSocket으로 NXT 실시간 가격 조회 성공!{RESET}")
-            print(f"{GREEN}   → _NX 접미사 + type=0B로 실시간 현재가 구독 가능{RESET}")
-            print(f"{GREEN}   → {stocks_with_change}개 종목에서 실시간 가격 변동 확인{RESET}")
+            print(f"  1. WebSocket 연결 문제")
+            print(f"  2. 구독 타입(0B) 문제")
+            print(f"  3. 토큰 권한 문제")
+        elif krx_with_data == 0 and nxt_with_data == 0:
+            print(f"\n{RED}❌ KRX/NXT 모두 데이터 수신 실패{RESET}")
+        elif krx_with_data > 0 and nxt_with_data == 0:
+            print(f"\n{YELLOW}⚠️  KRX만 데이터 수신, NXT 데이터 수신 실패{RESET}")
+            print(f"{YELLOW}   → KRX: {krx_with_data}개 수신 ({krx_with_change}개 변동){RESET}")
+            print(f"{YELLOW}   → NXT: 0개 수신{RESET}")
+            print(f"{YELLOW}   → _NX 접미사 문제이거나 NXT 거래량 부족{RESET}")
+        elif krx_with_data == 0 and nxt_with_data > 0:
+            print(f"\n{YELLOW}⚠️  NXT만 데이터 수신, KRX 데이터 수신 실패{RESET}")
+            print(f"{YELLOW}   → NXT: {nxt_with_data}개 수신 ({nxt_with_change}개 변동){RESET}")
+            print(f"{YELLOW}   → KRX: 0개 수신 (예상 외){RESET}")
+        else:
+            # 둘 다 수신됨
+            print(f"\n{GREEN}✅ WebSocket 데이터 수신 성공!{RESET}")
+            print(f"{GREEN}   → KRX: {krx_with_data}/5개 수신, {krx_with_change}개 가격 변동{RESET}")
+            print(f"{GREEN}   → NXT: {nxt_with_data}/5개 수신, {nxt_with_change}개 가격 변동{RESET}")
+
+            if krx_with_change > 0 and nxt_with_change > 0:
+                print(f"\n{GREEN}🎉 완벽! KRX와 NXT 모두 실시간 가격 변동 확인!{RESET}")
+                print(f"{GREEN}   → WebSocket으로 NXT 실시간 현재가 조회 가능{RESET}")
+                print(f"{GREEN}   → _NX 접미사 + type=0B 방식 작동 확인{RESET}")
+            elif krx_with_change > 0 and nxt_with_change == 0:
+                print(f"\n{YELLOW}⚠️  KRX는 변동 있으나 NXT는 변동 없음{RESET}")
+                print(f"{YELLOW}   → WebSocket은 작동하지만 NXT 거래량 부족일 가능성{RESET}")
+            elif krx_with_change == 0 and nxt_with_change > 0:
+                print(f"\n{YELLOW}⚠️  NXT는 변동 있으나 KRX는 변동 없음 (예상 외){RESET}")
+            else:
+                print(f"\n{YELLOW}⚠️  데이터 수신은 됐으나 가격 변동 없음{RESET}")
+                print(f"{YELLOW}   → 테스트 기간 동안 체결이 없었을 가능성{RESET}")
 
         # WebSocket 해제
         print(f"\n{CYAN}WebSocket 연결 해제 중...{RESET}")
@@ -302,7 +375,7 @@ async def test_websocket_realtime():
 def main():
     """메인 함수"""
     print(f"\n{BLUE}{'='*100}{RESET}")
-    print(f"{BLUE}🚀 NXT WebSocket 실시간 가격 테스트{RESET}")
+    print(f"{BLUE}🚀 WebSocket 실시간 가격 테스트 (KRX 5개 + NXT 5개){RESET}")
     print(f"{BLUE}{'='*100}{RESET}")
 
     # 현재 시간 확인
@@ -316,9 +389,10 @@ def main():
     if not in_nxt_hours:
         print(f"\n{YELLOW}⚠️  경고: 현재 NXT 거래 시간이 아닙니다!{RESET}")
         print(f"  NXT 거래 시간: 08:00-09:00, 15:30-20:00")
-        response = input("\n  계속 진행하시겠습니까? (y/n): ")
-        if response.lower() != 'y':
-            return
+        print(f"\n  💡 이 테스트는 KRX 종목(5개)도 포함하므로")
+        print(f"     정규 거래시간(09:00-15:30)에도 실행 가능합니다.")
+        print(f"     다만 NXT 종목은 NXT 시간대가 아니면 데이터 수신이 안 될 수 있습니다.")
+        print(f"\n  {GREEN}→ KRX 종목 테스트를 위해 자동으로 진행합니다.{RESET}")
 
     print(f"\n{GREEN}✅ 테스트를 시작합니다.{RESET}")
 
