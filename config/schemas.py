@@ -448,9 +448,15 @@ class AnomalyDetectionConfig(BaseModel):
 class LoggingConfig(BaseModel):
     """로깅 설정"""
     level: str = Field(default="INFO", description="로그 레벨")
+    console_level: str = Field(default="WARNING", description="콘솔 로그 레벨")
     file_path: str = Field(default="logs/bot.log", description="로그 파일 경로")
     max_file_size: int = Field(default=10485760, description="최대 파일 크기 (bytes)")
     backup_count: int = Field(default=30, description="백업 파일 수")
+    rotation: str = Field(default="00:00", description="로그 로테이션 시간")
+    format: str = Field(
+        default="{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function}:{line} - {message}",
+        description="로그 포맷"
+    )
     console_output: bool = Field(default=True, description="콘솔 출력 여부")
     colored_output: bool = Field(default=True, description="컬러 출력 여부")
 

@@ -66,9 +66,12 @@ class Config:
         config = _get_config()
         return {
             'level': config.logging.level,
+            'console_level': config.logging.console_level,
             'file_path': config.logging.file_path,
             'max_file_size': config.logging.max_file_size,
             'backup_count': config.logging.backup_count,
+            'rotation': config.logging.rotation,
+            'format': config.logging.format,
             'console_output': config.logging.console_output,
             'colored_output': config.logging.colored_output,
         }
