@@ -206,15 +206,15 @@ class AdvancedTradingChart {
                 </div>
             </div>
 
-            <!-- Chart Panels (v6.1: Flexible Layout) -->
-            <div id="chart-panels-wrapper" style="display: flex; flex-direction: column; height: calc(100vh - 300px); min-height: 600px;">
-                <div style="position: relative; flex: 1 1 auto; min-height: 300px;">
+            <!-- Chart Panels (v6.1: Flexible Layout - Fixed Height) -->
+            <div id="chart-panels-wrapper" style="display: flex; flex-direction: column; height: 700px; max-height: 700px; overflow: hidden;">
+                <div style="position: relative; flex: 1 1 auto; min-height: 300px; overflow: hidden;">
                     <canvas id="drawing-canvas" style="position: absolute; top: 0; left: 0; z-index: 10; pointer-events: auto;"></canvas>
                     <div id="main-chart-container" class="chart-panel-enhanced" style="height: 100%; position: relative;"></div>
                 </div>
-                <div id="rsi-chart-container" class="chart-panel-enhanced indicator-panel" style="flex: 0 0 100px; margin-top: 5px; min-height: 80px;"></div>
-                <div id="macd-chart-container" class="chart-panel-enhanced indicator-panel" style="flex: 0 0 120px; margin-top: 5px; min-height: 90px;"></div>
-                <div id="volume-chart-container" class="chart-panel-enhanced indicator-panel" style="flex: 0 0 90px; margin-top: 5px; min-height: 70px;"></div>
+                <div id="rsi-chart-container" class="chart-panel-enhanced indicator-panel" style="flex: 0 0 100px; margin-top: 5px; min-height: 80px; display: block;"></div>
+                <div id="macd-chart-container" class="chart-panel-enhanced indicator-panel" style="flex: 0 0 120px; margin-top: 5px; min-height: 90px; display: block;"></div>
+                <div id="volume-chart-container" class="chart-panel-enhanced indicator-panel" style="flex: 0 0 90px; margin-top: 5px; min-height: 70px; display: block;"></div>
             </div>
         `;
     }

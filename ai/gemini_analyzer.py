@@ -572,10 +572,21 @@ class GeminiAnalyzer(BaseAnalyzer):
                         json_str = potential_json
                         logger.debug("Found JSON in generic code block")
 
-            # Strategy 3: Find largest {...} block
+            # Strategy 3: Find largest {...} block with better nested matching
             if not json_str:
-                json_blocks = re.findall(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}', cleaned_text, re.DOTALL)
-                if json_blocks:
+                # Try to find complete JSON objects (including nested objects)
+                # Use a more robust pattern that handles nesting
+                pattern = r'\{(?:[^{}]|(?:\{[^{}]*\}))*\}'
+                json_blocks = re.findall(pattern, cleaned_text, re.DOTALL)
+
+                if not json_blocks:
+                    # Try an even simpler approach: find anything between first { and last }
+                    first_brace = cleaned_text.find('{')
+                    last_brace = cleaned_text.rfind('}')
+                    if first_brace != -1 and last_brace != -1 and last_brace > first_brace:
+                        json_str = cleaned_text[first_brace:last_brace+1]
+                        logger.debug("Extracted JSON from first { to last }")
+                elif json_blocks:
                     # Get the largest JSON block
                     json_str = max(json_blocks, key=len)
                     logger.debug("Found JSON block in text")
@@ -644,8 +655,10 @@ class GeminiAnalyzer(BaseAnalyzer):
 
                 except json.JSONDecodeError as e:
                     logger.warning(f"JSON 파싱 실패 (위치: {e.pos}), 텍스트 파싱으로 전환")
+                    logger.warning(f"JSON 문자열 샘플: {json_str[:200]}...")
                 except Exception as e:
                     logger.warning(f"JSON 처리 중 에러: {e}, 텍스트 파싱으로 전환")
+                    logger.warning(f"JSON 문자열 샘플: {json_str[:200] if json_str else 'N/A'}...")
 
         except Exception as e:
             logger.warning(f"JSON 추출 실패: {e}, 텍스트 파싱으로 전환")
