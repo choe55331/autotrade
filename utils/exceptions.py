@@ -290,6 +290,7 @@ def retry_on_exception(
     backoff: float = 2.0,
     logger=None
 ):
+    """
     예외 발생 시 재시도 데코레이터
 
     Args:
@@ -303,6 +304,7 @@ def retry_on_exception(
         @retry_on_exception(exceptions=(APIConnectionException,), max_retries=3)
         def call_api():
             ...
+    """
     import time
     from functools import wraps
 

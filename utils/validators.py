@@ -216,15 +216,17 @@ def validate_position_size(
     total_assets: float,
     max_position_ratio: float = 0.30
 ) -> Tuple[bool, str]:
+    """
     포지션 크기 검증
-    
+
     Args:
         position_value: 포지션 가치
         total_assets: 총 자산
         max_position_ratio: 최대 포지션 비율 (기본 30%)
-    
+
     Returns:
         (검증 통과 여부, 메시지)
+    """
     if total_assets <= 0:
         return False, "총 자산이 0 이하입니다"
     
@@ -264,8 +266,10 @@ def validate_trading_params(params: dict) -> Tuple[bool, list]:
     
     if 'MAX_OPEN_POSITIONS' in params:
         if not (1 <= params['MAX_OPEN_POSITIONS'] <= 50):
+            """
             errors.append("MAX_OPEN_POSITIONS는 1~50 사이여야 합니다")
     
+            """
     if 'RISK_PER_TRADE_RATIO' in params:
         if not (0 < params['RISK_PER_TRADE_RATIO'] <= 1.0):
             errors.append("RISK_PER_TRADE_RATIO는 0~1 사이여야 합니다")
