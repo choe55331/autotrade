@@ -139,13 +139,15 @@ class WebSocketClient:
         on_open: Optional[Callable] = None,
         on_close: Optional[Callable] = None
     ):
+        """
         콜백 함수 등록
-        
+
         Args:
             on_message: 메시지 수신 콜백
             on_error: 에러 콜백
             on_open: 연결 성공 콜백
             on_close: 연결 종료 콜백
+        """
         if on_message:
             self.on_message_callback = on_message
         if on_error:

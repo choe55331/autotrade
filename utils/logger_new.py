@@ -1,13 +1,13 @@
 """
 utils/logger_new.py
 Loguru 기반 통합 로깅 시스템 (v4.2)
-"""
 
 CRITICAL 개선 사항:
 - 3개의 로깅 시스템 통합 (logger.py, logger_new.py, rate_limited_logger.py)
 - Rate-limiting 기능 내장
 - 80% I/O 감소 (고빈도 로그 throttling)
 - 단일 API로 통합
+"""
 import sys
 import time
 from pathlib import Path
@@ -120,6 +120,7 @@ def setup_logger(
     level: str = 'INFO',
     **kwargs
 ):
+    """
     기존 호환성을 위한 setup_logger 함수
 
     Args:
@@ -130,6 +131,7 @@ def setup_logger(
 
     Returns:
         Loguru logger 인스턴스
+    """
     return get_logger()
 
 
@@ -200,9 +202,11 @@ class RateLimitedLogger:
         rate_limit_seconds: float = 1.0,
         count_skipped: bool = True
     ):
+        """
         Args:
             rate_limit_seconds: Rate limit 시간 (초)
             count_skipped: 스킵된 로그 카운팅 여부
+        """
         self.logger = get_logger()
         self.rate_limit = rate_limit_seconds
         self.count_skipped = count_skipped
