@@ -87,30 +87,39 @@ async def test_websocket_realtime():
             ("217270", "넵튠", "NXT"),
         ]
     else:
-        # NXT 시간: NXT 종목만 (KRX는 거래 없음)
+        # NXT 시간: 고거래량 종목 + NXT 종목 혼합 테스트
         test_stocks = [
+            # 고거래량 종목 (NXT로 구독 시도)
+            ("005930", "삼성전자", "NXT"),
+            ("000660", "SK하이닉스", "NXT"),
+            ("035720", "카카오", "NXT"),
+            ("005380", "현대차", "NXT"),
+            ("051910", "LG화학", "NXT"),
+            # 일반 NXT 종목
             ("249420", "일동제약", "NXT"),
             ("052020", "에프엔에스테크", "NXT"),
             ("900290", "GRT", "NXT"),
             ("900250", "크리스탈신소재", "NXT"),
             ("217270", "넵튠", "NXT"),
-            ("900340", "윙입푸드", "NXT"),
-            ("900270", "헝셩그룹", "NXT"),
-            ("900300", "오가닉티코스메틱", "NXT"),
-            ("900110", "이스트아시아홀딩스", "NXT"),
-            ("900260", "로스웰", "NXT"),
         ]
         print(f"\n{YELLOW}⚠️  현재 시각 {now.strftime('%H:%M')} - 정규장 종료{RESET}")
-        print(f"{YELLOW}   KRX 종목은 거래 없음. NXT 종목 10개로 테스트합니다.{RESET}")
+        print(f"{YELLOW}   대형주 5개(NXT 구독) + NXT 종목 5개로 테스트합니다.{RESET}")
+        print(f"{YELLOW}   대형주는 호가 데이터가 남아있을 수 있습니다.{RESET}")
 
     print(f"\n{CYAN}테스트 종목 ({len(test_stocks)}개):{RESET}")
-    print(f"\n{GREEN}[KRX 고거래량 종목 - 5개]{RESET}")
-    for i, (code, name, market) in enumerate([s for s in test_stocks if s[2] == "KRX"], 1):
-        print(f"  {i}. {name:20} ({code})")
 
-    print(f"\n{YELLOW}[NXT 종목 - 5개]{RESET}")
-    for i, (code, name, market) in enumerate([s for s in test_stocks if s[2] == "NXT"], 1):
-        print(f"  {i}. {name:20} ({code}_NX)")
+    krx_stocks = [s for s in test_stocks if s[2] == "KRX"]
+    nxt_stocks = [s for s in test_stocks if s[2] == "NXT"]
+
+    if krx_stocks:
+        print(f"\n{GREEN}[KRX 고거래량 종목 - {len(krx_stocks)}개]{RESET}")
+        for i, (code, name, market) in enumerate(krx_stocks, 1):
+            print(f"  {i}. {name:20} ({code})")
+
+    if nxt_stocks:
+        print(f"\n{YELLOW}[NXT 종목 - {len(nxt_stocks)}개]{RESET}")
+        for i, (code, name, market) in enumerate(nxt_stocks, 1):
+            print(f"  {i}. {name:20} ({code}_NX)")
 
     try:
         # WebSocketManager 초기화
