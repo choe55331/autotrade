@@ -214,7 +214,7 @@ class AIConfig(BaseModel):
     enabled: bool = Field(default=True, description="AI 기능 활성화")
     default_analyzer: str = Field(
         default="gemini",
-        description="기본 분석기 (gemini/gpt4/claude/ensemble)"
+        description="기본 분석기 (gemini only)"
     )
     confidence_threshold: float = Field(
         default=0.7,

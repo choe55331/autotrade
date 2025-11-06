@@ -1,6 +1,6 @@
 """
-Multi-AI Ensemble Analyzer
-Combines multiple AI models (Gemini, GPT-4, Claude) for superior trading insights
+Gemini Ensemble Analyzer
+Gemini 전용 고급 분석 시스템 (다중 전략 투표)
 """
 
 import asyncio
@@ -17,10 +17,8 @@ logger = get_logger()
 
 
 class AIModel(Enum):
-    """AI Model types"""
+    """AI Model types (Gemini only)"""
     GEMINI = "gemini"
-    GPT4 = "gpt4"
-    CLAUDE = "claude"
 
 
 class VotingStrategy(Enum):
@@ -33,64 +31,35 @@ class VotingStrategy(Enum):
 
 class EnsembleAnalyzer(BaseAnalyzer):
     """
-    Advanced ensemble analyzer combining multiple AI models
+    Gemini 전용 앙상블 분석기
     Features:
-    - Multi-model predictions with voting
-    - Confidence-based weighting
-    - Model performance tracking
-    - Adaptive model selection
+    - 단일 Gemini 모델 사용
+    - 신뢰도 기반 가중치
+    - 성능 추적
+    - 적응형 분석
     """
 
     def __init__(
         self,
-        voting_strategy: VotingStrategy = VotingStrategy.WEIGHTED,
-        models: Optional[List[AIModel]] = None,
-        enable_gpt4: bool = False,
-        enable_claude: bool = False
+        voting_strategy: VotingStrategy = VotingStrategy.WEIGHTED
     ):
         """
-        Initialize ensemble analyzer
+        Initialize ensemble analyzer (Gemini only)
 
         Args:
-            voting_strategy: Strategy for combining model outputs
-            models: List of models to use (defaults to all available)
-            enable_gpt4: Enable GPT-4 integration
-            enable_claude: Enable Claude integration
+            voting_strategy: Strategy for combining model outputs (kept for compatibility)
         """
-        super().__init__(name="EnsembleAnalyzer", config={})
+        super().__init__(name="GeminiEnsembleAnalyzer", config={})
         self.voting_strategy = voting_strategy
 
-        # Initialize available analyzers
+        # Initialize Gemini analyzer only
         self.analyzers: Dict[AIModel, BaseAnalyzer] = {}
 
-        # Always include Gemini (already implemented)
         try:
             self.analyzers[AIModel.GEMINI] = GeminiAnalyzer()
-            logger.info("✓ Gemini analyzer initialized")
+            logger.info("✓ Gemini analyzer initialized (Primary AI)")
         except Exception as e:
-            logger.warning(f"Failed to initialize Gemini: {e}")
-
-        # Add GPT-4 if enabled
-        if enable_gpt4:
-            try:
-                from .gpt4_analyzer import GPT4Analyzer
-                self.analyzers[AIModel.GPT4] = GPT4Analyzer()
-                logger.info("✓ GPT-4 analyzer initialized")
-            except ImportError:
-                logger.warning("GPT-4 analyzer not available - install openai package")
-            except Exception as e:
-                logger.warning(f"Failed to initialize GPT-4: {e}")
-
-        # Add Claude if enabled
-        if enable_claude:
-            try:
-                from .claude_analyzer import ClaudeAnalyzer
-                self.analyzers[AIModel.CLAUDE] = ClaudeAnalyzer()
-                logger.info("✓ Claude analyzer initialized")
-            except ImportError:
-                logger.warning("Claude analyzer not available - install anthropic package")
-            except Exception as e:
-                logger.warning(f"Failed to initialize Claude: {e}")
+            logger.error(f"Failed to initialize Gemini: {e}")
 
         # Model performance tracking
         self.model_performance: Dict[AIModel, Dict[str, float]] = {
@@ -669,17 +638,13 @@ _analyzer_instance: Optional[EnsembleAnalyzer] = None
 
 
 def get_analyzer(
-    voting_strategy: VotingStrategy = VotingStrategy.WEIGHTED,
-    enable_gpt4: bool = False,
-    enable_claude: bool = False
+    voting_strategy: VotingStrategy = VotingStrategy.WEIGHTED
 ) -> EnsembleAnalyzer:
     """
-    Get singleton instance of EnsembleAnalyzer
+    Get singleton instance of EnsembleAnalyzer (Gemini only)
 
     Args:
         voting_strategy: Strategy for combining model outputs
-        enable_gpt4: Enable GPT-4 integration
-        enable_claude: Enable Claude integration
 
     Returns:
         EnsembleAnalyzer instance
@@ -687,8 +652,6 @@ def get_analyzer(
     global _analyzer_instance
     if _analyzer_instance is None:
         _analyzer_instance = EnsembleAnalyzer(
-            voting_strategy=voting_strategy,
-            enable_gpt4=enable_gpt4,
-            enable_claude=enable_claude
+            voting_strategy=voting_strategy
         )
     return _analyzer_instance
