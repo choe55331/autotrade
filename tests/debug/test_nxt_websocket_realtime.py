@@ -155,9 +155,9 @@ async def test_websocket_realtime():
         print(f"  Type: 0B (주식체결)")
         print(f"  Items: {len(items_with_nx)}개 (_NX 접미사 포함)")
 
-        success = await ws_manager.subscribe_realtime(
-            items=items_with_nx,
-            data_type="0B"
+        success = await ws_manager.subscribe(
+            stock_codes=items_with_nx,
+            types=["0B"]
         )
 
         if not success:
