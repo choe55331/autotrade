@@ -123,16 +123,18 @@ def catch_exceptions(
     default_return: Any = None,
     log_traceback: bool = True
 ):
+    """
     예외 처리 데코레이터
-    
+
     Args:
         default_return: 예외 발생 시 반환할 기본값
         log_traceback: 트레이스백 로깅 여부
-    
+
     Example:
         @catch_exceptions(default_return=None)
         def risky_function():
             ...
+    """
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs) -> Any:

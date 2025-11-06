@@ -65,6 +65,7 @@ class TradingActivityMonitor:
         data: Optional[Dict] = None,
         level: str = 'info'
     ):
+        """
         활동 로그 추가
 
         Args:
@@ -72,6 +73,7 @@ class TradingActivityMonitor:
             message: 메시지
             data: 추가 데이터
             level: 로그 레벨 (info, success, warning, error)
+        """
         with self._lock:
             activity = {
                 'timestamp': datetime.now().isoformat(),
@@ -90,6 +92,7 @@ class TradingActivityMonitor:
         total_screened: int = 0,
         candidates_found: int = 0
     ):
+        """
         스크리닝 상태 업데이트
 
         Args:
@@ -98,6 +101,7 @@ class TradingActivityMonitor:
             conditions: 검색 조건
             total_screened: 총 스크리닝 종목 수
             candidates_found: 발견된 후보 수
+        """
         with self._lock:
             self.current_screening = {
                 'status': status,
@@ -116,6 +120,7 @@ class TradingActivityMonitor:
         reason: str,
         data: Optional[Dict] = None
     ):
+        """
         후보 종목 추가
 
         Args:
@@ -124,6 +129,7 @@ class TradingActivityMonitor:
             score: 점수
             reason: 선정 이유
             data: 추가 데이터
+        """
         with self._lock:
             candidate = {
                 'stock_code': stock_code,
@@ -149,11 +155,13 @@ class TradingActivityMonitor:
         stock_code: str,
         analysis_result: Dict[str, Any]
     ):
+        """
         AI 분석 결과 추가
 
         Args:
             stock_code: 종목 코드
             analysis_result: AI 분석 결과
+        """
         with self._lock:
             self.ai_analyses[stock_code] = {
                 'timestamp': datetime.now().isoformat(),
@@ -170,11 +178,13 @@ class TradingActivityMonitor:
         stock_code: str,
         buy_plan: Dict[str, Any]
     ):
+        """
         매수 계획 추가
 
         Args:
             stock_code: 종목 코드
             buy_plan: 매수 계획
+        """
         with self._lock:
             total_amount = min(
                 buy_plan.get('total_amount', 0),
@@ -226,11 +236,13 @@ class TradingActivityMonitor:
         stock_code: str,
         overrides: Dict[str, Any]
     ):
+        """
         매수 계획 수동 조정
 
         Args:
             stock_code: 종목 코드
             overrides: 조정할 값들
+        """
         with self._lock:
             if stock_code in self.buy_plans:
                 self.buy_plans[stock_code].update(overrides)

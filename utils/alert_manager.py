@@ -1,9 +1,9 @@
 """
 utils/alert_manager.py
 v5.7.5: 실시간 알림 시스템
-"""
 
 손익 임계값 도달 시 알림 발생
+"""
 from typing import Dict, List, Optional, Callable
 from dataclasses import dataclass
 from datetime import datetime

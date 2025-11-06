@@ -57,16 +57,18 @@ class FileHandler:
         indent: int = 2,
         backup: bool = False
     ) -> bool:
+        """
         JSON 파일 쓰기
-        
+
         Args:
             file_path: 파일 경로
             data: 저장할 데이터
             indent: 들여쓰기
             backup: 백업 파일 생성 여부
-        
+
         Returns:
             성공 여부
+        """
         try:
             file_path.parent.mkdir(parents=True, exist_ok=True)
             
