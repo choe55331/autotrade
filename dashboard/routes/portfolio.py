@@ -81,23 +81,56 @@ def get_performance():
 
 @portfolio_bp.route('/api/portfolio/optimize')
 def get_portfolio_optimization():
-    """Get portfolio optimization analysis"""
+    """Get portfolio optimization analysis - v6.0.1 Fixed field names"""
     try:
         from features.portfolio_optimizer import PortfolioOptimizer
 
         if _bot_instance and hasattr(_bot_instance, 'account_api'):
-            holdings = _bot_instance.account_api.get_holdings()
+            # v6.0.1: Use correct field names from kt00004 API
+            holdings = _bot_instance.account_api.get_holdings(market_type="KRX+NXT")
 
-            # Convert holdings to position format
+            if not holdings:
+                return jsonify({
+                    'success': True,
+                    'status': '✅ 정상',
+                    'risk': 'low',
+                    'score': 100,
+                    'message': '보유 종목이 없습니다.',
+                    'suggestions': []
+                })
+
+            # Convert holdings to position format with CORRECT field names
             positions = []
             for h in holdings:
-                positions.append({
-                    'code': h.get('pdno', ''),
-                    'name': h.get('prdt_name', ''),
-                    'quantity': int(h.get('hldg_qty', 0)),
-                    'avg_price': int(h.get('pchs_avg_pric', 0)),
-                    'current_price': int(h.get('prpr', 0)),
-                    'value': int(h.get('eval_amt', 0))
+                code = str(h.get('stk_cd', '')).replace('A', '')  # stk_cd not pdno
+                name = h.get('stk_nm', '')  # stk_nm not prdt_name
+                quantity = int(str(h.get('rmnd_qty', 0)).replace(',', ''))  # rmnd_qty not hldg_qty
+                avg_price = int(str(h.get('avg_prc', 0)).replace(',', ''))  # avg_prc not pchs_avg_pric
+                current_price = int(str(h.get('cur_prc', 0)).replace(',', ''))  # cur_prc not prpr
+
+                # Calculate value
+                eval_amt = int(str(h.get('eval_amt', 0)).replace(',', ''))
+                if eval_amt == 0:
+                    eval_amt = quantity * current_price
+
+                if quantity > 0 and current_price > 0:
+                    positions.append({
+                        'code': code,
+                        'name': name,
+                        'quantity': quantity,
+                        'avg_price': avg_price,
+                        'current_price': current_price,
+                        'value': eval_amt
+                    })
+
+            if not positions:
+                return jsonify({
+                    'success': True,
+                    'status': '✅ 정상',
+                    'risk': 'low',
+                    'score': 100,
+                    'message': '보유 종목이 없습니다.',
+                    'suggestions': []
                 })
 
             optimizer = PortfolioOptimizer()
@@ -107,6 +140,8 @@ def get_portfolio_optimization():
             return jsonify({'success': False, 'message': 'Bot not initialized'})
     except Exception as e:
         print(f"Portfolio optimization API error: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'message': str(e)})
 
 @portfolio_bp.route('/api/risk/analysis')
