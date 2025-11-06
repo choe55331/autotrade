@@ -195,6 +195,10 @@ class VirtualTrader:
                     # 레거시 전략
                     should_buy = strategy.should_buy(stock_data, ai_analysis, account)
 
+                # v5.9: 디버깅 로그 (should_buy 결과 확인)
+                if should_buy:
+                    logger.debug(f"[{strategy_name}] 매수 조건 만족: {stock_name}")
+
                 if should_buy:
                     # 수량 계산
                     quantity = strategy.calculate_quantity(price, account)

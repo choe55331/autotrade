@@ -190,12 +190,19 @@ class BreakoutStrategy(DiverseTradingStrategy):
         if len(account.positions) >= self.max_positions:
             return False
 
-        # 52주 신고가 근접 확인
+        # 52주 신고가 데이터가 없으면 간소화된 조건 사용
         current_price = stock_data.get('current_price', 0)
-        high_52w = stock_data.get('high_52week', current_price * 1.5)
+        high_52w = stock_data.get('high_52week')
 
-        if current_price < high_52w * self.breakout_threshold:
-            return False
+        if high_52w is not None:
+            # 52주 신고가 근접 확인
+            if current_price < high_52w * self.breakout_threshold:
+                return False
+        else:
+            # 52주 데이터 없으면 강한 상승률로 대체 (5% 이상)
+            price_change = stock_data.get('price_change_percent', 0)
+            if price_change < 5.0:
+                return False
 
         # 거래량 증가 확인 (돌파 신뢰성)
         volume_ratio = stock_data.get('volume_ratio', 1.0)
@@ -258,25 +265,40 @@ class ValueInvestingStrategy(DiverseTradingStrategy):
         if len(account.positions) >= self.max_positions:
             return False
 
-        # PER 확인
-        per = stock_data.get('per', 999)
-        if per > self.max_per or per <= 0:
-            return False
+        # v5.9: 데이터 없을 때 조건 완화
+        # PER 확인 (데이터 있을 때만)
+        per = stock_data.get('per')
+        if per is not None and per > 0:
+            if per > self.max_per:
+                return False
 
-        # PBR 확인
-        pbr = stock_data.get('pbr', 999)
-        if pbr > self.max_pbr or pbr <= 0:
-            return False
+        # PBR 확인 (데이터 있을 때만)
+        pbr = stock_data.get('pbr')
+        if pbr is not None and pbr > 0:
+            if pbr > self.max_pbr:
+                return False
 
-        # 배당수익률 확인
-        dividend_yield = stock_data.get('dividend_yield', 0)
-        if dividend_yield < self.min_dividend:
-            return False
+        # 배당수익률 확인 (데이터 있을 때만)
+        dividend_yield = stock_data.get('dividend_yield')
+        if dividend_yield is not None:
+            if dividend_yield < self.min_dividend:
+                return False
 
-        # 안정적인 종목 선호 (급등/급락 제외)
-        price_change = stock_data.get('price_change_percent', 0)
-        if abs(price_change) > 5.0:
-            return False
+        # 데이터가 모두 없으면 기본 조건: 안정적 상승
+        if per is None and pbr is None and dividend_yield is None:
+            # 안정적인 상승 (2-5%)
+            price_change = stock_data.get('price_change_percent', 0)
+            if not (2.0 <= price_change <= 5.0):
+                return False
+            # 거래량도 적당히
+            volume_ratio = stock_data.get('volume_ratio', 1.0)
+            if volume_ratio < 1.0:
+                return False
+        else:
+            # 안정적인 종목 선호 (급등/급락 제외)
+            price_change = stock_data.get('price_change_percent', 0)
+            if abs(price_change) > 5.0:
+                return False
 
         return True
 
