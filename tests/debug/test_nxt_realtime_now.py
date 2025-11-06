@@ -212,7 +212,7 @@ def main():
 
     try:
         # REST Client 직접 초기화
-        from api.client import KiwoomRESTClient
+        from core.rest_client import KiwoomRESTClient
         from config.credentials import get_credentials
 
         credentials = get_credentials()
