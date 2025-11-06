@@ -32,6 +32,7 @@ class ShortSellingAPI:
         end_dt: str,
         tm_tp: str = '1'
     ) -> List[Dict[str, Any]]:
+        """
         공매도 추이 조회 (ka10014)
         
         Args:
@@ -42,6 +43,7 @@ class ShortSellingAPI:
         
         Returns:
             공매도 추이 리스트
+        """
         try:
             headers = {
                 'api-id': 'ka10014'
@@ -73,6 +75,7 @@ class ShortSellingAPI:
         strt_dt: str,
         end_dt: str
     ) -> Dict[str, Any]:
+        """
         공매도 분석
         
         Args:
@@ -84,6 +87,7 @@ class ShortSellingAPI:
             공매도 분석 결과
         trends = self.get_short_selling_trend(stk_cd, strt_dt, end_dt)
         
+        """
         if not trends:
             return {}
         
