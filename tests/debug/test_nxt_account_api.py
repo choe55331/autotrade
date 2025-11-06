@@ -139,8 +139,13 @@ def test_nxt_holdings_monitoring(account_api, rounds=10, interval=5):
 
                 # 추가 정보
                 if evlt_amt and rmnd_qty:
-                    calculated_price = int(evlt_amt) // int(rmnd_qty)
-                    print(f"      평가금액: {evlt_amt:,}원, 보유수량: {rmnd_qty:,}주 → 역산 현재가: {calculated_price:,}원")
+                    try:
+                        evlt_amt_int = int(str(evlt_amt).replace(',', ''))
+                        rmnd_qty_int = int(str(rmnd_qty).replace(',', ''))
+                        calculated_price = evlt_amt_int // rmnd_qty_int
+                        print(f"      평가금액: {evlt_amt_int:,}원, 보유수량: {rmnd_qty_int:,}주 → 역산 현재가: {calculated_price:,}원")
+                    except:
+                        pass
 
         else:
             print(f"{YELLOW}⚠️  NXT 보유 종목 없음{RESET}")
