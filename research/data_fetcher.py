@@ -4,10 +4,33 @@ research/data_fetcher.py
 """
 import logging
 from typing import Dict, Any, Optional, List
-from datetime import datetime
+from datetime import datetime, time
 from utils.trading_date import get_last_trading_date
 
 logger = logging.getLogger(__name__)
+
+
+def is_nxt_hours() -> bool:
+    """
+    NXT 거래 시간 여부 확인
+
+    Returns:
+        NXT 거래 시간이면 True
+    """
+    now = datetime.now().time()
+
+    # 오전: 08:00-09:00
+    morning_start = time(8, 0)
+    morning_end = time(9, 0)
+
+    # 오후: 15:30-20:00
+    afternoon_start = time(15, 30)
+    afternoon_end = time(20, 0)
+
+    is_morning = morning_start <= now < morning_end
+    is_afternoon = afternoon_start <= now < afternoon_end
+
+    return is_morning or is_afternoon
 
 
 class DataFetcher:
@@ -134,14 +157,10 @@ class DataFetcher:
 
         for item in output_list:
             stock_code = item.get('stk_cd', '')
-
-            # ✅ v5.15: NXT 종목 코드 정규화 (_NX 제거)
-            # 테스트 결과: _NX 접미사는 현재가 조회 시 실패 (0% 성공률)
-            if stock_code.endswith('_NX'):
-                stock_code = stock_code[:-3]
+            # ✅ v5.16: _NX 접미사 유지 (NXT 현재가 조회를 위해 필요)
 
             holding = {
-                'stock_code': stock_code,
+                'stock_code': stock_code,  # _NX 접미사 유지!
                 'stock_name': item.get('stk_nm', ''),
                 'quantity': int(item.get('rmnd_qty', 0)),
                 'purchase_price': float(item.get('pur_pric', 0)),
@@ -159,11 +178,15 @@ class DataFetcher:
     
     def get_current_price(self, stock_code: str) -> Optional[Dict[str, Any]]:
         """
-        종목 현재가 조회
-        
+        종목 현재가 조회 (시간대별 자동 처리)
+
+        ✅ v5.16: NXT 시간대 자동 감지 및 _NX 접미사 처리
+        - 08:00-09:00, 15:30-20:00: NXT 현재가 (_NX 접미사 사용)
+        - 09:00-15:30: KRX 현재가 (기본 코드 사용)
+
         Args:
-            stock_code: 종목코드 (6자리)
-        
+            stock_code: 종목코드 (6자리 또는 _NX 접미사 포함)
+
         Returns:
             현재가 정보
             {
@@ -172,28 +195,54 @@ class DataFetcher:
                 'current_price': 72000,
                 'change_price': 1000,
                 'change_rate': 1.41,
-                'volume': 10000000,
-                'trading_value': 720000000000,
-                'open_price': 71000,
-                'high_price': 72500,
-                'low_price': 70500,
-                'prev_close': 71000
+                'exchange': 'KRX' or 'NXT',
+                'time': '153045'
             }
         """
-        body = {
-            "stock_code": stock_code
-        }
-        
+        # 기본 코드 추출 (이미 _NX가 있으면 유지)
+        base_code = stock_code.replace('_NX', '')
+
+        # NXT 시간대 확인 및 코드 결정
+        in_nxt = is_nxt_hours()
+        query_code = f"{base_code}_NX" if in_nxt else base_code
+
+        # ka10003 API 사용 (체결정보)
+        body = {"stk_cd": query_code}
+
         response = self.client.request(
-            api_id="DOSK_0002",
+            api_id="ka10003",
             body=body,
-            path="/api/dostk/inquire/price"
+            path="stkinfo"
         )
-        
+
         if response and response.get('return_code') == 0:
-            price_info = response.get('output', {})
-            current_price = int(price_info.get('current_price', 0))
-            logger.info(f"{stock_code} 현재가: {current_price:,}원")
+            cntr_list = response.get('cntr_infr', [])
+
+            if not cntr_list or len(cntr_list) == 0:
+                logger.warning(f"{query_code} 체결 정보 없음 (거래 없음)")
+                return None
+
+            # 최신 체결 정보 사용
+            cntr_info = cntr_list[0]
+
+            # 가격 파싱 (+/- 기호 제거)
+            cur_prc_str = cntr_info.get('cur_prc', '0')
+            current_price = abs(int(cur_prc_str.replace('+', '').replace('-', '')))
+
+            pred_pre_str = cntr_info.get('pred_pre', '0')
+            change_price = int(pred_pre_str.replace('+', '').replace('-', ''))
+
+            price_info = {
+                'stock_code': base_code,
+                'current_price': current_price,
+                'change_price': change_price,
+                'change_rate': float(cntr_info.get('pre_rt', '0').replace('+', '').replace('-', '')),
+                'exchange': cntr_info.get('stex_tp', 'N/A'),
+                'time': cntr_info.get('tm', ''),
+                'volume': int(cntr_info.get('acc_trde_qty', 0))
+            }
+
+            logger.info(f"{query_code} 현재가: {current_price:,}원 ({price_info['exchange']})")
             return price_info
         else:
             logger.error(f"현재가 조회 실패: {response.get('return_msg')}")
