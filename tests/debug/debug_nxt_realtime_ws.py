@@ -78,42 +78,64 @@ class NXTRealtimePriceTest:
             }
 
             print(f"{CYAN}실시간 등록 요청: {stock_codes}{RESET}")
+            print(f"{YELLOW}REG 패킷: {json.dumps(reg_packet, ensure_ascii=False)}{RESET}")
+
             await self.ws_manager.websocket.send(json.dumps(reg_packet))
-            print(f"{GREEN}실시간 등록 완료{RESET}")
+            print(f"{GREEN}실시간 등록 전송 완료{RESET}")
+
+            # 등록 응답 대기 (1초)
+            await asyncio.sleep(1)
 
         except Exception as e:
             print(f"{RED}실시간 등록 실패: {e}{RESET}")
+            import traceback
+            traceback.print_exc()
 
     async def wait_for_realtime_data(self, timeout: int = 10):
         """실시간 데이터 수신 대기"""
         try:
+            print(f"{YELLOW}실시간 데이터 수신 대기 중... (최대 {timeout}초){RESET}")
+            print(f"{YELLOW}디버깅: 모든 WebSocket 메시지 출력{RESET}")
+
             # 기존 수신 핸들러를 일시적으로 수정
             original_handler = self.ws_manager._handle_real_data
 
             async def custom_handler(message):
                 """커스텀 실시간 메시지 핸들러"""
                 try:
+                    # 📋 디버깅: 모든 메시지 출력
+                    trnm = message.get('trnm', 'UNKNOWN')
+                    print(f"\n{BLUE}[WebSocket 메시지] trnm={trnm}{RESET}")
+                    print(f"{BLUE}{json.dumps(message, ensure_ascii=False, indent=2)[:500]}...{RESET}")
+
                     # 원래 핸들러도 호출
                     await original_handler(message)
 
                     # REAL 데이터 파싱
                     # 구조: {"trnm": "REAL", "data": [{"type": "0B", "item": "005930", "values": {...}}]}
                     if message.get('trnm') == 'REAL':
+                        print(f"{CYAN}[REAL 데이터 감지]{RESET}")
                         data_list = message.get('data', [])
-                        for data in data_list:
+                        print(f"{CYAN}data_list 개수: {len(data_list)}{RESET}")
+
+                        for idx, data in enumerate(data_list):
                             stock_code = data.get('item', '')  # item 필드가 종목코드
+                            data_type = data.get('type', '')
                             values = data.get('values', {})
+
+                            print(f"{CYAN}  [{idx}] type={data_type}, item={stock_code}, values 키: {list(values.keys())[:10]}{RESET}")
 
                             if stock_code and values:
                                 # 현재가 추출 (키움 WebSocket 필드: '10')
                                 cur_prc_str = values.get('10', '0')  # 필드 '10' = 현재가
+                                print(f"{CYAN}    필드 '10' (현재가): {cur_prc_str}{RESET}")
 
                                 try:
                                     if cur_prc_str and cur_prc_str != '0':
                                         price = abs(int(str(cur_prc_str).replace('+', '').replace('-', '').replace(',', '')))
                                         if price > 0:
                                             self.realtime_prices[stock_code] = price
-                                            print(f"  {CYAN}✓ 실시간 수신: {stock_code} = {price:,}원{RESET}")
+                                            print(f"  {GREEN}✓ 실시간 수신: {stock_code} = {price:,}원{RESET}")
                                 except Exception as e:
                                     print(f"  {RED}가격 파싱 오류: {e}{RESET}")
 
@@ -130,12 +152,11 @@ class NXTRealtimePriceTest:
             self.ws_manager._handle_real_data = custom_handler
 
             # 데이터 수신 대기
-            print(f"{YELLOW}실시간 데이터 수신 대기 중... (최대 {timeout}초){RESET}")
             try:
                 await asyncio.wait_for(self.realtime_received.wait(), timeout=timeout)
-                print(f"{GREEN}모든 종목 실시간 데이터 수신 완료{RESET}")
+                print(f"\n{GREEN}모든 종목 실시간 데이터 수신 완료{RESET}")
             except asyncio.TimeoutError:
-                print(f"{YELLOW}타임아웃: {len(self.realtime_prices)}/{len(self.test_stocks)}개 종목 수신{RESET}")
+                print(f"\n{YELLOW}타임아웃: {len(self.realtime_prices)}/{len(self.test_stocks)}개 종목 수신{RESET}")
 
             # 핸들러 복원
             self.ws_manager._handle_real_data = original_handler
