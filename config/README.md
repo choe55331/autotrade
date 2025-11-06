@@ -41,7 +41,7 @@ api:
 ai:
   gemini:
     # ⚠️ 변경 금지 - 고정값
-    model: "gemini-2.0-flash-exp"
+    model: "gemini-2.5-flash"
 ```
 
 #### 선택 수정 항목:

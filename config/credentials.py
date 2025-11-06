@@ -60,6 +60,7 @@ class Credentials:
         gemini = secrets.get('gemini', {})
         self.GEMINI_API_KEY = gemini.get('api_key')
         self.GEMINI_MODEL_NAME = gemini.get('model_name')
+        self.GEMINI_ENABLE_CROSS_CHECK = gemini.get('enable_cross_check', False)
 
         # Telegram 설정
         telegram = secrets.get('telegram', {})
@@ -135,11 +136,12 @@ class Credentials:
             'websocket_url': self.KIWOOM_WEBSOCKET_URL,
         }
     
-    def get_gemini_config(self) -> Dict[str, str]:
+    def get_gemini_config(self) -> Dict[str, Any]:
         """Gemini API 설정 반환"""
         return {
             'api_key': self.GEMINI_API_KEY,
             'model_name': self.GEMINI_MODEL_NAME,
+            'enable_cross_check': self.GEMINI_ENABLE_CROSS_CHECK,
         }
     
     def get_telegram_config(self) -> Dict[str, str]:
@@ -168,5 +170,6 @@ ACCOUNT_NUMBER = credentials.ACCOUNT_NUMBER
 KIWOOM_WEBSOCKET_URL = credentials.KIWOOM_WEBSOCKET_URL
 GEMINI_API_KEY = credentials.GEMINI_API_KEY
 GEMINI_MODEL_NAME = credentials.GEMINI_MODEL_NAME
+GEMINI_ENABLE_CROSS_CHECK = credentials.GEMINI_ENABLE_CROSS_CHECK
 
 __all__ = ['Credentials', 'get_credentials', 'credentials']

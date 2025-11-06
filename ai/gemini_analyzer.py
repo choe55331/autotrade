@@ -315,53 +315,82 @@ class GeminiAnalyzer(BaseAnalyzer):
 
 **특히 중요**: 점수가 높다고 무조건 매수 추천하지 말 것. 스마트머니 흐름과 가격 액션을 종합적으로 고려할 것."""
 
-    def __init__(self, api_key: str = None, model_name: str = None):
+    def __init__(self, api_key: str = None, model_name: str = None, enable_cross_check: bool = False):
         """
         Gemini 분석기 초기화
 
         Args:
             api_key: Gemini API 키
             model_name: 모델 이름 (기본: gemini-2.5-flash)
+            enable_cross_check: 크로스 체크 활성화 (2.0 vs 2.5 비교)
         """
         super().__init__("GeminiAnalyzer")
 
         # API 설정
         if api_key is None:
-            from config import GEMINI_API_KEY, GEMINI_MODEL_NAME
+            from config import GEMINI_API_KEY, GEMINI_MODEL_NAME, GEMINI_ENABLE_CROSS_CHECK
             self.api_key = GEMINI_API_KEY
             self.model_name = model_name or GEMINI_MODEL_NAME or 'gemini-2.5-flash'
+            # config에서 enable_cross_check 읽어오기 (파라미터가 명시적으로 전달되지 않은 경우)
+            if enable_cross_check is False and GEMINI_ENABLE_CROSS_CHECK:
+                enable_cross_check = GEMINI_ENABLE_CROSS_CHECK
         else:
             self.api_key = api_key
             self.model_name = model_name or 'gemini-2.5-flash'
 
         self.model = None
 
+        # 크로스 체크 설정
+        self.enable_cross_check = enable_cross_check
+        self.model_2_0 = None  # gemini-2.0-flash-exp
+        self.model_2_5 = None  # gemini-2.5-flash
+
         # v5.7.5: AI 분석 TTL 캐시 (5분)
         self._analysis_cache = {}
         self._cache_ttl = 300  # 5분 (초)
 
-        logger.info(f"GeminiAnalyzer 초기화 (모델: {self.model_name})")
+        cross_check_status = "크로스체크 활성화" if enable_cross_check else "단일 모델"
+        logger.info(f"GeminiAnalyzer 초기화 (모델: {self.model_name}, {cross_check_status})")
     
     def initialize(self) -> bool:
         """
         Gemini API 초기화
-        
+
         Returns:
             초기화 성공 여부
         """
         try:
             import google.generativeai as genai
-            
+
             # API 키 설정
             genai.configure(api_key=self.api_key)
-            
-            # 모델 생성
+
+            # 기본 모델 생성
             self.model = genai.GenerativeModel(self.model_name)
-            
+            logger.info(f"기본 모델 초기화: {self.model_name}")
+
+            # 크로스 체크 모드: 두 모델 모두 초기화
+            if self.enable_cross_check:
+                try:
+                    self.model_2_0 = genai.GenerativeModel('gemini-2.0-flash-exp')
+                    logger.info("크로스체크 모델 초기화: gemini-2.0-flash-exp")
+                except Exception as e:
+                    logger.warning(f"2.0 모델 초기화 실패: {e}")
+
+                try:
+                    self.model_2_5 = genai.GenerativeModel('gemini-2.5-flash')
+                    logger.info("크로스체크 모델 초기화: gemini-2.5-flash")
+                except Exception as e:
+                    logger.warning(f"2.5 모델 초기화 실패: {e}")
+
+                if not self.model_2_0 and not self.model_2_5:
+                    logger.error("크로스체크 모델 초기화 모두 실패")
+                    return False
+
             self.is_initialized = True
             logger.info("Gemini API 초기화 성공")
             return True
-            
+
         except ImportError:
             logger.error("google-generativeai 패키지가 설치되지 않았습니다")
             logger.error("pip install google-generativeai 실행 필요")
@@ -404,6 +433,10 @@ class GeminiAnalyzer(BaseAnalyzer):
         score = score_info.get('score', 0) if score_info else 0
         cache_key = f"{stock_code}_{int(score)}"  # 점수는 정수로 (소수점 무시)
 
+        # 크로스 체크 활성화시 캐시 키에 표시
+        if self.enable_cross_check:
+            cache_key += "_crosscheck"
+
         # 캐시에서 조회
         if cache_key in self._analysis_cache:
             cached_entry = self._analysis_cache[cache_key]
@@ -423,6 +456,88 @@ class GeminiAnalyzer(BaseAnalyzer):
         # 분석 시작
         start_time = time.time()
 
+        # ========== 크로스 체크 모드 ==========
+        if self.enable_cross_check and self.model_2_0 and self.model_2_5:
+            logger.info(f"🔀 크로스체크 분석 시작: {stock_code}")
+            print(f"   🔀 AI 크로스체크 분석 (2.0 vs 2.5)")
+
+            # 프롬프트 준비
+            if score_info:
+                score = score_info.get('score', 0)
+                percentage = score_info.get('percentage', 0)
+                breakdown = score_info.get('breakdown', {})
+                score_breakdown_detailed = "\n".join([
+                    f"  {k}: {v:.1f}점" for k, v in breakdown.items() if v >= 0
+                ])
+            else:
+                score = 0
+                percentage = 0
+                score_breakdown_detailed = "  점수 정보 없음"
+
+            portfolio_text = portfolio_info or "보유 종목 없음"
+            institutional_net_buy = stock_data.get('institutional_net_buy', 0)
+            foreign_net_buy = stock_data.get('foreign_net_buy', 0)
+            bid_ask_ratio = stock_data.get('bid_ask_ratio', 1.0)
+
+            prompt = self.STOCK_ANALYSIS_PROMPT_TEMPLATE_SIMPLE.format(
+                stock_name=stock_data.get('stock_name', ''),
+                stock_code=stock_data.get('stock_code', ''),
+                current_price=stock_data.get('current_price', 0),
+                change_rate=stock_data.get('change_rate', 0.0),
+                volume=stock_data.get('volume', 0),
+                score=score,
+                percentage=percentage,
+                score_breakdown_detailed=score_breakdown_detailed,
+                institutional_net_buy=institutional_net_buy,
+                foreign_net_buy=foreign_net_buy,
+                bid_ask_ratio=bid_ask_ratio,
+                portfolio_info=portfolio_text
+            )
+
+            # 두 모델 동시 분석
+            result_2_0 = self._analyze_with_single_model(
+                self.model_2_0,
+                'gemini-2.0-flash-exp',
+                prompt,
+                stock_data
+            )
+
+            result_2_5 = self._analyze_with_single_model(
+                self.model_2_5,
+                'gemini-2.5-flash',
+                prompt,
+                stock_data
+            )
+
+            # 결과 크로스 체크
+            result = self._cross_check_results(result_2_0, result_2_5)
+
+            # 캐시 저장
+            self._analysis_cache[cache_key] = {
+                'timestamp': time.time(),
+                'result': result
+            }
+
+            # 통계 업데이트
+            elapsed_time = time.time() - start_time
+            self.update_statistics(True, elapsed_time)
+
+            # 크로스 체크 정보 출력
+            if 'cross_check' in result:
+                cc = result['cross_check']
+                if cc.get('agreement'):
+                    print(f"   ✅ 크로스체크 일치: {result['signal']} (신뢰도: {result['confidence']})")
+                else:
+                    print(f"   ⚠️ 크로스체크 불일치 → 보수적 선택: {result['signal']}")
+
+            logger.info(
+                f"크로스체크 분석 완료: {stock_code} "
+                f"(신호: {result['signal']}, 신뢰도: {result['confidence']})"
+            )
+
+            return result
+
+        # ========== 일반 분석 모드 (단일 모델) ==========
         # 재시도 로직 (최대 3회)
         max_retries = 3
         retry_delay = 2  # 초
@@ -915,6 +1030,192 @@ class GeminiAnalyzer(BaseAnalyzer):
             'reasons': [error_msg],
             'risks': [],
         }
+
+    # ==================== 크로스 체크 ====================
+
+    def _analyze_with_single_model(
+        self,
+        model,
+        model_name: str,
+        prompt: str,
+        stock_data: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
+        """
+        단일 모델로 분석 수행
+
+        Args:
+            model: Gemini 모델 인스턴스
+            model_name: 모델 이름 (로깅용)
+            prompt: 분석 프롬프트
+            stock_data: 종목 데이터
+
+        Returns:
+            분석 결과 또는 None (실패시)
+        """
+        try:
+            logger.info(f"[{model_name}] 분석 시작")
+
+            # API 호출
+            response = model.generate_content(
+                prompt,
+                request_options={'timeout': 30}
+            )
+
+            # 응답 검증
+            if not response.candidates:
+                logger.warning(f"[{model_name}] No candidates")
+                return None
+
+            candidate = response.candidates[0]
+            finish_reason = candidate.finish_reason
+
+            if finish_reason != 1:  # 1 = STOP (정상)
+                reason_map = {2: "SAFETY", 3: "MAX_TOKENS", 4: "RECITATION", 5: "OTHER"}
+                reason_name = reason_map.get(finish_reason, f"UNKNOWN({finish_reason})")
+                logger.warning(f"[{model_name}] Blocked: {reason_name}")
+                return None
+
+            # 응답 텍스트 검증
+            if not hasattr(response, 'text'):
+                logger.warning(f"[{model_name}] No text attribute")
+                return None
+
+            response_text = response.text
+            if not response_text or len(response_text.strip()) == 0:
+                logger.warning(f"[{model_name}] Empty response")
+                return None
+
+            # 응답 파싱
+            result = self._parse_stock_analysis_response(response_text, stock_data)
+            result['model_name'] = model_name
+            logger.info(f"[{model_name}] 분석 완료: {result['signal']}")
+
+            return result
+
+        except Exception as e:
+            logger.error(f"[{model_name}] 분석 실패: {e}")
+            return None
+
+    def _cross_check_results(
+        self,
+        result_2_0: Optional[Dict[str, Any]],
+        result_2_5: Optional[Dict[str, Any]]
+    ) -> Dict[str, Any]:
+        """
+        두 모델의 결과를 크로스 체크하여 최종 결과 생성
+
+        Args:
+            result_2_0: 2.0 모델 결과
+            result_2_5: 2.5 모델 결과
+
+        Returns:
+            통합 분석 결과
+        """
+        # 둘 다 실패
+        if not result_2_0 and not result_2_5:
+            logger.error("크로스체크: 모든 모델 실패")
+            return self._get_error_result("모든 모델 분석 실패")
+
+        # 하나만 성공
+        if not result_2_0:
+            logger.warning("크로스체크: 2.0 실패, 2.5만 사용")
+            result_2_5['cross_check'] = {
+                'enabled': True,
+                'model_2_0_failed': True,
+                'model_2_5_signal': result_2_5['signal'],
+                'agreement': 'N/A'
+            }
+            return result_2_5
+
+        if not result_2_5:
+            logger.warning("크로스체크: 2.5 실패, 2.0만 사용")
+            result_2_0['cross_check'] = {
+                'enabled': True,
+                'model_2_0_signal': result_2_0['signal'],
+                'model_2_5_failed': True,
+                'agreement': 'N/A'
+            }
+            return result_2_0
+
+        # 둘 다 성공 - 비교
+        signal_2_0 = result_2_0['signal']
+        signal_2_5 = result_2_5['signal']
+
+        logger.info(f"크로스체크: 2.0={signal_2_0}, 2.5={signal_2_5}")
+
+        # 신호 일치 여부
+        signals_match = (signal_2_0 == signal_2_5)
+
+        if signals_match:
+            # 신호 일치 - 신뢰도 높임
+            logger.info(f"✅ 크로스체크 일치: {signal_2_0}")
+            final_result = result_2_5.copy()  # 2.5를 기본으로 사용
+
+            # 신뢰도 상향 (Medium → High, High → Very High)
+            confidence_map = {
+                'Low': 'Medium',
+                'Medium': 'High',
+                'High': 'Very High',
+                'Very High': 'Very High'
+            }
+            original_confidence = final_result.get('confidence', 'Medium')
+            final_result['confidence'] = confidence_map.get(original_confidence, 'High')
+
+            final_result['cross_check'] = {
+                'enabled': True,
+                'model_2_0_signal': signal_2_0,
+                'model_2_5_signal': signal_2_5,
+                'agreement': True,
+                'original_confidence': original_confidence,
+                'boosted_confidence': final_result['confidence']
+            }
+
+        else:
+            # 신호 불일치 - 보수적 선택
+            logger.warning(f"⚠️ 크로스체크 불일치: 2.0={signal_2_0}, 2.5={signal_2_5}")
+
+            # 보수적 신호 선택 로직
+            signal_priority = {'sell': 0, 'hold': 1, 'buy': 2}
+            priority_2_0 = signal_priority.get(signal_2_0, 1)
+            priority_2_5 = signal_priority.get(signal_2_5, 1)
+
+            # 더 보수적인 신호 선택 (hold 우선)
+            if 'hold' in [signal_2_0, signal_2_5]:
+                final_signal = 'hold'
+                chosen_model = '보수적 선택'
+            elif priority_2_0 < priority_2_5:
+                final_signal = signal_2_0
+                chosen_model = '2.0'
+            else:
+                final_signal = signal_2_5
+                chosen_model = '2.5'
+
+            logger.info(f"최종 신호: {final_signal} (선택: {chosen_model})")
+
+            # 결과 병합
+            final_result = result_2_5.copy()  # 기본 구조는 2.5 사용
+            final_result['signal'] = final_signal
+            final_result['recommendation'] = final_signal
+            final_result['confidence'] = 'Medium'  # 불일치시 신뢰도 낮춤
+
+            # 이유 병합
+            reasons_combined = []
+            if result_2_0.get('reasons'):
+                reasons_combined.append(f"[2.0] " + "; ".join(result_2_0['reasons'][:2]))
+            if result_2_5.get('reasons'):
+                reasons_combined.append(f"[2.5] " + "; ".join(result_2_5['reasons'][:2]))
+            final_result['reasons'] = reasons_combined
+
+            final_result['cross_check'] = {
+                'enabled': True,
+                'model_2_0_signal': signal_2_0,
+                'model_2_5_signal': signal_2_5,
+                'agreement': False,
+                'final_signal': final_signal,
+                'reason': f'불일치로 보수적 선택 ({chosen_model})'
+            }
+
+        return final_result
 
 
 __all__ = ['GeminiAnalyzer']

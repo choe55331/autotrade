@@ -25,6 +25,7 @@ from .credentials import (
     KIWOOM_WEBSOCKET_URL,
     GEMINI_API_KEY,
     GEMINI_MODEL_NAME,
+    GEMINI_ENABLE_CROSS_CHECK,
 )
 from .trading_params import (
     TRADING_PARAMS,
@@ -168,6 +169,7 @@ __all__ = [
     'KIWOOM_WEBSOCKET_URL',
     'GEMINI_API_KEY',
     'GEMINI_MODEL_NAME',
+    'GEMINI_ENABLE_CROSS_CHECK',
 
     # Trading Params
     'TRADING_PARAMS',
