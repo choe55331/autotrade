@@ -1,10 +1,8 @@
-"""
 Advanced Trading Systems
 Multi-Agent, Risk Management, Market Regime Detection, and more
 
 Author: AutoTrade Pro
 Version: 4.2
-"""
 
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional, Tuple, Callable
@@ -16,15 +14,12 @@ import multiprocessing as mp
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
 
-# ============================================================================
-# 1. Multi-Agent System
-# ============================================================================
 
 @dataclass
 class AgentDecision:
     """Agent trading decision"""
     agent_id: str
-    action: str  # 'buy', 'sell', 'hold'
+    action: str
     confidence: float
     reasoning: str
     timestamp: str
@@ -34,7 +29,7 @@ class AgentDecision:
 class ConsensusDecision:
     """Consensus from multiple agents"""
     final_action: str
-    consensus_level: float  # 0-1
+    consensus_level: float
     agent_votes: Dict[str, str]
     weighted_confidence: float
     dissenting_agents: List[str]
@@ -51,7 +46,6 @@ class TradingAgent:
 
     def make_decision(self, market_data: Dict[str, Any]) -> AgentDecision:
         """Make trading decision"""
-        # Each agent has different strategy
         if self.strategy == 'momentum':
             action, confidence = self._momentum_strategy(market_data)
         elif self.strategy == 'mean_reversion':
@@ -113,7 +107,6 @@ class MultiAgentSystem:
         self.agent_weights: Dict[str, float] = {}
         self.consensus_history = []
 
-        # Create diverse agent pool
         self._initialize_agents()
 
     def _initialize_agents(self):
@@ -140,13 +133,11 @@ class MultiAgentSystem:
         Returns:
             Consensus decision
         """
-        # Collect decisions from all agents
         decisions = []
         for agent in self.agents:
             decision = agent.make_decision(market_data)
             decisions.append(decision)
 
-        # Weighted voting
         action_scores = {'buy': 0.0, 'sell': 0.0, 'hold': 0.0}
         agent_votes = {}
 
@@ -155,15 +146,12 @@ class MultiAgentSystem:
             action_scores[decision.action] += decision.confidence * weight
             agent_votes[decision.agent_id] = decision.action
 
-        # Determine final action
         final_action = max(action_scores.items(), key=lambda x: x[1])[0]
         final_score = action_scores[final_action]
         total_score = sum(action_scores.values())
 
-        # Calculate consensus level
         consensus_level = final_score / total_score if total_score > 0 else 0
 
-        # Find dissenting agents
         dissenting = [d.agent_id for d in decisions if d.action != final_action]
 
         consensus = ConsensusDecision(
@@ -192,34 +180,29 @@ class MultiAgentSystem:
         for agent in self.agents:
             agent_vote = last_consensus.agent_votes.get(agent.agent_id)
 
-            # Reward correct predictions
             if (actual_outcome == 'profit' and agent_vote == 'buy') or \
                (actual_outcome == 'loss' and agent_vote == 'sell'):
                 self.agent_weights[agent.agent_id] *= 1.1
             else:
                 self.agent_weights[agent.agent_id] *= 0.9
 
-        # Normalize weights
         total_weight = sum(self.agent_weights.values())
         for agent_id in self.agent_weights:
             self.agent_weights[agent_id] /= total_weight
 
 
-# ============================================================================
-# 2. Advanced Risk Management
-# ============================================================================
 
 @dataclass
 class RiskMetrics:
     """Risk assessment metrics"""
-    var_95: float  # Value at Risk
-    cvar_95: float  # Conditional VaR
+    var_95: float
+    cvar_95: float
     max_drawdown: float
     sharpe_ratio: float
     sortino_ratio: float
     beta: float
     volatility: float
-    risk_score: float  # 0-100
+    risk_score: float
 
 
 class AdvancedRiskManager:
@@ -235,9 +218,9 @@ class AdvancedRiskManager:
 
     def __init__(self, initial_capital: float = 10000000):
         self.initial_capital = initial_capital
-        self.max_position_size = 0.2  # 20% max per position
-        self.max_portfolio_risk = 0.15  # 15% max portfolio risk
-        self.max_correlation = 0.7  # Maximum correlation between positions
+        self.max_position_size = 0.2
+        self.max_portfolio_risk = 0.15
+        self.max_correlation = 0.7
 
     def calculate_var(
         self,
@@ -245,7 +228,6 @@ class AdvancedRiskManager:
         confidence: float = 0.95,
         method: str = 'historical'
     ) -> float:
-        """
         Calculate Value at Risk
 
         Args:
@@ -255,7 +237,6 @@ class AdvancedRiskManager:
 
         Returns:
             VaR value
-        """
         if method == 'historical':
             return float(np.percentile(returns, (1 - confidence) * 100))
         elif method == 'parametric':
@@ -270,7 +251,6 @@ class AdvancedRiskManager:
         returns: np.ndarray,
         confidence: float = 0.95
     ) -> float:
-        """
         Calculate Conditional Value at Risk (Expected Shortfall)
 
         Args:
@@ -279,9 +259,7 @@ class AdvancedRiskManager:
 
         Returns:
             CVaR value
-        """
         var = self.calculate_var(returns, confidence)
-        # Average of all returns below VaR
         tail_losses = returns[returns <= var]
         return float(np.mean(tail_losses)) if len(tail_losses) > 0 else var
 
@@ -291,7 +269,6 @@ class AdvancedRiskManager:
         returns: np.ndarray,
         scenarios: List[Dict[str, float]]
     ) -> Dict[str, Any]:
-        """
         Stress test portfolio under various scenarios
 
         Args:
@@ -301,14 +278,12 @@ class AdvancedRiskManager:
 
         Returns:
             Stress test results
-        """
         results = {}
 
         for i, scenario in enumerate(scenarios):
             scenario_name = scenario.get('name', f'Scenario_{i}')
-            shock = scenario.get('shock', -0.2)  # -20% default
+            shock = scenario.get('shock', -0.2)
 
-            # Apply shock to returns
             shocked_returns = returns * (1 + shock)
             portfolio_return = np.dot(shocked_returns, portfolio_weights)
 
@@ -328,7 +303,6 @@ class AdvancedRiskManager:
         correlation: float,
         current_capital: float
     ) -> float:
-        """
         Calculate optimal position size using Kelly Criterion variant
 
         Args:
@@ -339,14 +313,10 @@ class AdvancedRiskManager:
 
         Returns:
             Optimal position size in currency
-        """
-        # Risk-adjusted position sizing
         max_position = current_capital * self.max_position_size
 
-        # Adjust for volatility
         vol_adjustment = max(0.5, 1.0 - stock_volatility / 0.3)
 
-        # Adjust for correlation (reduce if highly correlated)
         corr_adjustment = max(0.5, 1.0 - abs(correlation) / self.max_correlation)
 
         optimal_size = max_position * vol_adjustment * corr_adjustment
@@ -358,7 +328,6 @@ class AdvancedRiskManager:
         positions: Dict[str, Dict[str, float]],
         returns_matrix: np.ndarray
     ) -> RiskMetrics:
-        """
         Comprehensive portfolio risk assessment
 
         Args:
@@ -367,34 +336,27 @@ class AdvancedRiskManager:
 
         Returns:
             Complete risk metrics
-        """
-        # Calculate portfolio returns
         weights = np.array([pos['weight'] for pos in positions.values()])
         portfolio_returns = np.dot(returns_matrix, weights)
 
-        # Calculate metrics
         var_95 = self.calculate_var(portfolio_returns, 0.95)
         cvar_95 = self.calculate_cvar(portfolio_returns, 0.95)
 
         mean_return = np.mean(portfolio_returns)
         volatility = np.std(portfolio_returns) * np.sqrt(252)
 
-        # Sharpe ratio
         risk_free = 0.02
         sharpe = (mean_return * 252 - risk_free) / volatility if volatility > 0 else 0
 
-        # Sortino ratio (downside deviation)
         downside_returns = portfolio_returns[portfolio_returns < 0]
         downside_std = np.std(downside_returns) * np.sqrt(252) if len(downside_returns) > 0 else volatility
         sortino = (mean_return * 252 - risk_free) / downside_std if downside_std > 0 else 0
 
-        # Max drawdown
         cumulative = np.cumprod(1 + portfolio_returns)
         running_max = np.maximum.accumulate(cumulative)
         drawdown = (cumulative - running_max) / running_max
         max_drawdown = float(np.min(drawdown))
 
-        # Risk score (0-100, lower is better)
         risk_score = min(100, abs(var_95) * 100 + abs(cvar_95) * 50 + abs(max_drawdown) * 100)
 
         return RiskMetrics(
@@ -403,22 +365,19 @@ class AdvancedRiskManager:
             max_drawdown=float(max_drawdown),
             sharpe_ratio=float(sharpe),
             sortino_ratio=float(sortino),
-            beta=0.95,  # Would calculate vs benchmark
+            beta=0.95,
             volatility=float(volatility),
             risk_score=float(risk_score)
         )
 
 
-# ============================================================================
-# 3. Market Regime Detection
-# ============================================================================
 
 @dataclass
 class MarketRegime:
     """Market regime classification"""
-    regime_type: str  # 'bull', 'bear', 'sideways', 'volatile'
+    regime_type: str
     confidence: float
-    volatility_level: str  # 'low', 'medium', 'high'
+    volatility_level: str
     trend_strength: float
     detected_at: str
     indicators: Dict[str, float]
@@ -438,9 +397,9 @@ class MarketRegimeDetector:
     def __init__(self):
         self.regime_history = []
         self.transition_matrix = np.array([
-            [0.7, 0.2, 0.1],  # Bull -> Bull, Bear, Sideways
-            [0.3, 0.6, 0.1],  # Bear -> Bull, Bear, Sideways
-            [0.3, 0.3, 0.4],  # Sideways -> Bull, Bear, Sideways
+            [0.7, 0.2, 0.1],
+            [0.3, 0.6, 0.1],
+            [0.3, 0.3, 0.4],
         ])
 
     def detect_regime(self, price_data: np.ndarray) -> MarketRegime:
@@ -463,23 +422,18 @@ class MarketRegimeDetector:
                 indicators={}
             )
 
-        # Calculate indicators
         returns = np.diff(price_data) / price_data[:-1]
 
-        # Trend strength (using linear regression)
         x = np.arange(len(price_data))
         coeffs = np.polyfit(x, price_data, 1)
-        trend_strength = coeffs[0] / np.mean(price_data) * 100  # % per day
+        trend_strength = coeffs[0] / np.mean(price_data) * 100
 
-        # Volatility
-        volatility = np.std(returns) * np.sqrt(252) * 100  # Annualized %
+        volatility = np.std(returns) * np.sqrt(252) * 100
 
-        # Moving averages
         ma_short = np.mean(price_data[-20:])
         ma_long = np.mean(price_data[-50:])
         ma_ratio = ma_short / ma_long
 
-        # Determine regime
         if trend_strength > 0.1 and ma_ratio > 1.02:
             regime_type = 'bull'
             confidence = min(0.9, trend_strength * 5)
@@ -493,7 +447,6 @@ class MarketRegimeDetector:
             regime_type = 'sideways'
             confidence = 0.6
 
-        # Volatility level
         if volatility < 15:
             vol_level = 'low'
         elif volatility < 25:
@@ -539,9 +492,6 @@ class MarketRegimeDetector:
         }
 
 
-# ============================================================================
-# 4. Performance Optimization System
-# ============================================================================
 
 class PerformanceOptimizer:
     """
@@ -565,7 +515,6 @@ class PerformanceOptimizer:
         data: Any,
         n_jobs: int = -1
     ) -> List[Any]:
-        """
         Run multiple backtests in parallel
 
         Args:
@@ -575,7 +524,6 @@ class PerformanceOptimizer:
 
         Returns:
             List of backtest results
-        """
         if n_jobs == -1:
             n_jobs = mp.cpu_count()
 
@@ -612,7 +560,6 @@ class PerformanceOptimizer:
         process_func: Callable,
         batch_size: int = 100
     ) -> List[Any]:
-        """
         Process items in batches for memory efficiency
 
         Args:
@@ -622,7 +569,6 @@ class PerformanceOptimizer:
 
         Returns:
             Processed results
-        """
         results = []
         for i in range(0, len(items), batch_size):
             batch = items[i:i + batch_size]
@@ -632,7 +578,6 @@ class PerformanceOptimizer:
         return results
 
 
-# Singleton instances
 _multi_agent_system = None
 _risk_manager = None
 _regime_detector = None
@@ -670,20 +615,17 @@ def get_performance_optimizer() -> PerformanceOptimizer:
 if __name__ == '__main__':
     print("🚀 Advanced Systems Test")
 
-    # Test multi-agent
     mas = get_multi_agent_system()
     market_data = {'price_change_pct': 2.5, 'z_score': -1.5, 'pe_ratio': 12}
     consensus = mas.get_consensus(market_data)
     print(f"\nMulti-Agent Consensus: {consensus.final_action}")
     print(f"Consensus Level: {consensus.consensus_level:.1%}")
 
-    # Test risk management
     rm = get_risk_manager()
     returns = np.random.randn(252) * 0.01
     var = rm.calculate_var(returns)
     print(f"\nVaR (95%): {var:.2%}")
 
-    # Test regime detection
     rd = get_regime_detector()
     prices = np.cumsum(np.random.randn(100)) + 100
     regime = rd.detect_regime(prices)

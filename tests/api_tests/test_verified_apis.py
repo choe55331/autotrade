@@ -1,8 +1,5 @@
-#!/usr/bin/env python3
-"""
 test_verified_apis.py
 검증된 347개 API 호출을 실제로 재테스트
-"""
 import os
 import sys
 import requests
@@ -10,15 +7,12 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-# 프로젝트 루트 경로 추가
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-# credentials.py에서 API 키 로드
 from config import get_credentials
 
 class VerifiedAPITester:
     def __init__(self):
-        # secrets.json에서 설정 로드
         credentials = get_credentials()
         kiwoom_config = credentials.get_kiwoom_config()
 
@@ -79,7 +73,6 @@ class VerifiedAPITester:
         }
 
         if response.get('return_code') == 0:
-            # 데이터 확인
             keys = [k for k in response.keys() if k not in ['return_code', 'return_msg', 'api-id', 'cont-yn', 'next-key']]
             data_count = 0
             data_key = None
@@ -107,7 +100,6 @@ class VerifiedAPITester:
 
     def run_all_verified_tests(self):
         """모든 검증된 API 호출 테스트"""
-        # verified_api_calls.json 로드
         verified_file = Path("verified_api_calls.json")
         if not verified_file.exists():
             print(f"❌ {verified_file} 파일이 없습니다.")
@@ -157,7 +149,6 @@ class VerifiedAPITester:
 
                 print(f"  {status_symbol} Var {variant_idx}: {result['status']}{data_info}")
 
-        # 결과 저장
         output_file = f"verified_api_test_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
         with open(output_file, 'w', encoding='utf-8') as f:
             json.dump(self.results, f, indent=2, ensure_ascii=False)

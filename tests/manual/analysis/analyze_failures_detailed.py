@@ -1,8 +1,5 @@
-#!/usr/bin/env python3
-"""
 analyze_failures_detailed.py
 실패 API 집중 분석 - 로그 데이터와 문서 기반 원인 파악
-"""
 import json
 from pathlib import Path
 from collections import defaultdict
@@ -27,33 +24,27 @@ def analyze_failure_apis():
 
     all_apis, optimized = load_all_data()
 
-    # 성공한 API ID
     success_api_ids = set(optimized['optimized_apis'].keys())
 
-    # API별 실패 분류
     failure_analysis = {
-        'total_fail': {},      # 모든 variant 실패
-        'partial_fail': {},    # 일부 variant 실패
+        'total_fail': {},
+        'partial_fail': {},
         'by_path': defaultdict(list),
         'by_pattern': defaultdict(list)
     }
 
-    # 모든 API 분석
     for api_id, info in all_apis.items():
         api_name = info['api_name']
         all_calls = info['all_calls']
 
-        # variant 상태 분석
         success_count = sum(1 for c in all_calls if c['status'] == 'success')
         no_data_count = sum(1 for c in all_calls if c['status'] == 'no_data')
         error_count = sum(1 for c in all_calls if c['status'] == 'api_error')
         total_count = len(all_calls)
 
-        # Path 수집
         paths = list(set(c['path'] for c in all_calls))
 
         if success_count == 0:
-            # 전체 실패
             failure_analysis['total_fail'][api_id] = {
                 'name': api_name,
                 'paths': paths,
@@ -63,12 +54,10 @@ def analyze_failure_apis():
                 'variants': all_calls
             }
 
-            # Path별 분류
             for path in paths:
                 failure_analysis['by_path'][path].append(api_id)
 
         elif success_count < total_count:
-            # 부분 실패
             failed_variants = [c for c in all_calls if c['status'] != 'success']
 
             failure_analysis['partial_fail'][api_id] = {
@@ -94,18 +83,15 @@ def deep_analyze_total_failures(total_fail):
         api_error = info['api_error']
         variants = info['variants']
 
-        # 원인 추정
         suspected_causes = []
         recommendations = []
         priority = "중"
 
-        # Path 기반 분석
         if 'gold' in paths or api_id.startswith('kt50'):
             suspected_causes.append("🏅 금현물 계좌 미보유")
             recommendations.append("금현물 거래 계좌 개설 필요")
             priority = "낮음"
 
-        # API 이름 기반 분석
         if '미체결' in api_name or '체결요청' in api_name:
             suspected_causes.append("📋 미체결/체결 주문 내역 없음")
             recommendations.append("실제 주문을 생성한 후 재테스트")
@@ -126,7 +112,6 @@ def deep_analyze_total_failures(total_fail):
             recommendations.append("업종코드 확인 및 문서 재검토")
             priority = "높음"
 
-        # no_data vs api_error 비율 분석
         if no_data == info['total_variants']:
             suspected_causes.append("📭 조회 조건에 맞는 데이터 없음 (return_code=0)")
             recommendations.append("다른 조건으로 재시도 또는 실제 데이터 생성 후 테스트")
@@ -136,7 +121,6 @@ def deep_analyze_total_failures(total_fail):
             recommendations.append("파라미터 검증, 문서 재확인, 또는 API 권한 확인")
             priority = "높음"
 
-        # 기본 원인이 없으면
         if not suspected_causes:
             suspected_causes.append("❓ 원인 불명 - 추가 조사 필요")
             recommendations.append("키움 고객센터 문의 또는 상세 로그 확인")
@@ -151,7 +135,7 @@ def deep_analyze_total_failures(total_fail):
             'suspected_causes': suspected_causes,
             'recommendations': recommendations,
             'priority': priority,
-            'variants_sample': variants[:2]  # 처음 2개만 샘플
+            'variants_sample': variants[:2]
         }
 
     return analyses
@@ -167,13 +151,10 @@ def deep_analyze_partial_failures(partial_fail):
         failed = info['failed']
         failed_variants = info['failed_variants']
 
-        # 성공/실패 패턴 분석
         insights = []
 
-        # 실패한 variant들의 공통점 찾기
         failed_params = [v['body'] for v in failed_variants]
 
-        # 날짜 파라미터 분석
         date_params = ['strt_dt', 'end_dt', 'ord_dt', 'base_dt']
         has_date_params = any(
             any(param in params for param in date_params)
@@ -184,14 +165,12 @@ def deep_analyze_partial_failures(partial_fail):
             insights.append("📅 실패한 variant들이 날짜 파라미터 포함")
             insights.append("   → 조회 기간에 데이터가 없거나 과거 날짜 조회 제한 가능성")
 
-        # 종목코드 분석
         if any('stk_cd' in params for params in failed_params):
             stock_codes = [params.get('stk_cd') for params in failed_params if 'stk_cd' in params]
             if stock_codes:
                 insights.append(f"🏢 실패한 종목코드: {', '.join(set(stock_codes))}")
                 insights.append("   → 해당 종목에 데이터가 없거나 종목코드 오류 가능성")
 
-        # 파라미터 개수 분석
         success_variant_count = success
         if failed > success_variant_count:
             insights.append(f"⚖️  성공({success}) < 실패({failed}) - 대부분 variant 실패")
@@ -220,7 +199,6 @@ def generate_detailed_report():
     total_analyses = deep_analyze_total_failures(total_fail)
     partial_analyses = deep_analyze_partial_failures(partial_fail)
 
-    # 보고서 생성
     report = []
     report.append("="*80)
     report.append("실패 API 집중 분석 보고서")
@@ -230,14 +208,10 @@ def generate_detailed_report():
     report.append(f"전체 실패 API: {len(total_fail)}개 (모든 variant 실패)")
     report.append(f"부분 실패 API: {len(partial_fail)}개 (일부 variant 실패)")
 
-    # ========================================================================
-    # 1. 전체 실패 API 상세 분석
-    # ========================================================================
     report.append("\n" + "="*80)
     report.append("1️⃣ 전체 실패 API 상세 분석 (12개)")
     report.append("="*80)
 
-    # 우선순위별 정렬
     priority_order = {"높음": 1, "중": 2, "낮음": 3}
     sorted_analyses = sorted(
         total_analyses.items(),
@@ -261,16 +235,12 @@ def generate_detailed_report():
         for rec in analysis['recommendations']:
             report.append(f"     {rec}")
 
-        # 샘플 variant
         if analysis['variants_sample']:
             report.append(f"\n  📋 샘플 Variant (1개):")
             sample = analysis['variants_sample'][0]
             report.append(f"     Variant {sample['variant_idx']}: status={sample['status']}")
             report.append(f"     Parameters: {json.dumps(sample['body'], ensure_ascii=False)}")
 
-    # ========================================================================
-    # 2. 부분 실패 API 상세 분석
-    # ========================================================================
     report.append("\n" + "="*80)
     report.append("2️⃣ 부분 실패 API 상세 분석 (11개)")
     report.append("="*80)
@@ -287,16 +257,12 @@ def generate_detailed_report():
         for insight in analysis['insights']:
             report.append(f"     {insight}")
 
-        # 실패한 variant 샘플
         if analysis['failed_variants_sample']:
             report.append(f"\n  📋 실패한 Variant 샘플:")
             for variant in analysis['failed_variants_sample']:
                 report.append(f"     Variant {variant['variant_idx']}: status={variant['status']}")
                 report.append(f"     Parameters: {json.dumps(variant['body'], ensure_ascii=False)}")
 
-    # ========================================================================
-    # 3. Path별 실패 분포
-    # ========================================================================
     report.append("\n" + "="*80)
     report.append("3️⃣ Path별 실패 분포")
     report.append("="*80)
@@ -308,9 +274,6 @@ def generate_detailed_report():
             api_name = total_fail[api_id]['name']
             report.append(f"     - [{api_id}] {api_name}")
 
-    # ========================================================================
-    # 4. 우선순위별 처리 가이드
-    # ========================================================================
     report.append("\n" + "="*80)
     report.append("4️⃣ 우선순위별 처리 가이드")
     report.append("="*80)
@@ -332,9 +295,6 @@ def generate_detailed_report():
     for api_id in low_priority:
         report.append(f"     [{api_id}] {total_analyses[api_id]['name']}")
 
-    # ========================================================================
-    # 5. 종합 권장 사항
-    # ========================================================================
     report.append("\n" + "="*80)
     report.append("5️⃣ 종합 권장 사항")
     report.append("="*80)
@@ -374,19 +334,15 @@ def main():
 
     report_text, analysis_data = generate_detailed_report()
 
-    # 화면 출력
     print(report_text)
 
-    # 파일 저장
     from datetime import datetime
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
 
-    # 텍스트 보고서
     report_file = f'failure_detailed_analysis_{timestamp}.txt'
     with open(report_file, 'w', encoding='utf-8') as f:
         f.write(report_text)
 
-    # JSON 데이터
     json_file = f'failure_detailed_analysis_{timestamp}.json'
     with open(json_file, 'w', encoding='utf-8') as f:
         json.dump(analysis_data, f, ensure_ascii=False, indent=2)

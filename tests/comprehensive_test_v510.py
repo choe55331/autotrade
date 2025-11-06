@@ -1,4 +1,3 @@
-"""
 종합 테스트 스위트 (v5.10)
 
 모든 신규 기능 검증:
@@ -6,11 +5,9 @@
 - 고급 차트 패턴 분석
 - 실시간 알림 시스템
 - 포트폴리오 자동 리밸런싱
-"""
 import sys
 import os
 
-# Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
@@ -25,35 +22,30 @@ def test_chart_pattern_analyzer():
 
         analyzer = ChartPatternAnalyzer()
 
-        # 테스트 데이터 생성
         test_ohlc = [
             {'open': 100, 'high': 105, 'low': 98, 'close': 103},
             {'open': 103, 'high': 108, 'low': 102, 'close': 107},
-            {'open': 107, 'high': 109, 'low': 104, 'close': 105},  # Doji-like
+            {'open': 107, 'high': 109, 'low': 104, 'close': 105},
             {'open': 105, 'high': 110, 'low': 103, 'close': 109},
             {'open': 109, 'high': 112, 'low': 108, 'close': 111},
         ]
 
-        # 캔들 패턴 분석
         patterns = analyzer.analyze_candles(test_ohlc, lookback=5)
         print(f"✓ Detected {len(patterns)} patterns")
         for pattern in patterns:
             print(f"  - {pattern.name} ({pattern.type}): {pattern.description}")
 
-        # 지지/저항 레벨
         test_prices = [100, 105, 103, 108, 107, 110, 108, 111, 109, 115, 112, 118, 115, 120]
         levels = analyzer.find_support_resistance(test_prices, num_levels=3)
         print(f"✓ Found {len(levels)} support/resistance levels")
         for level in levels:
             print(f"  - {level.type.upper()}: {level.level:.2f} (strength: {level.strength}/10, touches: {level.touches})")
 
-        # 피보나치 레벨
         fib_levels = analyzer.calculate_fibonacci_levels(high=120, low=100)
         print("✓ Fibonacci levels calculated:")
         for level_name, price in list(fib_levels.items())[:5]:
             print(f"  - {level_name}: {price:.2f}")
 
-        # 볼린저 밴드
         bb_analysis = analyzer.analyze_bollinger_bands(test_prices, period=10)
         if bb_analysis:
             print("✓ Bollinger Bands analysis:")
@@ -86,7 +78,6 @@ def test_realtime_alert_system():
 
         alert_system = get_alert_system()
 
-        # 1. 목표가 알림
         alert1 = alert_system.price_target_alert(
             stock_code="005930",
             stock_name="삼성전자",
@@ -96,7 +87,6 @@ def test_realtime_alert_system():
         )
         print(f"✓ Price target alert created: {alert1.title if alert1 else 'Duplicate skipped'}")
 
-        # 2. 손절가 알림
         alert2 = alert_system.stop_loss_alert(
             stock_code="000660",
             stock_name="SK하이닉스",
@@ -106,7 +96,6 @@ def test_realtime_alert_system():
         )
         print(f"✓ Stop loss alert created: {alert2.title if alert2 else 'Duplicate skipped'}")
 
-        # 3. 거래량 급증 알림
         alert3 = alert_system.volume_surge_alert(
             stock_code="035720",
             stock_name="카카오",
@@ -116,7 +105,6 @@ def test_realtime_alert_system():
         )
         print(f"✓ Volume surge alert created: {alert3.title if alert3 else 'Duplicate skipped'}")
 
-        # 4. 패턴 감지 알림
         alert4 = alert_system.pattern_detected_alert(
             stock_code="035420",
             stock_name="NAVER",
@@ -127,7 +115,6 @@ def test_realtime_alert_system():
         )
         print(f"✓ Pattern detected alert created: {alert4.title if alert4 else 'Duplicate skipped'}")
 
-        # 5. AI 신호 알림
         alert5 = alert_system.ai_signal_alert(
             stock_code="005930",
             stock_name="삼성전자",
@@ -138,11 +125,9 @@ def test_realtime_alert_system():
         )
         print(f"✓ AI signal alert created: {alert5.title if alert5 else 'Duplicate skipped'}")
 
-        # 활성 알림 조회
         active_alerts = alert_system.get_active_alerts()
         print(f"✓ Active alerts: {len(active_alerts)}")
 
-        # 우선순위별 조회
         critical_alerts = alert_system.get_active_alerts(priority_filter=AlertPriority.CRITICAL)
         print(f"✓ Critical alerts: {len(critical_alerts)}")
 
@@ -168,13 +153,11 @@ def test_auto_rebalancer():
             RebalanceStrategy
         )
 
-        # Equal Weight 전략
         rebalancer = AutoRebalancer(
             strategy=RebalanceStrategy.EQUAL_WEIGHT,
             rebalance_threshold=5.0
         )
 
-        # 테스트 포트폴리오
         test_holdings = [
             {
                 'stock_code': '005930',
@@ -201,7 +184,6 @@ def test_auto_rebalancer():
 
         total_value = 10000000
 
-        # 포트폴리오 분석
         needs_rebalance, actions = rebalancer.analyze_portfolio(
             holdings=test_holdings,
             total_portfolio_value=total_value
@@ -215,7 +197,6 @@ def test_auto_rebalancer():
                 print(f"  - {action.action.upper()} {action.stock_name}: "
                       f"{action.current_weight:.1f}% → {action.target_weight:.1f}%")
 
-        # 요약 정보
         summary = rebalancer.get_rebalance_summary(actions)
         print(f"✓ Summary:")
         print(f"  - Buy actions: {summary['buy_count']}")
@@ -223,7 +204,6 @@ def test_auto_rebalancer():
         print(f"  - Total buy amount: {summary['total_buy_amount']:,}원")
         print(f"  - Total sell amount: {summary['total_sell_amount']:,}원")
 
-        # DRY RUN 실행
         result = rebalancer.execute_rebalance(actions, dry_run=True)
         print(f"✓ Rebalance executed (dry run): {result['success']}")
         print(f"  - {result['message']}")
@@ -245,7 +225,6 @@ def test_ai_analyzers():
     print("=" * 60)
 
     try:
-        # Claude Analyzer 시스템 프롬프트 확인
         from ai.claude_analyzer import ClaudeAnalyzer
 
         print("✓ Claude Analyzer loaded")
@@ -258,7 +237,6 @@ def test_ai_analyzers():
         print("  - Catalyst & timing analysis")
         print("  - Comprehensive JSON output structure")
 
-        # Gemini Analyzer 프롬프트 확인
         from ai.gemini_analyzer import GeminiAnalyzer
 
         print("✓ Gemini Analyzer loaded")
@@ -288,19 +266,14 @@ def main():
 
     results = []
 
-    # 1. Chart Pattern Analyzer
     results.append(("Chart Pattern Analyzer", test_chart_pattern_analyzer()))
 
-    # 2. Realtime Alert System
     results.append(("Realtime Alert System", test_realtime_alert_system()))
 
-    # 3. Auto Rebalancer
     results.append(("Auto Rebalancer", test_auto_rebalancer()))
 
-    # 4. AI Analyzers
     results.append(("AI Analyzers", test_ai_analyzers()))
 
-    # 결과 요약
     print("\n" + "=" * 80)
     print(" " * 30 + "TEST SUMMARY")
     print("=" * 80)

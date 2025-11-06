@@ -1,10 +1,8 @@
-"""
 Portfolio Optimization Engine
 Advanced portfolio optimization techniques
 
 Author: AutoTrade Pro
 Version: 4.2
-"""
 
 from dataclasses import dataclass
 from typing import List, Dict, Any, Tuple, Optional
@@ -41,15 +39,12 @@ class PortfolioMetrics:
     sharpe_ratio: float
     sortino_ratio: float
     max_drawdown: float
-    var_95: float  # Value at Risk
-    cvar_95: float  # Conditional VaR
+    var_95: float
+    cvar_95: float
     beta: float
     alpha: float
 
 
-# ============================================================================
-# 1. Markowitz Mean-Variance Optimization
-# ============================================================================
 
 class MarkowitzOptimizer:
     """
@@ -71,7 +66,6 @@ class MarkowitzOptimizer:
         target_return: Optional[float] = None,
         risk_free_rate: float = 0.02
     ) -> PortfolioAllocation:
-        """
         Optimize portfolio using Markowitz model
 
         Args:
@@ -81,24 +75,20 @@ class MarkowitzOptimizer:
 
         Returns:
             Optimal portfolio allocation
-        """
         if not SCIPY_AVAILABLE:
             return self._mock_allocation(returns.shape[1])
 
         n_assets = returns.shape[1]
 
-        # Calculate expected returns and covariance
         mean_returns = np.mean(returns, axis=0)
         cov_matrix = np.cov(returns.T)
 
-        # Optimize for maximum Sharpe ratio
         if target_return is None:
             weights = self._max_sharpe_ratio(mean_returns, cov_matrix, risk_free_rate)
         else:
             weights = self._target_return_min_risk(mean_returns, cov_matrix, target_return)
 
-        # Calculate portfolio metrics
-        portfolio_return = np.dot(weights, mean_returns) * 252  # Annualized
+        portfolio_return = np.dot(weights, mean_returns) * 252
         portfolio_risk = np.sqrt(np.dot(weights.T, np.dot(cov_matrix, weights))) * np.sqrt(252)
         sharpe = (portfolio_return - risk_free_rate) / portfolio_risk
 
@@ -118,7 +108,6 @@ class MarkowitzOptimizer:
         cov_matrix: np.ndarray,
         risk_free_rate: float
     ) -> np.ndarray:
-        """Optimize for maximum Sharpe ratio"""
         n_assets = len(mean_returns)
 
         def neg_sharpe(weights):
@@ -146,7 +135,6 @@ class MarkowitzOptimizer:
         cov_matrix: np.ndarray,
         target_return: float
     ) -> np.ndarray:
-        """Minimize risk for target return"""
         n_assets = len(mean_returns)
 
         def portfolio_risk(weights):
@@ -174,12 +162,10 @@ class MarkowitzOptimizer:
         returns: np.ndarray,
         n_points: int = 100
     ) -> Tuple[np.ndarray, np.ndarray]:
-        """
         Calculate efficient frontier
 
         Returns:
             risks, returns along efficient frontier
-        """
         mean_returns = np.mean(returns, axis=0)
         min_return = np.min(mean_returns) * 252
         max_return = np.max(mean_returns) * 252
@@ -212,9 +198,6 @@ class MarkowitzOptimizer:
         )
 
 
-# ============================================================================
-# 2. Black-Litterman Model
-# ============================================================================
 
 class BlackLittermanOptimizer:
     """
@@ -233,10 +216,9 @@ class BlackLittermanOptimizer:
         self,
         returns: np.ndarray,
         market_caps: np.ndarray,
-        views: Dict[int, float],  # {asset_idx: expected_return}
+        views: Dict[int, float],
         view_confidence: float = 0.5
     ) -> PortfolioAllocation:
-        """
         Optimize using Black-Litterman model
 
         Args:
@@ -247,7 +229,6 @@ class BlackLittermanOptimizer:
 
         Returns:
             Optimal allocation
-        """
         if not SCIPY_AVAILABLE:
             n_assets = returns.shape[1]
             weights = np.random.dirichlet(np.ones(n_assets))
@@ -263,23 +244,19 @@ class BlackLittermanOptimizer:
 
         n_assets = returns.shape[1]
 
-        # 1. Calculate implied equilibrium returns (reverse optimization)
         cov_matrix = np.cov(returns.T)
         market_weights = market_caps / np.sum(market_caps)
         implied_returns = self.risk_aversion * np.dot(cov_matrix, market_weights)
 
-        # 2. Create views matrix
         P = np.zeros((len(views), n_assets))
         Q = np.zeros(len(views))
         for i, (asset_idx, view_return) in enumerate(views.items()):
             P[i, asset_idx] = 1
             Q[i] = view_return
 
-        # 3. Calculate posterior returns
         tau = view_confidence
-        omega = np.dot(np.dot(P, tau * cov_matrix), P.T)  # View uncertainty
+        omega = np.dot(np.dot(P, tau * cov_matrix), P.T)
 
-        # Bayesian update
         M_inv = np.linalg.inv(tau * cov_matrix)
         omega_inv = np.linalg.inv(omega)
 
@@ -288,13 +265,11 @@ class BlackLittermanOptimizer:
             np.dot(M_inv, implied_returns) + np.dot(np.dot(P.T, omega_inv), Q)
         ))
 
-        # 4. Optimize portfolio
         weights = np.dot(np.linalg.inv(self.risk_aversion * cov_matrix), posterior_returns)
-        weights = weights / np.sum(np.abs(weights))  # Normalize
-        weights = np.maximum(weights, 0)  # No short selling
-        weights = weights / np.sum(weights)  # Renormalize
+        weights = weights / np.sum(np.abs(weights))
+        weights = np.maximum(weights, 0)
+        weights = weights / np.sum(weights)
 
-        # Calculate metrics
         portfolio_return = np.dot(weights, posterior_returns) * 252
         portfolio_risk = np.sqrt(np.dot(weights.T, np.dot(cov_matrix, weights))) * np.sqrt(252)
         sharpe = portfolio_return / portfolio_risk
@@ -310,9 +285,6 @@ class BlackLittermanOptimizer:
         )
 
 
-# ============================================================================
-# 3. Risk Parity
-# ============================================================================
 
 class RiskParityOptimizer:
     """
@@ -377,7 +349,6 @@ class RiskParityOptimizer:
 
         weights = result.x
 
-        # Calculate metrics
         mean_returns = np.mean(returns, axis=0)
         portfolio_return = np.dot(weights, mean_returns) * 252
         portfolio_risk = np.sqrt(np.dot(weights.T, np.dot(cov_matrix, weights))) * np.sqrt(252)
@@ -394,9 +365,6 @@ class RiskParityOptimizer:
         )
 
 
-# ============================================================================
-# 4. Monte Carlo Portfolio Simulation
-# ============================================================================
 
 class MonteCarloSimulator:
     """
@@ -415,7 +383,6 @@ class MonteCarloSimulator:
         n_simulations: int = 10000,
         n_days: int = 252
     ) -> Dict[str, Any]:
-        """
         Run Monte Carlo simulation
 
         Args:
@@ -426,29 +393,23 @@ class MonteCarloSimulator:
 
         Returns:
             Simulation results
-        """
         mean_returns = np.mean(returns, axis=0)
         cov_matrix = np.cov(returns.T)
 
-        # Simulate portfolio returns
         simulated_returns = np.random.multivariate_normal(
             mean_returns,
             cov_matrix,
             size=(n_simulations, n_days)
         )
 
-        # Calculate portfolio values
         portfolio_returns = np.dot(simulated_returns, weights)
         portfolio_values = 100 * np.exp(np.cumsum(portfolio_returns, axis=1))
 
-        # Calculate final values
         final_values = portfolio_values[:, -1]
 
-        # Calculate VaR and CVaR
         var_95 = np.percentile(final_values, 5)
         cvar_95 = np.mean(final_values[final_values <= var_95])
 
-        # Calculate probabilities
         prob_profit = np.mean(final_values > 100)
         prob_loss_10 = np.mean(final_values < 90)
         prob_loss_20 = np.mean(final_values < 80)
@@ -470,9 +431,6 @@ class MonteCarloSimulator:
         }
 
 
-# ============================================================================
-# Portfolio Optimization Manager
-# ============================================================================
 
 class PortfolioOptimizationManager:
     """
@@ -498,24 +456,19 @@ class PortfolioOptimizationManager:
         market_caps: Optional[np.ndarray] = None,
         views: Optional[Dict[int, float]] = None
     ) -> Dict[str, PortfolioAllocation]:
-        """
         Run all optimization methods
 
         Returns:
             Dictionary of method -> allocation
-        """
         results = {}
 
-        # Markowitz
         results['markowitz'] = self.markowitz.optimize(returns)
 
-        # Black-Litterman
         if market_caps is not None and views is not None:
             results['black_litterman'] = self.black_litterman.optimize(
                 returns, market_caps, views
             )
 
-        # Risk Parity
         results['risk_parity'] = self.risk_parity.optimize(returns)
 
         return results
@@ -524,7 +477,6 @@ class PortfolioOptimizationManager:
         self,
         allocations: Dict[str, PortfolioAllocation]
     ) -> Dict[str, Any]:
-        """Compare different allocations"""
         comparison = {}
 
         for method, allocation in allocations.items():
@@ -535,7 +487,6 @@ class PortfolioOptimizationManager:
                 'sharpe_ratio': allocation.sharpe_ratio
             }
 
-        # Find best by Sharpe ratio
         best_method = max(allocations.items(), key=lambda x: x[1].sharpe_ratio)[0]
         comparison['best_method'] = best_method
 
@@ -547,7 +498,6 @@ class PortfolioOptimizationManager:
         target_weights: np.ndarray,
         threshold: float = 0.05
     ) -> Dict[str, Any]:
-        """
         Recommend portfolio rebalancing
 
         Args:
@@ -557,7 +507,6 @@ class PortfolioOptimizationManager:
 
         Returns:
             Rebalancing recommendation
-        """
         diff = target_weights - current_weights
         needs_rebalancing = np.any(np.abs(diff) > threshold)
 
@@ -582,7 +531,6 @@ class PortfolioOptimizationManager:
         }
 
 
-# Singleton instance
 _portfolio_manager = None
 
 def get_portfolio_manager() -> PortfolioOptimizationManager:
@@ -596,12 +544,10 @@ def get_portfolio_manager() -> PortfolioOptimizationManager:
 if __name__ == '__main__':
     print("📊 Portfolio Optimization Test")
 
-    # Mock returns
     returns = np.random.randn(252, 5) * 0.01
 
     manager = get_portfolio_manager()
 
-    # Test Markowitz
     allocation = manager.markowitz.optimize(returns)
     print(f"\nMarkowitz Allocation:")
     print(f"Weights: {allocation.weights}")
@@ -609,7 +555,6 @@ if __name__ == '__main__':
     print(f"Expected Risk: {allocation.expected_risk:.2%}")
     print(f"Sharpe Ratio: {allocation.sharpe_ratio:.2f}")
 
-    # Test Risk Parity
     rp_allocation = manager.risk_parity.optimize(returns)
     print(f"\nRisk Parity Allocation:")
     print(f"Weights: {rp_allocation.weights}")

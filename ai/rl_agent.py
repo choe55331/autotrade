@@ -1,4 +1,3 @@
-"""
 Reinforcement Learning Agent
 DQN-based autonomous trading agent
 
@@ -9,7 +8,6 @@ Features:
 - Epsilon-greedy exploration
 - Continuous learning from trades
 - Risk-aware reward function
-"""
 import json
 import numpy as np
 import random
@@ -35,14 +33,14 @@ class RLState:
     rsi: float
     macd: float
     volume_ratio: float
-    market_trend: float  # -1 to 1
-    time_of_day: float  # 0 to 1
+    market_trend: float
+    time_of_day: float
 
 
 @dataclass
 class RLAction:
     """RL agent action"""
-    action_type: str  # 'buy', 'sell', 'hold'
+    action_type: str
     quantity: int
     confidence: float
 
@@ -106,7 +104,6 @@ class DQNAgent:
         epsilon_decay: float = 0.995,
         epsilon_min: float = 0.01
     ):
-        """
         Initialize DQN agent
 
         Args:
@@ -117,7 +114,6 @@ class DQNAgent:
             epsilon: Initial exploration rate
             epsilon_decay: Exploration decay rate
             epsilon_min: Minimum exploration rate
-        """
         self.state_size = state_size
         self.action_size = action_size
         self.learning_rate = learning_rate
@@ -126,19 +122,15 @@ class DQNAgent:
         self.epsilon_decay = epsilon_decay
         self.epsilon_min = epsilon_min
 
-        # Experience replay
         self.memory = ReplayBuffer(capacity=10000)
         self.batch_size = 32
 
-        # Q-network (simplified - would use neural network in production)
         self.q_table: Dict[Tuple, np.ndarray] = {}
 
-        # Performance tracking
         self.total_rewards = 0
         self.episode_rewards = []
         self.actions_taken = []
 
-        # Model file
         self.model_file = Path('data/rl_models/dqn_agent.json')
         self.model_file.parent.mkdir(parents=True, exist_ok=True)
 
@@ -146,7 +138,6 @@ class DQNAgent:
 
     def _discretize_state(self, state: List[float]) -> Tuple:
         """Discretize continuous state for Q-table"""
-        # Discretize each dimension into bins
         discretized = []
         for value in state:
             if value < -1:
@@ -168,7 +159,6 @@ class DQNAgent:
         """Get Q-values for state"""
         state_key = self._discretize_state(state)
         if state_key not in self.q_table:
-            # Initialize Q-values
             self.q_table[state_key] = np.random.randn(self.action_size) * 0.01
         return self.q_table[state_key]
 
@@ -182,7 +172,6 @@ class DQNAgent:
         Returns:
             Action index
         """
-        # Epsilon-greedy exploration
         if np.random.rand() <= self.epsilon:
             action = random.randrange(self.action_size)
         else:
@@ -200,7 +189,6 @@ class DQNAgent:
         next_state: List[float],
         done: bool
     ):
-        """Store experience in replay buffer"""
         experience = RLExperience(
             state=state,
             action=action,
@@ -215,7 +203,6 @@ class DQNAgent:
         if self.memory.size() < self.batch_size:
             return
 
-        # Sample batch
         batch = self.memory.sample(self.batch_size)
 
         for experience in batch:
@@ -225,7 +212,6 @@ class DQNAgent:
             next_state = experience.next_state
             done = experience.done
 
-            # Q-learning update
             q_values = self.get_q_values(state)
             next_q_values = self.get_q_values(next_state)
 
@@ -234,14 +220,11 @@ class DQNAgent:
             else:
                 target = reward + self.gamma * np.max(next_q_values)
 
-            # Update Q-value
             q_values[action] = q_values[action] + self.learning_rate * (target - q_values[action])
 
-            # Update Q-table
             state_key = self._discretize_state(state)
             self.q_table[state_key] = q_values
 
-        # Decay epsilon
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
 
@@ -252,7 +235,6 @@ class DQNAgent:
         curr_portfolio_value: float,
         risk_taken: float = 0.0
     ) -> float:
-        """
         Calculate reward for action
 
         Args:
@@ -263,29 +245,24 @@ class DQNAgent:
 
         Returns:
             Reward value
-        """
-        # Profit/loss reward
         profit_pct = ((curr_portfolio_value - prev_portfolio_value) / prev_portfolio_value) * 100
         reward = profit_pct
 
-        # Risk penalty
         reward -= risk_taken * 0.5
 
-        # Action-specific adjustments
-        if action == 0:  # Hold
-            reward *= 0.1  # Small reward for holding
-        elif action in [1, 2, 3]:  # Buy
+        if action == 0:
+            reward *= 0.1
+        elif action in [1, 2, 3]:
             if profit_pct > 0:
-                reward *= 1.5  # Bonus for profitable buy
+                reward *= 1.5
             else:
                 reward *= 1.0
-        elif action in [4, 5, 6]:  # Sell
+        elif action in [4, 5, 6]:
             if profit_pct > 0:
-                reward *= 2.0  # Big bonus for profitable sell
+                reward *= 2.0
             else:
-                reward *= 0.8  # Small penalty for loss-making sell
+                reward *= 0.8
 
-        # Clip reward to reasonable range
         reward = np.clip(reward, -10, 10)
 
         self.total_rewards += reward
@@ -300,7 +277,6 @@ class DQNAgent:
         curr_state: RLState,
         done: bool = False
     ):
-        """
         Perform one training step
 
         Args:
@@ -308,29 +284,24 @@ class DQNAgent:
             action: Action taken
             curr_state: Current state
             done: Whether episode is done
-        """
-        # Convert states to vectors
         prev_state_vec = self._state_to_vector(prev_state)
         curr_state_vec = self._state_to_vector(curr_state)
 
-        # Calculate reward
         reward = self.calculate_reward(
             action,
             prev_state.portfolio_value,
             curr_state.portfolio_value,
-            risk_taken=0.0  # Can be calculated based on action
+            risk_taken=0.0
         )
 
-        # Remember experience
         self.remember(prev_state_vec, action, reward, curr_state_vec, done)
 
-        # Train on batch
         self.replay()
 
     def _state_to_vector(self, state: RLState) -> List[float]:
         """Convert state object to vector"""
         return [
-            state.portfolio_value / 10000000,  # Normalize to millions
+            state.portfolio_value / 10000000,
             state.cash_balance / 10000000,
             state.position_count / 10,
             state.current_price / 100000,
@@ -355,12 +326,12 @@ class DQNAgent:
         """
         action_map = {
             0: ('hold', 0, 0.3),
-            1: ('buy', 10, 0.5),  # Buy 10% of cash
-            2: ('buy', 20, 0.7),  # Buy 20% of cash
-            3: ('buy', 30, 0.9),  # Buy 30% of cash
-            4: ('sell', 10, 0.5),  # Sell 10% of position
-            5: ('sell', 30, 0.7),  # Sell 30% of position
-            6: ('sell', 50, 0.9),  # Sell 50% of position
+            1: ('buy', 10, 0.5),
+            2: ('buy', 20, 0.7),
+            3: ('buy', 30, 0.9),
+            4: ('sell', 10, 0.5),
+            5: ('sell', 30, 0.7),
+            6: ('sell', 50, 0.9),
         }
 
         action_type, quantity_pct, confidence = action_map.get(action, ('hold', 0, 0.3))
@@ -374,7 +345,6 @@ class DQNAgent:
     def _save_model(self):
         """Save model to disk"""
         try:
-            # Save Q-table
             q_table_serialized = {
                 str(k): v.tolist() for k, v in self.q_table.items()
             }
@@ -402,7 +372,6 @@ class DQNAgent:
                 with open(self.model_file, 'r') as f:
                     data = json.load(f)
 
-                # Load Q-table
                 q_table_serialized = data.get('q_table', {})
                 self.q_table = {
                     eval(k): np.array(v) for k, v in q_table_serialized.items()
@@ -439,7 +408,6 @@ class DQNAgent:
         self._save_model()
 
 
-# Global instance
 _rl_agent: Optional[DQNAgent] = None
 
 
@@ -451,14 +419,12 @@ def get_rl_agent() -> DQNAgent:
     return _rl_agent
 
 
-# Example usage
 if __name__ == '__main__':
     agent = DQNAgent()
 
     print("\n🎮 Reinforcement Learning Agent Test")
     print("=" * 60)
 
-    # Create sample state
     state = RLState(
         portfolio_value=10000000,
         cash_balance=5000000,
@@ -473,7 +439,6 @@ if __name__ == '__main__':
         time_of_day=0.5
     )
 
-    # Get action
     state_vec = agent._state_to_vector(state)
     action_idx = agent.act(state_vec)
     action = agent.get_action_interpretation(action_idx)

@@ -1,4 +1,3 @@
-"""
 AutoTrade Pro v4.0 - 수급 추종 전략
 외국인/기관의 대량 매수를 포착하여 추종 매매
 
@@ -6,7 +5,6 @@ AutoTrade Pro v4.0 - 수급 추종 전략
 - 외국인/기관 순매수 감지
 - 연속 매수일 추적
 - 수급 강도 계산
-"""
 import logging
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timedelta
@@ -21,9 +19,9 @@ class InstitutionalData:
     """수급 데이터"""
     date: datetime
     stock_code: str
-    foreign_net_buy: float  # 외국인 순매수 (원)
-    institutional_net_buy: float  # 기관 순매수 (원)
-    total_net_buy: float  # 합계
+    foreign_net_buy: float
+    institutional_net_buy: float
+    total_net_buy: float
 
 
 class InstitutionalFollowingStrategy:
@@ -46,7 +44,6 @@ class InstitutionalFollowingStrategy:
         self.consecutive_days = self.settings.get('consecutive_days', 3)
         self.lookback_days = self.settings.get('lookback_days', 10)
 
-        # 수급 데이터 저장
         self.data_history: Dict[str, deque] = {}
 
         logger.info(f"수급 추종 전략 초기화: 최소매수={self.min_net_buy_volume/1e8:.0f}억")
@@ -76,7 +73,6 @@ class InstitutionalFollowingStrategy:
         if len(history) < self.consecutive_days:
             return False, f"데이터 부족 ({len(history)}일)"
 
-        # 최근 N일 연속 순매수 확인
         recent_data = history[-self.consecutive_days:]
 
         consecutive_buy_days = 0
@@ -87,7 +83,7 @@ class InstitutionalFollowingStrategy:
                 consecutive_buy_days += 1
                 total_net_buy += data.total_net_buy
             else:
-                consecutive_buy_days = 0  # 연속성 끊김
+                consecutive_buy_days = 0
 
         if consecutive_buy_days >= self.consecutive_days:
             if total_net_buy >= self.min_net_buy_volume:
@@ -116,10 +112,8 @@ class InstitutionalFollowingStrategy:
         if not history:
             return 0.0
 
-        # 최근 N일 순매수 합계
         recent_net_buy = sum(data.total_net_buy for data in history[-5:])
 
-        # 정규화 (10억 = 1.0)
         strength = min(abs(recent_net_buy) / 1000000000, 1.0)
 
         return strength if recent_net_buy > 0 else 0.0
@@ -128,7 +122,6 @@ class InstitutionalFollowingStrategy:
         self,
         n: int = 10
     ) -> List[tuple[str, float]]:
-        """
         수급이 강한 상위 종목 조회
 
         Args:
@@ -136,7 +129,6 @@ class InstitutionalFollowingStrategy:
 
         Returns:
             [(stock_code, strength), ...]
-        """
         stocks_with_strength = []
 
         for stock_code in self.data_history.keys():
@@ -149,31 +141,26 @@ class InstitutionalFollowingStrategy:
         return stocks_with_strength[:n]
 
 
-# 테스트
 if __name__ == "__main__":
     strategy = InstitutionalFollowingStrategy()
 
-    # 샘플 데이터 추가
     base_date = datetime.now() - timedelta(days=10)
 
     for i in range(10):
         date = base_date + timedelta(days=i)
 
-        # 삼성전자 - 연속 순매수
         data = InstitutionalData(
             date=date,
             stock_code="005930",
-            foreign_net_buy=500000000,  # 5억
-            institutional_net_buy=700000000,  # 7억
-            total_net_buy=1200000000  # 12억
+            foreign_net_buy=500000000,
+            institutional_net_buy=700000000,
+            total_net_buy=1200000000
         )
         strategy.add_institutional_data(data)
 
-    # 매수 신호 확인
     should_buy, reason = strategy.check_buy_signal("005930")
     print(f"매수 신호: {should_buy} ({reason})")
 
-    # 상위 종목
     top_stocks = strategy.get_top_stocks_by_institutional_buying(5)
     print("\n수급 강한 상위 종목:")
     for code, strength in top_stocks:

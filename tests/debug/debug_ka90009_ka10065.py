@@ -1,7 +1,4 @@
-#!/usr/bin/env python3
-"""
 ka90009와 ka10065 응답 구조 상세 디버깅
-"""
 
 import sys
 import json
@@ -11,7 +8,6 @@ from datetime import datetime, timedelta
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-# 로깅 레벨을 DEBUG로 설정
 logging.basicConfig(
     level=logging.DEBUG,
     format='%(levelname)s - %(name)s - %(message)s'
@@ -23,9 +19,9 @@ from core.rest_client import KiwoomRESTClient
 def get_last_trading_date():
     """간단한 거래일 계산"""
     today = datetime.now()
-    if today.weekday() == 5:  # 토요일
+    if today.weekday() == 5:
         today = today - timedelta(days=1)
-    elif today.weekday() == 6:  # 일요일
+    elif today.weekday() == 6:
         today = today - timedelta(days=2)
     return today.strftime("%Y%m%d")
 
@@ -56,16 +52,13 @@ def debug_ka90009():
         print(f"\nreturn_code: {response.get('return_code')}")
         print(f"return_msg: {response.get('return_msg')}")
 
-        # 모든 키 출력
         print(f"\n응답의 모든 키: {list(response.keys())}")
 
-        # 데이터 키 찾기
         metadata_keys = {'return_code', 'return_msg', 'api-id', 'cont-yn', 'next-key'}
         data_keys = [k for k in response.keys() if k not in metadata_keys]
 
         print(f"\n데이터 키들: {data_keys}")
 
-        # 각 키의 내용 확인
         for key in data_keys:
             val = response.get(key)
             print(f"\n키: '{key}'")
@@ -112,16 +105,13 @@ def debug_ka10065():
         print(f"\nreturn_code: {response.get('return_code')}")
         print(f"return_msg: {response.get('return_msg')}")
 
-        # 모든 키 출력
         print(f"\n응답의 모든 키: {list(response.keys())}")
 
-        # 데이터 키 찾기
         metadata_keys = {'return_code', 'return_msg', 'api-id', 'cont-yn', 'next-key'}
         data_keys = [k for k in response.keys() if k not in metadata_keys]
 
         print(f"\n데이터 키들: {data_keys}")
 
-        # 각 키의 내용 확인
         for key in data_keys:
             val = response.get(key)
             print(f"\n키: '{key}'")
@@ -151,10 +141,8 @@ def main():
     print("="*80)
 
     try:
-        # 1. ka90009 디버깅
         debug_ka90009()
 
-        # 2. ka10065 디버깅
         debug_ka10065()
 
         print("\n" + "="*80)

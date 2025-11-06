@@ -1,7 +1,5 @@
-"""
 Security Module v6.0
 API 키 암호화, 환경변수 검증
-"""
 
 import os
 from pathlib import Path
@@ -10,7 +8,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Cryptography 사용 가능 여부
 try:
     from cryptography.fernet import Fernet
     from cryptography.hazmat.primitives import hashes
@@ -41,11 +38,10 @@ class SecureKeyManager:
         self.cipher = None
 
         if CRYPTO_AVAILABLE and master_password:
-            # 마스터 비밀번호로부터 암호화 키 생성
             kdf = PBKDF2(
                 algorithm=hashes.SHA256(),
                 length=32,
-                salt=b'autotrade_salt',  # 실제로는 랜덤 salt 사용
+                salt=b'autotrade_salt',
                 iterations=100000,
             )
             key = base64.urlsafe_b64encode(kdf.derive(master_password.encode()))
@@ -110,7 +106,6 @@ class SecureKeyManager:
         with open(file_path, 'w') as f:
             f.write(f"{key_name}={encrypted}\n")
 
-        # 파일 권한 제한 (Unix only)
         try:
             os.chmod(file_path, 0o600)
         except:
@@ -182,10 +177,8 @@ class EnvironmentValidator:
         Returns:
             정제된 입력
         """
-        # 길이 제한
         sanitized = user_input[:max_length]
 
-        # 위험한 문자 제거
         dangerous_chars = ['<', '>', '&', '"', "'", '`', '$', '|', ';']
         for char in dangerous_chars:
             sanitized = sanitized.replace(char, '')

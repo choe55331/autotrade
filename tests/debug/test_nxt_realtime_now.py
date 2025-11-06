@@ -1,4 +1,3 @@
-"""
 NXT 실시간 가격 조회 테스트
 
 현재 시간: 오후 6시 35분 (NXT 거래 시간!)
@@ -9,17 +8,14 @@ NXT 실시간 가격 조회 테스트
 2. ka10003 (체결정보) - 기본 코드
 3. 응답에서 거래소 정보 확인 (stex_tp)
 4. 여러 번 조회해서 가격이 변하는지 확인 (실시간이면 변함)
-"""
 import sys
 from pathlib import Path
 from datetime import datetime
 import time
 
-# 프로젝트 루트를 Python 경로에 추가
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-# 색상 코드
 GREEN = '\033[92m'
 RED = '\033[91m'
 BLUE = '\033[94m'
@@ -34,11 +30,9 @@ def is_nxt_hours():
     now = datetime.now()
     current_time = now.time()
 
-    # 오전: 08:00-09:00
     morning_start = datetime.strptime("08:00", "%H:%M").time()
     morning_end = datetime.strptime("09:00", "%H:%M").time()
 
-    # 오후: 15:30-20:00
     afternoon_start = datetime.strptime("15:30", "%H:%M").time()
     afternoon_end = datetime.strptime("20:00", "%H:%M").time()
 
@@ -61,11 +55,9 @@ def test_ka10001(client, stock_code, name):
     if response and response.get('return_code') == 0:
         print(f"{GREEN}✅ 성공{RESET}")
 
-        # 응답에서 가격 찾기
         price = None
         stex_tp = None
 
-        # 가능한 가격 필드들
         price_fields = ['cur_prc', 'crnt_pric', 'stk_pric', 'now_pric', 'current_price']
         for field in price_fields:
             if field in response:
@@ -77,7 +69,6 @@ def test_ka10001(client, stock_code, name):
                 except:
                     pass
 
-        # 거래소 정보 찾기
         stex_fields = ['stex_tp', 'mrkt_tp', 'market_type']
         for field in stex_fields:
             if field in response:
@@ -85,7 +76,6 @@ def test_ka10001(client, stock_code, name):
                 print(f"  🏢 거래소: {stex_tp} (필드: {field})")
                 break
 
-        # 시간 정보
         time_fields = ['tm', 'time', 'cntr_tm']
         for field in time_fields:
             if field in response:
@@ -120,14 +110,11 @@ def test_ka10003(client, stock_code, name):
         if cntr_infr and len(cntr_infr) > 0:
             latest = cntr_infr[0]
 
-            # 현재가
             cur_prc_str = latest.get('cur_prc', '0').replace('+', '').replace('-', '')
             price = int(cur_prc_str) if cur_prc_str else 0
 
-            # 거래소 정보
             stex_tp = latest.get('stex_tp', '')
 
-            # 시간
             tm = latest.get('tm', '')
 
             print(f"  💰 현재가: {price:,}원")
@@ -170,7 +157,6 @@ def test_multiple_times(client, stock_code, name, count=3, interval=5):
             print(f"\n  ⏳ {interval}초 대기...")
             time.sleep(interval)
 
-    # 결과 분석
     print(f"\n{MAGENTA}{'='*80}{RESET}")
     print(f"{MAGENTA}📊 결과 분석{RESET}")
     print(f"{MAGENTA}{'='*80}{RESET}")
@@ -194,7 +180,6 @@ def main():
     print(f"{BLUE}🚀 NXT 실시간 가격 조회 테스트{RESET}")
     print(f"{BLUE}{'='*80}{RESET}")
 
-    # 현재 시간 확인
     now = datetime.now()
     in_nxt_hours = is_nxt_hours()
 
@@ -211,7 +196,6 @@ def main():
     print(f"\n{GREEN}✅ 지금이 NXT 거래 시간입니다! 테스트를 시작합니다.{RESET}")
 
     try:
-        # REST Client 직접 초기화 (싱글톤 - 인자 없음)
         from core.rest_client import KiwoomRESTClient
 
         client = KiwoomRESTClient()
@@ -222,7 +206,6 @@ def main():
 
         print(f"{GREEN}✅ API 연결 성공{RESET}")
 
-        # 테스트 종목
         test_stocks = [
             ("249420", "일동제약"),
             ("052020", "에프엔에스테크"),
@@ -233,13 +216,10 @@ def main():
             print(f"{BLUE}📊 종목: {name} ({stock_code}){RESET}")
             print(f"{BLUE}{'='*80}{RESET}")
 
-            # ka10001 테스트
             price1, stex1 = test_ka10001(client, stock_code, name)
 
-            # ka10003 테스트
             price2, stex2 = test_ka10003(client, stock_code, name)
 
-            # 결과 비교
             print(f"\n{CYAN}💡 분석{RESET}")
             if price1 and price2:
                 if price1 == price2:
@@ -256,11 +236,9 @@ def main():
                 else:
                     print(f"  ❓ 거래소: {stex_info}")
 
-            # 실시간 변화 테스트 (첫 번째 종목만)
             if stock_code == "249420":
                 test_multiple_times(client, stock_code, name, count=3, interval=5)
 
-        # 최종 결론
         print(f"\n{MAGENTA}{'='*80}{RESET}")
         print(f"{MAGENTA}🎯 최종 결론{RESET}")
         print(f"{MAGENTA}{'='*80}{RESET}")

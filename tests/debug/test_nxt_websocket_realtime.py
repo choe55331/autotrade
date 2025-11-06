@@ -1,4 +1,3 @@
-"""
 WebSocket 실시간 현재가 조회 테스트 - KRX + NXT 혼합
 
 핵심 발견:
@@ -12,7 +11,6 @@ WebSocket 실시간 현재가 조회 테스트 - KRX + NXT 혼합
 - 5초마다 현재가 체크 (10회)
 - 가격 변동 추적
 - KRX 고거래량 종목으로 WebSocket 작동 여부 확인
-"""
 import sys
 from pathlib import Path
 from datetime import datetime
@@ -20,11 +18,9 @@ import time
 import asyncio
 import json
 
-# 프로젝트 루트를 Python 경로에 추가
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-# 색상 코드
 GREEN = '\033[92m'
 RED = '\033[91m'
 BLUE = '\033[94m'
@@ -40,11 +36,9 @@ def is_nxt_hours():
     now = datetime.now()
     current_time = now.time()
 
-    # 오전: 08:00-09:00
     morning_start = datetime.strptime("08:00", "%H:%M").time()
     morning_end = datetime.strptime("09:00", "%H:%M").time()
 
-    # 오후: 15:30-20:00
     afternoon_start = datetime.strptime("15:30", "%H:%M").time()
     afternoon_end = datetime.strptime("20:00", "%H:%M").time()
 
@@ -60,20 +54,15 @@ async def test_websocket_realtime():
     print(f"{BLUE}🔍 WebSocket 실시간 가격 모니터링 (KRX + NXT 혼합){RESET}")
     print(f"{BLUE}{'='*100}{RESET}")
 
-    # 테스트 종목 10개: NXT 시간에는 NXT 종목만 거래됨!
-    # (code, name, market_type)
 
-    # 현재 NXT 시간 확인
     in_nxt = is_nxt_hours()
     now = datetime.now().time()
 
-    # 정규 거래시간 (09:00-15:30)인지 확인
     is_regular_hours = (
         datetime.strptime("09:00", "%H:%M").time() <= now < datetime.strptime("15:30", "%H:%M").time()
     )
 
     if is_regular_hours:
-        # 정규시간: KRX + NXT 혼합
         test_stocks = [
             ("005930", "삼성전자", "KRX"),
             ("000660", "SK하이닉스", "KRX"),
@@ -87,7 +76,6 @@ async def test_websocket_realtime():
             ("217270", "넵튠", "NXT"),
         ]
     else:
-        # NXT 시간: 실제 NXT 거래 종목만 테스트
         test_stocks = [
             ("249420", "일동제약", "NXT"),
             ("052020", "에프엔에스테크", "NXT"),
@@ -120,11 +108,9 @@ async def test_websocket_realtime():
             print(f"  {i}. {name:20} ({code}_NX)")
 
     try:
-        # WebSocketManager 초기화
         from core.websocket_manager import WebSocketManager
         from core.rest_client import KiwoomRESTClient
 
-        # REST Client로 토큰 발급
         rest_client = KiwoomRESTClient()
         if not rest_client.token:
             print(f"{RED}❌ REST API 연결 실패{RESET}")
@@ -132,7 +118,6 @@ async def test_websocket_realtime():
 
         print(f"{GREEN}✅ REST API 연결 성공{RESET}")
 
-        # WebSocket 연결
         ws_manager = WebSocketManager(rest_client.token)
 
         print(f"{CYAN}WebSocket 연결 시도...{RESET}")
@@ -144,12 +129,10 @@ async def test_websocket_realtime():
 
         print(f"{GREEN}✅ WebSocket 연결 성공{RESET}")
 
-        # 가격 기록 저장소
         price_history = {code: {'name': name, 'market': market, 'prices': [], 'timestamps': []}
                         for code, name, market in test_stocks}
 
-        # 실시간 데이터 수신 콜백
-        received_count = [0]  # 수신된 데이터 카운터
+        received_count = [0]
 
         def on_realtime_data(data):
             """실시간 데이터 수신 시 호출"""
@@ -157,7 +140,6 @@ async def test_websocket_realtime():
                 if not isinstance(data, dict):
                     return
 
-                # 디버깅: 전체 메시지 출력
                 trnm = data.get('trnm', '')
                 if trnm == 'REAL':
                     print(f"\n{CYAN}🔍 REAL 메시지 전체:{RESET}")
@@ -165,8 +147,7 @@ async def test_websocket_realtime():
 
                 data_list = data.get('data', [])
                 for idx, item in enumerate(data_list):
-                    # 디버깅: 각 item 구조 출력
-                    print(f"\n{CYAN}  Item #{idx+1}:{RESET}")
+                    print(f"\n{CYAN}  Item
                     print(f"    Keys: {list(item.keys())}")
 
                     item_code = item.get('item', '')
@@ -176,17 +157,14 @@ async def test_websocket_realtime():
                     print(f"    현재가(10): {values.get('10', 'N/A')}")
                     print(f"    체결시간(20): {values.get('20', 'N/A')}")
 
-                    # _NX 제거하여 기본 코드 추출
                     base_code = item_code.replace('_NX', '')
 
                     if base_code in price_history:
-                        # 필드 10: 현재가
                         cur_prc_str = values.get('10', '0')
 
                         try:
                             cur_prc = abs(int(cur_prc_str.replace('+', '').replace('-', '').replace(',', '')))
 
-                            # 기록 저장
                             price_history[base_code]['prices'].append(cur_prc)
                             price_history[base_code]['timestamps'].append(datetime.now().strftime('%H:%M:%S'))
 
@@ -203,11 +181,8 @@ async def test_websocket_realtime():
                 import traceback
                 traceback.print_exc()
 
-        # 콜백 등록
         ws_manager.register_callback('test', on_realtime_data)
 
-        # 종목 구독 (0B: 주식체결)
-        # KRX: 기본 코드, NXT: _NX 접미사
         items_for_subscription = []
         for code, name, market in test_stocks:
             if market == "NXT":
@@ -222,7 +197,7 @@ async def test_websocket_realtime():
 
         success = await ws_manager.subscribe(
             stock_codes=items_for_subscription,
-            types=["0B"]  # 주식체결 - 19:48에 REAL 받았을 때 사용한 타입
+            types=["0B"]
         )
 
         if not success:
@@ -231,14 +206,11 @@ async def test_websocket_realtime():
 
         print(f"{GREEN}✅ 구독 성공!{RESET}")
 
-        # ⭐ 구독 완료 후 receive_loop 시작!
         print(f"{CYAN}실시간 데이터 수신 루프 시작...{RESET}")
         receive_task = asyncio.create_task(ws_manager.receive_loop())
 
-        # 루프가 시작될 시간 대기
         await asyncio.sleep(0.5)
 
-        # 10회 체크 (5초 간격)
         print(f"\n{MAGENTA}{'='*100}{RESET}")
         print(f"{MAGENTA}📊 실시간 데이터 수신 모니터링 (10회, 5초 간격){RESET}")
         print(f"{MAGENTA}{'='*100}{RESET}")
@@ -248,7 +220,6 @@ async def test_websocket_realtime():
             print(f"\n{BLUE}[{round_num}/10회차] {current_time}{RESET}")
             print(f"  수신된 데이터: {received_count[0]}건")
 
-            # 현재까지 수신된 가격 출력
             stocks_with_data = 0
             for code, data in price_history.items():
                 if data['prices']:
@@ -257,7 +228,6 @@ async def test_websocket_realtime():
                     latest_time = data['timestamps'][-1]
                     market = data['market']
 
-                    # 변동 계산
                     change_symbol = ""
                     if len(data['prices']) > 1:
                         prev_price = data['prices'][-2]
@@ -269,7 +239,6 @@ async def test_websocket_realtime():
                         else:
                             change_symbol = " ➡️  변동없음"
 
-                    # 시장별 아이콘 및 코드 표시
                     if market == "KRX":
                         icon = "🔵"
                         code_display = code
@@ -282,11 +251,9 @@ async def test_websocket_realtime():
             if stocks_with_data == 0:
                 print(f"  {YELLOW}⚠️  아직 데이터 수신 없음...{RESET}")
 
-            # 마지막 회차가 아니면 대기
             if round_num < 10:
                 await asyncio.sleep(5)
 
-        # 최종 결과 분석
         print(f"\n{BLUE}{'='*100}{RESET}")
         print(f"{BLUE}📊 최종 결과 분석{RESET}")
         print(f"{BLUE}{'='*100}{RESET}")
@@ -305,7 +272,6 @@ async def test_websocket_realtime():
             name = data['name']
             market = data['market']
 
-            # 코드 표시
             code_display = f"{code}_NX" if market == "NXT" else code
             market_icon = "🟢" if market == "NXT" else "🔵"
 
@@ -320,7 +286,6 @@ async def test_websocket_realtime():
             else:
                 nxt_with_data += 1
 
-            # 가격 변동 분석
             unique_prices = set(prices)
             has_change = len(unique_prices) > 1
 
@@ -331,7 +296,6 @@ async def test_websocket_realtime():
                 else:
                     nxt_with_change += 1
 
-            # 개별 종목 요약
             min_price = min(prices)
             max_price = max(prices)
             price_range = max_price - min_price
@@ -342,7 +306,6 @@ async def test_websocket_realtime():
             print(f"  {change_icon} 가격 변동: {'있음' if has_change else '없음'} (최소: {min_price:,}원, 최대: {max_price:,}원, 범위: {price_range:,}원)")
             print(f"  📊 수신 횟수: {len(prices)}회")
 
-        # 전체 통계
         print(f"\n{MAGENTA}{'='*100}{RESET}")
         print(f"{MAGENTA}🎯 최종 결론{RESET}")
         print(f"{MAGENTA}{'='*100}{RESET}")
@@ -364,7 +327,6 @@ async def test_websocket_realtime():
         else:
             print(f"  • 데이터 없음")
 
-        # 최종 판정
         print(f"\n{MAGENTA}{'='*100}{RESET}")
         print(f"{MAGENTA}📋 판정 결과{RESET}")
         print(f"{MAGENTA}{'='*100}{RESET}")
@@ -387,7 +349,6 @@ async def test_websocket_realtime():
             print(f"{YELLOW}   → NXT: {nxt_with_data}개 수신 ({nxt_with_change}개 변동){RESET}")
             print(f"{YELLOW}   → KRX: 0개 수신 (예상 외){RESET}")
         else:
-            # 둘 다 수신됨
             print(f"\n{GREEN}✅ WebSocket 데이터 수신 성공!{RESET}")
             print(f"{GREEN}   → KRX: {krx_with_data}/5개 수신, {krx_with_change}개 가격 변동{RESET}")
             print(f"{GREEN}   → NXT: {nxt_with_data}/5개 수신, {nxt_with_change}개 가격 변동{RESET}")
@@ -405,9 +366,8 @@ async def test_websocket_realtime():
                 print(f"\n{YELLOW}⚠️  데이터 수신은 됐으나 가격 변동 없음{RESET}")
                 print(f"{YELLOW}   → 테스트 기간 동안 체결이 없었을 가능성{RESET}")
 
-        # WebSocket 해제
         print(f"\n{CYAN}WebSocket 연결 해제 중...{RESET}")
-        receive_task.cancel()  # 백그라운드 태스크 취소
+        receive_task.cancel()
         try:
             await receive_task
         except asyncio.CancelledError:
@@ -426,7 +386,6 @@ def main():
     print(f"{BLUE}🚀 WebSocket 실시간 가격 테스트 (KRX 5개 + NXT 5개){RESET}")
     print(f"{BLUE}{'='*100}{RESET}")
 
-    # 현재 시간 확인
     now = datetime.now()
     in_nxt_hours = is_nxt_hours()
 
@@ -444,7 +403,6 @@ def main():
 
     print(f"\n{GREEN}✅ 테스트를 시작합니다.{RESET}")
 
-    # asyncio 실행
     try:
         asyncio.run(test_websocket_realtime())
     except KeyboardInterrupt:

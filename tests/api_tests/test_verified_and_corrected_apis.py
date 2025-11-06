@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-"""
 test_verified_and_corrected_apis.py
 검증된 API + 수정된 API 엄격한 데이터 검증 테스트
 
@@ -8,7 +6,6 @@ test_all_394_calls.py처럼 실제 데이터 수신 여부를 확인:
 - 데이터 키 존재 (return_code, return_msg 제외)
 - 데이터가 비어있지 않음
 - LIST는 실제 아이템 포함
-"""
 import json
 import sys
 from pathlib import Path
@@ -61,7 +58,6 @@ def validate_data_strictly(result):
     return_code = result.get('return_code', -1)
     return_msg = result.get('return_msg', 'Unknown')
 
-    # Step 1: return_code 확인
     if return_code != 0:
         return {
             'is_real_success': False,
@@ -72,7 +68,6 @@ def validate_data_strictly(result):
             'validation_details': f'return_code={return_code}'
         }
 
-    # Step 2: 데이터 키 확인 (return_code, return_msg 제외)
     data_keys = [k for k in result.keys() if k not in ['return_code', 'return_msg']]
 
     if len(data_keys) == 0:
@@ -85,7 +80,6 @@ def validate_data_strictly(result):
             'validation_details': '데이터 키 없음 (return_code=0이지만 no_data)'
         }
 
-    # Step 3: 실제 데이터 확인
     data_items_count = 0
     empty_keys = []
     list_keys = []
@@ -109,10 +103,8 @@ def validate_data_strictly(result):
             else:
                 empty_keys.append(f'{key}{{}}')
         else:
-            # 문자열이나 숫자
             data_items_count += 1
 
-    # Step 4: 최종 판정
     is_real_success = data_items_count > 0
 
     if is_real_success:
@@ -164,7 +156,6 @@ def run_verification_test(force=False):
     print("검증된 + 수정된 API 엄격한 데이터 검증 테스트")
     print("="*80)
 
-    # 시간 확인
     allowed, current_time = check_time_allowed()
     print(f"\n⏰ 실행 가능 시간: 08:00~20:00 (현재: {current_time.strftime('%H:%M')})")
 
@@ -179,7 +170,6 @@ def run_verification_test(force=False):
 
     print("✅ 테스트 시작\n")
 
-    # 데이터 로드
     print("[1] 데이터 로드...")
     with open('corrected_api_calls.json', 'r', encoding='utf-8') as f:
         corrected_data = json.load(f)
@@ -194,7 +184,6 @@ def run_verification_test(force=False):
     print(f"  🔧 수정된 API: {len(corrected_apis)}개 ({total_corrected}개 variant)")
     print(f"  📊 총 테스트: {total_verified + total_corrected}개 variant")
 
-    # KiwoomRESTClient 초기화
     print("\n[2] Kiwoom API 클라이언트 초기화...")
     try:
         client = KiwoomRESTClient()
@@ -203,7 +192,6 @@ def run_verification_test(force=False):
         print(f"  ❌ 초기화 실패: {e}")
         return
 
-    # 결과 저장
     results = {
         'test_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         'verified_results': [],
@@ -217,9 +205,6 @@ def run_verification_test(force=False):
                      'improved_from_fail': 0, 'still_fail': 0}
     }
 
-    # =======================================================================
-    # [3] 검증된 API 전체 재확인
-    # =======================================================================
     print("\n[3] 검증된 API 전체 재확인 (347개 variant)...")
     print("-"*80)
 
@@ -259,9 +244,6 @@ def run_verification_test(force=False):
                 print(f"❌ ERROR: {test_result.get('return_msg', 'Unknown')[:50]}")
                 stats['verified']['error'] += 1
 
-    # =======================================================================
-    # [4] 수정된 API 테스트
-    # =======================================================================
     print("\n[4] 수정된 API 테스트...")
     print("-"*80)
 
@@ -310,9 +292,6 @@ def run_verification_test(force=False):
                 stats['corrected']['error'] += 1
                 stats['corrected']['still_fail'] += 1
 
-    # =======================================================================
-    # [5] 통계 출력
-    # =======================================================================
     print("\n" + "="*80)
     print("📊 테스트 결과 통계")
     print("="*80)
@@ -331,7 +310,6 @@ def run_verification_test(force=False):
 
     results['statistics'] = stats
 
-    # 결과 저장
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     result_file = f'verified_corrected_test_results_{timestamp}.json'
 
@@ -342,7 +320,6 @@ def run_verification_test(force=False):
     print(f"💾 테스트 결과 저장: {result_file}")
     print("="*80)
 
-    # 상세 리포트 생성
     generate_detailed_report(results, stats)
 
 def generate_detailed_report(results, stats):
@@ -354,7 +331,6 @@ def generate_detailed_report(results, stats):
     report_lines.append("="*80)
     report_lines.append(f"\n생성일시: {results['test_time']}\n")
 
-    # 성공한 수정들
     report_lines.append("🎉 파라미터 수정으로 성공한 API")
     report_lines.append("-"*80)
 
@@ -371,7 +347,6 @@ def generate_detailed_report(results, stats):
     else:
         report_lines.append("(없음)")
 
-    # 여전히 실패하는 것들
     report_lines.append("\n\n❌ 파라미터 수정 후에도 실패")
     report_lines.append("-"*80)
 
@@ -386,7 +361,6 @@ def generate_detailed_report(results, stats):
     else:
         report_lines.append("(없음)")
 
-    # 파일 저장
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     report_file = f'verified_corrected_report_{timestamp}.txt'
 

@@ -1,8 +1,5 @@
-#!/usr/bin/env python3
-"""
 대시보드 API 테스트 스크립트
 실제로 데이터를 반환하는지 확인합니다.
-"""
 import requests
 import json
 from datetime import datetime
@@ -26,7 +23,6 @@ def test_api_endpoint(endpoint, description):
             print(f"\n응답 데이터:")
             print(json.dumps(data, indent=2, ensure_ascii=False))
 
-            # 데이터 검증
             if endpoint == '/api/account':
                 if data.get('total_assets', 0) == 0 and data.get('cash', 0) == 0:
                     print(f"\n⚠️  경고: 모든 값이 0입니다. 하드코딩이거나 데이터가 없을 수 있습니다.")
@@ -109,9 +105,7 @@ def main():
    python main.py
 
 그러면 http://127.0.0.1:5000 에서 대시보드가 실행됩니다.
-    """)
 
-    # 테스트할 엔드포인트 목록
     endpoints = [
         ('/api/account', '계좌 정보'),
         ('/api/positions', '보유 종목'),
@@ -128,7 +122,6 @@ def main():
         success = test_api_endpoint(endpoint, description)
         results.append((endpoint, success))
 
-    # 결과 요약
     print(f"\n\n{'='*80}")
     print(f"테스트 결과 요약")
     print(f"{'='*80}")

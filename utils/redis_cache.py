@@ -1,7 +1,5 @@
-"""
 Redis Cache Manager v6.0
 Redis 기반 고성능 캐싱
-"""
 
 import json
 import pickle
@@ -13,7 +11,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Redis 사용 가능 여부 확인
 try:
     import redis
     REDIS_AVAILABLE = True
@@ -42,7 +39,6 @@ class RedisCacheManager:
         password: Optional[str] = None,
         use_fallback: bool = True
     ):
-        """
         초기화
 
         Args:
@@ -51,7 +47,6 @@ class RedisCacheManager:
             db: Redis 데이터베이스 번호
             password: Redis 비밀번호
             use_fallback: Redis 없을 때 메모리 캐시 사용
-        """
         self.redis_client = None
         self.fallback_cache = {} if use_fallback else None
         self.stats = {
@@ -68,12 +63,11 @@ class RedisCacheManager:
                     port=port,
                     db=db,
                     password=password,
-                    decode_responses=False,  # Pickle을 위해 False
+                    decode_responses=False,
                     socket_connect_timeout=5,
                     socket_timeout=5
                 )
 
-                # 연결 테스트
                 self.redis_client.ping()
                 logger.info(f"✓ Redis 연결 성공: {host}:{port}")
 
@@ -98,7 +92,6 @@ class RedisCacheManager:
 
         try:
             if self.redis_client:
-                # Redis 조회
                 value = self.redis_client.get(key)
 
                 if value:
@@ -109,16 +102,13 @@ class RedisCacheManager:
                     return default
 
             elif self.fallback_cache is not None:
-                # 메모리 캐시 조회
                 if key in self.fallback_cache:
                     data, expiry = self.fallback_cache[key]
 
-                    # 만료 확인
                     if expiry is None or expiry > self._current_timestamp():
                         self.stats['hits'] += 1
                         return data
                     else:
-                        # 만료됨 - 삭제
                         del self.fallback_cache[key]
 
                 self.stats['misses'] += 1
@@ -137,7 +127,6 @@ class RedisCacheManager:
         value: Any,
         ttl: Optional[int] = None
     ) -> bool:
-        """
         캐시에 값 저장
 
         Args:
@@ -147,11 +136,9 @@ class RedisCacheManager:
 
         Returns:
             성공 여부
-        """
 
         try:
             if self.redis_client:
-                # Redis 저장
                 serialized = pickle.dumps(value)
 
                 if ttl:
@@ -163,7 +150,6 @@ class RedisCacheManager:
                 return True
 
             elif self.fallback_cache is not None:
-                # 메모리 캐시 저장
                 expiry = None
                 if ttl:
                     expiry = self._current_timestamp() + ttl
@@ -221,19 +207,16 @@ class RedisCacheManager:
         try:
             if self.redis_client:
                 if pattern:
-                    # 패턴 매칭
                     keys = self.redis_client.keys(pattern)
                     if keys:
                         return self.redis_client.delete(*keys)
                     return 0
                 else:
-                    # 전체 삭제
                     self.redis_client.flushdb()
-                    return -1  # 알 수 없음
+                    return -1
 
             elif self.fallback_cache is not None:
                 if pattern:
-                    # 패턴 매칭 (간단한 구현)
                     pattern_prefix = pattern.replace('*', '')
                     keys_to_delete = [
                         k for k in self.fallback_cache.keys()
@@ -297,7 +280,6 @@ class RedisCacheManager:
     def _generate_cache_key(self, func_name: str, args: tuple, kwargs: dict) -> str:
         """캐시 키 생성"""
 
-        # 함수명 + 인자로 키 생성
         key_parts = [func_name]
 
         for arg in args:
@@ -308,7 +290,6 @@ class RedisCacheManager:
 
         key_string = ":".join(key_parts)
 
-        # MD5 해시
         key_hash = hashlib.md5(key_string.encode()).hexdigest()
 
         return f"cache:{func_name}:{key_hash}"
@@ -333,22 +314,18 @@ def cache_with_ttl(ttl: int = 300, key_prefix: str = ""):
         def wrapper(*args, **kwargs):
             cache_manager = get_cache_manager()
 
-            # 캐시 키 생성
             func_name = f"{key_prefix}{func.__name__}" if key_prefix else func.__name__
             cache_key = cache_manager._generate_cache_key(func_name, args, kwargs)
 
-            # 캐시 조회
             cached_value = cache_manager.get(cache_key)
 
             if cached_value is not None:
                 logger.debug(f"캐시 히트: {func_name}")
                 return cached_value
 
-            # 캐시 미스 - 함수 실행
             logger.debug(f"캐시 미스: {func_name}")
             result = func(*args, **kwargs)
 
-            # 캐시 저장
             if result is not None:
                 cache_manager.set(cache_key, result, ttl)
 
@@ -359,7 +336,6 @@ def cache_with_ttl(ttl: int = 300, key_prefix: str = ""):
     return decorator
 
 
-# 싱글톤 인스턴스
 _cache_manager_instance = None
 
 

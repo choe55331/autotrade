@@ -1,9 +1,7 @@
-"""
 Momentum Indicators
 - RSI (Relative Strength Index)
 - MACD (Moving Average Convergence Divergence)
 - Stochastic Oscillator
-"""
 import numpy as np
 import pandas as pd
 from typing import Tuple, Dict
@@ -34,7 +32,6 @@ def macd(data: pd.Series,
          fast_period: int = 12,
          slow_period: int = 26,
          signal_period: int = 9) -> Tuple[pd.Series, pd.Series, pd.Series]:
-    """
     MACD (Moving Average Convergence Divergence)
 
     Args:
@@ -45,18 +42,13 @@ def macd(data: pd.Series,
 
     Returns:
         Tuple of (macd_line, signal_line, histogram)
-    """
-    # Calculate EMAs
     fast_ema = data.ewm(span=fast_period, adjust=False).mean()
     slow_ema = data.ewm(span=slow_period, adjust=False).mean()
 
-    # MACD line
     macd_line = fast_ema - slow_ema
 
-    # Signal line
     signal_line = macd_line.ewm(span=signal_period, adjust=False).mean()
 
-    # Histogram
     histogram = macd_line - signal_line
 
     return macd_line, signal_line, histogram
@@ -67,7 +59,6 @@ def stochastic(high: pd.Series,
                close: pd.Series,
                k_period: int = 14,
                d_period: int = 3) -> Tuple[pd.Series, pd.Series]:
-    """
     Stochastic Oscillator
 
     Args:
@@ -79,14 +70,11 @@ def stochastic(high: pd.Series,
 
     Returns:
         Tuple of (%K, %D)
-    """
-    # Calculate %K
     lowest_low = low.rolling(window=k_period).min()
     highest_high = high.rolling(window=k_period).max()
 
     k_values = 100 * (close - lowest_low) / (highest_high - lowest_low)
 
-    # Calculate %D (smoothed %K)
     d_values = k_values.rolling(window=d_period).mean()
 
     return k_values, d_values
@@ -101,7 +89,6 @@ def calculate_momentum_score(prices: pd.Series,
                               macd_signal: int = 9,
                               stoch_k: int = 14,
                               stoch_d: int = 3) -> Dict:
-    """
     Calculate comprehensive momentum score
 
     Args:
@@ -117,7 +104,6 @@ def calculate_momentum_score(prices: pd.Series,
 
     Returns:
         Dictionary with momentum analysis
-    """
     if len(prices) < max(rsi_period, macd_slow, stoch_k):
         return {
             'score': 50,
@@ -136,7 +122,6 @@ def calculate_momentum_score(prices: pd.Series,
     signals = []
     scores = []
 
-    # RSI Analysis
     rsi_values = rsi(prices, rsi_period)
     current_rsi = rsi_values.iloc[-1]
 
@@ -148,7 +133,7 @@ def calculate_momentum_score(prices: pd.Series,
     if current_rsi < 30:
         result['indicators']['rsi']['condition'] = 'oversold'
         signals.append('BUY')
-        scores.append(80)  # Strong buy signal
+        scores.append(80)
     elif current_rsi < 40:
         result['indicators']['rsi']['condition'] = 'weak'
         signals.append('BUY')
@@ -156,7 +141,7 @@ def calculate_momentum_score(prices: pd.Series,
     elif current_rsi > 70:
         result['indicators']['rsi']['condition'] = 'overbought'
         signals.append('SELL')
-        scores.append(20)  # Strong sell signal
+        scores.append(20)
     elif current_rsi > 60:
         result['indicators']['rsi']['condition'] = 'strong'
         signals.append('SELL')
@@ -165,7 +150,6 @@ def calculate_momentum_score(prices: pd.Series,
         signals.append('NEUTRAL')
         scores.append(50)
 
-    # MACD Analysis
     macd_line, signal_line, histogram = macd(prices, macd_fast, macd_slow, macd_signal)
     current_macd = macd_line.iloc[-1]
     current_signal = signal_line.iloc[-1]
@@ -178,17 +162,14 @@ def calculate_momentum_score(prices: pd.Series,
         'condition': 'neutral'
     }
 
-    # MACD crossover
     if len(macd_line) >= 2:
         prev_hist = histogram.iloc[-2]
 
         if current_hist > 0 and prev_hist <= 0:
-            # Bullish crossover
             result['indicators']['macd']['condition'] = 'bullish_cross'
             signals.append('BUY')
             scores.append(75)
         elif current_hist < 0 and prev_hist >= 0:
-            # Bearish crossover
             result['indicators']['macd']['condition'] = 'bearish_cross'
             signals.append('SELL')
             scores.append(25)
@@ -204,7 +185,6 @@ def calculate_momentum_score(prices: pd.Series,
         signals.append('NEUTRAL')
         scores.append(50)
 
-    # Stochastic Analysis (if high/low provided)
     if high is not None and low is not None:
         k_values, d_values = stochastic(high, low, prices, stoch_k, stoch_d)
         current_k = k_values.iloc[-1]
@@ -236,11 +216,9 @@ def calculate_momentum_score(prices: pd.Series,
             signals.append('NEUTRAL')
             scores.append(50)
 
-    # Calculate overall score
     if scores:
         result['score'] = sum(scores) / len(scores)
 
-        # Determine signal
         buy_count = signals.count('BUY')
         sell_count = signals.count('SELL')
 
@@ -284,11 +262,9 @@ def calculate_momentum_divergence(prices: pd.Series, indicator: pd.Series, lookb
     price_trend = recent_prices.iloc[-1] - recent_prices.iloc[0]
     indicator_trend = recent_indicator.iloc[-1] - recent_indicator.iloc[0]
 
-    # Bullish divergence: price making lower lows, indicator making higher lows
     if price_trend < 0 and indicator_trend > 0:
         return 'bullish_divergence'
 
-    # Bearish divergence: price making higher highs, indicator making lower highs
     if price_trend > 0 and indicator_trend < 0:
         return 'bearish_divergence'
 

@@ -1,8 +1,5 @@
-#!/usr/bin/env python3
-"""
 AutoTrade Pro v4.0 기능 테스트 스크립트
 각 기능의 작동 여부, 통합성, 효율성을 검증합니다.
-"""
 
 import sys
 import traceback
@@ -105,12 +102,10 @@ def test_unified_settings():
 
     manager = UnifiedSettingsManager()
 
-    # 설정 조회
     risk_settings = manager.get_category('risk_management')
     assert risk_settings is not None, "리스크 설정 조회 실패"
     assert 'max_position_size' in risk_settings, "max_position_size 키 없음"
 
-    # 설정 변경
     old_value = risk_settings['max_position_size']
     manager.update_setting('risk_management', 'max_position_size', 0.25)
     new_value = manager.get_setting('risk_management', 'max_position_size')
@@ -130,7 +125,6 @@ def test_backtest_report_generator():
 
     generator = BacktestReportGenerator()
 
-    # 테스트용 백테스트 결과 생성
     class MockBacktestResult:
         def __init__(self):
             self.backtest_id = "TEST_001"
@@ -150,7 +144,6 @@ def test_backtest_report_generator():
 
     result = MockBacktestResult()
 
-    # HTML 템플릿 확인
     assert generator.HTML_TEMPLATE is not None, "HTML 템플릿 없음"
     assert "<!DOCTYPE html>" in generator.HTML_TEMPLATE, "잘못된 HTML 템플릿"
 
@@ -165,11 +158,9 @@ def test_strategy_optimizer():
     """전략 최적화기 테스트"""
     from ai.strategy_optimizer import StrategyOptimizer
 
-    # 간단한 목적 함수
     def objective(params):
         return params['x'] ** 2 + params['y'] ** 2
 
-    # Grid Search 테스트
     optimizer = StrategyOptimizer(
         objective_function=objective,
         param_ranges={
@@ -197,7 +188,6 @@ def test_market_regime_classifier():
 
     classifier = MarketRegimeClassifier()
 
-    # 상승 추세 데이터
     bull_prices = [100 + i*0.5 for i in range(50)]
     regime, volatility, confidence = classifier.classify(bull_prices)
 
@@ -227,7 +217,6 @@ def test_anomaly_detector():
     print(f"  - 주문 실패 임계값: {detector.order_failure_threshold*100}%")
     print(f"  - 잔고 변동 임계값: {detector.balance_change_threshold*100}%")
 
-    # 테스트 데이터 추가
     detector.add_api_response_time(0.5)
     detector.add_api_response_time(0.6)
     detector.add_order_result(True)
@@ -249,10 +238,8 @@ def test_trailing_stop_manager():
         'min_profit_lock_pct': 0.50
     })
 
-    # 포지션 추가
     manager.add_position("TEST001", entry_price=100000, atr_value=2000)
 
-    # 가격 상승 시뮬레이션
     should_sell, reason = manager.update("TEST001", current_price=105000)
 
     print(f"  - 관리자 초기화: OK")
@@ -275,7 +262,6 @@ def test_volatility_breakout_strategy():
         volume_multiplier=1.5
     )
 
-    # 진입 신호 확인
     is_entry, reason = strategy.check_entry_signal(
         stock_code="TEST001",
         current_time=time(10, 0),
@@ -305,16 +291,13 @@ def test_pairs_trading_strategy():
         stop_loss_threshold=3.0
     )
 
-    # 페어 추가
     strategy.add_pair("TEST_PAIR", "STOCK_A", "STOCK_B", lookback_days=60)
 
-    # 가격 업데이트 (30개 데이터 필요)
     for i in range(35):
         price_a = 100000 + i * 100
         price_b = 200000 + i * 200
         strategy.update_prices("TEST_PAIR", price_a, price_b)
 
-    # 진입 신호 확인
     is_entry, direction = strategy.check_entry_signal("TEST_PAIR")
 
     print(f"  - 전략 초기화: OK")
@@ -365,7 +348,6 @@ def test_institutional_following_strategy():
         min_net_buy_amount=1000000000
     )
 
-    # 거래 데이터 추가
     for i in range(5):
         data = InstitutionalData(
             date=f"2024-01-{i+10:02d}",
@@ -374,7 +356,6 @@ def test_institutional_following_strategy():
         )
         strategy.add_trading_data("TEST001", data)
 
-    # 매수 신호 확인
     is_buy, reason = strategy.check_buy_signal("TEST001")
 
     print(f"  - 전략 초기화: OK")
@@ -394,7 +375,6 @@ def test_replay_simulator():
 
     simulator = ReplaySimulator(playback_speed=10.0)
 
-    # 콜백 등록
     ticks_received = []
 
     def on_tick(snapshot):
@@ -406,7 +386,6 @@ def test_replay_simulator():
     print(f"  - 재생 속도: {simulator.playback_speed}x")
     print(f"  - 콜백 등록: {len(simulator.on_tick_callbacks)}")
 
-    # 데이터 추가 (실제 로드 대신 직접 추가)
     snapshot = MarketSnapshot(
         timestamp=datetime.now(),
         stock_code="TEST001",
@@ -430,14 +409,12 @@ def test_portfolio_rebalancer():
         threshold_pct=0.05
     )
 
-    # 목표 비중
     target_weights = {
         'STOCK_A': 0.3,
         'STOCK_B': 0.3,
         'STOCK_C': 0.4
     }
 
-    # 현재 보유
     current_holdings = {
         'STOCK_A': {'quantity': 10, 'current_price': 100000},
         'STOCK_B': {'quantity': 15, 'current_price': 90000},
@@ -460,7 +437,6 @@ def test_quant_screener():
 
     screener = QuantScreener()
 
-    # 테스트 종목 데이터
     stocks = [
         StockFactors(
             stock_code=f"TEST{i:03d}",
@@ -474,7 +450,6 @@ def test_quant_screener():
         for i in range(10)
     ]
 
-    # Magic Formula 스크리닝
     top_stocks = screener.magic_formula_screen(stocks, top_n=5)
 
     print(f"  - 스크리너 초기화: OK")
@@ -495,11 +470,9 @@ def test_api_server_imports():
         print(f"  - FastAPI 앱 임포트: OK")
         print(f"  - 앱 이름: {app.title if hasattr(app, 'title') else 'N/A'}")
 
-        # 라우트 확인
         routes = [route.path for route in app.routes if hasattr(route, 'path')]
         print(f"  - 등록된 라우트: {len(routes)}개")
 
-        # 주요 API 엔드포인트 확인
         expected_routes = ['/api/settings', '/api/backtest/run', '/api/optimization/run']
         missing = [r for r in expected_routes if r not in routes]
 
@@ -530,7 +503,6 @@ def test_database_models():
     for model in models:
         print(f"    - {model.__tablename__}: OK")
 
-        # 컬럼 확인
         columns = [c.name for c in model.__table__.columns]
         print(f"      컬럼 수: {len(columns)}")
 
@@ -543,10 +515,8 @@ def test_integration_unified_settings_api():
 
     manager = UnifiedSettingsManager()
 
-    # 설정 변경
     manager.update_setting('system', 'trading_enabled', False)
 
-    # 설정 조회
     trading_enabled = manager.get_setting('system', 'trading_enabled')
 
     print(f"  - 설정 관리자 ↔ API 연동: OK")
@@ -562,7 +532,6 @@ def test_integration_optimizer_backtest():
     from ai.strategy_optimizer import StrategyOptimizer
     from ai.backtest_report_generator import BacktestReportGenerator
 
-    # 최적화 후 백테스팅 리포트 생성 흐름
     print(f"  - 최적화기 초기화: OK")
     print(f"  - 리포트 생성기 초기화: OK")
     print(f"  - 통합 워크플로우: OK")
@@ -578,16 +547,12 @@ def analyze_code_quality():
 
     issues = []
 
-    # 1. 중복 코드 체크 (간단한 패턴)
     print("\n1. 중복 코드 분석...")
 
-    # 2. 네이밍 일관성 체크
     print("\n2. 네이밍 일관성 분석...")
 
-    # 3. 에러 핸들링 체크
     print("\n3. 에러 핸들링 분석...")
 
-    # 4. 문서화 체크
     print("\n4. 문서화 수준 분석...")
 
     return issues
@@ -602,7 +567,6 @@ def main():
 
     tester = FeatureTest()
 
-    # === 핵심 기능 테스트 ===
     print("\n" + "="*80)
     print("1. 핵심 기능 테스트")
     print("="*80)
@@ -613,7 +577,6 @@ def main():
     tester.test("시장 레짐 분류기", test_market_regime_classifier)
     tester.test("이상 감지 시스템", test_anomaly_detector)
 
-    # === 전략 테스트 ===
     print("\n" + "="*80)
     print("2. 매매 전략 테스트")
     print("="*80)
@@ -624,7 +587,6 @@ def main():
     tester.test("켈리 기준", test_kelly_criterion)
     tester.test("기관 추종 전략", test_institutional_following_strategy)
 
-    # === 고급 기능 테스트 ===
     print("\n" + "="*80)
     print("3. 고급 기능 테스트")
     print("="*80)
@@ -633,7 +595,6 @@ def main():
     tester.test("포트폴리오 리밸런서", test_portfolio_rebalancer)
     tester.test("퀀트 스크리너", test_quant_screener)
 
-    # === 인프라 테스트 ===
     print("\n" + "="*80)
     print("4. 인프라 테스트")
     print("="*80)
@@ -641,7 +602,6 @@ def main():
     tester.test("API 서버 임포트", test_api_server_imports)
     tester.test("데이터베이스 모델", test_database_models)
 
-    # === 통합 테스트 ===
     print("\n" + "="*80)
     print("5. 통합 테스트")
     print("="*80)
@@ -649,13 +609,10 @@ def main():
     tester.test("설정 관리자 ↔ API 통합", test_integration_unified_settings_api)
     tester.test("최적화기 ↔ 백테스팅 통합", test_integration_optimizer_backtest)
 
-    # === 코드 품질 분석 ===
     analyze_code_quality()
 
-    # === 결과 요약 ===
     summary = tester.print_summary()
 
-    # 결과 저장
     with open('/home/user/autotrade/test_results/v4_feature_test_results.json', 'w', encoding='utf-8') as f:
         json.dump(summary, f, ensure_ascii=False, indent=2)
 

@@ -1,7 +1,4 @@
-#!/usr/bin/env python3
-"""
 comprehensive_api_debugger.py 결과 로그 분석 스크립트
-"""
 import re
 import json
 from collections import defaultdict, Counter
@@ -13,11 +10,9 @@ def parse_log_file(log_file_path):
     with open(log_file_path, 'r', encoding='utf-8') as f:
         content = f.read()
 
-    # 결과 라인 추출 (✅, ⚠️, ❌ 포함)
     lines = content.split('\n')
 
     for line in lines:
-        # 성공 패턴
         if '✅ 성공 (데이터 확인)' in line:
             match = re.search(r'\[(\S+)\s+Var\s+(\d+)/(\d+)\]\s+(.+?)\s+\|', line)
             if match:
@@ -28,7 +23,6 @@ def parse_log_file(log_file_path):
                     'status': 'success'
                 })
 
-        # 데이터 없음 패턴
         elif '⚠️ 성공 (데이터 없음)' in line:
             match = re.search(r'\[(\S+)\s+Var\s+(\d+)/(\d+)\]\s+(.+?)\s+\|', line)
             if match:
@@ -39,7 +33,6 @@ def parse_log_file(log_file_path):
                     'status': 'no_data'
                 })
 
-        # 실패 패턴
         elif '❌ 실패' in line:
             match = re.search(r'\[(\S+)\s+Var\s+(\d+)/(\d+)\]\s+(.+?)\s+\|', line)
             if match:
@@ -72,7 +65,6 @@ def analyze_results(results):
         'failed_apis': []
     }
 
-    # API별 요약
     for result in results:
         api_id = result['api_id']
         status = result['status']
@@ -93,14 +85,13 @@ def generate_report(analysis, output_file='test_results_report.md'):
     """마크다운 리포트 생성"""
     report = []
 
-    report.append("# Kiwoom API 테스트 결과 리포트\n")
+    report.append("
     report.append(f"생성일시: {__import__('datetime').datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
 
-    # 전체 요약
-    report.append("## 📊 전체 요약\n")
+    report.append("
     report.append(f"- 총 테스트 수: {analysis['total_tests']}")
     report.append(f"- 테스트된 API 수: {analysis['unique_apis']}")
-    report.append(f"\n### 상태별 통계\n")
+    report.append(f"\n
     report.append(f"- ✅ 성공 (데이터 확인): {analysis['status_counts']['success']}")
     report.append(f"- ⚠️ 성공 (데이터 없음): {analysis['status_counts']['no_data']}")
     report.append(f"- ❌ API 오류: {analysis['status_counts']['api_error']}")
@@ -108,8 +99,7 @@ def generate_report(analysis, output_file='test_results_report.md'):
     report.append(f"- ❌ 내부 예외: {analysis['status_counts']['exception']}")
     report.append(f"- ❌ 준비 오류: {analysis['status_counts']['prepare_error']}")
 
-    # API별 상세
-    report.append(f"\n\n## 📋 API별 상세 결과\n")
+    report.append(f"\n\n
     report.append("| API ID | 총 테스트 | 성공 | 데이터없음 | 실패 | 성공률 |")
     report.append("|--------|----------|------|-----------|------|--------|")
 
@@ -121,13 +111,11 @@ def generate_report(analysis, output_file='test_results_report.md'):
             f"{stats['failed']} | {success_rate:.1f}% |"
         )
 
-    # 실패한 테스트 상세
     if analysis['failed_apis']:
-        report.append(f"\n\n## ❌ 실패한 테스트 상세\n")
-        for fail in analysis['failed_apis'][:50]:  # 상위 50개만
+        report.append(f"\n\n
+        for fail in analysis['failed_apis'][:50]:
             report.append(f"- `{fail['api_id']}` (Var {fail['variant']}): {fail['name']} - {fail['status']}")
 
-    # 파일 저장
     with open(output_file, 'w', encoding='utf-8') as f:
         f.write('\n'.join(report))
 
@@ -148,7 +136,6 @@ def main():
     print("\n📝 리포트 생성 중...")
     report = generate_report(analysis)
 
-    # JSON 저장
     json_output = {
         'analysis': {
             'total_tests': analysis['total_tests'],
@@ -164,7 +151,6 @@ def main():
 
     print("✅ JSON 파일 저장 완료: test_results_analysis.json")
 
-    # 요약 출력
     print("\n" + "="*80)
     print("📊 요약")
     print("="*80)

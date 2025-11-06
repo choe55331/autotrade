@@ -1,4 +1,3 @@
-"""
 Advanced Risk Analytics
 Professional-grade risk management and analytics
 - Value at Risk (VaR)
@@ -6,7 +5,6 @@ Professional-grade risk management and analytics
 - Sharpe/Sortino Ratios
 - Maximum Drawdown
 - Risk-adjusted returns
-"""
 
 import numpy as np
 from typing import Dict, List, Any, Optional, Tuple
@@ -51,7 +49,6 @@ class AdvancedRiskAnalytics:
         returns: List[float],
         confidence_level: Optional[float] = None
     ) -> float:
-        """
         Calculate Value at Risk using historical method
 
         Args:
@@ -60,16 +57,13 @@ class AdvancedRiskAnalytics:
 
         Returns:
             VaR value (negative number representing potential loss)
-        """
         if not returns or len(returns) < 2:
             return 0.0
 
         conf_level = confidence_level or self.confidence_level
 
-        # Sort returns
         sorted_returns = sorted(returns)
 
-        # Find percentile
         index = int((1 - conf_level) * len(sorted_returns))
         var = sorted_returns[index]
 
@@ -84,7 +78,6 @@ class AdvancedRiskAnalytics:
         returns: List[float],
         confidence_level: Optional[float] = None
     ) -> float:
-        """
         Calculate Value at Risk using parametric (variance-covariance) method
 
         Assumes returns are normally distributed
@@ -95,20 +88,16 @@ class AdvancedRiskAnalytics:
 
         Returns:
             VaR value
-        """
         if not returns or len(returns) < 2:
             return 0.0
 
         conf_level = confidence_level or self.confidence_level
 
-        # Calculate mean and std
         mean_return = np.mean(returns)
         std_return = np.std(returns)
 
-        # Z-score for confidence level
         z_score = stats.norm.ppf(1 - conf_level)
 
-        # VaR = mean + (z_score * std)
         var = mean_return + (z_score * std_return)
 
         logger.debug(
@@ -126,7 +115,6 @@ class AdvancedRiskAnalytics:
         num_simulations: int = 10000,
         confidence_level: Optional[float] = None
     ) -> Tuple[float, List[float]]:
-        """
         Calculate Value at Risk using Monte Carlo simulation
 
         Args:
@@ -139,29 +127,23 @@ class AdvancedRiskAnalytics:
 
         Returns:
             (VaR value, simulated final values)
-        """
         conf_level = confidence_level or self.confidence_level
 
-        # Run simulations
         simulated_values = []
 
         for _ in range(num_simulations):
-            # Simulate returns for each day in horizon
             portfolio_value = current_value
 
             for _ in range(time_horizon):
-                # Random return from normal distribution
                 daily_return = np.random.normal(mean_return, std_return)
                 portfolio_value *= (1 + daily_return)
 
             simulated_values.append(portfolio_value)
 
-        # Calculate VaR from simulated values
         sorted_values = sorted(simulated_values)
         var_index = int((1 - conf_level) * len(sorted_values))
         var_value = sorted_values[var_index]
 
-        # VaR as loss from current value
         var = current_value - var_value
 
         logger.debug(
@@ -177,7 +159,6 @@ class AdvancedRiskAnalytics:
         returns: List[float],
         confidence_level: Optional[float] = None
     ) -> float:
-        """
         Calculate Conditional VaR (CVaR) / Expected Shortfall
 
         Average loss beyond VaR threshold
@@ -188,16 +169,13 @@ class AdvancedRiskAnalytics:
 
         Returns:
             CVaR value
-        """
         if not returns or len(returns) < 2:
             return 0.0
 
         conf_level = confidence_level or self.confidence_level
 
-        # Get VaR threshold
         var = self.calculate_var_historical(returns, conf_level)
 
-        # Average of returns worse than VaR
         tail_returns = [r for r in returns if r <= var]
 
         if not tail_returns:
@@ -217,7 +195,6 @@ class AdvancedRiskAnalytics:
         risk_free_rate: float = 0.03,
         periods_per_year: int = 252
     ) -> float:
-        """
         Calculate Sharpe Ratio
 
         (Mean Return - Risk Free Rate) / Standard Deviation
@@ -229,22 +206,18 @@ class AdvancedRiskAnalytics:
 
         Returns:
             Annualized Sharpe Ratio
-        """
         if not returns or len(returns) < 2:
             return 0.0
 
-        # Calculate average return and std
         avg_return = np.mean(returns)
         std_return = np.std(returns)
 
         if std_return == 0:
             return 0.0
 
-        # Annualize
         annual_return = avg_return * periods_per_year
         annual_std = std_return * np.sqrt(periods_per_year)
 
-        # Sharpe ratio
         sharpe = (annual_return - risk_free_rate) / annual_std
 
         logger.debug(f"Sharpe Ratio: {sharpe:.2f}")
@@ -257,7 +230,6 @@ class AdvancedRiskAnalytics:
         risk_free_rate: float = 0.03,
         periods_per_year: int = 252
     ) -> float:
-        """
         Calculate Sortino Ratio
 
         Like Sharpe, but only considers downside volatility
@@ -269,28 +241,24 @@ class AdvancedRiskAnalytics:
 
         Returns:
             Annualized Sortino Ratio
-        """
         if not returns or len(returns) < 2:
             return 0.0
 
         avg_return = np.mean(returns)
 
-        # Only downside returns
         downside_returns = [r for r in returns if r < 0]
 
         if not downside_returns:
-            return float('inf')  # No downside risk
+            return float('inf')
 
         downside_std = np.std(downside_returns)
 
         if downside_std == 0:
             return float('inf')
 
-        # Annualize
         annual_return = avg_return * periods_per_year
         annual_downside_std = downside_std * np.sqrt(periods_per_year)
 
-        # Sortino ratio
         sortino = (annual_return - risk_free_rate) / annual_downside_std
 
         logger.debug(f"Sortino Ratio: {sortino:.2f}")
@@ -301,7 +269,6 @@ class AdvancedRiskAnalytics:
         self,
         equity_curve: List[float]
     ) -> Dict[str, Any]:
-        """
         Calculate Maximum Drawdown
 
         Args:
@@ -309,7 +276,6 @@ class AdvancedRiskAnalytics:
 
         Returns:
             Dict with max_drawdown, max_drawdown_pct, peak, trough
-        """
         if not equity_curve or len(equity_curve) < 2:
             return {
                 'max_drawdown': 0,
@@ -339,14 +305,12 @@ class AdvancedRiskAnalytics:
                 max_dd_pct = dd_pct
                 trough_idx = i
 
-        # Find recovery point (if any)
         recovery_idx = None
         for i in range(trough_idx, len(equity_curve)):
             if equity_curve[i] >= equity_curve[peak_idx]:
                 recovery_idx = i
                 break
 
-        # Calculate underwater period
         underwater_days = recovery_idx - peak_idx if recovery_idx else len(equity_curve) - peak_idx
 
         result = {
@@ -370,7 +334,6 @@ class AdvancedRiskAnalytics:
         annual_return: float,
         max_drawdown_pct: float
     ) -> float:
-        """
         Calculate Calmar Ratio
 
         Annual Return / Maximum Drawdown
@@ -381,7 +344,6 @@ class AdvancedRiskAnalytics:
 
         Returns:
             Calmar ratio
-        """
         if max_drawdown_pct == 0:
             return float('inf') if annual_return > 0 else 0
 
@@ -396,7 +358,6 @@ class AdvancedRiskAnalytics:
         portfolio_returns: List[float],
         benchmark_returns: List[float]
     ) -> float:
-        """
         Calculate portfolio Beta vs benchmark
 
         Args:
@@ -405,7 +366,6 @@ class AdvancedRiskAnalytics:
 
         Returns:
             Beta coefficient
-        """
         if len(portfolio_returns) != len(benchmark_returns):
             logger.error("Portfolio and benchmark returns must have same length")
             return 1.0
@@ -413,7 +373,6 @@ class AdvancedRiskAnalytics:
         if len(portfolio_returns) < 2:
             return 1.0
 
-        # Calculate covariance and variance
         covariance = np.cov(portfolio_returns, benchmark_returns)[0][1]
         benchmark_variance = np.var(benchmark_returns)
 
@@ -433,7 +392,6 @@ class AdvancedRiskAnalytics:
         beta: float,
         risk_free_rate: float = 0.03
     ) -> float:
-        """
         Calculate Jensen's Alpha
 
         Alpha = Portfolio Return - [Risk Free Rate + Beta * (Benchmark Return - Risk Free Rate)]
@@ -446,7 +404,6 @@ class AdvancedRiskAnalytics:
 
         Returns:
             Alpha value
-        """
         alpha = portfolio_return - (risk_free_rate + beta * (benchmark_return - risk_free_rate))
 
         logger.debug(f"Alpha: {alpha:.2f}%")
@@ -461,7 +418,6 @@ class AdvancedRiskAnalytics:
         time_horizon: int = 252,
         num_simulations: int = 1000
     ) -> Dict[str, Any]:
-        """
         Run Monte Carlo simulation for portfolio projection
 
         Args:
@@ -473,7 +429,6 @@ class AdvancedRiskAnalytics:
 
         Returns:
             Simulation results with statistics
-        """
         logger.info(
             f"Running Monte Carlo: {num_simulations:,} simulations "
             f"over {time_horizon} days"
@@ -485,17 +440,14 @@ class AdvancedRiskAnalytics:
             path = [initial_value]
 
             for _ in range(time_horizon):
-                # Random return
                 daily_return = np.random.normal(mean_return, std_return)
                 new_value = path[-1] * (1 + daily_return)
                 path.append(new_value)
 
             all_paths.append(path)
 
-        # Convert to numpy array for analysis
         all_paths = np.array(all_paths)
 
-        # Calculate statistics for final values
         final_values = all_paths[:, -1]
 
         results = {
@@ -512,7 +464,7 @@ class AdvancedRiskAnalytics:
             'percentile_75': np.percentile(final_values, 75),
             'percentile_95': np.percentile(final_values, 95),
             'probability_profit': (final_values > initial_value).sum() / num_simulations,
-            'paths': all_paths.tolist()  # All simulation paths
+            'paths': all_paths.tolist()
         }
 
         logger.info(
@@ -529,7 +481,6 @@ class AdvancedRiskAnalytics:
         equity_curve: List[float],
         benchmark_returns: Optional[List[float]] = None
     ) -> Dict[str, Any]:
-        """
         Calculate comprehensive risk metrics
 
         Args:
@@ -539,30 +490,24 @@ class AdvancedRiskAnalytics:
 
         Returns:
             Dict with all risk metrics
-        """
         logger.info("Calculating comprehensive risk metrics")
 
         metrics = {}
 
-        # VaR calculations
         metrics['var_95_historical'] = self.calculate_var_historical(returns, 0.95)
         metrics['var_99_historical'] = self.calculate_var_historical(returns, 0.99)
         metrics['var_95_parametric'] = self.calculate_var_parametric(returns, 0.95)
 
-        # CVaR
         metrics['cvar_95'] = self.calculate_cvar(returns, 0.95)
 
-        # Ratios
         metrics['sharpe_ratio'] = self.calculate_sharpe_ratio(returns)
         metrics['sortino_ratio'] = self.calculate_sortino_ratio(returns)
 
-        # Drawdown
         dd_info = self.calculate_maximum_drawdown(equity_curve)
         metrics.update(dd_info)
 
-        # Calmar ratio
         if len(returns) > 0:
-            annual_return = np.mean(returns) * 252 * 100  # Annualized %
+            annual_return = np.mean(returns) * 252 * 100
             metrics['calmar_ratio'] = self.calculate_calmar_ratio(
                 annual_return,
                 dd_info['max_drawdown_pct']
@@ -570,7 +515,6 @@ class AdvancedRiskAnalytics:
         else:
             metrics['calmar_ratio'] = 0
 
-        # Beta and Alpha (if benchmark provided)
         if benchmark_returns and len(benchmark_returns) == len(returns):
             beta = self.calculate_beta(returns, benchmark_returns)
             metrics['beta'] = beta
@@ -586,8 +530,7 @@ class AdvancedRiskAnalytics:
             metrics['beta'] = None
             metrics['alpha'] = None
 
-        # Additional statistics
-        metrics['volatility'] = np.std(returns) * np.sqrt(252) * 100  # Annualized %
+        metrics['volatility'] = np.std(returns) * np.sqrt(252) * 100
         metrics['downside_volatility'] = (
             np.std([r for r in returns if r < 0]) * np.sqrt(252) * 100
         ) if any(r < 0 for r in returns) else 0
@@ -604,7 +547,6 @@ class AdvancedRiskAnalytics:
         current_value: float,
         scenarios: List[Dict[str, float]]
     ) -> List[Dict[str, Any]]:
-        """
         Run stress test scenarios
 
         Args:
@@ -613,7 +555,6 @@ class AdvancedRiskAnalytics:
 
         Returns:
             Stress test results
-        """
         results = []
 
         for i, scenario in enumerate(scenarios):
@@ -636,7 +577,6 @@ class AdvancedRiskAnalytics:
         positions: List[Dict[str, Any]],
         correlation_matrix: Optional[np.ndarray] = None
     ) -> float:
-        """
         Calculate portfolio-level VaR considering correlations
 
         Args:
@@ -645,7 +585,4 @@ class AdvancedRiskAnalytics:
 
         Returns:
             Portfolio VaR
-        """
-        # Implementation would use portfolio theory
-        # Placeholder for now
         return 0.0

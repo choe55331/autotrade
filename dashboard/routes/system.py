@@ -1,7 +1,5 @@
-"""
 System Routes Module for AutoTrade Pro v4.2
 Handles all system-related API endpoints including status, configuration, monitoring, and notifications.
-"""
 
 import json
 import logging
@@ -12,20 +10,16 @@ from typing import Dict, Any, Optional
 from flask import Blueprint, jsonify, request
 import yaml
 
-# Create blueprint
 system_bp = Blueprint('system', __name__)
 
-# Module-level logger
 logger = logging.getLogger(__name__)
 
-# Module-level variables
 _bot_instance = None
 _config_manager = None
 _unified_settings = None
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
-# Setter functions for dependency injection
 def set_bot_instance(bot):
     """Set bot instance for this module"""
     global _bot_instance
@@ -44,7 +38,6 @@ def set_unified_settings(settings):
     _unified_settings = settings
 
 
-# Helper functions
 def load_features_config() -> Dict[str, Any]:
     """Load features configuration"""
     config_path = BASE_DIR / 'config' / 'features_config.yaml'
@@ -89,16 +82,12 @@ def set_control_status(enabled: bool) -> bool:
         return False
 
 
-# ===========================
-# System Status Endpoints
-# ===========================
 
 @system_bp.route('/api/status')
 def get_status():
     """Get system status"""
     control = get_control_status()
 
-    # 테스트 모드 정보 가져오기
     test_mode_info = {}
     if _bot_instance:
         try:
@@ -106,7 +95,6 @@ def get_status():
         except:
             test_mode_info = {'active': False}
 
-    # 실제 시스템 상태 가져오기
     system_status = {
         'running': True,
         'trading_enabled': control.get('trading_enabled', False),
@@ -114,14 +102,12 @@ def get_status():
         'last_update': datetime.now().isoformat()
     }
 
-    # Uptime 계산 (bot_instance에 start_time이 있다면)
     if _bot_instance and hasattr(_bot_instance, 'start_time'):
         uptime_seconds = (datetime.now() - _bot_instance.start_time).total_seconds()
         hours = int(uptime_seconds // 3600)
         minutes = int((uptime_seconds % 3600) // 60)
         system_status['uptime'] = f"{hours}h {minutes}m"
 
-    # 실제 risk 정보 가져오기
     risk_info = {
         'mode': 'NORMAL',
         'description': 'Normal trading conditions'
@@ -134,14 +120,12 @@ def get_status():
         except Exception as e:
             print(f"Error getting risk info: {e}")
 
-    # 실제 scanning 정보 가져오기
     scanning_info = {
         'fast_scan': {'count': 0, 'last_run': 'N/A'},
         'deep_scan': {'count': 0, 'last_run': 'N/A'},
         'ai_scan': {'count': 0, 'last_run': 'N/A'}
     }
 
-    # scan_progress에서 정보 가져오기 (scanner_pipeline 대신)
     if _bot_instance and hasattr(_bot_instance, 'scan_progress'):
         try:
             scan_progress = _bot_instance.scan_progress
@@ -150,9 +134,9 @@ def get_status():
             pending = len(scan_progress.get('approved', []))
 
             scanning_info = {
-                'fast_scan': {'count': total_candidates, 'last_run': 'N/A'},  # 스캐닝 종목
-                'deep_scan': {'count': ai_reviewed, 'last_run': 'N/A'},  # AI 분석 완료
-                'ai_scan': {'count': pending, 'last_run': 'N/A'}  # 매수 대기
+                'fast_scan': {'count': total_candidates, 'last_run': 'N/A'},
+                'deep_scan': {'count': ai_reviewed, 'last_run': 'N/A'},
+                'ai_scan': {'count': pending, 'last_run': 'N/A'}
             }
         except Exception as e:
             print(f"Error getting scanning info: {e}")
@@ -204,22 +188,18 @@ def get_system_connections():
             'gemini': False,
             'test_mode': False,
             'database': False,
-            'bot_connected': _bot_instance is not None  # v5.2: Bot 연결 상태
+            'bot_connected': _bot_instance is not None
         }
 
         if not _bot_instance:
-            # v5.2: Bot이 연결되지 않은 경우 명확히 표시
             return jsonify(connections)
 
-        # REST API 체크
         if hasattr(_bot_instance, 'client'):
             connections['rest_api'] = True
 
-        # WebSocket 체크 (구 websocket_client는 비활성화, 신 websocket_manager 사용)
         if _bot_instance and hasattr(_bot_instance, 'websocket_manager'):
             try:
                 ws_manager = _bot_instance.websocket_manager
-                # WebSocketManager가 None이 아니고 연결되어 있는지 확인
                 if ws_manager is not None:
                     connections['websocket'] = getattr(ws_manager, 'is_connected', False)
                 else:
@@ -229,7 +209,6 @@ def get_system_connections():
         elif _bot_instance and hasattr(_bot_instance, 'websocket_client'):
             try:
                 ws_client = _bot_instance.websocket_client
-                # 구 WebSocket 클라이언트 (비활성화됨)
                 if ws_client is None:
                     connections['websocket'] = False
                 else:
@@ -237,20 +216,16 @@ def get_system_connections():
             except:
                 pass
 
-        # Gemini 체크
         if _bot_instance and hasattr(_bot_instance, 'analyzer'):
             try:
                 analyzer = _bot_instance.analyzer
-                # Gemini가 실제로 초기화되었는지 확인 (Mock analyzer가 아닌지)
                 if analyzer is not None:
                     analyzer_type = type(analyzer).__name__
                     analyzer_module = type(analyzer).__module__
 
-                    # Mock이 아니고 Gemini analyzer인지 확인
                     is_mock = 'Mock' in analyzer_type or 'mock' in analyzer_module.lower()
                     is_gemini = 'Gemini' in analyzer_type or 'gemini' in analyzer_module.lower()
 
-                    # EnsembleAnalyzer의 경우 내부 analyzers 확인
                     if analyzer_type == 'EnsembleAnalyzer' and hasattr(analyzer, 'analyzers'):
                         from ai.ensemble_analyzer import AIModel
                         is_gemini = AIModel.GEMINI in analyzer.analyzers
@@ -260,16 +235,13 @@ def get_system_connections():
                 else:
                     connections['gemini'] = False
             except Exception:
-                # Silently fail - Gemini connection check is optional
                 connections['gemini'] = False
         else:
             connections['gemini'] = False
 
-        # Test mode 체크
         if _bot_instance:
             connections['test_mode'] = getattr(_bot_instance, 'test_mode_active', False)
 
-        # Database 체크
         try:
             from database import get_db_session
             session = get_db_session()
@@ -282,15 +254,11 @@ def get_system_connections():
         return jsonify({'error': str(e)}), 500
 
 
-# ===========================
-# Candidates & Scan Progress
-# ===========================
 
 @system_bp.route('/api/candidates')
 def get_candidates():
     """Get AI-approved buy candidates with split buy strategy"""
     try:
-        # v5.3.2: bot_instance 체크 강화
         if not _bot_instance:
             print("Error: bot_instance is None")
             return jsonify([])
@@ -299,7 +267,6 @@ def get_candidates():
             print("Error: bot_instance has no ai_approved_candidates")
             return jsonify([])
 
-        # AI 승인 매수 후보 가져오기
         approved = _bot_instance.ai_approved_candidates
 
         if not approved:
@@ -309,7 +276,6 @@ def get_candidates():
         candidates = []
         for cand in approved:
             try:
-                # v5.3.2: 안전한 필드 접근
                 ai_score = cand.get('ai_score', 0)
                 if ai_score > 10:
                     ai_score = ai_score / 10.0
@@ -366,9 +332,6 @@ def get_scan_progress():
         })
 
 
-# ===========================
-# Activities & Monitoring
-# ===========================
 
 @system_bp.route('/api/activities')
 def get_activities():
@@ -377,13 +340,11 @@ def get_activities():
 
     try:
         if _bot_instance and hasattr(_bot_instance, 'monitor'):
-            # Get activities from activity monitor
             from utils.activity_monitor import get_monitor
             monitor = get_monitor()
             recent_activities = monitor.get_recent_activities(limit=50)
 
             for activity in recent_activities:
-                # timestamp를 ISO format에서 시간만 추출
                 timestamp_str = activity.get('timestamp', datetime.now().isoformat())
                 try:
                     timestamp = datetime.fromisoformat(timestamp_str)
@@ -398,12 +359,9 @@ def get_activities():
                     'level': activity.get('level', 'info')
                 })
 
-        # 활동이 없으면 빈 배열 반환 (하드코딩 제거)
-        # 실제 활동만 표시하여 사용자에게 정확한 상태 전달
 
     except Exception as e:
         print(f"Error getting activities: {e}")
-        # 에러 발생 시에만 에러 메시지 표시
         activities = [{
             'time': datetime.now().strftime('%H:%M:%S'),
             'type': 'ERROR',
@@ -421,13 +379,11 @@ def get_trading_activity():
         activities = []
 
         if _bot_instance and hasattr(_bot_instance, 'monitor'):
-            # Get activities from activity monitor
             from utils.activity_monitor import get_monitor
             monitor = get_monitor()
             recent_activities = monitor.get_recent_activities(limit=50)
 
             for activity in recent_activities:
-                # timestamp를 ISO format에서 시간만 추출
                 timestamp_str = activity.get('timestamp', datetime.now().isoformat())
                 try:
                     timestamp = datetime.fromisoformat(timestamp_str)
@@ -452,9 +408,6 @@ def get_trading_activity():
         return jsonify({'success': True, 'activities': []})
 
 
-# ===========================
-# Configuration Endpoints
-# ===========================
 
 @system_bp.route('/api/config/features', methods=['GET'])
 def get_features_config():
@@ -469,8 +422,6 @@ def update_features_config():
     try:
         new_config = request.json
         if save_features_config(new_config):
-            # Note: socketio.emit would need to be passed via dependency injection
-            # socketio.emit('config_updated', {'success': True})
             return jsonify({'success': True, 'message': 'Configuration updated'})
         else:
             return jsonify({'success': False, 'message': 'Failed to save configuration'}), 500
@@ -487,7 +438,6 @@ def update_feature_toggle(feature_path: str):
 
         config = load_features_config()
 
-        # Navigate to the feature using path (e.g., "ui.realtime_updates.enabled")
         keys = feature_path.split('.')
         current = config
         for key in keys[:-1]:
@@ -495,12 +445,9 @@ def update_feature_toggle(feature_path: str):
                 return jsonify({'success': False, 'message': f'Invalid path: {feature_path}'}), 400
             current = current[key]
 
-        # Set the value
         current[keys[-1]] = enabled
 
         if save_features_config(config):
-            # Note: socketio.emit would need to be passed via dependency injection
-            # socketio.emit('feature_toggled', {'path': feature_path, 'enabled': enabled})
             return jsonify({'success': True, 'message': f'Feature {feature_path} updated'})
         else:
             return jsonify({'success': False, 'message': 'Failed to save'}), 500
@@ -530,12 +477,10 @@ def save_settings():
 
         new_settings = request.json
 
-        # 카테고리별로 업데이트
         for category, values in new_settings.items():
             if isinstance(values, dict):
                 _unified_settings.update_category(category, values, save_immediately=False)
 
-        # 저장
         _unified_settings.save()
 
         return jsonify({'success': True, 'message': '설정이 저장되었습니다.'})
@@ -556,9 +501,6 @@ def reset_settings():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
-# ===========================
-# Journal Endpoints
-# ===========================
 
 @system_bp.route('/api/journal/entries')
 def get_journal_entries():
@@ -613,9 +555,6 @@ def get_journal_insights():
         return jsonify({'success': False, 'message': str(e)})
 
 
-# ===========================
-# Notification Endpoints
-# ===========================
 
 @system_bp.route('/api/notifications')
 def get_notifications():
@@ -698,15 +637,11 @@ def send_notification():
         return jsonify({'success': False, 'message': str(e)})
 
 
-# ===========================
-# Market Regime & Anomalies
-# ===========================
 
 @system_bp.route('/api/market-regime')
 def get_market_regime():
     """시장 레짐 조회"""
     try:
-        # TODO: 실제 시장 레짐 분류기 연동
         return jsonify({
             'regime': 'bull',
             'volatility': 'medium',
@@ -722,7 +657,6 @@ def get_market_regime():
 def get_anomalies():
     """이상 감지 현황 조회"""
     try:
-        # TODO: 실제 이상 감지 시스템 연동
         return jsonify({
             'total_count': 0,
             'recent_24h': 0,
@@ -736,31 +670,25 @@ def get_anomalies():
         return jsonify({'error': str(e)}), 500
 
 
-# ===========================
-# WebSocket Endpoints
-# ===========================
 
 @system_bp.route('/api/websocket/subscriptions')
 def get_websocket_subscriptions():
     """현재 웹소켓 구독 리스트 조회"""
     try:
         subscriptions = {
-            'price': [],  # 현재가 구독 (KA10003)
-            'orderbook': [],  # 호가 구독 (KA10004)
-            'execution': [],  # 체결 구독 (KA10005)
+            'price': [],
+            'orderbook': [],
+            'execution': [],
             'total': 0
         }
 
-        # WebSocketManager 사용 (있는 경우) - v5.3.2 수정
         if _bot_instance and hasattr(_bot_instance, 'websocket_manager'):
             ws_manager = _bot_instance.websocket_manager
             if ws_manager and hasattr(ws_manager, 'get_subscription_info'):
                 try:
-                    # get_subscription_info() 반환값: {'connected': bool, 'logged_in': bool, 'subscriptions': {...}, 'ws_url': str}
                     info = ws_manager.get_subscription_info()
                     subs = info.get('subscriptions', {})
 
-                    # subscriptions는 {grp_no: {stock_codes: [...], types: [...], ...}} 형식
                     for grp_no, sub_info in subs.items():
                         stock_codes = sub_info.get('stock_codes', [])
                         types = sub_info.get('types', [])
@@ -769,22 +697,20 @@ def get_websocket_subscriptions():
                             for sub_type in types:
                                 item = {
                                     'stock_code': stock_code,
-                                    'stock_name': stock_code,  # 종목명은 별도 조회 필요
+                                    'stock_name': stock_code,
                                     'type': sub_type,
                                     'grp_no': grp_no
                                 }
 
-                                # 타입별로 분류
-                                if sub_type in ['0B', '0A']:  # 주식체결, 주식기세
+                                if sub_type in ['0B', '0A']:
                                     subscriptions['price'].append(item)
-                                elif sub_type in ['0D', '0C']:  # 주식호가잔량, 주식우선호가
+                                elif sub_type in ['0D', '0C']:
                                     subscriptions['orderbook'].append(item)
-                                elif sub_type in ['00', '04']:  # 주문체결, 잔고
+                                elif sub_type in ['00', '04']:
                                     subscriptions['execution'].append(item)
                 except Exception as e:
                     print(f"웹소켓 구독 정보 조회 오류: {e}")
 
-        # 보유 종목 추가 (WebSocket에 없는 경우)
         if _bot_instance and hasattr(_bot_instance, 'account_api'):
             try:
                 holdings = _bot_instance.account_api.get_holdings()

@@ -1,4 +1,3 @@
-"""
 Meta-Learning Engine
 Learning how to learn - adaptive strategy selection and optimization
 
@@ -8,7 +7,6 @@ Features:
 - Market regime adaptation
 - Learning rate scheduling
 - Transfer learning between stocks
-"""
 import json
 import numpy as np
 from typing import Dict, List, Optional, Any
@@ -86,7 +84,6 @@ class MetaLearningEngine:
         outcome: str,
         profit: float
     ):
-        """
         Learn from trading experience
 
         Args:
@@ -95,8 +92,6 @@ class MetaLearningEngine:
             parameters: Parameters used
             outcome: 'success' or 'failure'
             profit: Profit/loss amount
-        """
-        # Record experience
         experience = {
             'timestamp': datetime.now().isoformat(),
             'market_conditions': market_conditions,
@@ -107,7 +102,6 @@ class MetaLearningEngine:
         }
         self.learning_history.append(experience)
 
-        # Update meta-knowledge
         self._update_meta_knowledge(market_conditions, strategy_used, parameters, outcome)
 
     def _update_meta_knowledge(
@@ -117,28 +111,21 @@ class MetaLearningEngine:
         parameters: Dict[str, Any],
         outcome: str
     ):
-        """Update meta-knowledge base"""
-        # Create pattern ID from conditions
         regime = conditions.get('regime', 'unknown')
         volatility = conditions.get('volatility', 'medium')
         pattern_id = f"{regime}_{volatility}"
 
-        # Find existing knowledge
         existing = [k for k in self.meta_knowledge if k.pattern_id == pattern_id]
 
         if existing:
             knowledge = existing[0]
             knowledge.sample_size += 1
             if outcome == 'success':
-                # Update success rate
                 prev_successes = int(knowledge.success_rate * knowledge.sample_size)
                 knowledge.success_rate = (prev_successes + 1) / knowledge.sample_size
-                # Update best strategy if this one is better
                 if strategy != knowledge.best_strategy:
-                    # Compare performance
-                    pass  # Could implement strategy comparison
+                    pass
         else:
-            # Create new knowledge
             knowledge = MetaKnowledge(
                 pattern_id=pattern_id,
                 pattern_name=f"Regime: {regime}, Volatility: {volatility}",
@@ -163,16 +150,13 @@ class MetaLearningEngine:
         Returns:
             Recommended strategy and parameters
         """
-        # Match current conditions to meta-knowledge
         regime = current_conditions.get('regime', 'unknown')
         volatility = current_conditions.get('volatility', 'medium')
         pattern_id = f"{regime}_{volatility}"
 
-        # Find matching knowledge
         matching = [k for k in self.meta_knowledge if k.pattern_id == pattern_id]
 
         if matching and len(matching) > 0:
-            # Sort by success rate
             best = max(matching, key=lambda x: x.success_rate)
 
             return {
@@ -183,7 +167,6 @@ class MetaLearningEngine:
                 'reasoning': f"Based on {best.sample_size} similar experiences with {best.success_rate:.0%} success rate"
             }
         else:
-            # No matching knowledge - use default
             return {
                 'strategy': 'balanced',
                 'parameters': {},
@@ -196,7 +179,6 @@ class MetaLearningEngine:
         """Get meta-level insights"""
         insights = []
 
-        # Insight 1: Best performing patterns
         if self.meta_knowledge:
             best_patterns = sorted(self.meta_knowledge, key=lambda x: x.success_rate, reverse=True)[:3]
             for pattern in best_patterns:
@@ -207,7 +189,6 @@ class MetaLearningEngine:
                     'recommendation': f"{pattern.best_strategy} 전략 사용 권장"
                 })
 
-        # Insight 2: Learning progress
         if len(self.learning_history) > 10:
             recent_success_rate = sum(
                 1 for e in self.learning_history[-10:] if e['outcome'] == 'success'
@@ -222,7 +203,6 @@ class MetaLearningEngine:
         return insights
 
 
-# Global instance
 _meta_learning_engine: Optional[MetaLearningEngine] = None
 
 

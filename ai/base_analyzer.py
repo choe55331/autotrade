@@ -1,7 +1,5 @@
-"""
 ai/base_analyzer.py
 AI 분석기 기본 인터페이스
-"""
 import logging
 from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional, List
@@ -28,7 +26,6 @@ class BaseAnalyzer(ABC):
         self.config = config or {}
         self.is_initialized = False
         
-        # 통계
         self.stats = {
             'total_analyses': 0,
             'successful_analyses': 0,
@@ -54,7 +51,6 @@ class BaseAnalyzer(ABC):
         stock_data: Dict[str, Any],
         analysis_type: str = 'comprehensive'
     ) -> Dict[str, Any]:
-        """
         종목 분석 (추상 메서드)
         
         Args:
@@ -64,7 +60,7 @@ class BaseAnalyzer(ABC):
         Returns:
             분석 결과
             {
-                'score': 7.5,                    # 투자 점수 (0~10)
+                'score': 7.5,
                 'signal': 'buy' | 'sell' | 'hold',
                 'confidence': 'Low' | 'Medium' | 'High',
                 'recommendation': '매수 추천',
@@ -73,7 +69,6 @@ class BaseAnalyzer(ABC):
                 'target_price': 75000,
                 'stop_loss_price': 65000,
             }
-        """
         pass
     
     @abstractmethod
@@ -81,7 +76,6 @@ class BaseAnalyzer(ABC):
         self,
         market_data: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """
         시장 분석 (추상 메서드)
         
         Args:
@@ -95,7 +89,6 @@ class BaseAnalyzer(ABC):
                 'analysis': '시장 분석 내용',
                 'recommendations': ['추천 사항'],
             }
-        """
         pass
     
     @abstractmethod
@@ -103,7 +96,6 @@ class BaseAnalyzer(ABC):
         self,
         portfolio_data: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """
         포트폴리오 분석 (추상 메서드)
         
         Args:
@@ -111,10 +103,8 @@ class BaseAnalyzer(ABC):
         
         Returns:
             포트폴리오 분석 결과
-        """
         pass
     
-    # ==================== 공통 메서드 ====================
     
     def is_ready(self) -> bool:
         """
@@ -161,7 +151,6 @@ class BaseAnalyzer(ABC):
         else:
             self.stats['failed_analyses'] += 1
         
-        # 평균 응답 시간 계산
         total = self.stats['total_analyses']
         current_avg = self.stats['avg_response_time']
         self.stats['avg_response_time'] = ((current_avg * (total - 1)) + response_time) / total

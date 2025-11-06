@@ -1,7 +1,5 @@
-"""
 Unified Risk Manager v6.0
 통합 리스크 관리자 - 5개 Risk Manager 통합
-"""
 
 from enum import Enum
 from typing import Dict, Any, Optional, Tuple
@@ -13,22 +11,22 @@ from pathlib import Path
 
 class RiskMode(Enum):
     """리스크 모드"""
-    CONSERVATIVE = "conservative"  # 보수적
-    MODERATE = "moderate"          # 중립적
-    AGGRESSIVE = "aggressive"      # 공격적
-    DEFENSIVE = "defensive"        # 방어적
+    CONSERVATIVE = "conservative"
+    MODERATE = "moderate"
+    AGGRESSIVE = "aggressive"
+    DEFENSIVE = "defensive"
 
 
 @dataclass
 class RiskConfig:
     """리스크 설정"""
-    max_position_size_pct: float  # 최대 포지션 크기 (총 자본 대비 %)
-    max_open_positions: int       # 최대 동시 포지션 수
-    max_single_loss_pct: float    # 단일 종목 최대 손실률 (%)
-    max_daily_loss_pct: float     # 일일 최대 손실률 (%)
-    stop_loss_pct: float          # 손절 비율 (%)
-    take_profit_pct: float        # 익절 비율 (%)
-    trailing_stop_pct: float      # 추적 손절 비율 (%)
+    max_position_size_pct: float
+    max_open_positions: int
+    max_single_loss_pct: float
+    max_daily_loss_pct: float
+    stop_loss_pct: float
+    take_profit_pct: float
+    trailing_stop_pct: float
 
 
 class UnifiedRiskManager:
@@ -44,7 +42,6 @@ class UnifiedRiskManager:
     - VaR (Value at Risk) 계산
     """
 
-    # 리스크 모드별 설정
     RISK_CONFIGS = {
         RiskMode.CONSERVATIVE: RiskConfig(
             max_position_size_pct=5.0,
@@ -97,18 +94,15 @@ class UnifiedRiskManager:
         self.current_mode = mode
         self.config = self.RISK_CONFIGS[mode]
 
-        # 손익 추적
         self.daily_profit_loss = 0
         self.weekly_profit_loss = 0
         self.total_profit_loss = 0
         self.daily_reset_time = datetime.now().date()
         self.weekly_reset_time = datetime.now() - timedelta(days=datetime.now().weekday())
 
-        # 포지션 추적
         self.open_positions = []
         self.position_history = []
 
-        # 상태 저장 경로
         self.state_file = Path('data/risk_manager_state.json')
 
     def update_capital(self, current_capital: int):
@@ -124,7 +118,6 @@ class UnifiedRiskManager:
         win_rate: Optional[float] = None,
         risk_reward_ratio: Optional[float] = None
     ) -> int:
-        """
         포지션 크기 계산
 
         Args:
@@ -135,29 +128,21 @@ class UnifiedRiskManager:
 
         Returns:
             매수 수량
-        """
 
-        # 1. 기본 포지션 크기 (자본 대비 %)
         max_position_value = self.current_capital * (self.config.max_position_size_pct / 100)
 
-        # 2. Kelly Criterion (승률과 손익비가 있을 경우)
         if win_rate is not None and risk_reward_ratio is not None:
             kelly_pct = self._calculate_kelly_criterion(win_rate, risk_reward_ratio)
-            # Kelly의 절반만 사용 (안전하게)
             kelly_position_value = self.current_capital * (kelly_pct / 2)
             max_position_value = min(max_position_value, kelly_position_value)
 
-        # 3. 가용 현금 제한
         max_position_value = min(max_position_value, available_cash)
 
-        # 4. 수량 계산
         quantity = int(max_position_value / stock_price)
 
-        # 5. 최대 포지션 수 제한 확인
         if len(self.open_positions) >= self.config.max_open_positions:
             return 0
 
-        # 6. 일일 손실 제한 확인
         if self._check_daily_loss_limit():
             return 0
 
@@ -183,25 +168,20 @@ class UnifiedRiskManager:
 
         kelly = (p * b - q) / b
 
-        # Kelly가 음수면 0 반환 (베팅하지 않음)
         if kelly < 0:
             return 0.0
 
-        # Kelly가 너무 크면 제한 (최대 25%)
         return min(kelly * 100, 25.0)
 
     def should_open_position(self, current_positions: int) -> bool:
         """포지션 진입 가능 여부"""
 
-        # 1. 최대 포지션 수 확인
         if current_positions >= self.config.max_open_positions:
             return False
 
-        # 2. 일일 손실 제한 확인
         if self._check_daily_loss_limit():
             return False
 
-        # 3. 주간 손실 제한 확인
         if self._check_weekly_loss_limit():
             return False
 
@@ -243,7 +223,6 @@ class UnifiedRiskManager:
         if not positions:
             return 0.0
 
-        # 각 포지션의 최대 손실 계산
         losses = []
         for position in positions:
             entry_price = position.get('entry_price', 0)
@@ -251,7 +230,6 @@ class UnifiedRiskManager:
             max_loss = entry_price * quantity * (self.config.stop_loss_pct / 100)
             losses.append(max_loss)
 
-        # 총 VaR (단순 합산, 상관관계 미고려)
         total_var = sum(losses)
 
         return total_var
@@ -259,7 +237,6 @@ class UnifiedRiskManager:
     def _check_daily_loss_limit(self) -> bool:
         """일일 손실 제한 확인"""
 
-        # 날짜 변경 확인
         today = datetime.now().date()
         if today > self.daily_reset_time:
             self.daily_profit_loss = 0
@@ -268,14 +245,13 @@ class UnifiedRiskManager:
         max_daily_loss = self.current_capital * (self.config.max_daily_loss_pct / 100)
 
         if self.daily_profit_loss < -max_daily_loss:
-            return True  # 제한 초과
+            return True
 
         return False
 
     def _check_weekly_loss_limit(self) -> bool:
         """주간 손실 제한 확인"""
 
-        # 주 변경 확인 (월요일 기준)
         now = datetime.now()
         week_start = now - timedelta(days=now.weekday())
 
@@ -286,7 +262,7 @@ class UnifiedRiskManager:
         max_weekly_loss = self.current_capital * (self.config.max_daily_loss_pct * 3 / 100)
 
         if self.weekly_profit_loss < -max_weekly_loss:
-            return True  # 제한 초과
+            return True
 
         return False
 
@@ -295,22 +271,18 @@ class UnifiedRiskManager:
 
         profit_loss_pct = (self.total_profit_loss / self.initial_capital) * 100
 
-        # 큰 손실 (-10% 이상) → DEFENSIVE
         if profit_loss_pct <= -10:
             if self.current_mode != RiskMode.DEFENSIVE:
                 self.switch_mode(RiskMode.DEFENSIVE, reason="큰 손실 발생")
 
-        # 손실 (-5% ~ -10%) → CONSERVATIVE
         elif -10 < profit_loss_pct <= -5:
             if self.current_mode not in [RiskMode.DEFENSIVE, RiskMode.CONSERVATIVE]:
                 self.switch_mode(RiskMode.CONSERVATIVE, reason="손실 발생")
 
-        # 중립 (-5% ~ +10%) → MODERATE
         elif -5 < profit_loss_pct < 10:
             if self.current_mode != RiskMode.MODERATE:
                 self.switch_mode(RiskMode.MODERATE, reason="중립 상태")
 
-        # 수익 (+10% 이상) → AGGRESSIVE
         elif profit_loss_pct >= 10:
             if self.current_mode != RiskMode.AGGRESSIVE:
                 self.switch_mode(RiskMode.AGGRESSIVE, reason="높은 수익")
@@ -417,7 +389,6 @@ class UnifiedRiskManager:
             print(f"⚠️ Risk Manager 상태 복원 실패: {e}")
 
 
-# 싱글톤 인스턴스
 _unified_risk_manager_instance = None
 
 
@@ -427,7 +398,7 @@ def get_unified_risk_manager(initial_capital: Optional[int] = None) -> UnifiedRi
 
     if _unified_risk_manager_instance is None:
         if initial_capital is None:
-            initial_capital = 10_000_000  # 기본값
+            initial_capital = 10_000_000
 
         _unified_risk_manager_instance = UnifiedRiskManager(initial_capital)
         _unified_risk_manager_instance.load_state()

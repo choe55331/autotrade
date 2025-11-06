@@ -1,4 +1,3 @@
-"""
 NXT 현재가 조회 종합 테스트 - v5.15
 다양한 조건과 접근법으로 성공 조합 찾기
 
@@ -6,7 +5,6 @@ NXT 현재가 조회 종합 테스트 - v5.15
 1. NXT 시간대 감지 확인
 2. 다양한 API 호출 방법 시도
 3. 성공하는 조합 찾아내기
-"""
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
@@ -16,7 +14,6 @@ from datetime import datetime, time
 from typing import Dict, Any, Optional, List
 import json
 
-# 로깅 설정
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(name)s: %(message)s',
@@ -24,7 +21,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# 색상 코드
 GREEN = '\033[92m'
 RED = '\033[91m'
 YELLOW = '\033[93m'
@@ -39,7 +35,6 @@ class NXTPriceDiscovery:
         self.client = client
         self.results = []
 
-        # 테스트할 NXT 종목들
         self.test_stocks = [
             ("052020", "에프엔에스테크"),
             ("249420", "일동제약"),
@@ -57,7 +52,6 @@ class NXTPriceDiscovery:
         now = datetime.now()
         current_time = now.time()
 
-        # NXT 거래 시간
         morning_start = time(8, 0)
         morning_end = time(9, 0)
         afternoon_start = time(15, 30)
@@ -196,7 +190,6 @@ class NXTPriceDiscovery:
             )
 
             if response and response.get('return_code') == 0:
-                # 현재가 추출 시도
                 cur_prc_str = response.get('cur_prc', '0')
                 if cur_prc_str and cur_prc_str != '0':
                     current_price = abs(int(cur_prc_str.replace('+', '').replace('-', '')))
@@ -212,7 +205,6 @@ class NXTPriceDiscovery:
                         })
                         return current_price
 
-                # 매도1호가/매수1호가 중간가 계산
                 sel_fpr_bid = response.get('sel_fpr_bid', '0').replace('+', '').replace('-', '')
                 buy_fpr_bid = response.get('buy_fpr_bid', '0').replace('+', '').replace('-', '')
 
@@ -277,7 +269,6 @@ class NXTPriceDiscovery:
             )
 
             if response and response.get('return_code') == 0:
-                # 현재가 추출 시도
                 cur_prc_str = response.get('cur_prc', '0')
                 if cur_prc_str and cur_prc_str != '0':
                     current_price = abs(int(cur_prc_str.replace('+', '').replace('-', '')))
@@ -293,7 +284,6 @@ class NXTPriceDiscovery:
                         })
                         return current_price
 
-                # 매도1호가/매수1호가 중간가 계산
                 sel_fpr_bid = response.get('sel_fpr_bid', '0').replace('+', '').replace('-', '')
                 buy_fpr_bid = response.get('buy_fpr_bid', '0').replace('+', '').replace('-', '')
 
@@ -351,7 +341,7 @@ class NXTPriceDiscovery:
         try:
             body = {
                 "stk_cd": stock_code,
-                "time_type": "D",  # Daily
+                "time_type": "D",
                 "inq_strt_dt": datetime.now().strftime("%Y%m%d"),
                 "inq_end_dt": datetime.now().strftime("%Y%m%d")
             }
@@ -364,7 +354,7 @@ class NXTPriceDiscovery:
             if response and response.get('return_code') == 0:
                 chart_data = response.get('cntr_day_list', [])
                 if chart_data and len(chart_data) > 0:
-                    latest = chart_data[-1]  # 마지막 데이터
+                    latest = chart_data[-1]
                     close_price_str = latest.get('cncl_prc', '0')
                     close_price = abs(int(close_price_str.replace('+', '').replace('-', '')))
 
@@ -409,7 +399,7 @@ class NXTPriceDiscovery:
         try:
             body = {
                 "stk_cd": stock_code,
-                "time_type": "m",  # Minute
+                "time_type": "m",
                 "time_value": "1",
                 "inq_strt_dt": datetime.now().strftime("%Y%m%d"),
                 "inq_end_dt": datetime.now().strftime("%Y%m%d")
@@ -423,7 +413,7 @@ class NXTPriceDiscovery:
             if response and response.get('return_code') == 0:
                 chart_data = response.get('cntr_day_list', [])
                 if chart_data and len(chart_data) > 0:
-                    latest = chart_data[-1]  # 마지막 데이터
+                    latest = chart_data[-1]
                     close_price_str = latest.get('cncl_prc', '0')
                     close_price = abs(int(close_price_str.replace('+', '').replace('-', '')))
 
@@ -468,37 +458,30 @@ class NXTPriceDiscovery:
 
         results = []
 
-        # 방법 1: 기본 코드 직접 API
         price = self.test_method_1_direct_api_base_code(stock_code, stock_name)
         if price:
             results.append(('방법1_기본코드_API', price))
 
-        # 방법 2: _NX 코드 직접 API
         price = self.test_method_2_direct_api_nx_code(stock_code, stock_name)
         if price:
             results.append(('방법2_NX코드_API', price))
 
-        # 방법 3: 기본 코드 호가
         price = self.test_method_3_orderbook_base_code(stock_code, stock_name)
         if price:
             results.append(('방법3_기본코드_호가', price))
 
-        # 방법 4: _NX 코드 호가
         price = self.test_method_4_orderbook_nx_code(stock_code, stock_name)
         if price:
             results.append(('방법4_NX코드_호가', price))
 
-        # 방법 5: 일봉 차트
         price = self.test_method_5_chart_daily(stock_code, stock_name)
         if price:
             results.append(('방법5_일봉차트', price))
 
-        # 방법 6: 분봉 차트
         price = self.test_method_6_chart_minute(stock_code, stock_name)
         if price:
             results.append(('방법6_분봉차트', price))
 
-        # 결과 요약
         print(f"\n{BLUE}[{stock_code} 결과 요약]{RESET}")
         if results:
             print(f"{GREEN}성공한 방법: {len(results)}개{RESET}")
@@ -512,24 +495,20 @@ class NXTPriceDiscovery:
     def run_all_tests(self):
         """모든 종목, 모든 방법 테스트"""
         print(f"\n{'#'*80}")
-        print(f"#{' '*78}#")
-        print(f"#  NXT 현재가 조회 종합 테스트 - 성공 조합 찾기")
-        print(f"#{' '*78}#")
+        print(f"
+        print(f"
+        print(f"
         print(f"{'#'*80}")
 
-        # 시간 상태 확인
         is_nxt = self.check_time_status()
 
-        # 각 종목 테스트
         all_stock_results = {}
         for stock_code, stock_name in self.test_stocks:
             results = self.test_stock_all_methods(stock_code, stock_name)
             all_stock_results[stock_code] = results
 
-        # 최종 통계
         self.print_final_summary(all_stock_results, is_nxt)
 
-        # 결과를 JSON 파일로 저장
         self.save_results()
 
     def print_final_summary(self, all_stock_results: dict, is_nxt: bool):
@@ -538,7 +517,6 @@ class NXTPriceDiscovery:
         print(f"{BLUE}[최종 결과 요약]{RESET}")
         print(f"{'='*80}")
 
-        # 방법별 성공률 통계
         method_stats = {}
         for result in self.results:
             method = result['method']
@@ -560,7 +538,6 @@ class NXTPriceDiscovery:
             color = GREEN if success_rate > 0 else RED
             print(f"{method:<50} {color}{stats['success']:>8}{RESET} {stats['fail']:>8} {success_rate:>9.1f}%")
 
-        # 추천 방법
         print(f"\n{YELLOW}[추천 방법]{RESET}")
         best_methods = sorted(method_stats.items(), key=lambda x: x[1]['success'], reverse=True)
         if best_methods and best_methods[0][1]['success'] > 0:
@@ -570,7 +547,6 @@ class NXTPriceDiscovery:
         else:
             print(f"{RED}성공한 방법이 없습니다.{RESET}")
 
-        # NXT 시간대 여부에 따른 조언
         print(f"\n{YELLOW}[조언]{RESET}")
         if is_nxt:
             print(f"{GREEN}현재 NXT 거래 시간입니다.{RESET}")
@@ -599,14 +575,11 @@ def main():
     """메인 실행"""
     print(f"\n{BLUE}TradingBot 초기화 중 (클라이언트 포함)...{RESET}")
 
-    # main.py의 TradingBotV2를 import하여 초기화
     try:
         from main import TradingBotV2
 
-        # 봇 초기화 (클라이언트 자동 초기화됨)
         bot = TradingBotV2()
 
-        # 봇에서 클라이언트 가져오기
         if not bot.client:
             print(f"{RED}클라이언트 초기화 실패{RESET}")
             return
@@ -620,13 +593,12 @@ def main():
 
         try:
             from core.rest_client import KiwoomRESTClient
-            client = KiwoomRESTClient()  # 인자 없이 초기화
+            client = KiwoomRESTClient()
             print(f"{GREEN}클라이언트 직접 초기화 완료{RESET}")
         except Exception as e2:
             print(f"{RED}클라이언트 직접 초기화도 실패: {e2}{RESET}")
             return
 
-    # 테스트 실행
     discovery = NXTPriceDiscovery(client)
     discovery.run_all_tests()
 

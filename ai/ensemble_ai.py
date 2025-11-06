@@ -1,4 +1,3 @@
-"""
 Ensemble AI System
 Combines multiple AI models for superior predictions
 
@@ -9,7 +8,6 @@ Features:
 - Meta-model for final decision
 - Confidence aggregation
 - Model selection based on market conditions
-"""
 import json
 import numpy as np
 from typing import Dict, List, Optional, Any, Tuple
@@ -26,7 +24,7 @@ logger = logging.getLogger(__name__)
 class ModelPrediction:
     """Single model's prediction"""
     model_name: str
-    action: str  # 'buy', 'sell', 'hold'
+    action: str
     confidence: float
     expected_return: float
     reasoning: List[str]
@@ -41,7 +39,7 @@ class EnsemblePrediction:
     expected_return: float
     model_predictions: List[ModelPrediction]
     model_weights: Dict[str, float]
-    consensus_score: float  # 0-1, how much models agree
+    consensus_score: float
     reasoning: List[str]
     timestamp: str
 
@@ -60,7 +58,6 @@ class EnsembleAI:
 
     def __init__(self):
         """Initialize ensemble system"""
-        # Model weights (dynamically adjusted)
         self.model_weights = {
             'ml_predictor': 0.25,
             'rl_agent': 0.25,
@@ -69,13 +66,10 @@ class EnsembleAI:
             'sentiment': 0.15
         }
 
-        # Performance tracking
         self.model_performance = defaultdict(lambda: {'correct': 0, 'total': 0, 'avg_return': 0.0})
 
-        # History
         self.predictions_history: List[EnsemblePrediction] = []
 
-        # Config files
         self.weights_file = Path('data/ensemble/model_weights.json')
         self.performance_file = Path('data/ensemble/model_performance.json')
         self.weights_file.parent.mkdir(parents=True, exist_ok=True)
@@ -120,7 +114,6 @@ class EnsembleAI:
         stock_name: str,
         market_data: Dict[str, Any]
     ) -> EnsemblePrediction:
-        """
         Make ensemble prediction
 
         Args:
@@ -130,40 +123,31 @@ class EnsembleAI:
 
         Returns:
             Ensemble prediction
-        """
         try:
-            # Collect predictions from all models
             model_predictions = []
 
-            # 1. ML Predictor
             ml_pred = self._get_ml_prediction(stock_code, stock_name, market_data)
             if ml_pred:
                 model_predictions.append(ml_pred)
 
-            # 2. RL Agent
             rl_pred = self._get_rl_prediction(market_data)
             if rl_pred:
                 model_predictions.append(rl_pred)
 
-            # 3. AI Mode Agent
             ai_pred = self._get_ai_mode_prediction(stock_code, stock_name, market_data)
             if ai_pred:
                 model_predictions.append(ai_pred)
 
-            # 4. Technical Analysis
             tech_pred = self._get_technical_prediction(market_data)
             if tech_pred:
                 model_predictions.append(tech_pred)
 
-            # 5. Sentiment Analysis
             sent_pred = self._get_sentiment_prediction(stock_code)
             if sent_pred:
                 model_predictions.append(sent_pred)
 
-            # Combine predictions
             ensemble_pred = self._combine_predictions(model_predictions)
 
-            # Store history
             self.predictions_history.append(ensemble_pred)
             if len(self.predictions_history) > 100:
                 self.predictions_history = self.predictions_history[-100:]
@@ -180,14 +164,12 @@ class EnsembleAI:
         stock_name: str,
         data: Dict[str, Any]
     ) -> Optional[ModelPrediction]:
-        """Get ML predictor prediction"""
         try:
             from ai.ml_predictor import get_ml_predictor
 
             predictor = get_ml_predictor()
             prediction = predictor.predict(stock_code, stock_name, data)
 
-            # Convert to ModelPrediction
             if prediction.direction == 'up':
                 action = 'buy'
             elif prediction.direction == 'down':
@@ -219,7 +201,6 @@ class EnsembleAI:
 
             agent = get_rl_agent()
 
-            # Create state
             state = RLState(
                 portfolio_value=data.get('portfolio_value', 10000000),
                 cash_balance=data.get('cash_balance', 5000000),
@@ -234,7 +215,6 @@ class EnsembleAI:
                 time_of_day=datetime.now().hour / 24
             )
 
-            # Get action
             state_vec = agent._state_to_vector(state)
             action_idx = agent.act(state_vec)
             action_interp = agent.get_action_interpretation(action_idx)
@@ -243,7 +223,7 @@ class EnsembleAI:
                 model_name='rl_agent',
                 action=action_interp.action_type,
                 confidence=action_interp.confidence,
-                expected_return=0.0,  # RL doesn't predict return
+                expected_return=0.0,
                 reasoning=[
                     f"RL 행동: {action_interp.action_type}",
                     f"수량: {action_interp.quantity}%",
@@ -262,7 +242,6 @@ class EnsembleAI:
         stock_name: str,
         data: Dict[str, Any]
     ) -> Optional[ModelPrediction]:
-        """Get AI mode agent prediction"""
         try:
             from features.ai_mode import get_ai_agent
 
@@ -293,7 +272,6 @@ class EnsembleAI:
             macd = data.get('macd', 0)
             volume_ratio = data.get('volume_ratio', 1.0)
 
-            # Simple technical rules
             buy_signals = 0
             sell_signals = 0
 
@@ -314,7 +292,6 @@ class EnsembleAI:
             if volume_ratio > 1.5:
                 buy_signals += 1
 
-            # Determine action
             if buy_signals > sell_signals:
                 action = 'buy'
                 confidence = min(0.9, 0.5 + (buy_signals - sell_signals) * 0.1)
@@ -361,7 +338,6 @@ class EnsembleAI:
             if not summary:
                 return None
 
-            # Convert sentiment to action
             if summary.overall_sentiment == 'positive':
                 action = 'buy'
                 confidence = 0.6 + (summary.avg_sentiment_score * 0.2)
@@ -393,11 +369,9 @@ class EnsembleAI:
         self,
         predictions: List[ModelPrediction]
     ) -> EnsemblePrediction:
-        """Combine predictions using weighted voting"""
         if not predictions:
             return self._fallback_prediction('unknown', 'unknown')
 
-        # Count votes by action
         action_scores = {'buy': 0.0, 'sell': 0.0, 'hold': 0.0}
         expected_returns = []
         all_reasoning = []
@@ -411,19 +385,15 @@ class EnsembleAI:
 
             all_reasoning.extend(pred.reasoning)
 
-        # Determine final action
         final_action = max(action_scores.items(), key=lambda x: x[1])[0]
         final_confidence = action_scores[final_action] / sum(action_scores.values())
 
-        # Calculate consensus score
         max_score = max(action_scores.values())
         total_score = sum(action_scores.values())
         consensus_score = max_score / total_score if total_score > 0 else 0
 
-        # Expected return
         expected_return = sum(expected_returns) if expected_returns else 0.0
 
-        # Create model weights dict
         model_weights = {pred.model_name: self.model_weights.get(pred.model_name, 0.1)
                         for pred in predictions}
 
@@ -443,7 +413,6 @@ class EnsembleAI:
         stock_code: str,
         stock_name: str
     ) -> EnsemblePrediction:
-        """Fallback prediction when models fail"""
         return EnsemblePrediction(
             final_action='hold',
             final_confidence=0.3,
@@ -465,32 +434,26 @@ class EnsembleAI:
             actual_return: Actual return percentage
         """
         try:
-            # Update performance for each model
             for model_pred in prediction.model_predictions:
                 model_name = model_pred.model_name
 
-                # Check if prediction was correct
                 was_correct = False
                 if actual_outcome == 'profit' and model_pred.action == 'buy':
                     was_correct = True
                 elif actual_outcome == 'loss' and model_pred.action == 'sell':
                     was_correct = True
 
-                # Update stats
                 self.model_performance[model_name]['total'] += 1
                 if was_correct:
                     self.model_performance[model_name]['correct'] += 1
 
-                # Update average return
                 prev_avg = self.model_performance[model_name]['avg_return']
                 total = self.model_performance[model_name]['total']
                 new_avg = ((prev_avg * (total - 1)) + actual_return) / total
                 self.model_performance[model_name]['avg_return'] = new_avg
 
-            # Recalculate weights based on accuracy
             self._recalculate_weights()
 
-            # Save state
             self._save_state()
 
             logger.info("Ensemble weights updated")
@@ -500,7 +463,6 @@ class EnsembleAI:
 
     def _recalculate_weights(self):
         """Recalculate model weights based on performance"""
-        # Calculate accuracy for each model
         accuracies = {}
         for model_name, perf in self.model_performance.items():
             if perf['total'] > 0:
@@ -508,7 +470,6 @@ class EnsembleAI:
             else:
                 accuracies[model_name] = 0.5
 
-        # Normalize to weights
         total_accuracy = sum(accuracies.values())
         if total_accuracy > 0:
             for model_name in self.model_weights.keys():
@@ -528,7 +489,6 @@ class EnsembleAI:
         }
 
 
-# Global instance
 _ensemble_ai: Optional[EnsembleAI] = None
 
 
@@ -540,14 +500,12 @@ def get_ensemble_ai() -> EnsembleAI:
     return _ensemble_ai
 
 
-# Example usage
 if __name__ == '__main__':
     ensemble = EnsembleAI()
 
     print("\n🎯 Ensemble AI System Test")
     print("=" * 60)
 
-    # Test prediction
     market_data = {
         'price': 73500,
         'rsi': 55,

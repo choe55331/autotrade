@@ -1,7 +1,5 @@
-"""
 core/exceptions.py
 커스텀 예외 정의
-"""
 
 class KiwoomAPIError(Exception):
     """Kiwoom API 기본 예외"""

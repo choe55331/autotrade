@@ -1,7 +1,5 @@
-"""
 Deep Learning Price Predictor
 LSTM, CNN, and Transformer models for stock price prediction
-"""
 
 import numpy as np
 from typing import Dict, List, Any, Optional, Tuple
@@ -28,28 +26,23 @@ class DeepLearningPredictor:
         prediction_horizon: int = 5,
         model_dir: str = "models/dl_models"
     ):
-        """
         Initialize deep learning predictor
 
         Args:
             sequence_length: Number of historical days to use
             prediction_horizon: Days ahead to predict
             model_dir: Directory to save/load models
-        """
         self.sequence_length = sequence_length
         self.prediction_horizon = prediction_horizon
         self.model_dir = model_dir
 
-        # Check if deep learning libraries are available
         self.tf_available = self._check_tensorflow()
         self.torch_available = self._check_pytorch()
 
-        # Model instances
         self.lstm_model = None
         self.cnn_model = None
         self.transformer_model = None
 
-        # Feature scalers
         self.price_scaler = None
         self.feature_scaler = None
 
@@ -63,7 +56,6 @@ class DeepLearningPredictor:
         """Check if TensorFlow is available"""
         try:
             import tensorflow as tf
-            # Suppress TF warnings
             os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
             logger.info(f"TensorFlow {tf.__version__} available")
             return True
@@ -86,7 +78,6 @@ class DeepLearningPredictor:
         stock_data: Dict[str, Any],
         model_type: str = "ensemble"
     ) -> Dict[str, Any]:
-        """
         Predict future price using deep learning models
 
         Args:
@@ -95,19 +86,16 @@ class DeepLearningPredictor:
 
         Returns:
             Prediction results with confidence intervals
-        """
         if not self.tf_available and not self.torch_available:
             return self._get_default_prediction(stock_data)
 
         try:
-            # Prepare data
             X = self._prepare_features(stock_data)
 
             if X is None or len(X) < self.sequence_length:
                 logger.warning("Insufficient data for prediction")
                 return self._get_default_prediction(stock_data)
 
-            # Get predictions from models
             predictions = {}
 
             if model_type in ["lstm", "ensemble"]:
@@ -128,13 +116,11 @@ class DeepLearningPredictor:
             if not predictions:
                 return self._get_default_prediction(stock_data)
 
-            # Combine predictions
             if model_type == "ensemble":
                 final_prediction = self._ensemble_predictions(predictions)
             else:
                 final_prediction = list(predictions.values())[0]
 
-            # Add metadata
             current_price = stock_data.get('current_price', 0)
 
             result = {
@@ -167,32 +153,25 @@ class DeepLearningPredictor:
             if len(price_history) < self.sequence_length:
                 return None
 
-            # Get recent data
             recent_prices = price_history[-self.sequence_length:]
             recent_volumes = volume_history[-self.sequence_length:] if volume_history else [0] * self.sequence_length
 
-            # Calculate technical indicators
             features = []
             for i in range(len(recent_prices)):
                 window_start = max(0, i - 20)
                 window = recent_prices[window_start:i+1]
 
-                # Price features
                 price = recent_prices[i]
                 price_change = (price - recent_prices[i-1]) / recent_prices[i-1] if i > 0 else 0
 
-                # Moving averages
                 ma5 = np.mean(window[-5:]) if len(window) >= 5 else price
                 ma20 = np.mean(window) if len(window) >= 20 else price
 
-                # Volatility
                 returns = np.diff(window) / window[:-1] if len(window) > 1 else [0]
                 volatility = np.std(returns) if len(returns) > 0 else 0
 
-                # Volume
                 volume = recent_volumes[i] if i < len(recent_volumes) else 0
 
-                # Combine features
                 feature_vector = [
                     price,
                     price_change,
@@ -221,14 +200,11 @@ class DeepLearningPredictor:
             import tensorflow as tf
             from tensorflow import keras
 
-            # Load or create model
             if self.lstm_model is None:
                 self.lstm_model = self._build_lstm_model(X.shape[1])
 
-            # Reshape for LSTM [samples, timesteps, features]
             X_reshaped = X.reshape(1, X.shape[0], X.shape[1])
 
-            # Predict
             predictions = []
             current_sequence = X_reshaped
 
@@ -236,15 +212,13 @@ class DeepLearningPredictor:
                 pred = self.lstm_model.predict(current_sequence, verbose=0)
                 predictions.append(float(pred[0, 0]))
 
-                # Update sequence for next prediction
                 new_feature = np.zeros((1, 1, X.shape[1]))
-                new_feature[0, 0, 0] = pred[0, 0]  # Predicted price
+                new_feature[0, 0, 0] = pred[0, 0]
                 current_sequence = np.concatenate([
                     current_sequence[:, 1:, :],
                     new_feature
                 ], axis=1)
 
-            # Calculate expected return
             current_price = X[-1, 0]
             expected_return = ((predictions[-1] - current_price) / current_price) * 100
 
@@ -296,20 +270,16 @@ class DeepLearningPredictor:
             import tensorflow as tf
             from tensorflow import keras
 
-            # Load or create model
             if self.cnn_model is None:
                 self.cnn_model = self._build_cnn_model(X.shape[1])
 
-            # Reshape for CNN [samples, timesteps, features, channels]
             X_reshaped = X.reshape(1, X.shape[0], X.shape[1], 1)
 
-            # Predict next N days
             predictions = []
             for _ in range(self.prediction_horizon):
                 pred = self.cnn_model.predict(X_reshaped, verbose=0)
                 predictions.append(float(pred[0, 0]))
 
-            # Calculate expected return
             current_price = X[-1, 0]
             expected_return = ((predictions[-1] - current_price) / current_price) * 100
 
@@ -356,17 +326,12 @@ class DeepLearningPredictor:
         """
         Predict using Transformer model
         """
-        # Simplified transformer (would use full implementation in production)
-        # For now, return pattern-based prediction
 
         try:
-            # Analyze trend using simple pattern
-            prices = X[:, 0]  # Price column
+            prices = X[:, 0]
 
-            # Calculate trend
             recent_trend = np.polyfit(range(len(prices)), prices, 1)[0]
 
-            # Project forward
             predictions = []
             last_price = prices[-1]
 
@@ -374,14 +339,13 @@ class DeepLearningPredictor:
                 pred_price = last_price + (recent_trend * i)
                 predictions.append(float(pred_price))
 
-            # Calculate expected return
             current_price = prices[-1]
             expected_return = ((predictions[-1] - current_price) / current_price) * 100
 
             return {
                 'prices': predictions,
                 'expected_return': round(expected_return, 2),
-                'confidence': 'Low',  # Lower confidence for simplified model
+                'confidence': 'Low',
                 'model': 'transformer'
             }
 
@@ -393,9 +357,7 @@ class DeepLearningPredictor:
         self,
         predictions: Dict[str, Dict[str, Any]]
     ) -> Dict[str, Any]:
-        """
         Combine predictions from multiple models
-        """
         if not predictions:
             return {
                 'prices': [],
@@ -403,14 +365,12 @@ class DeepLearningPredictor:
                 'confidence': 'Low'
             }
 
-        # Weight models by confidence
         confidence_weights = {
             'High': 1.0,
             'Medium': 0.7,
             'Low': 0.4
         }
 
-        # Calculate weighted average
         weighted_prices = None
         total_weight = 0
 
@@ -428,7 +388,6 @@ class DeepLearningPredictor:
         if total_weight > 0:
             weighted_prices /= total_weight
 
-        # Calculate ensemble confidence
         if len(predictions) >= 3:
             confidence = 'High'
         elif len(predictions) >= 2:
@@ -436,10 +395,8 @@ class DeepLearningPredictor:
         else:
             confidence = 'Low'
 
-        # Calculate expected return
         avg_return = np.mean([p['expected_return'] for p in predictions.values()])
 
-        # Calculate confidence interval
         returns = [p['expected_return'] for p in predictions.values()]
         std_return = np.std(returns) if len(returns) > 1 else 0
 
@@ -460,7 +417,6 @@ class DeepLearningPredictor:
         expected_return = prediction['expected_return']
         confidence = prediction['confidence']
 
-        # Thresholds based on confidence
         if confidence == 'High':
             buy_threshold = 3.0
             sell_threshold = -2.0
@@ -501,24 +457,20 @@ class DeepLearningPredictor:
         epochs: int = 50,
         batch_size: int = 32
     ):
-        """
         Train all deep learning models
 
         Args:
             training_data: List of historical stock data
             epochs: Training epochs
             batch_size: Batch size for training
-        """
         logger.info(f"Training deep learning models on {len(training_data)} samples")
 
-        # Prepare training dataset
         X_train, y_train = self._prepare_training_data(training_data)
 
         if X_train is None or len(X_train) == 0:
             logger.error("Insufficient training data")
             return
 
-        # Train LSTM
         if self.tf_available:
             try:
                 if self.lstm_model is None:
@@ -534,14 +486,12 @@ class DeepLearningPredictor:
                     verbose=1
                 )
 
-                # Save model
                 self.lstm_model.save(os.path.join(self.model_dir, 'lstm_model.h5'))
                 logger.info("LSTM model trained and saved")
 
             except Exception as e:
                 logger.error(f"LSTM training error: {e}")
 
-        # Train CNN
         if self.tf_available:
             try:
                 if self.cnn_model is None:
@@ -557,7 +507,6 @@ class DeepLearningPredictor:
                     verbose=1
                 )
 
-                # Save model
                 self.cnn_model.save(os.path.join(self.model_dir, 'cnn_model.h5'))
                 logger.info("CNN model trained and saved")
 
@@ -568,11 +517,7 @@ class DeepLearningPredictor:
         self,
         training_data: List[Dict[str, Any]]
     ) -> Tuple[Optional[np.ndarray], Optional[np.ndarray]]:
-        """
         Prepare training dataset
-        """
-        # Implementation would extract sequences and targets
-        # For now, return None (would need actual implementation)
         logger.warning("Training data preparation not fully implemented")
         return None, None
 

@@ -1,4 +1,3 @@
-"""
 AutoTrade Pro v4.0 - 고급 백테스팅 리포트 생성기
 HTML/PDF 리포트 자동 생성 with 차트 및 통계
 
@@ -8,7 +7,6 @@ HTML/PDF 리포트 자동 생성 with 차트 및 통계
 - HTML 및 PDF 리포트 생성
 - 월별 수익률 히트맵
 - 거래 내역 상세 로그
-"""
 import json
 import logging
 from pathlib import Path
@@ -48,12 +46,12 @@ class BacktestReportGenerator:
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-            background: #f5f5f7;
+            background:
             padding: 20px;
         }
         .container { max-width: 1400px; margin: 0 auto; }
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg,
             color: white;
             padding: 40px;
             border-radius: 12px;
@@ -76,7 +74,7 @@ class BacktestReportGenerator:
         }
         .metric-label {
             font-size: 14px;
-            color: #666;
+            color:
             margin-bottom: 8px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -84,10 +82,10 @@ class BacktestReportGenerator:
         .metric-value {
             font-size: 28px;
             font-weight: 700;
-            color: #333;
+            color:
         }
-        .metric-value.positive { color: #00c853; }
-        .metric-value.negative { color: #d32f2f; }
+        .metric-value.positive { color:
+        .metric-value.negative { color:
 
         .chart-container {
             background: white;
@@ -100,7 +98,7 @@ class BacktestReportGenerator:
             font-size: 20px;
             font-weight: 600;
             margin-bottom: 20px;
-            color: #333;
+            color:
         }
 
         .trades-table {
@@ -117,19 +115,19 @@ class BacktestReportGenerator:
         th, td {
             padding: 12px;
             text-align: left;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid
         }
         th {
-            background: #f8f9fa;
+            background:
             font-weight: 600;
-            color: #333;
+            color:
         }
-        tr:hover { background: #f8f9fa; }
+        tr:hover { background:
 
         .footer {
             text-align: center;
             padding: 20px;
-            color: #999;
+            color:
             font-size: 14px;
         }
     </style>
@@ -243,7 +241,6 @@ class BacktestReportGenerator:
     </script>
 </body>
 </html>
-    """
 
     def __init__(self, output_dir: Path = None):
         """
@@ -263,7 +260,6 @@ class BacktestReportGenerator:
         backtest_result: Any,
         save_path: Optional[Path] = None
     ) -> Path:
-        """
         HTML 리포트 생성
 
         Args:
@@ -272,17 +268,14 @@ class BacktestReportGenerator:
 
         Returns:
             생성된 리포트 파일 경로
-        """
         if save_path is None:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             save_path = self.output_dir / f"backtest_{timestamp}.html"
 
-        # 차트 데이터 생성
         equity_curve_data = self._create_equity_curve_chart(backtest_result)
         drawdown_data = self._create_drawdown_chart(backtest_result)
         monthly_returns_data = self._create_monthly_returns_chart(backtest_result)
 
-        # 템플릿 렌더링
         template = Template(self.HTML_TEMPLATE)
         html_content = template.render(
             result=backtest_result,
@@ -293,7 +286,6 @@ class BacktestReportGenerator:
             monthly_returns_data=monthly_returns_data
         )
 
-        # 파일 저장
         with open(save_path, 'w', encoding='utf-8') as f:
             f.write(html_content)
 
@@ -313,14 +305,14 @@ class BacktestReportGenerator:
             'type': 'scatter',
             'mode': 'lines',
             'name': '자산',
-            'line': {'color': '#667eea', 'width': 2}
+            'line': {'color': '
         }]
 
         layout = {
             'xaxis': {'title': '기간'},
             'yaxis': {'title': '자산 (원)'},
             'hovermode': 'x unified',
-            'plot_bgcolor': '#fafafa',
+            'plot_bgcolor': '
             'margin': {'l': 50, 'r': 30, 't': 30, 'b': 50}
         }
 
@@ -331,7 +323,6 @@ class BacktestReportGenerator:
         if not PLOTLY_AVAILABLE or not hasattr(result, 'equity_curve'):
             return "{}"
 
-        # Drawdown 계산
         equity_curve = np.array(result.equity_curve)
         running_max = np.maximum.accumulate(equity_curve)
         drawdown = (equity_curve - running_max) / running_max * 100
@@ -343,14 +334,14 @@ class BacktestReportGenerator:
             'mode': 'lines',
             'fill': 'tozeroy',
             'name': 'Drawdown',
-            'line': {'color': '#d32f2f', 'width': 2}
+            'line': {'color': '
         }]
 
         layout = {
             'xaxis': {'title': '기간'},
             'yaxis': {'title': 'Drawdown (%)'},
             'hovermode': 'x unified',
-            'plot_bgcolor': '#fafafa',
+            'plot_bgcolor': '
             'margin': {'l': 50, 'r': 30, 't': 30, 'b': 50}
         }
 
@@ -361,7 +352,6 @@ class BacktestReportGenerator:
         if not PLOTLY_AVAILABLE or not hasattr(result, 'daily_returns'):
             return "{}"
 
-        # 간단한 월별 수익률 계산 (실제로는 더 정교하게 구현)
         monthly_returns = [5.2, -2.1, 3.8, 7.5, -1.3, 4.2, 2.9, -0.5, 6.1, 3.4, -2.8, 5.7]
 
         data = [{
@@ -369,14 +359,14 @@ class BacktestReportGenerator:
             'y': monthly_returns,
             'type': 'bar',
             'marker': {
-                'color': ['#00c853' if x > 0 else '#d32f2f' for x in monthly_returns]
+                'color': ['
             }
         }]
 
         layout = {
             'xaxis': {'title': '월'},
             'yaxis': {'title': '수익률 (%)'},
-            'plot_bgcolor': '#fafafa',
+            'plot_bgcolor': '
             'margin': {'l': 50, 'r': 30, 't': 30, 'b': 50}
         }
 
@@ -393,7 +383,6 @@ class BacktestReportGenerator:
         Returns:
             생성된 PDF 파일 경로
         """
-        # HTML 먼저 생성
         html_path = self.generate_html_report(backtest_result)
 
         if save_path is None:

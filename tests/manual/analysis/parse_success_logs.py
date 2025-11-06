@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# parse_success_logs.py - comprehensive_api_debugger.py 로그에서 성공한 API 추출
 
 import re
 import json
@@ -11,8 +9,6 @@ def parse_log_file(log_path):
     with open(log_path, 'r', encoding='utf-8') as f:
         log_content = f.read()
 
-    # 성공한 API 호출 패턴 찾기
-    # 예: [21:39:26] [INFO] ✅ 성공 (데이터 확인) [kt00005 Var 1/2] 체결잔고요청 | 성공 (Path: acnt)
     success_pattern = r'\[INFO\] ✅ 성공 \(데이터 확인\) \[(\w+) Var (\d+)/(\d+)\] ([^\|]+) \| 성공 \(Path: (\w+)\)'
 
     success_records = []
@@ -48,7 +44,6 @@ def extract_variant_params_from_account():
         traceback.print_exc()
         return {}
 
-    # 공통 파라미터 생성
     params = account.p_common.copy()
     params["stk_cd"] = params.get("placeholder_stk_kospi", "005930")
     params["ord_qty"] = "1"
@@ -59,8 +54,6 @@ def extract_variant_params_from_account():
 
     api_variants = {}
 
-    # 로그에서 발견된 모든 고유 API ID 목록
-    # 이 API ID들을 시도합니다
     test_api_ids = [
         "kt00005", "kt00018", "ka10085", "ka10075", "ka10076", "kt00001", "kt00004",
         "kt00010", "kt00011", "kt00012", "kt00013", "ka10077", "ka10074", "ka10073",
@@ -87,7 +80,6 @@ def extract_variant_params_from_account():
     ]
 
     for api_id in test_api_ids:
-        # API definition 가져오기
         func = account.get_api_definition(api_id)
         if not func or func is None:
             continue
@@ -97,7 +89,6 @@ def extract_variant_params_from_account():
             if variants and isinstance(variants, list) and len(variants) > 0:
                 api_variants[api_id] = variants
         except Exception as e:
-            # 오류 발생 시 무시
             pass
 
     return api_variants
@@ -113,15 +104,12 @@ def match_variants_with_logs(success_records, api_variants):
         api_name = record['api_name']
         path = record['path']
 
-        # account.py에서 해당 API의 variants 찾기
         if api_id in api_variants:
             variants = api_variants[api_id]
 
-            # variant_idx는 1-based이므로 0-based로 변환
             if 0 < variant_idx <= len(variants):
                 variant_path, variant_body = variants[variant_idx - 1]
 
-                # 검증된 호출 정보 저장
                 if api_id not in verified_calls:
                     verified_calls[api_id] = {
                         'api_name': api_name,
@@ -146,7 +134,6 @@ def main():
 
     log_path = "/home/user/autotrade/comprehensive_api_debugger.py 결과 로그.txt"
 
-    # 1. 로그 파싱
     print("\n[1] 로그 파일 파싱...")
     success_records = parse_log_file(log_path)
 
@@ -156,7 +143,6 @@ def main():
 
     print(f"    성공 기록 {len(success_records)}개 발견")
 
-    # API별 성공 수 집계
     api_success_count = {}
     for record in success_records:
         api_id = record['api_id']
@@ -164,26 +150,22 @@ def main():
 
     print(f"    고유 API 수: {len(api_success_count)}개")
 
-    # 2. account.py에서 variants 추출
     print("\n[2] account.py에서 Variant 파라미터 추출...")
     api_variants = extract_variant_params_from_account()
     print(f"    {len(api_variants)}개 API의 Variant 추출 완료")
 
-    # 3. 매칭
     print("\n[3] 로그 기록과 Variant 매칭...")
     verified_calls = match_variants_with_logs(success_records, api_variants)
 
     total_verified = sum(info['success_count'] for info in verified_calls.values())
     print(f"    {len(verified_calls)}개 API, 총 {total_verified}개 검증된 호출")
 
-    # 4. 저장
     output_file = Path("verified_api_calls_full.json")
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(verified_calls, f, ensure_ascii=False, indent=2)
 
     print(f"\n💾 저장 완료: {output_file}")
 
-    # 5. 요약 출력
     print("\n" + "=" * 80)
     print(f"검증된 API 목록 ({len(verified_calls)}개)")
     print("=" * 80)

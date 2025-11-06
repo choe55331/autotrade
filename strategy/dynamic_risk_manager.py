@@ -1,8 +1,6 @@
-"""
 strategy/dynamic_risk_manager.py
 동적 리스크 관리 모드 시스템
 성과에 따라 자동으로 모드 전환
-"""
 from typing import Dict, Any, Optional
 from dataclasses import dataclass
 from datetime import datetime
@@ -53,15 +51,12 @@ class DynamicRiskManager:
         self.initial_capital = initial_capital
         self.current_capital = initial_capital
 
-        # 설정 로드
         self.config = get_config()
         self.risk_config = self.config.risk_management
 
-        # 현재 모드
         self.current_mode = RiskMode.NORMAL
         self.mode_changed_at = datetime.now()
 
-        # 모드별 설정 로드
         self._load_mode_configs()
 
         logger.info(
@@ -73,7 +68,6 @@ class DynamicRiskManager:
         """모드별 설정 로드"""
         self.mode_configs = {}
 
-        # Aggressive 모드
         aggressive_cfg = self.risk_config.get('aggressive', {})
         self.mode_configs[RiskMode.AGGRESSIVE] = RiskModeConfig(
             mode=RiskMode.AGGRESSIVE,
@@ -85,7 +79,6 @@ class DynamicRiskManager:
             trigger_return_min=aggressive_cfg.get('trigger_return', 0.05),
         )
 
-        # Normal 모드
         normal_cfg = self.risk_config.get('normal', {})
         self.mode_configs[RiskMode.NORMAL] = RiskModeConfig(
             mode=RiskMode.NORMAL,
@@ -98,7 +91,6 @@ class DynamicRiskManager:
             trigger_return_max=normal_cfg.get('trigger_return_max', 0.05),
         )
 
-        # Conservative 모드
         conservative_cfg = self.risk_config.get('conservative', {})
         self.mode_configs[RiskMode.CONSERVATIVE] = RiskModeConfig(
             mode=RiskMode.CONSERVATIVE,
@@ -111,7 +103,6 @@ class DynamicRiskManager:
             trigger_return_max=conservative_cfg.get('trigger_return_max', -0.05),
         )
 
-        # Very Conservative 모드
         very_conservative_cfg = self.risk_config.get('very_conservative', {})
         self.mode_configs[RiskMode.VERY_CONSERVATIVE] = RiskModeConfig(
             mode=RiskMode.VERY_CONSERVATIVE,
@@ -133,7 +124,6 @@ class DynamicRiskManager:
         previous_capital = self.current_capital
         self.current_capital = current_capital
 
-        # 수익률 계산
         return_rate = self.get_return_rate()
 
         logger.info(
@@ -141,7 +131,6 @@ class DynamicRiskManager:
             f"(수익률: {return_rate*100:+.2f}%)"
         )
 
-        # 모드 재평가
         self._evaluate_mode()
 
     def get_return_rate(self) -> float:
@@ -168,19 +157,15 @@ class DynamicRiskManager:
         Returns:
             RiskMode
         """
-        # Aggressive: 수익률 +5% 이상
         if return_rate >= 0.05:
             return RiskMode.AGGRESSIVE
 
-        # Very Conservative: 수익률 -10% 이하
         if return_rate <= -0.10:
             return RiskMode.VERY_CONSERVATIVE
 
-        # Conservative: 수익률 -10% ~ -5%
         if -0.10 < return_rate <= -0.05:
             return RiskMode.CONSERVATIVE
 
-        # Normal: 수익률 -5% ~ +5%
         return RiskMode.NORMAL
 
     def _switch_mode(self, new_mode: RiskMode, return_rate: float):
@@ -200,7 +185,6 @@ class DynamicRiskManager:
             f"(수익률: {return_rate*100:+.2f}%)"
         )
 
-        # 모드별 설정 출력
         config = self.get_current_mode_config()
         logger.info(
             f"📋 새로운 리스크 설정:\n"
@@ -233,7 +217,6 @@ class DynamicRiskManager:
         stock_price: int,
         available_cash: int
     ) -> int:
-        """
         포지션 크기 계산
 
         Args:
@@ -242,16 +225,12 @@ class DynamicRiskManager:
 
         Returns:
             매수 수량
-        """
         config = self.get_current_mode_config()
 
-        # 거래당 리스크 금액
         risk_amount = self.current_capital * config.risk_per_trade_ratio
 
-        # 사용 가능 금액과 리스크 금액 중 작은 값 사용
         position_value = min(risk_amount, available_cash)
 
-        # 수량 계산
         quantity = int(position_value / stock_price)
 
         return quantity
@@ -289,11 +268,9 @@ class DynamicRiskManager:
         """
         config = self.get_current_mode_config()
 
-        # 점수 체크
         if ai_score < config.ai_min_score:
             return False
 
-        # 신뢰도 체크 (보수적 모드일수록 높은 신뢰도 요구)
         confidence_requirements = {
             RiskMode.AGGRESSIVE: 'Low',
             RiskMode.NORMAL: 'Medium',

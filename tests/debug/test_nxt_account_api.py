@@ -1,4 +1,3 @@
-"""
 NXT 계좌 API 테스트
 
 발견: get_holdings(market_type="NXT")로 조회하면
@@ -8,17 +7,14 @@ NXT 보유 종목의 실시간 현재가를 가져올 수 있을 것!
 1. market_type="KRX" vs "NXT" 비교
 2. cur_prc 필드 확인
 3. 10회 조회로 가격 변동 확인
-"""
 import sys
 from pathlib import Path
 from datetime import datetime
 import time
 
-# 프로젝트 루트를 Python 경로에 추가
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-# 색상 코드
 GREEN = '\033[92m'
 RED = '\033[91m'
 BLUE = '\033[94m'
@@ -34,11 +30,9 @@ def is_nxt_hours():
     now = datetime.now()
     current_time = now.time()
 
-    # 오전: 08:00-09:00
     morning_start = datetime.strptime("08:00", "%H:%M").time()
     morning_end = datetime.strptime("09:00", "%H:%M").time()
 
-    # 오후: 15:30-20:00
     afternoon_start = datetime.strptime("15:30", "%H:%M").time()
     afternoon_end = datetime.strptime("20:00", "%H:%M").time()
 
@@ -63,7 +57,6 @@ def test_nxt_holdings_monitoring(account_api, rounds=10, interval=5):
     print(f"{CYAN}조회 횟수: {rounds}회{RESET}")
     print(f"{CYAN}조회 간격: {interval}초{RESET}")
 
-    # 가격 기록
     price_history = {}
 
     for round_num in range(1, rounds + 1):
@@ -72,22 +65,18 @@ def test_nxt_holdings_monitoring(account_api, rounds=10, interval=5):
         print(f"{MAGENTA}[{round_num}/{rounds}회차] {current_time}{RESET}")
         print(f"{MAGENTA}{'='*100}{RESET}")
 
-        # NXT 보유 종목 조회
         holdings = account_api.get_holdings(market_type="NXT")
 
         if holdings:
             print(f"{GREEN}✅ NXT 보유 종목: {len(holdings)}개{RESET}\n")
 
             for holding in holdings:
-                # 종목 정보
                 stk_cd = holding.get('stk_cd', '')
                 stk_nm = holding.get('stk_nm', '')
 
-                # 현재가 (여러 필드 시도)
                 cur_prc = None
                 price_field = None
 
-                # 가능한 현재가 필드들
                 for field in ['cur_prc', 'crnt_pric', 'now_pric', 'current_price']:
                     if field in holding:
                         try:
@@ -97,11 +86,9 @@ def test_nxt_holdings_monitoring(account_api, rounds=10, interval=5):
                         except:
                             pass
 
-                # 평가금액 (역산용)
                 evlt_amt = holding.get('evlt_amt', 0)
-                rmnd_qty = holding.get('rmnd_qty', 0)  # 보유수량
+                rmnd_qty = holding.get('rmnd_qty', 0)
 
-                # 가격 기록 초기화
                 if stk_cd not in price_history:
                     price_history[stk_cd] = {
                         'name': stk_nm,
@@ -110,7 +97,6 @@ def test_nxt_holdings_monitoring(account_api, rounds=10, interval=5):
                         'quantities': []
                     }
 
-                # 기록 추가
                 if cur_prc:
                     price_history[stk_cd]['prices'].append(cur_prc)
                 if evlt_amt:
@@ -118,7 +104,6 @@ def test_nxt_holdings_monitoring(account_api, rounds=10, interval=5):
                 if rmnd_qty:
                     price_history[stk_cd]['quantities'].append(int(rmnd_qty))
 
-                # 변동 계산
                 change_symbol = ""
                 if len(price_history[stk_cd]['prices']) > 1:
                     prev_price = price_history[stk_cd]['prices'][-2]
@@ -131,13 +116,11 @@ def test_nxt_holdings_monitoring(account_api, rounds=10, interval=5):
                         else:
                             change_symbol = " ➡️  변동없음"
 
-                # 출력
                 if cur_prc:
                     print(f"  🟢 {stk_nm:15} ({stk_cd}) | 현재가: {cur_prc:7,}원 (필드: {price_field}){change_symbol}")
                 else:
                     print(f"  ⚪ {stk_nm:15} ({stk_cd}) | 현재가: 조회 실패")
 
-                # 추가 정보
                 if evlt_amt and rmnd_qty:
                     try:
                         evlt_amt_int = int(str(evlt_amt).replace(',', ''))
@@ -150,12 +133,10 @@ def test_nxt_holdings_monitoring(account_api, rounds=10, interval=5):
         else:
             print(f"{YELLOW}⚠️  NXT 보유 종목 없음{RESET}")
 
-        # 다음 회차 전 대기
         if round_num < rounds:
             print(f"\n  {CYAN}⏳ {interval}초 대기 중...{RESET}")
             time.sleep(interval)
 
-    # 최종 결과 분석
     print(f"\n{BLUE}{'='*100}{RESET}")
     print(f"{BLUE}📊 최종 결과 분석{RESET}")
     print(f"{BLUE}{'='*100}{RESET}")
@@ -175,14 +156,12 @@ def test_nxt_holdings_monitoring(account_api, rounds=10, interval=5):
         if not prices:
             continue
 
-        # 가격 변동 분석
         unique_prices = set(prices)
         has_change = len(unique_prices) > 1
 
         if has_change:
             stocks_with_change += 1
 
-        # 개별 종목 요약
         min_price = min(prices)
         max_price = max(prices)
         price_range = max_price - min_price
@@ -193,7 +172,6 @@ def test_nxt_holdings_monitoring(account_api, rounds=10, interval=5):
         print(f"  {change_icon} 가격 변동: {'있음' if has_change else '없음'} (최소: {min_price:,}원, 최대: {max_price:,}원, 범위: {price_range:,}원)")
         print(f"  📊 조회 횟수: {len(prices)}회")
 
-    # 전체 통계
     print(f"\n{MAGENTA}{'='*100}{RESET}")
     print(f"{MAGENTA}🎯 최종 결론{RESET}")
     print(f"{MAGENTA}{'='*100}{RESET}")
@@ -218,7 +196,6 @@ def main():
     print(f"{BLUE}🚀 NXT 계좌 API 실시간 가격 테스트{RESET}")
     print(f"{BLUE}{'='*100}{RESET}")
 
-    # 현재 시간 확인
     now = datetime.now()
     in_nxt_hours = is_nxt_hours()
 
@@ -236,7 +213,6 @@ def main():
     print(f"\n{GREEN}✅ 테스트를 시작합니다.{RESET}")
 
     try:
-        # Account API 초기화
         from core.rest_client import KiwoomRESTClient
         from api.account import AccountAPI
 
@@ -249,7 +225,6 @@ def main():
 
         print(f"{GREEN}✅ API 연결 성공{RESET}")
 
-        # NXT 보유 종목 실시간 모니터링
         test_nxt_holdings_monitoring(
             account_api=account_api,
             rounds=10,

@@ -1,12 +1,9 @@
-"""
 strategy/momentum_strategy.py
 모멘텀 전략 구현
-"""
 import logging
 from typing import Dict, Any, Optional
 from .base_strategy import BaseStrategy
 
-# 공통 유틸리티 임포트
 from utils.position_calculator import calculate_position_size_by_ratio
 
 logger = logging.getLogger(__name__)
@@ -69,33 +66,27 @@ class MomentumStrategy(BaseStrategy):
         volume = int(stock_data.get('volume', 0))
         current_price = int(stock_data.get('current_price', 0))
         
-        # 기본 필터링
         min_change_rate = self.get_config('min_change_rate', 3.0)
         min_volume = self.get_config('min_volume', 100000)
         
-        # 분석 점수 계산
         score = 0.0
         reasons = []
         
-        # 등락률 점수 (0~5점)
         if change_rate >= min_change_rate:
             rate_score = min(change_rate / 2, 5.0)
             score += rate_score
             reasons.append(f"상승률 {change_rate:.2f}%")
         
-        # 거래량 점수 (0~3점)
         if volume >= min_volume:
             volume_score = min(volume / min_volume, 3.0)
             score += volume_score
             reasons.append(f"거래량 {volume:,}주")
         
-        # 기술적 지표 점수 (0~2점)
         technical = stock_data.get('technical', {})
         if technical:
             ma5 = technical.get('ma5', 0)
             ma20 = technical.get('ma20', 0)
             
-            # 이동평균선 정배열
             if current_price > ma5 > ma20:
                 score += 2.0
                 reasons.append("이동평균선 정배열")
@@ -103,7 +94,6 @@ class MomentumStrategy(BaseStrategy):
                 score += 1.0
                 reasons.append("5일선 상향")
         
-        # 신호 결정
         if score >= 7.0:
             signal = 'buy'
             confidence = 'High'
@@ -142,18 +132,15 @@ class MomentumStrategy(BaseStrategy):
         Returns:
             매수 여부
         """
-        # 이미 보유 중인지 확인
         if self.has_position(stock_code):
             logger.debug(f"{stock_code} 이미 보유 중")
             return False
         
-        # 최대 포지션 확인
         max_positions = self.get_config('max_positions', 5)
         if self.get_position_count() >= max_positions:
             logger.debug(f"최대 포지션 {max_positions}개 도달")
             return False
         
-        # 매수 신호 확인
         signal = analysis.get('signal', 'hold')
         score = analysis.get('score', 0)
         
@@ -179,12 +166,10 @@ class MomentumStrategy(BaseStrategy):
         take_profit_rate = self.get_config('take_profit_rate', 0.10) * 100
         stop_loss_rate = self.get_config('stop_loss_rate', -0.05) * 100
         
-        # 익절 조건
         if profit_loss_rate >= take_profit_rate:
             logger.info(f"{stock_code} 익절 조건 충족 ({profit_loss_rate:+.2f}%)")
             return True
         
-        # 손절 조건
         if profit_loss_rate <= stop_loss_rate:
             logger.info(f"{stock_code} 손절 조건 충족 ({profit_loss_rate:+.2f}%)")
             return True
@@ -197,7 +182,6 @@ class MomentumStrategy(BaseStrategy):
         current_price: int,
         available_cash: int
     ) -> int:
-        """
         포지션 크기 계산 (공통 유틸리티 사용)
 
         Args:
@@ -207,14 +191,11 @@ class MomentumStrategy(BaseStrategy):
 
         Returns:
             매수 수량
-        """
         if current_price == 0:
             return 0
 
-        # 포지션 크기 비율
         position_size_rate = self.get_config('position_size_rate', 0.20)
 
-        # 공통 유틸리티를 사용한 포지션 사이즈 계산
         quantity = calculate_position_size_by_ratio(
             capital=available_cash,
             price=current_price,

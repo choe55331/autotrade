@@ -1,12 +1,9 @@
-"""
 Comprehensive Test Suite for v5.11 Enhancements
 Dashboard UX, Performance Monitoring, Advanced Backtesting
-"""
 import sys
 import os
 from datetime import datetime, timedelta
 
-# Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
@@ -22,13 +19,11 @@ def test_performance_monitor():
 
         monitor = PerformanceMonitor()
 
-        # Test 1: Context Manager
         print("\n[Test 1] Context Manager for Performance Measurement")
         with monitor.measure("test_operation", {"category": "test"}):
-            time.sleep(0.1)  # Simulate work
+            time.sleep(0.1)
         print("✓ Context manager measurement successful")
 
-        # Test 2: Decorator
         print("\n[Test 2] Decorator for Function Tracking")
 
         @monitor.track(name="test_function")
@@ -42,7 +37,6 @@ def test_performance_monitor():
         result = sample_function(1000)
         print(f"✓ Decorator tracking successful (result: {result})")
 
-        # Test 3: Statistics
         print("\n[Test 3] Performance Statistics")
         stats = monitor.get_statistics()
         print(f"✓ Statistics retrieved: {len(stats)} metrics tracked")
@@ -50,18 +44,15 @@ def test_performance_monitor():
             for name, stat in list(stats.items())[:3]:
                 print(f"  - {name}: avg={stat['avg_duration']:.4f}s, calls={stat['count']}")
 
-        # Test 4: Bottleneck Detection
         print("\n[Test 4] Bottleneck Detection")
         bottlenecks = monitor.detect_bottlenecks(threshold_seconds=0.0)
         print(f"✓ Bottleneck detection complete: {len(bottlenecks)} found")
 
-        # Test 5: Performance Report
         print("\n[Test 5] Performance Report Generation")
         report = monitor.generate_report(include_system=True)
         print(f"✓ Report generated with {len(report.get('metrics', {}))} metrics")
         print(f"  System metrics included: {bool(report.get('system_info'))}")
 
-        # Test 6: Export to JSON
         print("\n[Test 6] Export Metrics to JSON")
         json_path = "/tmp/performance_metrics_test.json"
         monitor.export_to_json(json_path)
@@ -86,7 +77,6 @@ def test_advanced_backtester():
     try:
         from ai.advanced_backtester import AdvancedBacktester
 
-        # Test 1: Initialize
         print("\n[Test 1] Backtester Initialization")
         backtester = AdvancedBacktester(
             initial_capital=10_000_000,
@@ -96,10 +86,9 @@ def test_advanced_backtester():
         )
         print(f"✓ Backtester initialized with capital: {backtester.initial_capital:,.0f}원")
 
-        # Test 2: Create Sample Data
         print("\n[Test 2] Creating Sample Market Data")
         sample_data = {
-            '005930': [  # Samsung Electronics
+            '005930': [
                 {
                     'date': (datetime.now() - timedelta(days=i)).strftime('%Y-%m-%d'),
                     'open': 70000 + i * 100,
@@ -113,13 +102,11 @@ def test_advanced_backtester():
         }
         print(f"✓ Sample data created: {len(sample_data['005930'])} days")
 
-        # Test 3: Simple Buy-and-Hold Strategy
         print("\n[Test 3] Running Buy-and-Hold Strategy")
 
         def buy_and_hold_strategy(backtester, current_date, stock_data):
             """Simple buy-and-hold strategy"""
             if backtester.current_date_index == 0:
-                # Buy on first day
                 price = stock_data[0]['close']
                 quantity = int(backtester.cash * 0.9 / price)
                 if quantity > 0:
@@ -131,27 +118,23 @@ def test_advanced_backtester():
         print(f"  Total Return: {result.total_return:.2f}%")
         print(f"  Total Trades: {result.total_trades}")
 
-        # Test 4: Risk Metrics
         print("\n[Test 4] Risk Metrics Calculation")
         print(f"✓ Sharpe Ratio: {result.sharpe_ratio:.2f}")
         print(f"✓ Sortino Ratio: {result.sortino_ratio:.2f}")
         print(f"✓ Max Drawdown: {result.max_drawdown:.2f}%")
         print(f"✓ Win Rate: {result.win_rate:.2f}%")
 
-        # Test 5: Trade History
         print("\n[Test 5] Trade History")
         print(f"✓ Trades recorded: {len(result.trades)}")
         if result.trades:
             print(f"  First trade: {result.trades[0]}")
 
-        # Test 6: Equity Curve
         print("\n[Test 6] Equity Curve")
         print(f"✓ Equity curve points: {len(result.equity_curve)}")
         if len(result.equity_curve) >= 2:
             print(f"  Start: {result.equity_curve[0]['equity']:,.0f}원")
             print(f"  End: {result.equity_curve[-1]['equity']:,.0f}원")
 
-        # Test 7: Monte Carlo Simulation
         print("\n[Test 7] Monte Carlo Simulation")
         if result.total_trades > 0:
             mc_result = backtester.monte_carlo_simulation(result, num_simulations=100)
@@ -288,19 +271,14 @@ def main():
 
     results = []
 
-    # Test 1: Performance Monitor
     results.append(("Performance Monitor", test_performance_monitor()))
 
-    # Test 2: Advanced Backtester
     results.append(("Advanced Backtester", test_advanced_backtester()))
 
-    # Test 3: Loading Utils JS
     results.append(("Loading Utils JavaScript", test_loading_utils_structure()))
 
-    # Test 4: Animations CSS
     results.append(("Animations CSS", test_animations_css_structure()))
 
-    # Summary
     print("\n" + "=" * 60)
     print("TEST SUMMARY - v5.11")
     print("=" * 60)

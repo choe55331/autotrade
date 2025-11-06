@@ -1,9 +1,6 @@
-#!/usr/bin/env python3
-"""
 test_verified_and_corrected_apis_fixed.py
 검증된 347개 + 수정된 23개 = 총 370개 API 테스트
 test_all_394_calls.py와 동일한 방식 사용 (성공 확인됨)
-"""
 import os
 import sys
 import requests
@@ -12,15 +9,12 @@ from datetime import datetime, time
 from pathlib import Path
 import time as time_module
 
-# 프로젝트 루트 경로 추가
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-# credentials.py에서 API 키 로드
 from config import get_credentials
 
 class VerifiedCorrectedAPITester:
     def __init__(self):
-        # secrets.json에서 설정 로드
         credentials = get_credentials()
         kiwoom_config = credentials.get_kiwoom_config()
 
@@ -79,14 +73,12 @@ class VerifiedCorrectedAPITester:
         if return_code != 0:
             return False, 0, "return_code != 0"
 
-        # 데이터 키 확인
         data_keys = [k for k in response.keys()
                      if k not in ['return_code', 'return_msg', 'api-id', 'cont-yn', 'next-key']]
 
         if not data_keys:
             return False, 0, "no data keys"
 
-        # 실제 데이터 확인
         data_count = 0
         for key in data_keys:
             value = response.get(key)
@@ -105,7 +97,6 @@ class VerifiedCorrectedAPITester:
         """단일 API 호출 테스트"""
         response = self.request(api_id, body, path)
 
-        # 데이터 검증
         is_success, data_count, validation_msg = self.validate_data(response)
 
         result = {
@@ -130,7 +121,6 @@ class VerifiedCorrectedAPITester:
         print("검증된 + 수정된 API 전체 테스트 (370개)")
         print("="*80)
 
-        # 데이터 로드
         print("\n[1] 데이터 로드 중...")
         with open('corrected_api_calls.json', 'r', encoding='utf-8') as f:
             data = json.load(f)
@@ -141,21 +131,16 @@ class VerifiedCorrectedAPITester:
         print(f"  ✅ 검증된 API: {len(verified_apis)}개")
         print(f"  🔧 수정된 API: {len(corrected_apis)}개")
 
-        # 토큰 발급
         print("\n[2] 토큰 발급 중...")
         if not self.get_token():
             print("❌ 토큰 발급 실패. 프로그램을 종료합니다.")
             return
 
-        # 통계
         stats = {
             'verified': {'tested': 0, 'success': 0, 'no_data': 0, 'error': 0},
             'corrected': {'tested': 0, 'success': 0, 'no_data': 0, 'error': 0, 'improved': 0}
         }
 
-        # ====================================================================
-        # [3] 검증된 API 테스트
-        # ====================================================================
         print("\n[3] 검증된 API 테스트 (347개)...")
         print("-"*80)
 
@@ -184,9 +169,6 @@ class VerifiedCorrectedAPITester:
                     print(f"❌ ERROR: {result['return_msg'][:40]}")
                     stats['verified']['error'] += 1
 
-        # ====================================================================
-        # [4] 수정된 API 테스트
-        # ====================================================================
         print("\n[4] 수정된 API 테스트 (23개)...")
         print("-"*80)
 
@@ -221,9 +203,6 @@ class VerifiedCorrectedAPITester:
                     print(f"❌ ERROR: {result['return_msg'][:30]}")
                     stats['corrected']['error'] += 1
 
-        # ====================================================================
-        # [5] 통계 출력
-        # ====================================================================
         print("\n" + "="*80)
         print("📊 테스트 결과 통계")
         print("="*80)
@@ -246,7 +225,6 @@ class VerifiedCorrectedAPITester:
         print(f"  총 테스트: {total_tested}개")
         print(f"  ✅ 성공: {total_success}개 ({total_success/total_tested*100:.1f}%)")
 
-        # 결과 저장
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         result_file = f'final_test_results_{timestamp}.json'
 

@@ -1,17 +1,13 @@
-#!/usr/bin/env python3
-"""
 대시보드 이슈 원클릭 테스트
 
 사용법:
     python test_dashboard.py
 
 모든 테스트를 자동으로 실행하고 결과를 표시합니다.
-"""
 
 import sys
 import os
 
-# 프로젝트 루트를 Python 경로에 추가
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from core.rest_client import KiwoomRESTClient
@@ -25,10 +21,8 @@ def init_apis():
     print("🔧 API 초기화 중...")
 
     try:
-        # REST Client 초기화 (내부에서 자동으로 설정 로드)
         client = KiwoomRESTClient()
 
-        # API 초기화
         market_api = MarketAPI(client)
         account_api = AccountAPI(client)
 
@@ -69,14 +63,12 @@ def test_account_balance(account_api):
             print("❌ 보유종목 조회 실패\n")
             return False
 
-        # 디버깅: 실제 API 응답 확인
         print("\n🔍 [디버깅] deposit API 응답 필드:")
         print(json.dumps({k: v for k, v in list(deposit.items())[:10]}, indent=2, ensure_ascii=False))
         print()
 
         print("📍 계좌 잔고 계산 중...\n")
 
-        # 접근법 1 (추천)
         result1 = AccountBalanceFix.approach_1_deposit_minus_purchase(deposit, holdings)
 
         print("✅ [접근법 1] 예수금 - 구매원가 (추천)")
@@ -89,26 +81,22 @@ def test_account_balance(account_api):
 
         print()
 
-        # 접근법 2
         result2 = AccountBalanceFix.approach_2_manual_calculation(deposit, holdings)
         print("✅ [접근법 2] 수동 계산")
         print(f"   💰 실제 사용가능액: {result2['cash']:,}원")
 
         print()
 
-        # 기존 방식 (비교용)
         old_cash = int(deposit.get('ord_alow_amt', 0))
         print("⚠️  [기존 방식] 인출가능액 사용")
         print(f"   인출가능액: {old_cash:,}원")
         print(f"   차이: {result1['cash'] - old_cash:,}원")
 
-        # 실제 예수금 확인
         print("\n🔍 [디버깅] 예수금 관련 필드 확인:")
         for key in deposit.keys():
             if any(keyword in key.lower() for keyword in ['dps', 'amt', 'cash', 'deposit', '예수금']):
                 print(f"   {key}: {deposit.get(key)}")
 
-        # 보유종목 확인
         if holdings and len(holdings) > 0:
             print("\n🔍 [디버깅] 보유종목 첫 번째 항목 필드:")
             import json
@@ -140,7 +128,6 @@ def test_nxt_price(market_api, account_api):
     try:
         from tests.manual_tests.patches.fix_nxt_price import MarketAPIExtended, NXTPriceFix
 
-        # 현재 시간 정보
         is_regular = NXTPriceFix.is_regular_market_time()
         is_nxt = NXTPriceFix.is_nxt_time()
 
@@ -149,7 +136,6 @@ def test_nxt_price(market_api, account_api):
         print(f"   NXT 거래시간: {'예' if is_nxt else '아니오'}")
         print()
 
-        # 테스트 종목 (삼성전자, SK하이닉스)
         test_stocks = [
             ('005930', '삼성전자'),
             ('000660', 'SK하이닉스')
@@ -162,7 +148,6 @@ def test_nxt_price(market_api, account_api):
         for stock_code, stock_name in test_stocks:
             print(f"📍 {stock_name} ({stock_code}) 가격 조회 중...")
 
-            # 접근법 4 (여러 소스 시도)
             price_info = market_api_ext.get_current_price_with_source(stock_code)
 
             if price_info['price'] > 0:
@@ -171,7 +156,6 @@ def test_nxt_price(market_api, account_api):
                 print(f"   출처: {price_info['source']}")
                 print(f"   시도한 소스: {', '.join(price_info.get('sources_tried', []))}")
 
-                # 시간외인데 market_api로 조회된 경우 확인
                 if not is_regular and not is_nxt and price_info['source'] == 'market_api':
                     print(f"   ⚠️  시간외인데 market_api로 조회됨 (API가 전일 종가 반환했을 가능성)")
 
@@ -204,21 +188,17 @@ def test_ai_scanning():
     print("🤖 테스트 3: AI 스캐닝 종목 연동")
     print("=" * 80)
 
-    # 이 테스트는 봇이 실행 중일 때만 가능
     print("⚠️  이 테스트는 main.py가 실행 중일 때만 작동합니다.")
     print()
     print("봇 실행 후 다음 명령으로 테스트하세요:")
     print("  python -c \"from tests.manual_tests.run_dashboard_tests import quick_test; import main; quick_test(main.bot)\"")
     print()
 
-    # 또는 파일 기반으로 확인
     print("또는 scanner_pipeline 파일 확인:")
 
     try:
-        # main.py에서 bot 인스턴스를 가져올 수 있는지 확인
         import importlib.util
 
-        # main 모듈이 로드되어 있는지 확인
         if 'main' in sys.modules:
             main_module = sys.modules['main']
             if hasattr(main_module, 'bot'):
@@ -256,30 +236,24 @@ def main():
     print("=" * 80)
     print()
 
-    # API 초기화
     market_api, account_api = init_apis()
 
     if not market_api or not account_api:
         print("❌ API 초기화 실패. 테스트를 중단합니다.")
         return 1
 
-    # 테스트 결과
     results = {
         'account_balance': False,
         'nxt_price': False,
         'ai_scanning': False
     }
 
-    # 테스트 1: 계좌 잔고
     results['account_balance'] = test_account_balance(account_api)
 
-    # 테스트 2: NXT 가격
     results['nxt_price'] = test_nxt_price(market_api, account_api)
 
-    # 테스트 3: AI 스캐닝
     results['ai_scanning'] = test_ai_scanning()
 
-    # 결과 요약
     print("=" * 80)
     print("📊 테스트 결과 요약")
     print("=" * 80)

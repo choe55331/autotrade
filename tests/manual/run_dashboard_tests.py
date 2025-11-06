@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-"""
 대시보드 이슈 테스트 실행 스크립트
 
 사용법:
@@ -8,12 +6,10 @@
 또는 main.py에서:
     from tests.manual_tests.run_dashboard_tests import quick_test
     quick_test(bot)
-"""
 
 import sys
 import os
 
-# 프로젝트 루트를 Python 경로에 추가
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
 
@@ -32,9 +28,6 @@ def quick_test(bot_instance):
     market_api = bot_instance.market_api if hasattr(bot_instance, 'market_api') else None
     account_api = bot_instance.account_api if hasattr(bot_instance, 'account_api') else None
 
-    # ========================================================================
-    # 1. 계좌 잔고
-    # ========================================================================
     print("📊 1. 계좌 잔고 계산 테스트")
     print("-" * 80)
 
@@ -46,7 +39,6 @@ def quick_test(bot_instance):
             holdings = account_api.get_holdings()
 
             if deposit and holdings is not None:
-                # 접근법 1 (추천)
                 result = AccountBalanceFix.approach_1_deposit_minus_purchase(deposit, holdings)
 
                 print(f"✅ 계좌 잔고 계산 성공")
@@ -66,9 +58,6 @@ def quick_test(bot_instance):
 
     print()
 
-    # ========================================================================
-    # 2. NXT 가격 조회
-    # ========================================================================
     print("💰 2. NXT 시장가격 조회 테스트")
     print("-" * 80)
 
@@ -76,13 +65,11 @@ def quick_test(bot_instance):
         try:
             from tests.manual_tests.patches.fix_nxt_price import MarketAPIExtended, NXTPriceFix
 
-            # 현재 시간 정보
             print(f"정규시장 시간: {NXTPriceFix.is_regular_market_time()}")
             print(f"NXT 거래시간: {NXTPriceFix.is_nxt_time()}")
             print()
 
-            # 테스트 종목
-            test_stock = '005930'  # 삼성전자
+            test_stock = '005930'
 
             market_api_ext = MarketAPIExtended(market_api, account_api)
             price_info = market_api_ext.get_current_price_with_source(test_stock)
@@ -104,16 +91,12 @@ def quick_test(bot_instance):
 
     print()
 
-    # ========================================================================
-    # 3. AI 스캐닝 연동
-    # ========================================================================
     print("🤖 3. AI 스캐닝 종목 연동 테스트")
     print("-" * 80)
 
     try:
         from tests.manual_tests.patches.fix_ai_scanning import get_scanning_info
 
-        # 접근법 3 (추천)
         scanning_info = get_scanning_info(bot_instance, method='combined')
 
         print(f"✅ AI 스캐닝 정보 조회 성공")
@@ -129,7 +112,6 @@ def quick_test(bot_instance):
         print(f"     - 마지막 실행: {scanning_info['ai_scan']['last_run']}")
         print(f"     - 소스: {scanning_info['ai_scan'].get('source', 'N/A')}")
 
-        # 상세 정보 (있는 경우)
         if scanning_info['fast_scan']['count'] > 0 and scanning_info['fast_scan'].get('results'):
             print("\n   Fast Scan 상위 종목:")
             for stock in scanning_info['fast_scan']['results'][:3]:
@@ -178,11 +160,9 @@ def apply_fixes(bot_instance):
     print()
 
     try:
-        # 1. 계좌 잔고 계산 수정
         from tests.manual_tests.patches.fix_account_balance import AccountBalanceFix
         print("✅ AccountBalanceFix 로드됨")
 
-        # 2. NXT 가격 조회 수정
         from tests.manual_tests.patches.fix_nxt_price import MarketAPIExtended
         market_api_ext = MarketAPIExtended(
             bot_instance.market_api if hasattr(bot_instance, 'market_api') else None,
@@ -190,7 +170,6 @@ def apply_fixes(bot_instance):
         )
         print("✅ MarketAPIExtended 생성됨")
 
-        # 3. AI 스캐닝 연동 수정
         from tests.manual_tests.patches.fix_ai_scanning import get_scanning_info
         print("✅ AIScanningFix 로드됨")
 
@@ -199,7 +178,6 @@ def apply_fixes(bot_instance):
         print("대시보드 코드에 직접 적용하려면 README_DASHBOARD_FIXES.md를 참고하세요.")
         print()
 
-        # 헬퍼 함수 제공
         bot_instance._fix_account_balance = lambda: AccountBalanceFix.approach_1_deposit_minus_purchase(
             bot_instance.account_api.get_deposit(),
             bot_instance.account_api.get_holdings()

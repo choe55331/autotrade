@@ -1,7 +1,5 @@
-"""
 api/market/stock_info.py
 종목 정보, 업종, 테마 조회 API
-"""
 import logging
 from typing import Dict, Any, List, Optional
 

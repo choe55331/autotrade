@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-"""
 AutoTrade 시스템 종합 기능 테스트
 
 모든 주요 기능을 테스트하고 테이블 형식으로 결과 표시
@@ -21,7 +19,6 @@ AutoTrade 시스템 종합 기능 테스트
     - 콘솔에 테이블 형식 출력
     - CSV 파일 생성 (test_results_YYYYMMDD_HHMMSS.csv)
     - HTML 보고서 생성 (test_results_YYYYMMDD_HHMMSS.html)
-"""
 
 import sys
 import os
@@ -30,7 +27,6 @@ import json
 import time
 from typing import List, Dict, Any
 
-# 프로젝트 루트 추가
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from core.rest_client import KiwoomRESTClient
@@ -46,7 +42,6 @@ class SystemComprehensiveTester:
         self.test_results = []
         self.timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-        # REST 클라이언트 초기화
         try:
             self.rest_client = KiwoomRESTClient()
             self.account_api = AccountAPI(self.rest_client)
@@ -56,7 +51,7 @@ class SystemComprehensiveTester:
             print(f"❌ 클라이언트 초기화 실패: {e}")
             self.client_initialized = False
 
-        self.test_stock = "005930"  # 삼성전자
+        self.test_stock = "005930"
 
     def add_result(
         self,
@@ -66,7 +61,6 @@ class SystemComprehensiveTester:
         dashboard_integrated: str,
         notes: str = ""
     ):
-        """테스트 결과 추가"""
         self.test_results.append({
             "카테고리": category,
             "기능": feature,
@@ -119,18 +113,15 @@ class SystemComprehensiveTester:
         self.print_header("카테고리 2: REST API - 시장 (Market)")
 
         tests = [
-            # 시세 조회
             ("ka10003 - 종목 체결정보", lambda: self.market_api.get_stock_price(self.test_stock), "✅"),
             ("ka10004 - 호가 조회", lambda: self.market_api.get_orderbook(self.test_stock), "✅"),
 
-            # 순위 정보
             ("ka10031 - 거래량 순위", lambda: self.market_api.get_volume_rank(market='KOSPI', limit=20), "✅"),
             ("ka10027 - 등락률 순위", lambda: self.market_api.get_price_change_rank(market='KOSPI', sort='rise', limit=20), "✅"),
             ("ka10032 - 거래대금 순위", lambda: self.market_api.get_trading_value_rank(market='KOSPI', limit=20), "❌"),
             ("ka10023 - 거래량 급증", lambda: self.market_api.get_volume_surge_rank(market='KOSPI', limit=20), "✅"),
             ("ka10028 - 시가대비 등락률", lambda: self.market_api.get_intraday_change_rank(market='KOSPI', sort='rise', limit=20), "❌"),
 
-            # 외국인/기관
             ("ka10034 - 외국인 기간별매매", lambda: self.market_api.get_foreign_period_trading_rank(market='KOSPI', trade_type='buy', period_days=5), "❌"),
             ("ka10035 - 외국인 연속매매", lambda: self.market_api.get_foreign_continuous_trading_rank(market='KOSPI', trade_type='buy'), "❌"),
             ("ka90009 - 외국인/기관 매매상위", lambda: self.market_api.get_foreign_institution_trading_rank(market='KOSPI', investor_type='foreign_buy'), "✅"),
@@ -138,10 +129,8 @@ class SystemComprehensiveTester:
             ("ka10065 - 투자자별 매매상위", lambda: self.market_api.get_investor_intraday_trading_rank(market='KOSPI', investor_type='foreign'), "❌"),
             ("ka10066 - 장마감후 투자자별매매", lambda: self.market_api.get_postmarket_investor_trading_market(market='KOSPI'), "❌"),
 
-            # 신용/기타
             ("ka10033 - 신용비율 순위", lambda: self.market_api.get_credit_ratio_rank(market='KOSPI'), "❌"),
 
-            # 종목별 상세
             ("ka10059 - 투자자별 매매동향", lambda: self.market_api.get_investor_trading(self.test_stock), "✅"),
             ("ka10045 - 기관매매추이", lambda: self.market_api.get_institutional_trading_trend(self.test_stock, days=5), "✅"),
             ("ka10078 - 증권사별 매매동향", lambda: self.market_api.get_securities_firm_trading("003", self.test_stock, days=3), "✅"),
@@ -288,11 +277,9 @@ class SystemComprehensiveTester:
         """테이블 형식 출력"""
         self.print_header("📊 종합 테스트 결과")
 
-        # 헤더
         print(f"{'카테고리':<25} {'기능':<45} {'상태':<12} {'대시보드':<10} {'비고':<30}")
         print("=" * 130)
 
-        # 데이터
         for result in self.test_results:
             print(
                 f"{result['카테고리']:<25} "
@@ -330,48 +317,48 @@ class SystemComprehensiveTester:
     <style>
         body {{
             font-family: 'Noto Sans KR', Arial, sans-serif;
-            background: #1a1a1a;
-            color: #e0e0e0;
+            background:
+            color:
             padding: 20px;
             margin: 0;
         }}
         h1 {{
-            color: #00bcd4;
+            color:
             text-align: center;
             margin-bottom: 10px;
         }}
         .timestamp {{
             text-align: center;
-            color: #999;
+            color:
             margin-bottom: 30px;
         }}
         table {{
             width: 100%;
             border-collapse: collapse;
-            background: #2a2a2a;
+            background:
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }}
         th {{
-            background: #00bcd4;
-            color: #fff;
+            background:
+            color:
             padding: 12px;
             text-align: left;
             font-weight: 600;
         }}
         td {{
             padding: 10px 12px;
-            border-bottom: 1px solid #333;
+            border-bottom: 1px solid
         }}
         tr:hover {{
-            background: #333;
+            background:
         }}
-        .status-ok {{ color: #4caf50; font-weight: bold; }}
-        .status-fail {{ color: #f44336; font-weight: bold; }}
-        .status-warn {{ color: #ff9800; font-weight: bold; }}
-        .dashboard-yes {{ color: #4caf50; }}
-        .dashboard-no {{ color: #999; }}
+        .status-ok {{ color:
+        .status-fail {{ color:
+        .status-warn {{ color:
+        .dashboard-yes {{ color:
+        .dashboard-no {{ color:
         .summary {{
-            background: #2a2a2a;
+            background:
             padding: 20px;
             margin: 20px 0;
             border-radius: 8px;
@@ -384,10 +371,10 @@ class SystemComprehensiveTester:
         .summary-value {{
             font-size: 32px;
             font-weight: bold;
-            color: #00bcd4;
+            color:
         }}
         .summary-label {{
-            color: #999;
+            color:
             margin-top: 5px;
         }}
     </style>
@@ -422,7 +409,6 @@ class SystemComprehensiveTester:
             </tr>
         </thead>
         <tbody>
-"""
 
         for result in self.test_results:
             status_class = "status-ok" if "✅" in result['상태'] else ("status-warn" if "⚠️" in result['상태'] else "status-fail")
@@ -436,14 +422,12 @@ class SystemComprehensiveTester:
                 <td class="{dashboard_class}">{result['대시보드_연동']}</td>
                 <td>{result['비고']}</td>
             </tr>
-"""
 
         html += """
         </tbody>
     </table>
 </body>
 </html>
-"""
 
         with open(filename, 'w', encoding='utf-8') as f:
             f.write(html)
@@ -462,7 +446,6 @@ class SystemComprehensiveTester:
         if not self.client_initialized:
             print("❌ 클라이언트 초기화 실패 - 일부 테스트 건너뜀")
 
-        # 카테고리별 테스트 실행
         if self.client_initialized:
             self.test_category_1_account_api()
             self.test_category_2_market_api()
@@ -474,14 +457,11 @@ class SystemComprehensiveTester:
         self.test_category_7_dashboard()
         self.test_category_8_utilities()
 
-        # 결과 출력
         self.generate_table()
 
-        # 파일 생성
         csv_file = self.generate_csv()
         html_file = self.generate_html()
 
-        # 요약
         total = len(self.test_results)
         success = sum(1 for r in self.test_results if '✅' in r['상태'])
         dashboard = sum(1 for r in self.test_results if '✅' in r['대시보드_연동'])

@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-"""
 test_all_394_calls.py
 로그에서 추출한 394개 API 호출 모두 테스트
 
@@ -7,7 +5,6 @@ test_all_394_calls.py
 - 장 시작 전: 8:00-9:00 (일부 API 테스트 가능)
 - 장중: 9:00-15:30 (대부분 API 테스트 가능)
 - 장 마감 후: 15:30-20:00 (일부 API 테스트 가능)
-"""
 import os
 import sys
 import requests
@@ -16,15 +13,12 @@ from datetime import datetime, time
 from pathlib import Path
 import time as time_module
 
-# 프로젝트 루트 경로 추가
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-# credentials.py에서 API 키 로드
 from config import get_credentials
 
 class All394APITester:
     def __init__(self):
-        # secrets.json에서 설정 로드
         credentials = get_credentials()
         kiwoom_config = credentials.get_kiwoom_config()
 
@@ -84,14 +78,13 @@ class All394APITester:
             "variant_idx": variant_idx,
             "path": path,
             "body": body,
-            "original_status": original_status,  # 원래 로그 상태
+            "original_status": original_status,
             "return_code": response.get('return_code'),
             "return_msg": response.get('return_msg', ''),
             "current_status": "unknown"
         }
 
         if response.get('return_code') == 0:
-            # 데이터 확인
             keys = [k for k in response.keys() if k not in ['return_code', 'return_msg', 'api-id', 'cont-yn', 'next-key']]
             data_count = 0
             data_key = None
@@ -119,7 +112,6 @@ class All394APITester:
 
     def run_all_394_tests(self):
         """394개 전체 API 호출 테스트"""
-        # all_394_api_calls.json 로드
         api_file = Path("all_394_api_calls.json")
         if not api_file.exists():
             print(f"❌ {api_file} 파일이 없습니다.")
@@ -132,15 +124,13 @@ class All394APITester:
         total_calls = sum(len(info['all_calls']) for info in all_api_calls.values())
         print(f"\n총 {len(all_api_calls)}개 API, {total_calls}개 호출 테스트 시작\n")
 
-        # 통계
         success_count = 0
         no_data_count = 0
         error_count = 0
 
-        # 원래 상태와 비교
-        changed_to_success = 0  # 실패→성공으로 변경
-        stayed_success = 0      # 성공→성공 유지
-        changed_to_error = 0    # 성공→실패로 변경
+        changed_to_success = 0
+        stayed_success = 0
+        changed_to_error = 0
 
         test_num = 0
 
@@ -162,14 +152,12 @@ class All394APITester:
 
                 current_status = result["current_status"]
 
-                # 상태 심볼
                 status_symbol = {
                     "success": "✅",
                     "no_data": "⚠️",
                     "error": "❌"
                 }.get(current_status, "❓")
 
-                # 데이터 정보
                 data_info = ""
                 if current_status == "success":
                     data_info = f" ({result.get('data_count', 0)}개)"
@@ -193,16 +181,13 @@ class All394APITester:
 
                 print(f"  {status_symbol} Var {variant_idx}: {current_status}{data_info}")
 
-                # API 요청 간격 (0.05초)
                 time_module.sleep(0.05)
 
-        # 결과 저장
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         output_file = f"all_394_test_results_{timestamp}.json"
         with open(output_file, 'w', encoding='utf-8') as f:
             json.dump(self.results, f, indent=2, ensure_ascii=False)
 
-        # 결과 요약
         print("\n" + "="*80)
         print("📊 테스트 결과 요약")
         print("="*80)
@@ -222,8 +207,8 @@ class All394APITester:
 def check_time_allowed():
     """현재 시간이 실행 가능 시간인지 확인 (8:00~20:00)"""
     now = datetime.now().time()
-    start_time = time(8, 0)   # 08:00
-    end_time = time(20, 0)     # 20:00
+    start_time = time(8, 0)
+    end_time = time(20, 0)
 
     if start_time <= now <= end_time:
         return True, "실행 가능 시간대입니다."
@@ -236,7 +221,6 @@ def main():
     print("394개 전체 API 호출 테스트")
     print("="*80)
 
-    # 시간 확인
     allowed, msg = check_time_allowed()
     if not allowed:
         print(f"\n⏰ {msg}")

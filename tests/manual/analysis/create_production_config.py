@@ -1,8 +1,5 @@
-#!/usr/bin/env python3
-"""
 create_production_config.py
 프로덕션 환경용 최적화된 API 설정 파일 생성
-"""
 import json
 from pathlib import Path
 from datetime import datetime
@@ -10,14 +7,12 @@ from datetime import datetime
 def create_production_config():
     """프로덕션용 API 설정 생성"""
 
-    # 최적화된 API 로드
     with open('optimized_api_calls.json', 'r', encoding='utf-8') as f:
         optimized = json.load(f)
 
     optimized_apis = optimized['optimized_apis']
     stats = optimized['metadata']['stats']
 
-    # 프로덕션 설정
     production_config = {
         'version': '1.0',
         'generated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
@@ -29,21 +24,19 @@ def create_production_config():
         'apis': {}
     }
 
-    # API 카테고리별 분류
     categories = {
-        'account': [],      # 계좌 관련
-        'market': [],       # 시세/차트
-        'order': [],        # 주문
-        'stock_info': [],   # 종목정보
-        'ranking': [],      # 순위정보
-        'theme': [],        # 테마
-        'elw': [],          # ELW
-        'etf': [],          # ETF
-        'gold': [],         # 금현물
-        'other': []         # 기타
+        'account': [],
+        'market': [],
+        'order': [],
+        'stock_info': [],
+        'ranking': [],
+        'theme': [],
+        'elw': [],
+        'etf': [],
+        'gold': [],
+        'other': []
     }
 
-    # Path 기반으로 카테고리 분류
     path_to_category = {
         'acnt': 'account',
         'market': 'market',
@@ -65,7 +58,6 @@ def create_production_config():
             'variants': []
         }
 
-        # Variant 정보
         for call in info['optimized_calls']:
             variant = {
                 'index': call['variant_idx'],
@@ -76,14 +68,12 @@ def create_production_config():
             }
             api_config['variants'].append(variant)
 
-        # 카테고리 분류
         first_path = info['optimized_calls'][0]['path']
         category = path_to_category.get(first_path, 'other')
         categories[category].append(api_config)
 
         production_config['apis'][api_id] = api_config
 
-    # 카테고리별 통계
     production_config['categories'] = {}
     for cat_name, apis in categories.items():
         if apis:
@@ -92,12 +82,10 @@ def create_production_config():
                 'api_ids': [api['id'] for api in apis]
             }
 
-    # 저장
     config_file = 'production_api_config.json'
     with open(config_file, 'w', encoding='utf-8') as f:
         json.dump(production_config, f, ensure_ascii=False, indent=2)
 
-    # 카테고리별 출력
     print("="*80)
     print("📦 프로덕션 API 설정 생성")
     print("="*80)
@@ -111,7 +99,6 @@ def create_production_config():
     print(f"💾 저장: {config_file}")
     print("="*80)
 
-    # API 사용 예제 생성
     create_usage_examples(production_config)
 
     return production_config
@@ -129,7 +116,6 @@ def create_usage_examples(config):
         'examples': []
     }
 
-    # 카테고리별로 하나씩 예제
     example_categories = ['account', 'market', 'stock_info']
 
     for category in example_categories:
@@ -250,7 +236,6 @@ def create_summary_report():
 
     report_text = "\n".join(report)
 
-    # 저장
     report_file = 'api_optimization_report.txt'
     with open(report_file, 'w', encoding='utf-8') as f:
         f.write(report_text)

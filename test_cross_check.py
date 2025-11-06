@@ -1,13 +1,10 @@
-"""
 크로스 체크 기능 테스트 스크립트
 gemini-2.0-flash-exp vs gemini-2.5-flash 비교
-"""
 import os
 import sys
 import json
 from typing import Dict, Any
 
-# 프로젝트 경로 추가
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from ai.gemini_analyzer import GeminiAnalyzer
@@ -23,7 +20,6 @@ def test_cross_check():
     print("gemini-2.0-flash-exp vs gemini-2.5-flash")
     print_separator()
 
-    # API 키 확인
     try:
         from config import GEMINI_API_KEY
         api_key = GEMINI_API_KEY
@@ -35,7 +31,6 @@ def test_cross_check():
         print("❌ GEMINI_API_KEY가 설정되지 않았습니다")
         return
 
-    # 테스트 데이터
     test_stock = {
         'stock_name': '삼성전자',
         'stock_code': '005930',
@@ -71,7 +66,6 @@ def test_cross_check():
     print(f"등락률: {test_stock['change_rate']:+.2f}%")
     print(f"종합 점수: {score_info['score']}/440점 ({score_info['percentage']:.1f}%)")
 
-    # 테스트 1: 크로스 체크 비활성화
     print_separator()
     print("🔹 테스트 1: 일반 모드 (단일 모델)")
     print_separator()
@@ -94,7 +88,6 @@ def test_cross_check():
     print(f"  신뢰도: {result_normal.get('confidence', 'N/A')}")
     print(f"  이유: {result_normal.get('reasons', ['N/A'])[0][:100]}...")
 
-    # 테스트 2: 크로스 체크 활성화
     print_separator()
     print("🔹 테스트 2: 크로스 체크 모드 (2.0 vs 2.5)")
     print_separator()
@@ -133,7 +126,6 @@ def test_cross_check():
     for i, reason in enumerate(result_cross.get('reasons', [])[:3], 1):
         print(f"    {i}. {reason[:150]}...")
 
-    # 결과 비교
     print_separator()
     print("📊 결과 비교")
     print_separator()
@@ -146,7 +138,6 @@ def test_cross_check():
     elif 'cross_check' in result_cross:
         print(f"\n⚠️ 두 모델이 불일치하여 보수적으로 선택되었습니다.")
 
-    # 결과를 JSON 파일로 저장
     results = {
         'normal_mode': result_normal,
         'cross_check_mode': result_cross,

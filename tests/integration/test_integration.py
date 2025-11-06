@@ -1,11 +1,8 @@
-"""
 test_integration.py
 통합 테스트 - 새로운 시스템이 제대로 import되는지 확인
-"""
 import sys
 from pathlib import Path
 
-# 프로젝트 루트 추가
 sys.path.insert(0, str(Path(__file__).parent))
 
 print("="*60)
@@ -17,31 +14,25 @@ def test_imports():
     print("\n1. 기본 모듈 import 테스트...")
 
     try:
-        # 새로운 설정 시스템
         from config.config_manager import get_config
         config = get_config()
         print("✓ YAML 설정 시스템")
 
-        # 새로운 로거
         from utils.logger_new import get_logger
         logger = get_logger()
         print("✓ Loguru 로깅 시스템")
 
-        # 데이터베이스
         from database import get_db_session
         session = get_db_session()
         session.close()
         print("✓ 데이터베이스 시스템")
 
-        # 3단계 스캐닝
         from research.scanner_pipeline import ScannerPipeline
         print("✓ 3단계 스캐닝 파이프라인")
 
-        # 스코어링 시스템
         from strategy.scoring_system import ScoringSystem
         print("✓ 10가지 스코어링 시스템")
 
-        # 동적 리스크 관리
         from strategy.dynamic_risk_manager import DynamicRiskManager
         print("✓ 동적 리스크 관리")
 
@@ -64,20 +55,17 @@ def test_config():
 
         config = get_config()
 
-        # 설정 확인
         print(f"  - 시스템 이름: {config.system.get('name')}")
         print(f"  - 버전: {config.system.get('version')}")
         print(f"  - 로그 레벨: {config.logging.get('level')}")
         print(f"  - DB 타입: {config.database.get('type')}")
         print(f"  - 최대 포지션: {config.position.get('max_open_positions')}")
 
-        # 스캐닝 설정
         scan_config = config.scanning
         print(f"  - Fast Scan 간격: {scan_config.get('fast_scan', {}).get('interval')}초")
         print(f"  - Deep Scan 간격: {scan_config.get('deep_scan', {}).get('interval')}초")
         print(f"  - AI Scan 간격: {scan_config.get('ai_scan', {}).get('interval')}초")
 
-        # 리스크 모드
         risk = config.risk_management
         print(f"  - Aggressive 최대 포지션: {risk.get('aggressive', {}).get('max_open_positions')}")
         print(f"  - Normal 최대 포지션: {risk.get('normal', {}).get('max_open_positions')}")
@@ -101,11 +89,9 @@ def test_database():
 
         session = get_db_session()
 
-        # 테이블 확인
         print("  - Trade 테이블: 존재")
         print("  - Position 테이블: 존재")
 
-        # 간단한 쿼리
         trades_count = session.query(Trade).count()
         positions_count = session.query(Position).count()
 
@@ -151,19 +137,14 @@ def main():
 
     results = []
 
-    # 1. Import 테스트
     results.append(("Import", test_imports()))
 
-    # 2. 설정 테스트
     results.append(("설정", test_config()))
 
-    # 3. 데이터베이스 테스트
     results.append(("데이터베이스", test_database()))
 
-    # 4. 로깅 테스트
     results.append(("로깅", test_logging()))
 
-    # 결과 출력
     print("\n" + "="*60)
     print("테스트 결과")
     print("="*60)

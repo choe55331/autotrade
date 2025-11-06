@@ -1,14 +1,11 @@
-"""
 Account-related API routes
 Handles account balance, positions, and detailed holdings
-"""
 from flask import Blueprint, jsonify
 from typing import Dict, Any
 from datetime import datetime
 
 account_bp = Blueprint('account', __name__)
 
-# Global bot instance (will be set by main app)
 _bot_instance = None
 
 
@@ -21,7 +18,6 @@ def set_bot_instance(bot):
 @account_bp.route('/api/account')
 def get_account():
     """Get account information from real API"""
-    # 테스트 모드 정보
     test_mode_active = False
     test_date = None
     if _bot_instance:
@@ -30,15 +26,10 @@ def get_account():
 
     try:
         if _bot_instance and hasattr(_bot_instance, 'account_api'):
-            # 실제 API에서 데이터 가져오기 (테스트 모드에서도 가장 최근 데이터 사용)
             deposit = _bot_instance.account_api.get_deposit()
 
-            # v5.5.0: KRX+NXT 통합 조회로 중복 제거
-            # 이전에는 KRX와 NXT를 각각 조회하여 같은 종목이 2번 카운트되는 버그 발생
-            # API가 "KRX+NXT" 옵션을 지원하므로 한 번에 조회
             holdings = _bot_instance.account_api.get_holdings(market_type="KRX+NXT") or []
 
-            # 디버깅 로그
             if holdings:
                 print(f"[ACCOUNT] 보유 종목: {len(holdings)}개")
                 for h in holdings:
@@ -46,35 +37,25 @@ def get_account():
             else:
                 print(f"[ACCOUNT] 보유 종목: 없음")
 
-            # 계좌 정보 계산 (kt00001 API 응답 구조에 맞게 수정)
-            # entr: 예수금, 100stk_ord_alow_amt: 100% 주문가능금액 (실제 사용가능액 = 잔존 현금)
             deposit_amount = int(str(deposit.get('entr', '0')).replace(',', '')) if deposit else 0
             cash = int(str(deposit.get('100stk_ord_alow_amt', '0')).replace(',', '')) if deposit else 0
 
-            # v5.4.2: 주식 현재가치 계산 (장외 시간 대응)
-            # eval_amt이 0인 경우 (장외 시간) 수량 × 현재가로 직접 계산
             stock_value = 0
             if holdings:
                 for h in holdings:
                     eval_amt = int(str(h.get('eval_amt', 0)).replace(',', ''))
                     if eval_amt > 0:
-                        # API에서 평가금액이 정상적으로 오는 경우 (장중)
                         stock_value += eval_amt
                     else:
-                        # 장외 시간 등으로 eval_amt이 0인 경우, 직접 계산
                         quantity = int(str(h.get('rmnd_qty', 0)).replace(',', ''))
                         cur_price = int(str(h.get('cur_prc', 0)).replace(',', ''))
                         calculated_value = quantity * cur_price
                         stock_value += calculated_value
-                        # Note: After-hours calculation (eval_amt=0)
 
-            # 총 자산 = 주식 현재가치 + 잔존 현금
             total_assets = stock_value + cash
 
             print(f"[ACCOUNT] 총자산: {total_assets:,}원 (주식: {stock_value:,}원 + 현금: {cash:,}원)")
 
-            # 손익 계산 (kt00004 API 필드 사용: avg_prc, rmnd_qty)
-            # 계산 방식: get_positions()와 동일하게 통일
             total_buy_amount = 0
             profit_loss_detailed = []
 
@@ -83,21 +64,16 @@ def get_account():
                     stock_code = h.get('stk_cd', '')
                     stock_name = h.get('stk_nm', '')
 
-                    # kt00004 API 필드 사용 (main.py:841-851과 동일)
-                    quantity = int(str(h.get('rmnd_qty', 0)).replace(',', ''))  # 보유수량
-                    avg_price = int(str(h.get('avg_prc', 0)).replace(',', ''))  # 평균단가
-                    cur_price = int(str(h.get('cur_prc', 0)).replace(',', ''))  # 현재가
+                    quantity = int(str(h.get('rmnd_qty', 0)).replace(',', ''))
+                    avg_price = int(str(h.get('avg_prc', 0)).replace(',', ''))
+                    cur_price = int(str(h.get('cur_prc', 0)).replace(',', ''))
 
-                    # 매입금액 계산 (평균단가 × 수량)
                     buy_amt = avg_price * quantity
 
-                    # 평가금액 계산
                     eval_amt = int(str(h.get('eval_amt', 0)).replace(',', ''))
                     if eval_amt == 0:
-                        # 장외 시간 등으로 eval_amt이 0인 경우, 직접 계산
                         eval_amt = quantity * cur_price
 
-                    # 손익 = 평가금액 - 매입금액
                     stock_pl = eval_amt - buy_amt
                     total_buy_amount += buy_amt
 
@@ -129,7 +105,6 @@ def get_account():
                 'test_date': test_date
             })
         else:
-            # Bot이 없으면 mock data
             return jsonify({
                 'total_assets': 0,
                 'cash': 0,
@@ -158,7 +133,6 @@ def get_account():
 def get_positions():
     """Get current positions from real API (kt00004 API 응답 필드 사용)"""
     try:
-        # v5.3.2: bot_instance 체크 강화
         if not _bot_instance:
             print("Error: bot_instance is None")
             return jsonify([])
@@ -167,7 +141,6 @@ def get_positions():
             print("Error: bot_instance has no account_api")
             return jsonify([])
 
-        # v5.5.0: KRX+NXT 통합 조회
         holdings = _bot_instance.account_api.get_holdings(market_type="KRX+NXT")
 
         if not holdings:
@@ -177,48 +150,38 @@ def get_positions():
         positions = []
         for h in holdings:
             try:
-                # kt00004 API 응답 필드 사용 (동일한 필드: main.py:856-864)
-                code = str(h.get('stk_cd', '')).strip()  # 종목코드
-                # A 접두사 제거 (키움증권 API에서 A005930 형식으로 올 수 있음)
+                code = str(h.get('stk_cd', '')).strip()
                 if code.startswith('A'):
                     code = code[1:]
 
-                name = h.get('stk_nm', '')  # 종목명
-                quantity = int(str(h.get('rmnd_qty', 0)).replace(',', ''))  # 보유수량
+                name = h.get('stk_nm', '')
+                quantity = int(str(h.get('rmnd_qty', 0)).replace(',', ''))
 
-                # v5.3.2: 수량 0인 종목 스킵
                 if quantity <= 0:
                     continue
 
-                avg_price = int(str(h.get('avg_prc', 0)).replace(',', ''))  # 평균단가
-                current_price = int(str(h.get('cur_prc', 0)).replace(',', ''))  # 현재가
+                avg_price = int(str(h.get('avg_prc', 0)).replace(',', ''))
+                current_price = int(str(h.get('cur_prc', 0)).replace(',', ''))
 
-                # v5.4.2: 평가금액 계산 (장외 시간 대응)
                 value = int(str(h.get('eval_amt', 0)).replace(',', ''))
                 if value == 0 and current_price > 0:
-                    # 장외 시간 등으로 eval_amt이 0인 경우, 직접 계산
                     value = quantity * current_price
 
                 profit_loss = value - (avg_price * quantity)
                 profit_loss_percent = ((current_price - avg_price) / avg_price * 100) if avg_price > 0 else 0
 
-                # v5.7.2: 수익 최적화 분석 추가
                 optimization_info = {}
                 try:
                     from features.profit_optimizer import get_profit_optimizer
 
                     optimizer = get_profit_optimizer()
 
-                    # 최고가 추정 (현재가와 평균단가 중 높은 값)
                     highest_price = max(current_price, avg_price)
                     if profit_loss_percent > 0:
-                        # 수익 중이면 현재가가 최고가일 가능성
                         highest_price = current_price
 
-                    # 보유 일수 계산 (실제로는 entry_time 필요, 여기서는 추정)
-                    days_held = 5  # 기본값
+                    days_held = 5
 
-                    # 포지션 분석
                     analysis = optimizer.analyze_position(
                         entry_price=avg_price,
                         current_price=current_price,
@@ -228,8 +191,7 @@ def get_positions():
                         rule_name='balanced'
                     )
 
-                    # ATR 기반 최적 레벨 계산 (ATR 추정)
-                    estimated_atr = current_price * 0.02  # 주가의 2%로 추정
+                    estimated_atr = current_price * 0.02
                     exit_levels = optimizer.optimize_exit_levels(
                         entry_price=avg_price,
                         atr=estimated_atr,
@@ -254,7 +216,6 @@ def get_positions():
                         'sell_ratio': 0.0
                     }
 
-                # 기존 손절가 (dynamic_risk_manager)
                 stop_loss_price = avg_price
                 if _bot_instance and hasattr(_bot_instance, 'dynamic_risk_manager'):
                     try:
@@ -273,7 +234,7 @@ def get_positions():
                     'profit_loss_percent': profit_loss_percent,
                     'value': value,
                     'stop_loss_price': stop_loss_price,
-                    'optimization': optimization_info  # v5.7.2: 최적화 정보 추가
+                    'optimization': optimization_info
                 })
             except Exception as e:
                 print(f"Error processing holding {h}: {e}")
@@ -292,7 +253,6 @@ def get_positions():
 def get_real_holdings():
     """실제 보유 종목 상세 정보 (수익률, ATR 기반 손절/익절)"""
     try:
-        # v5.3.2: bot_instance 체크 강화
         if not _bot_instance:
             print("Error: bot_instance is None")
             return jsonify({
@@ -302,7 +262,6 @@ def get_real_holdings():
 
         holdings = []
 
-        # 실제 보유 종목 조회
         if not hasattr(_bot_instance, 'account_api'):
             print("Error: bot_instance has no account_api")
             return jsonify({
@@ -310,7 +269,6 @@ def get_real_holdings():
                 'message': 'Account API not available'
             })
 
-        # v5.5.0: KRX+NXT 통합 조회
         raw_holdings = _bot_instance.account_api.get_holdings(market_type="KRX+NXT")
 
         if not raw_holdings:
@@ -322,11 +280,9 @@ def get_real_holdings():
 
         print(f"[HOLDINGS] {len(raw_holdings)}개 종목 분석 중...")
 
-        # v5.3.2: 각 종목 처리를 try-except로 감싸서 하나가 실패해도 다른 종목은 계속 처리
         for idx, holding in enumerate(raw_holdings):
             try:
                 stock_code = str(holding.get('stk_cd', '')).strip()
-                # A 접두사 제거
                 if stock_code.startswith('A'):
                     stock_code = stock_code[1:]
 
@@ -339,19 +295,15 @@ def get_real_holdings():
                 avg_price = int(str(holding.get('avg_prc', 0)).replace(',', ''))
                 current_price = int(str(holding.get('cur_prc', 0)).replace(',', ''))
 
-                # v5.4.2: 평가금액 계산 (장외 시간 대응)
                 eval_amount = int(str(holding.get('eval_amt', 0)).replace(',', ''))
                 if eval_amount == 0 and current_price > 0:
-                    # 장외 시간 등으로 eval_amt이 0인 경우, 직접 계산
                     eval_amount = quantity * current_price
 
-                # 수익률 계산
                 pnl = (current_price - avg_price) * quantity
                 pnl_rate = ((current_price - avg_price) / avg_price * 100) if avg_price > 0 else 0
 
-                # v5.3.2: 기본값 설정 (ATR 계산 실패 시 사용)
-                stop_loss_price = int(avg_price * 0.95)  # -5%
-                take_profit_price = int(avg_price * 1.10)  # +10%
+                stop_loss_price = int(avg_price * 0.95)
+                take_profit_price = int(avg_price * 1.10)
                 kelly_fraction = 0.10
                 sharpe_ratio = 0
                 max_dd = 0
@@ -359,16 +311,12 @@ def get_real_holdings():
                 bb_position = 0.5
                 risk_reward_ratio = 2.0
 
-                # ATR 기반 동적 손절/익절 계산 (선택적)
                 try:
-                    # ATR 조회 (14일 기준)
                     if hasattr(_bot_instance, 'market_api'):
                         print(f"  [{idx+1}/{len(raw_holdings)}] Fetching daily data for {stock_code}...")
-                        # 일봉 데이터로 ATR 계산
                         daily_data = _bot_instance.market_api.get_daily_chart(stock_code, period=20)
 
                         if daily_data and len(daily_data) >= 14:
-                            # ATR 계산 (True Range 평균)
                             atr_values = []
                             for i in range(1, min(15, len(daily_data))):
                                 high = daily_data[i].get('high', 0)
@@ -385,17 +333,14 @@ def get_real_holdings():
                             if atr_values:
                                 atr = sum(atr_values) / len(atr_values)
 
-                                # ATR 기반 손절/익절 (2 ATR)
                                 stop_loss_price = int(avg_price - (atr * 2))
                                 take_profit_price = int(avg_price + (atr * 3))
 
-                                # Kelly Criterion 계산 (승률 60%, Risk/Reward 1.5배 가정)
                                 win_rate = 0.60
                                 avg_win_loss_ratio = 1.5
                                 kelly_fraction = (win_rate * avg_win_loss_ratio - (1 - win_rate)) / avg_win_loss_ratio
-                                kelly_fraction = max(0, min(kelly_fraction, 0.25))  # 최대 25%로 제한
+                                kelly_fraction = max(0, min(kelly_fraction, 0.25))
 
-                                # Sharpe Ratio 추정 (최근 20일 수익률 기반)
                                 returns = []
                                 for j in range(1, len(daily_data)):
                                     close_today = daily_data[j-1].get('close', 0)
@@ -412,7 +357,6 @@ def get_real_holdings():
                                 else:
                                     sharpe_ratio = 0
 
-                                # Maximum Drawdown 계산
                                 peak = daily_data[0].get('close', current_price)
                                 max_dd = 0
                                 for data in daily_data:
@@ -423,7 +367,6 @@ def get_real_holdings():
                                     if dd > max_dd:
                                         max_dd = dd
 
-                                # RSI 계산 (14일)
                                 gains = []
                                 losses = []
                                 for k in range(1, min(15, len(daily_data))):
@@ -440,7 +383,6 @@ def get_real_holdings():
                                 rs = avg_gain / avg_loss if avg_loss > 0 else 0
                                 rsi = 100 - (100 / (1 + rs)) if rs > 0 else 50
 
-                                # Bollinger Bands 위치 (20일 SMA, 2 표준편차)
                                 closes = [d.get('close', 0) for d in daily_data[:20]]
                                 sma_20 = sum(closes) / len(closes) if closes else current_price
                                 variance_bb = sum((c - sma_20) ** 2 for c in closes) / len(closes) if closes else 0
@@ -449,7 +391,6 @@ def get_real_holdings():
                                 bb_lower = sma_20 - (std_20 * 2)
                                 bb_position = ((current_price - bb_lower) / (bb_upper - bb_lower)) if (bb_upper - bb_lower) > 0 else 0.5
 
-                                # Risk/Reward Ratio
                                 potential_loss = current_price - stop_loss_price
                                 potential_gain = take_profit_price - current_price
                                 risk_reward_ratio = potential_gain / potential_loss if potential_loss > 0 else 0
@@ -458,9 +399,7 @@ def get_real_holdings():
 
                 except Exception as e:
                     print(f"⚠️ Advanced metrics calculation failed ({stock_code}): {e}")
-                    # 기본값은 이미 설정됨
 
-                # 손절/익절까지 거리 계산
                 distance_to_stop = ((stop_loss_price - current_price) / current_price * 100) if current_price > 0 else 0
                 distance_to_target = ((take_profit_price - current_price) / current_price * 100) if current_price > 0 else 0
 
@@ -477,8 +416,7 @@ def get_real_holdings():
                     'take_profit_price': take_profit_price,
                     'distance_to_stop': round(distance_to_stop, 2),
                     'distance_to_target': round(distance_to_target, 2),
-                    'atr_based': True,  # ATR 기반 여부
-                    # 진보된 지표들
+                    'atr_based': True,
                     'kelly_fraction': round(kelly_fraction, 3),
                     'sharpe_ratio': round(sharpe_ratio, 2),
                     'max_drawdown': round(max_dd * 100, 2),
@@ -507,9 +445,6 @@ def get_real_holdings():
             'message': str(e)
         }), 500
 
-# ============================================================================
-# v5.7.2: 수익 최적화 API
-# ============================================================================
 
 @account_bp.route('/api/profit-optimization/rules')
 def get_optimization_rules():
@@ -591,14 +526,12 @@ def get_optimization_summary():
             avg_price = int(str(h.get('avg_prc', 0)).replace(',', ''))
             current_price = int(str(h.get('cur_prc', 0)).replace(',', ''))
 
-            # 최고가 추정
             highest_price = max(current_price, avg_price)
             pnl_percent = ((current_price - avg_price) / avg_price * 100) if avg_price > 0 else 0
 
             if pnl_percent > 0:
                 highest_price = current_price
 
-            # 분석
             analysis = optimizer.analyze_position(
                 entry_price=avg_price,
                 current_price=current_price,

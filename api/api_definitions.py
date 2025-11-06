@@ -1,10 +1,8 @@
-"""
 api/api_definitions.py
 키움증권 REST API 통합 정의 모듈
 
 전체 100개 이상의 키움증권 REST API를 통합 관리합니다.
 공식 문서: https://github.com/kiwoom-retail/Kiwoom-Securities
-"""
 
 from .kiwoom_api_specs import (
     ENVIRONMENTS,
@@ -22,7 +20,6 @@ from .kiwoom_api_specs_extended import (
     CONDITION_SEARCH_APIS,
 )
 
-# ==================== 전체 API 통합 ====================
 
 ALL_APIS = {
     **ACCOUNT_APIS,
@@ -35,7 +32,6 @@ ALL_APIS = {
     **CONDITION_SEARCH_APIS,
 }
 
-# ==================== API 카테고리 ====================
 
 API_CATEGORIES = {
     "account": {
@@ -80,7 +76,6 @@ API_CATEGORIES = {
     },
 }
 
-# ==================== API 조회 함수 ====================
 
 def get_api_spec(api_id: str):
     """
@@ -168,15 +163,15 @@ def get_popular_apis():
         인기 API 리스트
     """
     popular = [
-        "kt00001",  # 예수금 조회
-        "kt00018",  # 계좌평가잔고
-        "kt10000",  # 주식매수주문
-        "kt10001",  # 주식매도주문
-        "ka10030",  # 당일거래량상위
-        "ka10027",  # 전일대비등락률상위
-        "ka10001",  # 주식기본정보
-        "ka10004",  # 주식호가
-        "ka10005",  # 주식일주월시분
+        "kt00001",
+        "kt00018",
+        "kt10000",
+        "kt10001",
+        "ka10030",
+        "ka10027",
+        "ka10001",
+        "ka10004",
+        "ka10005",
     ]
 
     return [
@@ -189,7 +184,6 @@ def get_popular_apis():
     ]
 
 
-# ==================== 엔드포인트별 API 그룹핑 ====================
 
 def get_apis_by_endpoint(endpoint: str):
     """
@@ -229,14 +223,11 @@ def list_endpoints():
     return ENDPOINTS
 
 
-# ==================== 내보내기 ====================
 
 __all__ = [
-    # 환경 설정
     'ENVIRONMENTS',
     'COMMON_HEADERS',
 
-    # API 딕셔너리
     'ALL_APIS',
     'ACCOUNT_APIS',
     'ORDER_APIS',
@@ -247,11 +238,9 @@ __all__ = [
     'CHART_APIS',
     'CONDITION_SEARCH_APIS',
 
-    # 카테고리
     'API_CATEGORIES',
     'ENDPOINTS',
 
-    # 조회 함수
     'get_api_spec',
     'search_apis',
     'list_apis_by_category',

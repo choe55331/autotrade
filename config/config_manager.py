@@ -1,11 +1,9 @@
-"""
 config/config_manager.py
 YAML 기반 설정 관리 시스템 (Backward Compatibility Layer)
 
 ⚠️  DEPRECATED: 이 파일은 backward compatibility를 위해 유지됩니다.
 새 코드에서는 config.manager를 사용하세요:
     from config.manager import get_config, get_setting, set_setting
-"""
 from typing import Dict, Any, Optional
 from pathlib import Path
 from .manager import (
@@ -197,7 +195,6 @@ class Config:
 
         AI 분석: {'활성' if config.ai_analysis.enabled else '비활성'}
         - 신뢰도: {config.ai_analysis.confidence_threshold:.2f}
-        """
 
 
 class ConfigManager:
@@ -232,7 +229,6 @@ class ConfigManager:
         _save_config()
 
 
-# 싱글톤 인스턴스
 _config_manager = ConfigManager()
 
 
@@ -251,7 +247,6 @@ def save_config(config_path: Optional[Path] = None):
     _config_manager.save_config(config_path)
 
 
-# 기존 호환성을 위한 함수들
 def get_trading_params() -> Dict[str, Any]:
     """매매 파라미터 반환 (기존 호환)"""
     from .manager import get_trading_params as _get_trading_params

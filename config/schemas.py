@@ -1,4 +1,3 @@
-"""
 AutoTrade Pro - Unified Configuration Schema
 Pydantic 기반 통합 설정 스키마 (v5.6+ Comprehensive)
 
@@ -9,7 +8,6 @@ COMPREHENSIVE 개선:
 - Dot notation access: config.get('risk_management.max_position_size')
 - Event listeners for dynamic settings
 - JSON/YAML import/export
-"""
 from pydantic import BaseModel, Field, field_validator
 from typing import Dict, Any, Optional, List, Tuple
 from pathlib import Path
@@ -17,9 +15,6 @@ import yaml
 import json
 
 
-# ==================================================
-# System Configuration
-# ==================================================
 
 class SystemConfig(BaseModel):
     """시스템 설정"""
@@ -30,14 +25,10 @@ class SystemConfig(BaseModel):
     max_concurrent_analysis: int = Field(default=3, ge=1, le=10, description="최대 동시 분석 수")
 
 
-# ==================================================
-# Risk Management Configuration
-# ==================================================
 
 class RiskManagementConfig(BaseModel):
     """리스크 관리 설정 (Enhanced)"""
 
-    # 기본 포지션 관리
     max_position_size: float = Field(
         default=0.3,
         ge=0.0,
@@ -51,7 +42,6 @@ class RiskManagementConfig(BaseModel):
         description="최대 동시 포지션 수"
     )
 
-    # 손익 관리
     stop_loss_pct: float = Field(
         default=0.05,
         ge=0.0,
@@ -71,7 +61,6 @@ class RiskManagementConfig(BaseModel):
         description="긴급 손절 비율"
     )
 
-    # 손실 한도
     max_daily_loss: float = Field(
         default=0.03,
         ge=0.0,
@@ -91,7 +80,6 @@ class RiskManagementConfig(BaseModel):
         description="최대 연속 손실 횟수"
     )
 
-    # Trailing Stop
     enable_trailing_stop: bool = Field(default=True, description="트레일링 스톱 활성화")
     trailing_stop_pct: float = Field(
         default=0.02,
@@ -112,7 +100,6 @@ class RiskManagementConfig(BaseModel):
         description="활성화 수익률"
     )
 
-    # Kelly Criterion
     enable_kelly_criterion: bool = Field(default=False, description="켈리 배팅 활성화")
     kelly_fraction: float = Field(
         default=0.5,
@@ -121,15 +108,11 @@ class RiskManagementConfig(BaseModel):
         description="켈리 공식 비율 (보수적)"
     )
 
-    # Backward compatibility
     @property
     def daily_loss_limit(self) -> float:
         return self.max_daily_loss
 
 
-# ==================================================
-# Trading Configuration
-# ==================================================
 
 class TradingConfig(BaseModel):
     """트레이딩 설정"""
@@ -142,9 +125,6 @@ class TradingConfig(BaseModel):
     market_end_time: str = Field(default="15:30", description="장 종료 시간")
 
 
-# ==================================================
-# Strategy Configurations
-# ==================================================
 
 class MomentumStrategyConfig(BaseModel):
     """모멘텀 전략 설정"""
@@ -195,9 +175,6 @@ class StrategiesConfig(BaseModel):
     institutional_following: InstitutionalFollowingConfig = Field(default_factory=InstitutionalFollowingConfig)
 
 
-# ==================================================
-# AI Configuration
-# ==================================================
 
 class MarketRegimeConfig(BaseModel):
     """시장 레짐 분류 설정"""
@@ -235,13 +212,11 @@ class AIConfig(BaseModel):
         description="사용할 AI 모델 목록"
     )
 
-    # 시장 레짐 분류
     market_regime_classification: MarketRegimeConfig = Field(
         default_factory=MarketRegimeConfig,
         description="시장 레짐 분류 설정"
     )
 
-    # AI 스코어링 가중치
     scoring_weights: Dict[str, float] = Field(
         default={
             "technical_score": 0.30,
@@ -254,9 +229,6 @@ class AIConfig(BaseModel):
     )
 
 
-# ==================================================
-# Backtesting Configuration
-# ==================================================
 
 class BacktestingConfig(BaseModel):
     """백테스팅 설정"""
@@ -277,9 +249,6 @@ class BacktestingConfig(BaseModel):
     )
 
 
-# ==================================================
-# Optimization Configuration
-# ==================================================
 
 class OptimizationConfig(BaseModel):
     """파라미터 최적화 설정"""
@@ -296,9 +265,6 @@ class OptimizationConfig(BaseModel):
     )
 
 
-# ==================================================
-# Rebalancing Configuration
-# ==================================================
 
 class RebalancingConfig(BaseModel):
     """자동 리밸런싱 설정"""
@@ -313,9 +279,6 @@ class RebalancingConfig(BaseModel):
     target_volatility: float = Field(default=0.15, ge=0.05, le=0.5, description="목표 변동성 (15%)")
 
 
-# ==================================================
-# Screening Configuration
-# ==================================================
 
 class QuantFactorValueConfig(BaseModel):
     """퀀트 팩터 - Value"""
@@ -345,7 +308,6 @@ class ScreeningConfig(BaseModel):
     min_volume: int = Field(default=100000, ge=0, description="최소 거래량")
     min_price: int = Field(default=1000, ge=0, description="최소 주가")
 
-    # 퀀트 팩터 스크리닝
     quant_factors: Dict[str, Any] = Field(
         default={
             "value": {"enabled": True, "per_max": 15, "pbr_max": 1.5},
@@ -356,15 +318,11 @@ class ScreeningConfig(BaseModel):
     )
 
 
-# ==================================================
-# Notification Configuration
-# ==================================================
 
 class NotificationConfig(BaseModel):
     """알림 설정 (Enhanced)"""
     enabled: bool = Field(default=True, description="알림 활성화")
 
-    # 채널
     telegram_enabled: bool = Field(default=False, description="텔레그램 알림")
     telegram_bot_token: Optional[str] = Field(default=None, description="텔레그램 봇 토큰")
     telegram_chat_id: Optional[str] = Field(default=None, description="텔레그램 채팅 ID")
@@ -373,7 +331,6 @@ class NotificationConfig(BaseModel):
     sms: bool = Field(default=False, description="SMS 알림")
     web_push: bool = Field(default=True, description="웹 푸시 알림")
 
-    # 이벤트
     events: Dict[str, bool] = Field(
         default={
             "order_executed": True,
@@ -386,9 +343,6 @@ class NotificationConfig(BaseModel):
     )
 
 
-# ==================================================
-# UI Configuration
-# ==================================================
 
 class UIConfig(BaseModel):
     """UI 설정"""
@@ -408,9 +362,6 @@ class UIConfig(BaseModel):
     )
 
 
-# ==================================================
-# Advanced Orders Configuration
-# ==================================================
 
 class AdvancedOrdersConfig(BaseModel):
     """고급 주문 설정"""
@@ -420,9 +371,6 @@ class AdvancedOrdersConfig(BaseModel):
     default_order_type: str = Field(default="limit", description="기본 주문 유형 (market/limit/stop)")
 
 
-# ==================================================
-# Anomaly Detection Configuration
-# ==================================================
 
 class AnomalyDetectionConfig(BaseModel):
     """시스템 이상 감지 설정"""
@@ -441,9 +389,6 @@ class AnomalyDetectionConfig(BaseModel):
     )
 
 
-# ==================================================
-# Logging Configuration
-# ==================================================
 
 class LoggingConfig(BaseModel):
     """로깅 설정"""
@@ -461,16 +406,12 @@ class LoggingConfig(BaseModel):
     colored_output: bool = Field(default=True, description="컬러 출력 여부")
 
 
-# ==================================================
-# Main Cycle Configuration
-# ==================================================
 
 class MainCycleConfig(BaseModel):
     """메인 사이클 설정"""
     sleep_seconds: int = Field(default=60, ge=1, description="메인 루프 대기 시간 (초)")
     health_check_interval: int = Field(default=300, ge=60, description="헬스 체크 간격 (초)")
 
-    # Backward compatibility
     @property
     def SLEEP_SECONDS(self) -> int:
         """별칭: sleep_seconds"""
@@ -482,65 +423,45 @@ class MainCycleConfig(BaseModel):
         return self.health_check_interval
 
 
-# ==================================================
-# Root Configuration
-# ==================================================
 
 class AutoTradeConfig(BaseModel):
     """통합 설정 (루트) - Comprehensive"""
 
-    # 시스템
     system: SystemConfig = Field(default_factory=SystemConfig)
 
-    # 리스크 관리
     risk_management: RiskManagementConfig = Field(default_factory=RiskManagementConfig)
 
-    # 트레이딩
     trading: TradingConfig = Field(default_factory=TradingConfig)
 
-    # 전략
     strategies: StrategiesConfig = Field(default_factory=StrategiesConfig)
 
-    # AI
     ai_analysis: AIConfig = Field(default_factory=AIConfig)
-    ai: AIConfig = Field(default_factory=AIConfig)  # Backward compatibility
+    ai: AIConfig = Field(default_factory=AIConfig)
 
-    # 백테스팅
     backtesting: BacktestingConfig = Field(default_factory=BacktestingConfig)
 
-    # 최적화
     optimization: OptimizationConfig = Field(default_factory=OptimizationConfig)
 
-    # 리밸런싱
     rebalancing: RebalancingConfig = Field(default_factory=RebalancingConfig)
 
-    # 스크리닝
     screening: ScreeningConfig = Field(default_factory=ScreeningConfig)
 
-    # 알림
     notification: NotificationConfig = Field(default_factory=NotificationConfig)
 
-    # UI
     ui: UIConfig = Field(default_factory=UIConfig)
 
-    # 고급 주문
     advanced_orders: AdvancedOrdersConfig = Field(default_factory=AdvancedOrdersConfig)
 
-    # 이상 감지
     anomaly_detection: AnomalyDetectionConfig = Field(default_factory=AnomalyDetectionConfig)
 
-    # 로깅
     logging: LoggingConfig = Field(default_factory=LoggingConfig)
 
-    # 메인 사이클
     main_cycle: MainCycleConfig = Field(default_factory=MainCycleConfig)
 
-    # 전역 설정
     environment: str = Field(default="production", description="환경 (production/development/test)")
     debug_mode: bool = Field(default=False, description="디버그 모드")
     initial_capital: float = Field(default=10000000, ge=0, description="초기 자본")
 
-    # Backward compatibility properties
     @property
     def position(self) -> Dict[str, Any]:
         """Legacy: position 카테고리 (risk_management로 매핑)"""
@@ -611,7 +532,6 @@ class AutoTradeConfig(BaseModel):
         """YAML 파일에서 설정 로드"""
         yaml_path = Path(path)
         if not yaml_path.exists():
-            # 기본 설정 반환
             return cls()
 
         with open(yaml_path, 'r', encoding='utf-8') as f:
@@ -626,7 +546,7 @@ class AutoTradeConfig(BaseModel):
 
         with open(yaml_path, 'w', encoding='utf-8') as f:
             yaml.dump(
-                self.model_dump(exclude={"ai"}),  # ai는 ai_analysis와 중복이므로 제외
+                self.model_dump(exclude={"ai"}),
                 f,
                 default_flow_style=False,
                 allow_unicode=True,
@@ -687,14 +607,12 @@ class AutoTradeConfig(BaseModel):
         keys = path.split('.')
         obj = self
 
-        # Navigate to the parent object
         for key in keys[:-1]:
             if hasattr(obj, key):
                 obj = getattr(obj, key)
             else:
                 raise KeyError(f"Invalid config path: {path}")
 
-        # Set the final key
         if hasattr(obj, keys[-1]):
             setattr(obj, keys[-1], value)
         else:
@@ -707,7 +625,6 @@ class AutoTradeConfig(BaseModel):
         }
 
 
-# Export
 __all__ = [
     'AutoTradeConfig',
     'SystemConfig',

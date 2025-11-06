@@ -1,7 +1,5 @@
-"""
 api/order.py
 주문 관련 API
-"""
 import logging
 from typing import Dict, Any, Optional
 from datetime import datetime
@@ -30,7 +28,7 @@ class OrderAPI:
         """
         self.client = client
         self.dry_run = dry_run
-        self.simulated_orders = []  # dry_run 모드의 주문 기록
+        self.simulated_orders = []
 
         mode = "DRY RUN (시뮬레이션)" if dry_run else "LIVE (실제 주문)"
         logger.info(f"OrderAPI 초기화 완료 - 모드: {mode}")
@@ -45,11 +43,10 @@ class OrderAPI:
         stock_code: str,
         quantity: int,
         price: int,
-        order_type: str = '02',  # 02: 지정가
+        order_type: str = '02',
         account_number: str = None,
-        exchange: str = None  # None: 자동 선택, 'KRX', 'NXT', 'SOR'
+        exchange: str = None
     ) -> Optional[Dict[str, Any]]:
-        """
         매수 주문
 
         Args:
@@ -62,60 +59,40 @@ class OrderAPI:
 
         Returns:
             주문 결과
-        """
         if self.dry_run:
             return self._simulate_buy(stock_code, quantity, price, order_type)
 
-        # 실제 매수 주문 API 호출 (kt10000: 주식매수주문)
         logger.info(f"🔵 실제 매수 주문 실행: {stock_code} {quantity}주 @ {price:,}원")
 
         try:
-            # 주문 파라미터 구성
-            # trde_tp: 거래유형 (키움 API 문서 참조)
-            # - 0: 보통(지정가)
-            # - 3: 시장가
-            # - 61: 장시작전시간외
-            # - 62: 시간외단일가
-            # - 81: 장마감후시간외
-            # order_type을 trde_tp로 매핑
             if order_type == '62':
-                trde_tp = '62'  # 시간외단일가
+                trde_tp = '62'
             elif order_type == '81':
-                trde_tp = '81'  # 장마감후시간외
+                trde_tp = '81'
             elif order_type == '61':
-                trde_tp = '61'  # 장시작전시간외
+                trde_tp = '61'
             elif order_type in ['00', '02', '0']:
-                trde_tp = '0'  # 보통(지정가) - 앞의 0 제거!
+                trde_tp = '0'
             elif order_type in ['01', '3']:
-                trde_tp = '3'  # 시장가 - 3으로 변환!
+                trde_tp = '3'
             else:
-                trde_tp = order_type  # 그대로 사용
+                trde_tp = order_type
 
-            # dmst_stex_tp: 거래소 선택
-            # ✅ 테스트 결과: 시간외 거래 시 NXT 거래소에서 trde_tp=0 (보통지정가) 사용
             if exchange:
-                # 명시적으로 거래소가 지정된 경우 (main.py에서 지정)
                 dmst_stex_tp = exchange
                 logger.info(f"📍 거래소 명시: {exchange}")
             elif trde_tp in ['61', '62', '81']:
-                # 시간외 거래 타입인 경우 NXT
                 dmst_stex_tp = 'NXT'
             else:
-                # 기본값: KRX
                 dmst_stex_tp = 'KRX'
 
-            # ord_uv(주문단가): 시장가(3)와 시간외종가(81)는 빈 문자열, 나머지는 가격 지정
-            # ✅ 테스트 결과: NXT 거래소는 trde_tp=0에도 가격 지정 필요
             if trde_tp == '3':
-                # 시장가: 가격 지정 안 함
                 ord_uv_value = ""
                 logger.info(f"⚠️ 시장가 주문: 가격 지정 없음")
             elif trde_tp == '81':
-                # 시간외종가: 가격 지정 안 함 (종가로 자동 체결)
                 ord_uv_value = ""
                 logger.info(f"⚠️ 시간외종가 주문: 장 마감 종가로 자동 체결")
             else:
-                # 나머지는 가격 지정
                 ord_uv_value = str(price)
 
             body_params = {
@@ -129,7 +106,6 @@ class OrderAPI:
             logger.info(f"📋 주문 파라미터: order_type={order_type} → trde_tp={trde_tp}, dmst_stex_tp={dmst_stex_tp}, ord_uv={ord_uv_value}")
             print(f"📋 DEBUG: body_params={body_params}")
 
-            # API 호출
             result = self.client.request(
                 api_id='kt10000',
                 body=body_params,
@@ -153,7 +129,6 @@ class OrderAPI:
                 logger.error(f"   서버: {self.client.base_url}")
                 logger.error(f"   파라미터: trde_tp={trde_tp}, dmst_stex_tp={dmst_stex_tp}")
 
-                # NXT 시간외 거래 실패 시 추가 안내
                 if dmst_stex_tp == 'NXT' and 'mockapi' in self.client.base_url:
                     logger.error(f"   ⚠️ 모의투자 서버는 NXT 시간외 거래를 지원하지 않습니다!")
                     logger.error(f"   ⚠️ 실제 운영 서버(api.kiwoom.com)로 변경하세요.")
@@ -184,11 +159,10 @@ class OrderAPI:
         stock_code: str,
         quantity: int,
         price: int,
-        order_type: str = '02',  # 02: 지정가
+        order_type: str = '02',
         account_number: str = None,
-        exchange: str = None  # None: 자동 선택, 'KRX', 'NXT', 'SOR'
+        exchange: str = None
     ) -> Optional[Dict[str, Any]]:
-        """
         매도 주문
 
         Args:
@@ -201,60 +175,40 @@ class OrderAPI:
 
         Returns:
             주문 결과
-        """
         if self.dry_run:
             return self._simulate_sell(stock_code, quantity, price, order_type)
 
-        # 실제 매도 주문 API 호출 (kt10001: 주식매도주문)
         logger.info(f"🔴 실제 매도 주문 실행: {stock_code} {quantity}주 @ {price:,}원")
 
         try:
-            # 주문 파라미터 구성
-            # trde_tp: 거래유형 (키움 API 문서 참조)
-            # - 0: 보통(지정가)
-            # - 3: 시장가
-            # - 61: 장시작전시간외
-            # - 62: 시간외단일가
-            # - 81: 장마감후시간외
-            # order_type을 trde_tp로 매핑
             if order_type == '62':
-                trde_tp = '62'  # 시간외단일가
+                trde_tp = '62'
             elif order_type == '81':
-                trde_tp = '81'  # 장마감후시간외
+                trde_tp = '81'
             elif order_type == '61':
-                trde_tp = '61'  # 장시작전시간외
+                trde_tp = '61'
             elif order_type in ['00', '02', '0']:
-                trde_tp = '0'  # 보통(지정가) - 앞의 0 제거!
+                trde_tp = '0'
             elif order_type in ['01', '3']:
-                trde_tp = '3'  # 시장가 - 3으로 변환!
+                trde_tp = '3'
             else:
-                trde_tp = order_type  # 그대로 사용
+                trde_tp = order_type
 
-            # dmst_stex_tp: 거래소 선택
-            # ✅ 테스트 결과: 시간외 거래 시 NXT 거래소에서 trde_tp=0 (보통지정가) 사용
             if exchange:
-                # 명시적으로 거래소가 지정된 경우 (main.py에서 지정)
                 dmst_stex_tp = exchange
                 logger.info(f"📍 거래소 명시: {exchange}")
             elif trde_tp in ['61', '62', '81']:
-                # 시간외 거래 타입인 경우 NXT
                 dmst_stex_tp = 'NXT'
             else:
-                # 기본값: KRX
                 dmst_stex_tp = 'KRX'
 
-            # ord_uv(주문단가): 시장가(3)와 시간외종가(81)는 빈 문자열, 나머지는 가격 지정
-            # ✅ 테스트 결과: NXT 거래소는 trde_tp=0에도 가격 지정 필요
             if trde_tp == '3':
-                # 시장가: 가격 지정 안 함
                 ord_uv_value = ""
                 logger.info(f"⚠️ 시장가 주문: 가격 지정 없음")
             elif trde_tp == '81':
-                # 시간외종가: 가격 지정 안 함 (종가로 자동 체결)
                 ord_uv_value = ""
                 logger.info(f"⚠️ 시간외종가 주문: 장 마감 종가로 자동 체결")
             else:
-                # 나머지는 가격 지정
                 ord_uv_value = str(price)
 
             body_params = {
@@ -268,7 +222,6 @@ class OrderAPI:
             logger.info(f"📋 주문 파라미터: order_type={order_type} → trde_tp={trde_tp}, dmst_stex_tp={dmst_stex_tp}, ord_uv={ord_uv_value}")
             print(f"📋 DEBUG: body_params={body_params}")
 
-            # API 호출
             result = self.client.request(
                 api_id='kt10001',
                 body=body_params,
@@ -292,7 +245,6 @@ class OrderAPI:
                 logger.error(f"   서버: {self.client.base_url}")
                 logger.error(f"   파라미터: trde_tp={trde_tp}, dmst_stex_tp={dmst_stex_tp}")
 
-                # NXT 시간외 거래 실패 시 추가 안내
                 if dmst_stex_tp == 'NXT' and 'mockapi' in self.client.base_url:
                     logger.error(f"   ⚠️ 모의투자 서버는 NXT 시간외 거래를 지원하지 않습니다!")
                     logger.error(f"   ⚠️ 실제 운영 서버(api.kiwoom.com)로 변경하세요.")
@@ -326,7 +278,6 @@ class OrderAPI:
         price: int,
         account_number: str = None
     ) -> Optional[Dict[str, Any]]:
-        """
         주문 정정
 
         Args:
@@ -338,7 +289,6 @@ class OrderAPI:
 
         Returns:
             정정 결과
-        """
         logger.warning("주문 정정 API가 아직 구현되지 않았습니다")
         return None
 
@@ -349,7 +299,6 @@ class OrderAPI:
         quantity: int,
         account_number: str = None
     ) -> Optional[Dict[str, Any]]:
-        """
         주문 취소
 
         Args:
@@ -360,7 +309,6 @@ class OrderAPI:
 
         Returns:
             취소 결과
-        """
         logger.warning("주문 취소 API가 아직 구현되지 않았습니다")
         return None
 
@@ -369,7 +317,6 @@ class OrderAPI:
         order_no: str,
         account_number: str = None
     ) -> Optional[Dict[str, Any]]:
-        """
         주문 상태 조회
 
         Args:
@@ -378,11 +325,9 @@ class OrderAPI:
 
         Returns:
             주문 상태
-        """
         logger.warning("주문 상태 조회 API가 아직 구현되지 않았습니다")
         return None
 
-    # ==================== DRY RUN 모드 메서드 ====================
 
     def _simulate_buy(self, stock_code: str, quantity: int, price: int, order_type: str):
         """매수 주문 시뮬레이션"""
@@ -395,7 +340,7 @@ class OrderAPI:
             "price": price,
             "order_type": order_type,
             "side": "buy",
-            "status": "filled",  # 시뮬레이션에서는 즉시 체결
+            "status": "filled",
             "timestamp": datetime.now().isoformat()
         }
 
@@ -419,7 +364,7 @@ class OrderAPI:
             "price": price,
             "order_type": order_type,
             "side": "sell",
-            "status": "filled",  # 시뮬레이션에서는 즉시 체결
+            "status": "filled",
             "timestamp": datetime.now().isoformat()
         }
 

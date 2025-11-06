@@ -1,11 +1,9 @@
-"""
 core 패키지
 핵심 API 클라이언트 + 표준 타입 시스템
 
-v4.2 CRITICAL #2: 표준 타입 시스템 추가
+v4.2 CRITICAL
 - Position 클래스 통합 (4 → 1)
 - Trade, MarketSnapshot 표준화
-"""
 from .rest_client import KiwoomRESTClient
 from .exceptions import (
     KiwoomAPIError,
@@ -23,7 +21,6 @@ from .exceptions import (
     OrderError,
 )
 
-# v4.2 Standard Types (CRITICAL #2)
 from .trading_types import (
     OrderAction,
     OrderType,
@@ -34,10 +31,8 @@ from .trading_types import (
 )
 
 __all__ = [
-    # REST Client
     'KiwoomRESTClient',
 
-    # Exceptions
     'KiwoomAPIError',
     'AuthenticationError',
     'TokenExpiredError',
@@ -52,7 +47,6 @@ __all__ = [
     'StrategyError',
     'OrderError',
 
-    # v4.2 Standard Types
     'OrderAction',
     'OrderType',
     'PositionStatus',

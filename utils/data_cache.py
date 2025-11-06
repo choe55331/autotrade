@@ -1,7 +1,5 @@
-"""
 Advanced Data Caching System - v5.12
 Multi-level caching with LRU, TTL, and intelligent invalidation
-"""
 from dataclasses import dataclass
 from typing import Any, Optional, Dict, Callable, List
 from datetime import datetime, timedelta
@@ -51,12 +49,10 @@ class LRUCache:
 
     def __init__(self, max_size: int = 1000, max_memory_mb: int = 100,
                  default_ttl_seconds: int = 300):
-        """
         Args:
             max_size: 최대 엔트리 수
             max_memory_mb: 최대 메모리 사용량 (MB)
             default_ttl_seconds: 기본 TTL (초)
-        """
         self.max_size = max_size
         self.max_memory_bytes = max_memory_mb * 1024 * 1024
         self.default_ttl_seconds = default_ttl_seconds
@@ -64,7 +60,6 @@ class LRUCache:
         self._cache: OrderedDict[str, CacheEntry] = OrderedDict()
         self._lock = RLock()
 
-        # Statistics
         self._hits = 0
         self._misses = 0
         self._sets = 0
@@ -94,18 +89,15 @@ class LRUCache:
 
             entry = self._cache[key]
 
-            # Check expiration
             if entry.expires_at and datetime.now() >= entry.expires_at:
                 logger.debug(f"Cache EXPIRED: {key}")
                 self._delete_entry(key)
                 self._misses += 1
                 return None
 
-            # Update access info
             entry.hit_count += 1
             entry.last_accessed = datetime.now()
 
-            # Move to end (most recently used)
             self._cache.move_to_end(key)
 
             self._hits += 1
@@ -115,7 +107,6 @@ class LRUCache:
 
     def set(self, key: str, value: Any, ttl_seconds: Optional[int] = None,
             tags: Optional[List[str]] = None) -> bool:
-        """
         캐시에 값 저장
 
         Args:
@@ -126,28 +117,22 @@ class LRUCache:
 
         Returns:
             bool: 성공 여부
-        """
         with self._lock:
-            # Calculate size
             try:
                 size_bytes = len(pickle.dumps(value))
             except Exception as e:
                 logger.warning(f"Cannot pickle value for {key}: {e}")
-                size_bytes = 1024  # Default estimate
+                size_bytes = 1024
 
-            # Check if single entry exceeds max memory
             if size_bytes > self.max_memory_bytes:
                 logger.warning(f"Entry too large for cache: {key} ({size_bytes} bytes)")
                 return False
 
-            # Remove old entry if exists
             if key in self._cache:
                 self._delete_entry(key)
 
-            # Evict entries if needed
             self._evict_if_needed(size_bytes)
 
-            # Create entry
             ttl = ttl_seconds if ttl_seconds is not None else self.default_ttl_seconds
             expires_at = datetime.now() + timedelta(seconds=ttl) if ttl > 0 else None
 
@@ -247,16 +232,13 @@ class LRUCache:
 
     def _evict_if_needed(self, incoming_size: int) -> None:
         """필요시 오래된 엔트리 제거"""
-        # Evict by size limit
         while (self._current_memory_bytes + incoming_size > self.max_memory_bytes and
                len(self._cache) > 0):
-            # Remove least recently used (first item)
             oldest_key = next(iter(self._cache))
             logger.debug(f"Evicting by memory: {oldest_key}")
             self._delete_entry(oldest_key)
             self._evictions += 1
 
-        # Evict by count limit
         while len(self._cache) >= self.max_size:
             oldest_key = next(iter(self._cache))
             logger.debug(f"Evicting by count: {oldest_key}")
@@ -289,13 +271,11 @@ class MultiLevelCache:
 
     def __init__(self, l1_max_size: int = 1000, l1_max_memory_mb: int = 100,
                  l2_enabled: bool = True, l2_cache_dir: str = "data/cache"):
-        """
         Args:
             l1_max_size: L1 캐시 최대 크기
             l1_max_memory_mb: L1 캐시 최대 메모리
             l2_enabled: L2 (디스크) 캐시 활성화
             l2_cache_dir: L2 캐시 디렉토리
-        """
         self.l1_cache = LRUCache(
             max_size=l1_max_size,
             max_memory_mb=l1_max_memory_mb,
@@ -315,18 +295,15 @@ class MultiLevelCache:
 
     def get(self, key: str) -> Optional[Any]:
         """캐시에서 조회 (L1 -> L2)"""
-        # Try L1
         value = self.l1_cache.get(key)
         if value is not None:
             logger.debug(f"L1 cache hit: {key}")
             return value
 
-        # Try L2
         if self.l2_enabled:
             value = self._get_from_l2(key)
             if value is not None:
                 logger.debug(f"L2 cache hit: {key}")
-                # Promote to L1
                 self.l1_cache.set(key, value)
                 return value
 
@@ -334,11 +311,8 @@ class MultiLevelCache:
 
     def set(self, key: str, value: Any, ttl_seconds: Optional[int] = None,
             tags: Optional[List[str]] = None, persist_l2: bool = True) -> bool:
-        """캐시에 저장 (L1 + L2)"""
-        # Set in L1
         success = self.l1_cache.set(key, value, ttl_seconds, tags)
 
-        # Set in L2 if enabled and requested
         if self.l2_enabled and persist_l2:
             self._set_to_l2(key, value, ttl_seconds)
 
@@ -402,7 +376,6 @@ class MultiLevelCache:
             with open(cache_file, 'rb') as f:
                 data = pickle.load(f)
 
-            # Check expiration
             if data.get('expires_at'):
                 expires_at = datetime.fromisoformat(data['expires_at'])
                 if datetime.now() >= expires_at:
@@ -457,14 +430,12 @@ class MultiLevelCache:
 
     def _get_l2_path(self, key: str) -> Path:
         """L2 캐시 파일 경로"""
-        # Hash key for filename
         key_hash = hashlib.md5(key.encode()).hexdigest()
         return self.l2_cache_dir / f"{key_hash}.cache"
 
 
 def cached(cache: LRUCache, ttl_seconds: int = 300,
           key_func: Optional[Callable] = None):
-    """
     캐싱 데코레이터
 
     Usage:
@@ -475,28 +446,22 @@ def cached(cache: LRUCache, ttl_seconds: int = 300,
         @cached(my_cache, key_func=lambda user_id: f"user_{user_id}")
         def get_user_data(user_id):
             ...
-    """
     def decorator(func):
         def wrapper(*args, **kwargs):
-            # Generate cache key
             if key_func:
                 cache_key = key_func(*args, **kwargs)
             else:
-                # Default: function name + args hash
                 args_str = json.dumps([str(a) for a in args] + [f"{k}={v}" for k, v in sorted(kwargs.items())])
                 args_hash = hashlib.md5(args_str.encode()).hexdigest()[:8]
                 cache_key = f"{func.__name__}:{args_hash}"
 
-            # Try cache
             cached_value = cache.get(cache_key)
             if cached_value is not None:
                 logger.debug(f"Cache hit for {func.__name__}")
                 return cached_value
 
-            # Execute function
             result = func(*args, **kwargs)
 
-            # Cache result
             cache.set(cache_key, result, ttl_seconds=ttl_seconds)
 
             return result
@@ -505,7 +470,6 @@ def cached(cache: LRUCache, ttl_seconds: int = 300,
     return decorator
 
 
-# Global caches
 _price_cache: Optional[MultiLevelCache] = None
 _market_data_cache: Optional[MultiLevelCache] = None
 _api_cache: Optional[LRUCache] = None
@@ -544,32 +508,28 @@ def get_api_cache() -> LRUCache:
         _api_cache = LRUCache(
             max_size=500,
             max_memory_mb=30,
-            default_ttl_seconds=60  # Short TTL for API responses
+            default_ttl_seconds=60
         )
     return _api_cache
 
 
-# Example usage
 if __name__ == '__main__':
     print("\n📦 Multi-Level Cache Test")
     print("=" * 60)
 
     cache = MultiLevelCache(l1_max_size=10, l1_max_memory_mb=1)
 
-    # Test set/get
     print("\n[Test 1] Set and Get")
     cache.set("test_key", {"price": 73500, "volume": 1000000}, ttl_seconds=60)
     value = cache.get("test_key")
     print(f"✓ Retrieved: {value}")
 
-    # Test stats
     print("\n[Test 2] Cache Statistics")
     stats = cache.get_stats()
     print(f"✓ L1 Hit Rate: {stats['l1']['hit_rate']:.1%}")
     print(f"✓ L1 Entries: {stats['l1']['entries']}")
     print(f"✓ L1 Memory: {stats['l1']['memory_mb']:.2f}MB")
 
-    # Test decorator
     print("\n[Test 3] Cached Decorator")
 
     test_cache = LRUCache(max_size=10, max_memory_mb=1)
@@ -580,7 +540,7 @@ if __name__ == '__main__':
         return sum(range(n))
 
     result1 = expensive_calculation(1000)
-    result2 = expensive_calculation(1000)  # Should hit cache
+    result2 = expensive_calculation(1000)
     print(f"✓ Results: {result1} == {result2}")
 
     print("\n✅ Cache tests complete!")

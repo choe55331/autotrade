@@ -1,4 +1,3 @@
-"""
 Trading Journal with AI Analysis
 Automatic trade recording and intelligent analysis
 
@@ -8,7 +7,6 @@ Features:
 - Pattern recognition in mistakes
 - Performance insights
 - Improvement suggestions
-"""
 import json
 import numpy as np
 import pandas as pd
@@ -26,33 +24,29 @@ class JournalEntry:
     """Single journal entry"""
     id: str
     timestamp: str
-    trade_type: str  # 'buy' or 'sell'
+    trade_type: str
     stock_code: str
     stock_name: str
     quantity: int
     price: float
     total_amount: float
 
-    # Entry details
     entry_reason: str
     strategy_used: str
     confidence_level: float
     market_condition: str
 
-    # Exit details (for sell)
     exit_reason: Optional[str] = None
-    holding_period: Optional[float] = None  # Hours
+    holding_period: Optional[float] = None
     profit_loss: Optional[float] = None
     profit_loss_pct: Optional[float] = None
 
-    # Analysis
     was_successful: bool = False
     ai_analysis: Optional[str] = None
     lessons_learned: List[str] = None
     mistakes: List[str] = None
     tags: List[str] = None
 
-    # Emotions/notes
     emotional_state: Optional[str] = None
     notes: Optional[str] = None
 
@@ -66,19 +60,19 @@ class TradingPattern:
     occurrences: int
     success_rate: float
     avg_profit: float
-    examples: List[str]  # Journal entry IDs
+    examples: List[str]
 
 
 @dataclass
 class JournalInsight:
     """AI-generated insight from journal"""
     timestamp: str
-    insight_type: str  # 'strength', 'weakness', 'opportunity', 'threat'
+    insight_type: str
     title: str
     description: str
     supporting_data: List[str]
     recommendation: str
-    priority: str  # 'high', 'medium', 'low'
+    priority: str
 
 
 class TradingJournal:
@@ -142,7 +136,7 @@ class TradingJournal:
         try:
             with open(self.journal_file, 'w', encoding='utf-8') as f:
                 json.dump({
-                    'entries': [asdict(e) for e in self.entries[-1000:]],  # Keep last 1000
+                    'entries': [asdict(e) for e in self.entries[-1000:]],
                     'last_updated': datetime.now().isoformat()
                 }, f, ensure_ascii=False, indent=2)
 
@@ -154,7 +148,7 @@ class TradingJournal:
 
             with open(self.insights_file, 'w', encoding='utf-8') as f:
                 json.dump({
-                    'insights': [asdict(i) for i in self.insights[-50:]],  # Keep last 50
+                    'insights': [asdict(i) for i in self.insights[-50:]],
                     'last_updated': datetime.now().isoformat()
                 }, f, ensure_ascii=False, indent=2)
 
@@ -175,7 +169,6 @@ class TradingJournal:
         emotional_state: str = None,
         notes: str = None
     ) -> JournalEntry:
-        """
         Record a trade in the journal
 
         Args:
@@ -193,7 +186,6 @@ class TradingJournal:
 
         Returns:
             Journal entry
-        """
         entry_id = f"{trade_type}_{stock_code}_{int(datetime.now().timestamp())}"
 
         entry = JournalEntry(
@@ -214,7 +206,6 @@ class TradingJournal:
             tags=self._auto_tag(trade_type, reason, confidence)
         )
 
-        # If sell, try to match with buy entry
         if trade_type == 'sell':
             self._complete_trade_cycle(entry, stock_code)
 
@@ -223,7 +214,6 @@ class TradingJournal:
 
         logger.info(f"Journal: Recorded {trade_type} of {stock_name}")
 
-        # Analyze if enough entries
         if len(self.entries) % 10 == 0:
             self._analyze_patterns()
 
@@ -233,16 +223,13 @@ class TradingJournal:
         """Automatically generate tags for entry"""
         tags = []
 
-        # Type tags
         tags.append(trade_type)
 
-        # Confidence tags
         if confidence > 0.8:
             tags.append('high_confidence')
         elif confidence < 0.5:
             tags.append('low_confidence')
 
-        # Reason tags
         reason_lower = reason.lower()
         if 'rsi' in reason_lower:
             tags.append('rsi_signal')
@@ -259,7 +246,6 @@ class TradingJournal:
 
     def _complete_trade_cycle(self, sell_entry: JournalEntry, stock_code: str):
         """Complete a trade cycle by matching sell with buy"""
-        # Find corresponding buy entry
         buy_entries = [e for e in self.entries
                       if e.trade_type == 'buy' and
                       e.stock_code == stock_code and
@@ -268,17 +254,15 @@ class TradingJournal:
         if not buy_entries:
             return
 
-        buy_entry = buy_entries[-1]  # Most recent
+        buy_entry = buy_entries[-1]
 
-        # Calculate metrics
         buy_time = datetime.fromisoformat(buy_entry.timestamp)
         sell_time = datetime.fromisoformat(sell_entry.timestamp)
-        holding_period = (sell_time - buy_time).total_seconds() / 3600  # Hours
+        holding_period = (sell_time - buy_time).total_seconds() / 3600
 
         profit_loss = (sell_entry.price - buy_entry.price) * buy_entry.quantity
         profit_loss_pct = ((sell_entry.price - buy_entry.price) / buy_entry.price) * 100
 
-        # Update both entries
         buy_entry.exit_reason = sell_entry.entry_reason
         buy_entry.holding_period = holding_period
         buy_entry.profit_loss = profit_loss
@@ -290,7 +274,6 @@ class TradingJournal:
         sell_entry.profit_loss_pct = profit_loss_pct
         sell_entry.was_successful = profit_loss > 0
 
-        # AI analysis
         self._ai_analyze_trade(buy_entry, sell_entry)
 
     def _ai_analyze_trade(self, buy_entry: JournalEntry, sell_entry: JournalEntry):
@@ -299,7 +282,6 @@ class TradingJournal:
         lessons = []
         mistakes = []
 
-        # Success analysis
         if buy_entry.was_successful:
             analysis.append("✅ 수익 거래")
 
@@ -323,14 +305,12 @@ class TradingJournal:
             if buy_entry.confidence_level < 0.5:
                 mistakes.append("낮은 신뢰도로 진입 - 기준 강화 필요")
 
-        # Market condition analysis
         if buy_entry.market_condition == 'volatile':
             if buy_entry.was_successful:
                 lessons.append("변동장에서 성공 - 변동성 활용 능력")
             else:
                 mistakes.append("변동장 손실 - 안정적 시장 선호 권장")
 
-        # Store analysis
         buy_entry.ai_analysis = " | ".join(analysis)
         buy_entry.lessons_learned = lessons
         buy_entry.mistakes = mistakes
@@ -346,7 +326,6 @@ class TradingJournal:
         if len(self.entries) < 20:
             return
 
-        # Pattern 1: Success by confidence level
         high_conf_trades = [e for e in self.entries if e.confidence_level > 0.7 and e.was_successful is not None]
         if len(high_conf_trades) >= 5:
             success_rate = sum(1 for e in high_conf_trades if e.was_successful) / len(high_conf_trades)
@@ -362,7 +341,6 @@ class TradingJournal:
                 examples=[e.id for e in high_conf_trades[:5]]
             )
 
-            # Update or add pattern
             existing = [p for p in self.patterns if p.pattern_id == 'high_confidence']
             if existing:
                 idx = self.patterns.index(existing[0])
@@ -370,9 +348,6 @@ class TradingJournal:
             else:
                 self.patterns.append(pattern)
 
-        # Pattern 2: Day of week analysis
-        # Pattern 3: Time of day analysis
-        # ... (More patterns)
 
         self._save_journal()
 
@@ -388,7 +363,6 @@ class TradingJournal:
         if not completed_trades:
             return new_insights
 
-        # Insight 1: Overall performance
         win_rate = sum(1 for e in completed_trades if e.was_successful) / len(completed_trades)
 
         if win_rate > 0.65:
@@ -414,7 +388,6 @@ class TradingJournal:
             )
             new_insights.append(insight)
 
-        # Insight 2: Common mistakes
         all_mistakes = []
         for entry in completed_trades:
             if entry.mistakes:
@@ -436,7 +409,6 @@ class TradingJournal:
             )
             new_insights.append(insight)
 
-        # Insight 3: Best performing strategy
         strategy_performance = defaultdict(list)
         for entry in completed_trades:
             if entry.profit_loss_pct:
@@ -464,7 +436,6 @@ class TradingJournal:
 
     def get_statistics(self, period: str = 'all') -> Dict[str, Any]:
         """Get journal statistics"""
-        # Filter by period
         if period == 'today':
             cutoff = datetime.now().replace(hour=0, minute=0, second=0)
             entries = [e for e in self.entries if datetime.fromisoformat(e.timestamp) >= cutoff]
@@ -511,7 +482,6 @@ class TradingJournal:
         }
 
 
-# Global instance
 _trading_journal: Optional[TradingJournal] = None
 
 
@@ -523,7 +493,6 @@ def get_trading_journal(ai_learning_engine=None) -> TradingJournal:
     return _trading_journal
 
 
-# Example usage
 if __name__ == '__main__':
     from collections import defaultdict
 
@@ -532,7 +501,6 @@ if __name__ == '__main__':
     print("\n📔 Trading Journal Test")
     print("=" * 60)
 
-    # Record some trades
     buy = journal.record_trade(
         trade_type='buy',
         stock_code='005930',
@@ -544,7 +512,6 @@ if __name__ == '__main__':
         confidence=0.75
     )
 
-    # Simulate sell after profit
     sell = journal.record_trade(
         trade_type='sell',
         stock_code='005930',
@@ -556,13 +523,11 @@ if __name__ == '__main__':
         confidence=0.80
     )
 
-    # Generate insights
     insights = journal.generate_insights()
     print(f"\n생성된 인사이트: {len(insights)}개")
     for insight in insights:
         print(f"  [{insight.insight_type}] {insight.title}")
 
-    # Get statistics
     stats = journal.get_statistics()
     print(f"\n통계:")
     print(f"  총 거래: {stats.get('total_trades', 0)}건")

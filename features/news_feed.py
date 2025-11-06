@@ -1,4 +1,3 @@
-"""
 News Feed with Sentiment Analysis
 Real-time stock news fetching and AI sentiment analysis
 
@@ -8,7 +7,6 @@ Features:
 - News impact scoring
 - Real-time updates
 - Filtering by sentiment
-"""
 import json
 import re
 import time
@@ -32,10 +30,10 @@ class NewsArticle:
     published_at: str
     stock_code: Optional[str]
     stock_name: Optional[str]
-    sentiment: str  # 'positive', 'negative', 'neutral'
-    sentiment_score: float  # -1.0 to 1.0
-    confidence: float  # 0.0 to 1.0
-    impact_level: str  # 'high', 'medium', 'low'
+    sentiment: str
+    sentiment_score: float
+    confidence: float
+    impact_level: str
     keywords: List[str]
 
     def to_dict(self) -> Dict:
@@ -60,7 +58,6 @@ class NewsSummary:
 class SentimentAnalyzer:
     """Korean financial news sentiment analyzer"""
 
-    # Korean sentiment keywords
     POSITIVE_KEYWORDS = [
         '상승', '호재', '증가', '개선', '성장', '확대', '호조',
         '신규', '투자', '수주', '계약', '협약', '흑자', '수익',
@@ -75,7 +72,6 @@ class SentimentAnalyzer:
         '실적악화', '매출감소', '영업손실', '적자전환'
     ]
 
-    # Impact keywords
     HIGH_IMPACT_KEYWORDS = [
         '대규모', '사상최대', '전년대비', '분기실적', '연간실적',
         '자회사', '계열사', 'M&A', '인수', '합병', '상장',
@@ -98,11 +94,9 @@ class SentimentAnalyzer:
         Returns:
             Dictionary with sentiment, score, confidence
         """
-        # Count positive/negative keywords
         positive_matches = len(re.findall(self.positive_pattern, text, re.IGNORECASE))
         negative_matches = len(re.findall(self.negative_pattern, text, re.IGNORECASE))
 
-        # Calculate raw score
         total_matches = positive_matches + negative_matches
         if total_matches == 0:
             sentiment = 'neutral'
@@ -156,17 +150,14 @@ class SentimentAnalyzer:
         """
         keywords = []
 
-        # Find all sentiment keywords
         for keyword in self.POSITIVE_KEYWORDS + self.NEGATIVE_KEYWORDS:
             if keyword in text:
                 keywords.append(keyword)
 
-        # Find high impact keywords
         for keyword in self.HIGH_IMPACT_KEYWORDS:
             if keyword in text:
                 keywords.append(keyword)
 
-        # Remove duplicates and limit
         keywords = list(set(keywords))[:max_keywords]
         return keywords
 
@@ -178,7 +169,7 @@ class NewsFeedService:
         """Initialize news feed service"""
         self.analyzer = SentimentAnalyzer()
         self.cache_file = Path('data/news_cache.json')
-        self.cache_ttl = 600  # 10 minutes
+        self.cache_ttl = 600
         self._ensure_data_dir()
         self.news_cache: Dict[str, Dict] = {}
 
@@ -270,12 +261,10 @@ class NewsFeedService:
             template = mock_news_templates[i]
             text = template['title'] + ' ' + template['summary']
 
-            # Analyze sentiment
             sentiment_result = self.analyzer.analyze_sentiment(text)
             impact_level = self.analyzer.analyze_impact(text)
             keywords = self.analyzer.extract_keywords(text)
 
-            # Create article
             published_time = now - timedelta(hours=i * 2)
             article = NewsArticle(
                 id=f"{stock_code}_{int(published_time.timestamp())}",
@@ -303,7 +292,6 @@ class NewsFeedService:
         limit: int = 10,
         use_cache: bool = True
     ) -> List[NewsArticle]:
-        """
         Get news articles for a stock
 
         Args:
@@ -314,17 +302,13 @@ class NewsFeedService:
 
         Returns:
             List of NewsArticle objects
-        """
         try:
-            # Check cache first
             if use_cache and self._is_cache_valid(stock_code):
                 cached_data = self.news_cache[stock_code]['articles']
                 return [NewsArticle(**article) for article in cached_data[:limit]]
 
-            # For now, use mock news (replace with real API later)
             articles = self._create_mock_news(stock_code, stock_name, count=limit)
 
-            # Cache the results
             self.news_cache[stock_code] = {
                 'articles': [a.to_dict() for a in articles],
                 'cached_at': datetime.now().isoformat()
@@ -360,7 +344,6 @@ class NewsFeedService:
 
             avg_score = sum(a.sentiment_score for a in articles) / len(articles)
 
-            # Overall sentiment
             if avg_score > 0.2:
                 overall = 'positive'
             elif avg_score < -0.2:
@@ -390,12 +373,10 @@ class NewsFeedService:
         stock_name: str,
         limit: int = 10
     ) -> Dict[str, Any]:
-        """
         Get news formatted for dashboard
 
         Returns:
             Dictionary ready for JSON API response
-        """
         try:
             articles = self.get_news_for_stock(stock_code, stock_name, limit=limit)
             summary = self.get_news_summary(stock_code, stock_name)
@@ -416,9 +397,7 @@ class NewsFeedService:
             }
 
 
-# Example usage
 if __name__ == '__main__':
-    # Test sentiment analyzer
     analyzer = SentimentAnalyzer()
 
     test_texts = [
@@ -436,7 +415,6 @@ if __name__ == '__main__':
         print(f"점수: {result['score']:.2f}")
         print(f"신뢰도: {result['confidence']:.2f}")
 
-    # Test news service
     print("\n\n뉴스 피드 테스트")
     print("=" * 60)
     service = NewsFeedService()

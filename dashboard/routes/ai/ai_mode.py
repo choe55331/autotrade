@@ -1,12 +1,9 @@
-"""
 AI Mode v3.6 - Basic AI Functionality
 Handles basic AI mode operations: status, toggle, decisions, learning, optimization
-"""
 from flask import Blueprint, jsonify, request
 from dataclasses import asdict
 from .common import get_bot_instance
 
-# Create blueprint
 ai_mode_bp = Blueprint('ai_mode', __name__)
 
 
@@ -62,8 +59,7 @@ def get_ai_decision(stock_code: str):
 
         bot = get_bot_instance()
 
-        # Get stock data
-        stock_name = stock_code  # Fallback
+        stock_name = stock_code
         stock_data = {
             'current_price': 0,
             'rsi': 50,
@@ -72,7 +68,6 @@ def get_ai_decision(stock_code: str):
         }
 
         if bot and hasattr(bot, 'market_api'):
-            # Try to get real data
             try:
                 price_info = bot.market_api.get_current_price(stock_code)
                 if price_info:

@@ -1,8 +1,6 @@
-"""
 신규 API 테스트 스크립트
 - ka10047: 체결강도
 - ka90013: 프로그램매매
-"""
 import sys
 import os
 
@@ -21,7 +19,6 @@ def test_execution_intensity():
         client = KiwoomRESTClient()
         market_api = MarketAPI(client)
 
-        # 삼성전자 테스트
         test_stock = "005930"
         print(f"\n테스트 종목: {test_stock} (삼성전자)")
 
@@ -55,7 +52,6 @@ def test_program_trading():
         client = KiwoomRESTClient()
         market_api = MarketAPI(client)
 
-        # 삼성전자 테스트
         test_stock = "005930"
         print(f"\n테스트 종목: {test_stock} (삼성전자)")
 
@@ -87,15 +83,12 @@ def main():
 
     results = []
 
-    # 체결강도 테스트
     result1 = test_execution_intensity()
     results.append(("체결강도 (ka10047)", result1))
 
-    # 프로그램매매 테스트
     result2 = test_program_trading()
     results.append(("프로그램매매 (ka90013)", result2))
 
-    # 결과 요약
     print("\n" + "="*80)
     print("📊 테스트 결과 요약")
     print("="*80)

@@ -1,7 +1,5 @@
-"""
 utils/file_handler.py
 파일 입출력 처리
-"""
 import json
 import logging
 from pathlib import Path
@@ -57,7 +55,6 @@ class FileHandler:
         indent: int = 2,
         backup: bool = False
     ) -> bool:
-        """
         JSON 파일 쓰기
         
         Args:
@@ -68,16 +65,12 @@ class FileHandler:
         
         Returns:
             성공 여부
-        """
         try:
-            # 디렉토리 생성
             file_path.parent.mkdir(parents=True, exist_ok=True)
             
-            # 백업 파일 생성
             if backup and file_path.exists():
                 FileHandler._create_backup(file_path)
             
-            # JSON 파일 쓰기
             with open(file_path, 'w', encoding='utf-8') as f:
                 json.dump(data, f, indent=indent, ensure_ascii=False)
             
@@ -100,7 +93,6 @@ class FileHandler:
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
             backup_path = file_path.with_suffix(f'.{timestamp}.bak')
             
-            # 파일 복사
             import shutil
             shutil.copy2(file_path, backup_path)
             

@@ -1,7 +1,5 @@
-"""
 NXT 실시간 현재가 처리 모듈 - v5.15
 NXT 시장 시간대(15:30~20:00)의 실시간 현재가 정확한 반영
-"""
 from datetime import datetime, time
 from typing import Dict, Any, Optional
 import logging
@@ -23,7 +21,7 @@ class NXTRealtimePriceManager:
             market_api: MarketAPI 인스턴스
         """
         self.market_api = market_api
-        self.price_cache = {}  # 캐시 (5초 TTL)
+        self.price_cache = {}
         self.cache_ttl_seconds = 5
 
     def is_nxt_trading_hours(self) -> bool:
@@ -38,11 +36,9 @@ class NXTRealtimePriceManager:
         """
         now = datetime.now().time()
 
-        # 오전 NXT: 08:00 ~ 09:00
         morning_start = time(8, 0)
         morning_end = time(9, 0)
 
-        # 오후 NXT: 15:30 ~ 20:00
         afternoon_start = time(15, 30)
         afternoon_end = time(20, 0)
 
@@ -53,7 +49,6 @@ class NXTRealtimePriceManager:
 
     def get_realtime_price(self, stock_code: str,
                           force_refresh: bool = False) -> Optional[Dict[str, Any]]:
-        """
         실시간 현재가 조회
 
         ⚠️ 중요 발견 (v5.15 테스트 결과):
@@ -72,13 +67,10 @@ class NXTRealtimePriceManager:
                 'timestamp': str,
                 'is_nxt_hours': bool
             }
-        """
         is_nxt = self.is_nxt_trading_hours()
 
-        # _NX 접미사 제거 (테스트 결과: _NX는 항상 실패)
         base_code = stock_code[:-3] if stock_code.endswith('_NX') else stock_code
 
-        # 캐시 확인
         if not force_refresh:
             cached = self._get_from_cache(base_code)
             if cached:
@@ -86,7 +78,6 @@ class NXTRealtimePriceManager:
                 return cached
 
         try:
-            # ✅ 핵심: NXT 시간대에도 기본 코드로 조회 (테스트로 검증됨)
             result = self.market_api.get_stock_price(base_code)
 
             if result and result.get('current_price', 0) > 0:
@@ -99,7 +90,6 @@ class NXTRealtimePriceManager:
                     'change_rate': float(result.get('change_rate', 0))
                 }
 
-                # 캐시 저장
                 self._save_to_cache(base_code, price_data)
 
                 if is_nxt:
@@ -141,7 +131,6 @@ class NXTRealtimePriceManager:
 
         cached_data, cached_time = self.price_cache[stock_code]
 
-        # TTL 확인
         age = (datetime.now() - cached_time).total_seconds()
         if age > self.cache_ttl_seconds:
             del self.price_cache[stock_code]
@@ -161,7 +150,6 @@ class NXTRealtimePriceManager:
 
 def get_current_price_fixed(market_api, stock_code: str,
                            use_chart_close: bool = False) -> int:
-    """
     현재가 조회 (NXT 시간대 수정 버전)
 
     ⚠️ 중요: NXT 시간대(15:30~20:00)에는 차트 종가가 아닌 실시간 현재가 사용
@@ -173,24 +161,19 @@ def get_current_price_fixed(market_api, stock_code: str,
 
     Returns:
         현재가 (int)
-    """
     manager = NXTRealtimePriceManager(market_api)
 
-    # NXT 시간대 확인
     is_nxt = manager.is_nxt_trading_hours()
 
-    # NXT 시간대에는 무조건 실시간 현재가 사용
     if is_nxt and not use_chart_close:
         price_data = manager.get_realtime_price(stock_code)
         if price_data:
             return price_data['current_price']
 
-    # 일반 현재가 조회
     result = market_api.get_stock_price(stock_code)
     if result and result.get('current_price', 0) > 0:
         return int(result.get('current_price', 0))
 
-    # 모두 실패시 0 반환
     logger.warning(f"{stock_code} 현재가 조회 실패 - 0 반환")
     return 0
 
@@ -215,25 +198,20 @@ def patch_chart_current_price(chart_data: list, market_api, stock_code: str) -> 
 
     manager = NXTRealtimePriceManager(market_api)
 
-    # NXT 시간대 확인
     if not manager.is_nxt_trading_hours():
-        return chart_data  # NXT 시간이 아니면 그대로 반환
+        return chart_data
 
-    # 실시간 현재가 조회
     price_data = manager.get_realtime_price(stock_code)
 
     if not price_data:
-        return chart_data  # 조회 실패시 그대로 반환
+        return chart_data
 
-    # 마지막 캔들 업데이트
     last_candle = chart_data[-1]
     current_price = price_data['current_price']
 
-    # close 가격 업데이트
     original_close = last_candle.get('close', 0)
     last_candle['close'] = current_price
 
-    # high/low 조정
     if current_price > last_candle.get('high', current_price):
         last_candle['high'] = current_price
     if current_price < last_candle.get('low', current_price):
@@ -261,10 +239,9 @@ def is_price_stale(timestamp_str: str, max_age_seconds: int = 60) -> bool:
         age = (datetime.now() - timestamp).total_seconds()
         return age > max_age_seconds
     except:
-        return True  # 파싱 실패시 오래된 것으로 간주
+        return True
 
 
-# Global singleton
 _nxt_price_manager: Optional[NXTRealtimePriceManager] = None
 
 

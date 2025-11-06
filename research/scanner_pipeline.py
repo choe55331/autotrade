@@ -1,7 +1,5 @@
-"""
 research/scanner_pipeline.py
 3단계 스캐닝 파이프라인 (Fast → Deep → AI)
-"""
 import time
 from typing import List, Dict, Any, Optional, Tuple
 from dataclasses import dataclass, field
@@ -15,10 +13,8 @@ from config.config_manager import get_config
 logger = get_logger()
 
 
-# Deep Scan 데이터 캐시 (메모리 기반)
-# {stock_code: {'data': {...}, 'timestamp': datetime, 'ttl': 300}}
 _deep_scan_cache = {}
-CACHE_TTL_SECONDS = 300  # 5분
+CACHE_TTL_SECONDS = 300
 
 
 @dataclass
@@ -29,29 +25,26 @@ class StockCandidate:
     name: str
     price: int
     volume: int
-    rate: float  # 등락률 (%)
+    rate: float
 
-    # Fast Scan 데이터
     fast_scan_score: float = 0.0
     fast_scan_time: Optional[datetime] = None
-    fast_scan_breakdown: Dict[str, float] = field(default_factory=dict)  # 점수 상세
+    fast_scan_breakdown: Dict[str, float] = field(default_factory=dict)
 
-    # Deep Scan 데이터
     institutional_net_buy: int = 0
     foreign_net_buy: int = 0
     bid_ask_ratio: float = 0.0
-    institutional_trend: Optional[Dict[str, Any]] = None  # ka10045 기관매매추이 데이터
-    avg_volume: Optional[float] = None  # 평균 거래량 (20일)
-    volatility: Optional[float] = None  # 변동성 (20일 표준편차)
-    top_broker_buy_count: int = 0  # 주요 증권사 순매수 카운트
-    top_broker_net_buy: int = 0  # 주요 증권사 순매수 총액
-    execution_intensity: Optional[float] = None  # 체결강도 (ka10047)
-    program_net_buy: Optional[int] = None  # 프로그램순매수금액 (ka90013)
+    institutional_trend: Optional[Dict[str, Any]] = None
+    avg_volume: Optional[float] = None
+    volatility: Optional[float] = None
+    top_broker_buy_count: int = 0
+    top_broker_net_buy: int = 0
+    execution_intensity: Optional[float] = None
+    program_net_buy: Optional[int] = None
     deep_scan_score: float = 0.0
     deep_scan_time: Optional[datetime] = None
-    deep_scan_breakdown: Dict[str, float] = field(default_factory=dict)  # 점수 상세
+    deep_scan_breakdown: Dict[str, float] = field(default_factory=dict)
 
-    # AI Scan 데이터
     ai_score: float = 0.0
     ai_signal: str = ''
     ai_confidence: str = ''
@@ -59,7 +52,6 @@ class StockCandidate:
     ai_risks: List[str] = field(default_factory=list)
     ai_scan_time: Optional[datetime] = None
 
-    # 최종 점수
     final_score: float = 0.0
 
     def to_dict(self) -> Dict[str, Any]:
@@ -93,7 +85,6 @@ class ScannerPipeline:
         ai_analyzer,
         scoring_system=None
     ):
-        """
         초기화
 
         Args:
@@ -101,32 +92,26 @@ class ScannerPipeline:
             screener: 종목 스크리너
             ai_analyzer: AI 분석기
             scoring_system: 스코어링 시스템 (선택)
-        """
         self.market_api = market_api
         self.screener = screener
         self.ai_analyzer = ai_analyzer
         self.scoring_system = scoring_system
 
-        # 설정 로드
         self.config = get_config()
         self.scan_config = self.config.scanning
 
-        # 스캔 간격
         self.fast_scan_interval = self.scan_config.get('fast_scan', {}).get('interval', 10)
         self.deep_scan_interval = self.scan_config.get('deep_scan', {}).get('interval', 60)
         self.ai_scan_interval = self.scan_config.get('ai_scan', {}).get('interval', 300)
 
-        # 최대 후보 수
         self.fast_max_candidates = self.scan_config.get('fast_scan', {}).get('max_candidates', 50)
         self.deep_max_candidates = self.scan_config.get('deep_scan', {}).get('max_candidates', 20)
         self.ai_max_candidates = self.scan_config.get('ai_scan', {}).get('max_candidates', 5)
 
-        # 스캔 상태
         self.last_fast_scan = 0
         self.last_deep_scan = 0
         self.last_ai_scan = 0
 
-        # 후보 캐시
         self.fast_scan_results: List[StockCandidate] = []
         self.deep_scan_results: List[StockCandidate] = []
         self.ai_scan_results: List[StockCandidate] = []
@@ -159,7 +144,6 @@ class ScannerPipeline:
         start_time = time.time()
 
         try:
-            # 설정 로드
             fast_config = self.scan_config.get('fast_scan', {})
             filters = fast_config.get('filters', {})
 
@@ -173,22 +157,18 @@ class ScannerPipeline:
             }
             print(f"📍 Fast Scan 필터: {filter_params}")
 
-            # 기본 필터로 종목 스크리닝
             print("📍 screener.screen_stocks() 호출 중...")
             candidates = self.screener.screen_stocks(**filter_params)
             print(f"📍 screener.screen_stocks() 결과: {len(candidates) if candidates else 0}개 종목")
 
-            # 거래량 기준 정렬
             candidates = sorted(
                 candidates,
-                key=lambda x: x.get('volume', 0) * x.get('price', 0),  # 거래대금
+                key=lambda x: x.get('volume', 0) * x.get('price', 0),
                 reverse=True
             )
 
-            # 최대 개수 제한
             candidates = candidates[:self.fast_max_candidates]
 
-            # StockCandidate 객체로 변환
             scan_time = datetime.now()
             stock_candidates = []
 
@@ -202,11 +182,9 @@ class ScannerPipeline:
                     fast_scan_time=scan_time,
                 )
 
-                # Fast Scan 점수 계산 (간단한 거래대금 기준)
                 candidate.fast_scan_score = self._calculate_fast_score(candidate)
                 stock_candidates.append(candidate)
 
-            # 결과 저장
             self.fast_scan_results = stock_candidates
             self.last_fast_scan = time.time()
 
@@ -234,22 +212,19 @@ class ScannerPipeline:
         """
         score = 0.0
 
-        # 거래대금 점수 (40점)
         trading_value = candidate.price * candidate.volume
-        if trading_value > 1_000_000_000:  # 10억 이상
+        if trading_value > 1_000_000_000:
             score += 40
-        elif trading_value > 500_000_000:  # 5억 이상
+        elif trading_value > 500_000_000:
             score += 30
-        elif trading_value > 100_000_000:  # 1억 이상
+        elif trading_value > 100_000_000:
             score += 20
 
-        # 등락률 점수 (30점)
         if 2.0 <= candidate.rate <= 10.0:
             score += 30
         elif 1.0 <= candidate.rate <= 15.0:
             score += 20
 
-        # 거래량 점수 (30점)
         if candidate.volume > 1_000_000:
             score += 30
         elif candidate.volume > 500_000:
@@ -286,12 +261,10 @@ class ScannerPipeline:
             deep_config = self.scan_config.get('deep_scan', {})
             scan_time = datetime.now()
 
-            # 각 종목에 대해 심층 분석
             for candidate in candidates:
                 try:
                     print(f"📍 Deep Scan: {candidate.name} ({candidate.code})")
 
-                    # 기관/외국인 매매 데이터 조회
                     print(f"   📊 투자자 매매 조회 중...")
                     investor_data = self.market_api.get_investor_data(candidate.code)
 
@@ -306,7 +279,6 @@ class ScannerPipeline:
                         candidate.institutional_net_buy = 0
                         candidate.foreign_net_buy = 0
 
-                    # 호가 데이터 조회
                     print(f"   📊 호가 조회 중...")
                     bid_ask_data = self.market_api.get_bid_ask(candidate.code)
 
@@ -319,16 +291,13 @@ class ScannerPipeline:
                         print(f"   ⚠️  호가 데이터 없음")
                         candidate.bid_ask_ratio = 0
 
-                    # 일봉 데이터 조회 (평균 거래량, 변동성 계산)
                     print(f"   📊 일봉 데이터 조회 중...")
                     try:
                         daily_data = self.market_api.get_daily_price(candidate.code, days=20)
                         if daily_data and len(daily_data) > 0:
-                            # 평균 거래량 (20일)
                             volumes = [row.get('volume', 0) for row in daily_data]
                             candidate.avg_volume = sum(volumes) / len(volumes) if volumes else None
 
-                            # 변동성 계산 (20일 수익률 표준편차)
                             prices = [row.get('close', 0) for row in daily_data]
                             if len(prices) > 1:
                                 returns = [(prices[i] / prices[i+1] - 1) for i in range(len(prices)-1) if prices[i+1] > 0]
@@ -343,10 +312,8 @@ class ScannerPipeline:
                         print(f"   ⚠️  일봉 데이터 조회 실패: {e}")
                         logger.debug(f"일봉 데이터 조회 실패: {e}")
 
-                    # 증권사별 매매동향 조회 (주요 증권사 5개)
                     print(f"   📊 증권사별 매매동향 조회 중...")
                     try:
-                        # 주요 증권사 코드 (상위 5개)
                         major_firms = [
                             ("040", "KB증권"),
                             ("039", "교보증권"),
@@ -363,19 +330,18 @@ class ScannerPipeline:
                                 firm_data = self.market_api.get_securities_firm_trading(
                                     firm_code=firm_code,
                                     stock_code=candidate.code,
-                                    days=1  # 당일만 조회
+                                    days=1
                                 )
 
                                 if firm_data and len(firm_data) > 0:
-                                    # 최근 데이터 (당일)
                                     recent = firm_data[0]
                                     net_qty = recent.get('net_qty', 0)
 
-                                    if net_qty > 0:  # 순매수인 경우
+                                    if net_qty > 0:
                                         broker_buy_count += 1
                                         broker_net_buy_total += net_qty
 
-                                time.sleep(0.05)  # API 호출 간격
+                                time.sleep(0.05)
                             except Exception as e:
                                 logger.debug(f"증권사 {firm_name} 데이터 조회 실패: {e}")
                                 continue
@@ -391,7 +357,6 @@ class ScannerPipeline:
                         print(f"   ⚠️  증권사 데이터 조회 실패: {e}")
                         logger.debug(f"증권사 데이터 조회 실패: {e}")
 
-                    # 체결강도 조회 (ka10047) - 캐시 우선
                     print(f"   📊 체결강도 조회 중...")
                     cache_key_exec = f"execution_{candidate.code}"
                     cached_exec = self._get_from_cache(cache_key_exec)
@@ -415,7 +380,6 @@ class ScannerPipeline:
                             print(f"   ⚠️  체결강도 조회 실패 (캐시도 없음): {e}")
                             logger.debug(f"체결강도 조회 실패: {e}")
 
-                    # 프로그램매매 조회 (ka90013) - 캐시 우선
                     print(f"   📊 프로그램매매 조회 중...")
                     cache_key_prog = f"program_{candidate.code}"
                     cached_prog = self._get_from_cache(cache_key_prog)
@@ -439,26 +403,22 @@ class ScannerPipeline:
                             print(f"   ⚠️  프로그램매매 조회 실패 (캐시도 없음): {e}")
                             logger.debug(f"프로그램매매 조회 실패: {e}")
 
-                    # Deep Scan 점수 계산
                     candidate.deep_scan_score = self._calculate_deep_score(candidate)
                     candidate.deep_scan_time = scan_time
 
-                    time.sleep(0.1)  # API 호출 간격
+                    time.sleep(0.1)
 
                 except Exception as e:
                     print(f"   ❌ 오류: {e}")
                     logger.error(f"종목 {candidate.code} Deep Scan 실패: {e}", exc_info=True)
                     continue
 
-            # 점수 기준 정렬
             candidates = sorted(
                 candidates,
                 key=lambda x: x.deep_scan_score,
                 reverse=True
             )
 
-            # 필터링: 최소 기관 매수 조건
-            # 단, API 실패로 데이터가 없으면 필터링 스킵 (주말/비거래시간 대응)
             has_investor_data = any(
                 c.institutional_net_buy != 0 or c.foreign_net_buy != 0
                 for c in candidates
@@ -475,10 +435,8 @@ class ScannerPipeline:
             else:
                 logger.warning("⚠️  기관/외국인 데이터 없음 (API 실패) - 필터링 스킵")
 
-            # 최대 개수 제한
             candidates = candidates[:self.deep_max_candidates]
 
-            # 결과 저장
             self.deep_scan_results = candidates
             self.last_deep_scan = time.time()
 
@@ -504,17 +462,15 @@ class ScannerPipeline:
         Returns:
             점수 (0~100)
         """
-        score = candidate.fast_scan_score  # Fast Scan 점수 승계
+        score = candidate.fast_scan_score
 
-        # 기관 순매수 점수 (30점)
-        if candidate.institutional_net_buy > 50_000_000:  # 5천만원 이상
+        if candidate.institutional_net_buy > 50_000_000:
             score += 30
-        elif candidate.institutional_net_buy > 20_000_000:  # 2천만원 이상
+        elif candidate.institutional_net_buy > 20_000_000:
             score += 20
-        elif candidate.institutional_net_buy > 10_000_000:  # 1천만원 이상
+        elif candidate.institutional_net_buy > 10_000_000:
             score += 10
 
-        # 외국인 순매수 점수 (20점)
         if candidate.foreign_net_buy > 20_000_000:
             score += 20
         elif candidate.foreign_net_buy > 10_000_000:
@@ -522,7 +478,6 @@ class ScannerPipeline:
         elif candidate.foreign_net_buy > 5_000_000:
             score += 10
 
-        # 호가 강도 점수 (20점)
         if candidate.bid_ask_ratio > 1.5:
             score += 20
         elif candidate.bid_ask_ratio > 1.2:
@@ -567,7 +522,6 @@ class ScannerPipeline:
             print(f"📍 AI 분석기 타입: {type(self.ai_analyzer).__name__}")
             print(f"📍 AI 분석 시작 - {len(candidates)}개 종목 처리 예정")
 
-            # AI 분석 수행
             ai_approved = []
 
             for idx, candidate in enumerate(candidates, 1):
@@ -575,7 +529,6 @@ class ScannerPipeline:
                     print(f"📍 [{idx}/{len(candidates)}] AI 분석 중: {candidate.name} ({candidate.code})")
                     logger.info(f"🤖 AI 분석 중: {candidate.name} ({candidate.code})")
 
-                    # 종목 데이터 준비 (AI Analyzer 필수 필드: stock_code, current_price, change_rate)
                     stock_data = {
                         'stock_code': candidate.code,
                         'stock_name': candidate.name,
@@ -587,7 +540,6 @@ class ScannerPipeline:
                         'bid_ask_ratio': candidate.bid_ask_ratio,
                     }
 
-                    # AI 분석 실행
                     print(f"    📍 stock_data 준비 완료:")
                     print(f"       - stock_code: {stock_data.get('stock_code')}")
                     print(f"       - current_price: {stock_data.get('current_price')}")
@@ -597,7 +549,6 @@ class ScannerPipeline:
                     analysis = self.ai_analyzer.analyze_stock(stock_data)
                     print(f"    📍 analyze_stock() 완료: {analysis}")
 
-                    # 결과 저장
                     candidate.ai_score = analysis.get('score', 0)
                     candidate.ai_signal = analysis.get('signal', 'hold')
                     candidate.ai_confidence = analysis.get('confidence', 'Low')
@@ -605,13 +556,11 @@ class ScannerPipeline:
                     candidate.ai_risks = analysis.get('risks', [])
                     candidate.ai_scan_time = scan_time
 
-                    # 최종 점수 계산 (Deep Scan 70% + AI 30%)
                     candidate.final_score = (
                         candidate.deep_scan_score * 0.7 +
-                        candidate.ai_score * 10 * 0.3  # AI 점수는 0~10이므로 10을 곱함
+                        candidate.ai_score * 10 * 0.3
                     )
 
-                    # AI 승인 조건 확인
                     confidence_level = {'Low': 1, 'Medium': 2, 'High': 3}
                     min_conf_level = confidence_level.get(min_confidence, 2)
                     ai_conf_level = confidence_level.get(candidate.ai_confidence, 1)
@@ -632,7 +581,7 @@ class ScannerPipeline:
                             f"(점수: {candidate.ai_score:.1f}, 신뢰도: {candidate.ai_confidence})"
                         )
 
-                    time.sleep(1)  # AI API 호출 간격
+                    time.sleep(1)
 
                 except Exception as e:
                     print(f"    ❌ AI 분석 중 에러 발생: {e}")
@@ -641,17 +590,14 @@ class ScannerPipeline:
                     logger.error(f"종목 {candidate.code} AI 분석 실패: {e}", exc_info=True)
                     continue
 
-            # 최종 점수 기준 정렬
             ai_approved = sorted(
                 ai_approved,
                 key=lambda x: x.final_score,
                 reverse=True
             )
 
-            # 최대 개수 제한
             ai_approved = ai_approved[:self.ai_max_candidates]
 
-            # 결과 저장
             self.ai_scan_results = ai_approved
             self.last_ai_scan = time.time()
 
@@ -677,7 +623,6 @@ class ScannerPipeline:
         print("🚀 스캐닝 파이프라인 실행 시작")
         logger.info("🚀 스캐닝 파이프라인 실행 시작")
 
-        # Fast Scan
         should_fast = self.should_run_fast_scan()
         print(f"📍 Fast Scan 조건: should_run={should_fast}, interval={self.fast_scan_interval}초, last_scan={self.last_fast_scan}")
 
@@ -688,7 +633,6 @@ class ScannerPipeline:
         else:
             print(f"⏭️ Fast Scan 스킵 (간격 미충족, 캐시: {len(self.fast_scan_results)}개)")
 
-        # Deep Scan
         should_deep = self.should_run_deep_scan()
         has_fast_results = len(self.fast_scan_results) > 0
         print(f"📍 Deep Scan 조건: should_run={should_deep}, has_fast_results={has_fast_results} ({len(self.fast_scan_results)}개)")
@@ -703,7 +647,6 @@ class ScannerPipeline:
             else:
                 print(f"⏭️ Deep Scan 스킵 (Fast Scan 결과 없음)")
 
-        # AI는 매수 결정 시점에만 사용 (별도 스캔 단계 없음)
         print(f"ℹ️  AI 분석: 매수 시점에서 최종 후보에 대해서만 실행")
 
         summary = (
@@ -714,7 +657,6 @@ class ScannerPipeline:
         print(summary)
         logger.info(summary)
 
-        # Deep Scan 결과를 최종 후보로 반환
         return self.deep_scan_results
 
     def get_scan_summary(self) -> Dict[str, Any]:
@@ -744,9 +686,7 @@ class ScannerPipeline:
         entry = _deep_scan_cache[cache_key]
         timestamp = entry['timestamp']
 
-        # TTL 체크
         if (datetime.now() - timestamp).total_seconds() > CACHE_TTL_SECONDS:
-            # 만료됨 - 삭제
             del _deep_scan_cache[cache_key]
             return None
 

@@ -1,24 +1,17 @@
-"""
 Advanced Systems v4.2 Routes
 Handles Sentiment, Multi-Agent, Risk, Regime, Options, and HFT endpoints
-"""
 from flask import Blueprint, jsonify, request
 import random
 from .common import get_bot_instance
 
-# Create blueprint
 advanced_systems_bp = Blueprint('advanced_systems', __name__)
 
 
-# ============================================================================
-# Advanced Systems v4.2 - Sentiment, Multi-Agent, Risk, Regime, Options, HFT
-# ============================================================================
 
 @advanced_systems_bp.route('/api/v4.2/sentiment/<stock_code>')
 def analyze_sentiment(stock_code: str):
     """Analyze sentiment for stock"""
     try:
-        # Mock response for now - return expected structure
         return jsonify({
             'success': True,
             'result': {

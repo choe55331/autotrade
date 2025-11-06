@@ -1,18 +1,12 @@
-"""
 Advanced AI v4.0 Routes
 Handles ML, RL, Ensemble, and Meta-Learning endpoints
-"""
 from flask import Blueprint, jsonify, request
 from dataclasses import asdict
 from .common import get_bot_instance
 
-# Create blueprint
 advanced_ai_bp = Blueprint('advanced_ai', __name__)
 
 
-# ============================================================================
-# Advanced AI v4.0 - ML, RL, Ensemble, Meta-Learning
-# ============================================================================
 
 @advanced_ai_bp.route('/api/ai/ml/predict/<stock_code>')
 def get_ml_prediction(stock_code: str):
@@ -21,9 +15,8 @@ def get_ml_prediction(stock_code: str):
         from ai.ml_predictor import get_ml_predictor
         from dataclasses import asdict
 
-        # Get current data
         current_data = {
-            'price': 73500,  # Would fetch real data
+            'price': 73500,
             'rsi': 55,
             'macd': 100,
             'volume_ratio': 1.3
@@ -48,7 +41,6 @@ def get_rl_action():
         from ai.rl_agent import get_rl_agent, RLState
         from dataclasses import asdict
 
-        # Create state from current data
         state = RLState(
             portfolio_value=10000000,
             cash_balance=5000000,
@@ -85,7 +77,6 @@ def get_ensemble_prediction(stock_code: str):
         from ai.ensemble_ai import get_ensemble_ai
         from dataclasses import asdict
 
-        # Get market data
         market_data = {
             'price': 73500,
             'rsi': 55,
@@ -114,7 +105,6 @@ def get_meta_recommendation():
     try:
         from ai.meta_learning import get_meta_learning_engine
 
-        # Current conditions
         conditions = {
             'regime': 'bullish',
             'volatility': 'medium'

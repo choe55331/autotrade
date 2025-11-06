@@ -1,9 +1,7 @@
-"""
 utils/statistics.py
 통계 계산 유틸리티
 
 금융 데이터 분석에 필요한 통계 함수 제공
-"""
 import logging
 from typing import List, Optional
 import math
@@ -91,7 +89,6 @@ def calculate_moving_average(values: List[float], period: int) -> Optional[float
         logger.warning(f"Not enough data ({len(values) if values else 0}) for MA period {period}")
         return None
 
-    # 최근 period개의 값으로 평균 계산
     recent_values = values[-period:]
     return calculate_mean(recent_values)
 
@@ -101,7 +98,6 @@ def calculate_exponential_moving_average(
     period: int,
     smoothing: float = 2.0
 ) -> Optional[float]:
-    """
     지수 이동평균 계산 (Exponential Moving Average, EMA)
 
     Args:
@@ -111,18 +107,14 @@ def calculate_exponential_moving_average(
 
     Returns:
         EMA 값 (데이터 부족시 None)
-    """
     if not values or len(values) < period:
         logger.warning(f"Not enough data ({len(values) if values else 0}) for EMA period {period}")
         return None
 
-    # 가중치 계산: k = smoothing / (period + 1)
     k = smoothing / (period + 1)
 
-    # 첫 EMA는 SMA로 시작
     ema = calculate_mean(values[:period])
 
-    # 나머지 값들에 대해 EMA 계산
     for value in values[period:]:
         ema = value * k + ema * (1 - k)
 
@@ -231,7 +223,6 @@ def calculate_percentile(values: List[float], percentile: float) -> Optional[flo
     sorted_values = sorted(values)
     index = (len(sorted_values) - 1) * (percentile / 100)
 
-    # 선형 보간
     lower = math.floor(index)
     upper = math.ceil(index)
 
@@ -260,7 +251,6 @@ def calculate_sharpe_ratio(
     risk_free_rate: float = 0.0,
     periods_per_year: int = 252
 ) -> float:
-    """
     샤프 비율 (Sharpe Ratio) 계산
 
     Args:
@@ -270,22 +260,18 @@ def calculate_sharpe_ratio(
 
     Returns:
         샤프 비율
-    """
     if not returns:
         logger.warning("Empty returns list")
         return 0.0
 
-    # 평균 수익률 (연율화)
     mean_return = calculate_mean(returns) * periods_per_year
 
-    # 수익률 표준편차 (연율화)
     std_return = calculate_std(returns, ddof=1) * math.sqrt(periods_per_year)
 
     if std_return == 0:
         logger.warning("Return standard deviation is zero")
         return 0.0
 
-    # 샤프 비율 = (포트폴리오 수익률 - 무위험 수익률) / 수익률 표준편차
     sharpe_ratio = (mean_return - risk_free_rate) / std_return
 
     logger.debug(
@@ -322,7 +308,7 @@ def calculate_max_drawdown(equity_curve: List[float]) -> float:
 
     logger.debug(f"Max Drawdown: {max_drawdown:.2%}")
 
-    return max_drawdown * 100  # 퍼센트로 반환
+    return max_drawdown * 100
 
 
 def calculate_bollinger_bands(
@@ -330,7 +316,6 @@ def calculate_bollinger_bands(
     period: int = 20,
     num_std: float = 2.0
 ) -> Optional[tuple]:
-    """
     볼린저 밴드 계산
 
     Args:
@@ -340,21 +325,17 @@ def calculate_bollinger_bands(
 
     Returns:
         (상단밴드, 중간밴드, 하단밴드) 또는 None
-    """
     if not prices or len(prices) < period:
         logger.warning(f"Not enough data ({len(prices) if prices else 0}) for Bollinger Bands")
         return None
 
-    # 중간 밴드 (이동평균)
     middle_band = calculate_moving_average(prices, period)
     if middle_band is None:
         return None
 
-    # 표준편차
     recent_prices = prices[-period:]
     std = calculate_std(recent_prices, ddof=1)
 
-    # 상단/하단 밴드
     upper_band = middle_band + (num_std * std)
     lower_band = middle_band - (num_std * std)
 

@@ -1,10 +1,7 @@
-"""
 utils/stock_filter.py
 종목 필터링 유틸리티
-"""
 
 
-# ETF/지수 제외 키워드 (모두 대문자로 통일)
 ETF_KEYWORDS = [
     'KODEX',
     'TIGER',
@@ -42,7 +39,6 @@ def is_etf(stock_name: str, stock_code: str = None) -> bool:
 
     stock_name_upper = stock_name.upper()
 
-    # ETF 키워드 체크
     for keyword in ETF_KEYWORDS:
         if keyword.upper() in stock_name_upper:
             return True

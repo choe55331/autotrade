@@ -1,10 +1,8 @@
-"""
 Sentiment Analysis System
 News and social media sentiment analysis for trading
 
 Author: AutoTrade Pro
 Version: 4.2
-"""
 
 from dataclasses import dataclass
 from typing import List, Dict, Any, Optional
@@ -34,7 +32,7 @@ class NewsArticle:
 @dataclass
 class SocialMediaPost:
     """Social media post"""
-    platform: str  # 'twitter', 'reddit', etc.
+    platform: str
     content: str
     author: str
     timestamp: str
@@ -47,8 +45,8 @@ class SocialMediaPost:
 class SentimentReport:
     """Sentiment analysis report"""
     stock_code: str
-    overall_sentiment: float  # -1 to 1
-    sentiment_category: str  # 'very_negative', 'negative', 'neutral', 'positive', 'very_positive'
+    overall_sentiment: float
+    sentiment_category: str
     news_sentiment: float
     social_sentiment: float
     confidence: float
@@ -59,9 +57,6 @@ class SentimentReport:
     sentiment_change_24h: float
 
 
-# ============================================================================
-# News Sentiment Analyzer
-# ============================================================================
 
 class NewsSentimentAnalyzer:
     """
@@ -74,7 +69,6 @@ class NewsSentimentAnalyzer:
     """
 
     def __init__(self):
-        # Positive keywords
         self.positive_keywords = {
             '상승', '증가', '호재', '성장', '긍정', '개선', '상향', '확대',
             '급등', '강세', '최고', '최대', '수익', '흑자', '이익', '실적',
@@ -82,7 +76,6 @@ class NewsSentimentAnalyzer:
             'profit', 'beat', 'outperform', 'bullish'
         }
 
-        # Negative keywords
         self.negative_keywords = {
             '하락', '감소', '악재', '약세', '부정', '악화', '하향', '축소',
             '급락', '최저', '손실', '적자', '위험', '우려', '불안', '실망',
@@ -112,7 +105,6 @@ class NewsSentimentAnalyzer:
                 'category': 'neutral'
             }
 
-        # Analyze each article
         scores = []
         for article in articles:
             score = self._calculate_sentiment(article.title + " " + article.content)
@@ -125,12 +117,11 @@ class NewsSentimentAnalyzer:
             'sentiment_score': avg_sentiment,
             'article_count': len(articles),
             'category': self._categorize_sentiment(avg_sentiment),
-            'articles': articles[:10]  # Top 10
+            'articles': articles[:10]
         }
 
     def _fetch_news(self, stock_code: str, days_back: int) -> List[NewsArticle]:
         """Fetch news articles"""
-        # Mock news for testing
         mock_articles = [
             NewsArticle(
                 title=f"{stock_code} 주가 상승세 지속, 실적 개선 기대",
@@ -174,9 +165,6 @@ class NewsSentimentAnalyzer:
             return 'neutral'
 
 
-# ============================================================================
-# Social Media Sentiment Analyzer
-# ============================================================================
 
 class SocialMediaAnalyzer:
     """
@@ -211,7 +199,6 @@ class SocialMediaAnalyzer:
                 'category': 'neutral'
             }
 
-        # Weighted sentiment (popular posts count more)
         total_weight = 0
         weighted_sentiment = 0
 
@@ -234,7 +221,6 @@ class SocialMediaAnalyzer:
 
     def _fetch_posts(self, stock_code: str, hours_back: int) -> List[SocialMediaPost]:
         """Fetch social media posts"""
-        # Mock posts
         import random
 
         mock_posts = [
@@ -260,7 +246,6 @@ class SocialMediaAnalyzer:
         pos_count = sum(text.count(emoji) for emoji in positive_emojis)
         neg_count = sum(text.count(emoji) for emoji in negative_emojis)
 
-        # Also check keywords
         text_lower = text.lower()
         if 'moon' in text_lower or 'bullish' in text_lower:
             pos_count += 1
@@ -287,9 +272,6 @@ class SocialMediaAnalyzer:
             return 'neutral'
 
 
-# ============================================================================
-# Sentiment Analysis Manager
-# ============================================================================
 
 class SentimentAnalysisManager:
     """
@@ -316,33 +298,26 @@ class SentimentAnalysisManager:
         Returns:
             Complete sentiment report
         """
-        # Analyze news
         news_result = self.news_analyzer.analyze_news(stock_code)
 
-        # Analyze social media
         social_result = self.social_analyzer.analyze_social(stock_code)
 
-        # Combine sentiments (weighted average)
         overall_sentiment = (
             news_result['sentiment_score'] * 0.6 +
             social_result['sentiment_score'] * 0.4
         )
 
-        # Store in history
         if stock_code not in self.sentiment_history:
             self.sentiment_history[stock_code] = []
         self.sentiment_history[stock_code].append(overall_sentiment)
 
-        # Calculate 24h change
         hist = self.sentiment_history[stock_code]
         sentiment_change_24h = (
             overall_sentiment - hist[-2] if len(hist) > 1 else 0.0
         )
 
-        # Extract trending keywords
         keywords = self._extract_keywords(stock_code)
 
-        # Calculate confidence
         confidence = min(
             (news_result['article_count'] + social_result['post_count']) / 100,
             1.0
@@ -366,19 +341,15 @@ class SentimentAnalysisManager:
         """Extract trending keywords"""
         all_text = []
 
-        # From news
         articles = self.news_analyzer.article_cache.get(stock_code, [])
         for article in articles:
             all_text.extend(re.findall(r'\w+', article.title.lower()))
 
-        # From social
         posts = self.social_analyzer.post_cache.get(stock_code, [])
         for post in posts:
             all_text.extend(re.findall(r'\w+', post.content.lower()))
 
-        # Count and return top keywords
         word_counts = Counter(all_text)
-        # Filter out common words
         stop_words = {'the', 'a', 'an', 'and', 'or', 'but', 'is', 'are', 'was', 'were'}
         meaningful = {w: c for w, c in word_counts.items() if w not in stop_words and len(w) > 3}
 
@@ -402,7 +373,6 @@ class SentimentAnalysisManager:
         """Generate sentiment alerts"""
         alerts = []
 
-        # Extreme sentiment alert
         if abs(report.overall_sentiment) >= 0.7:
             alerts.append({
                 'type': 'extreme_sentiment',
@@ -411,7 +381,6 @@ class SentimentAnalysisManager:
                 'sentiment_score': report.overall_sentiment
             })
 
-        # Rapid sentiment change
         if abs(report.sentiment_change_24h) >= 0.3:
             direction = 'improved' if report.sentiment_change_24h > 0 else 'deteriorated'
             alerts.append({
@@ -421,7 +390,6 @@ class SentimentAnalysisManager:
                 'change': report.sentiment_change_24h
             })
 
-        # High confidence positive sentiment
         if report.overall_sentiment > 0.3 and report.confidence > 0.7:
             alerts.append({
                 'type': 'high_confidence_positive',
@@ -434,7 +402,6 @@ class SentimentAnalysisManager:
         return alerts
 
 
-# Singleton instance
 _sentiment_manager = None
 
 def get_sentiment_manager() -> SentimentAnalysisManager:

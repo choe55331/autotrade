@@ -1,10 +1,8 @@
-"""
 Advanced Reinforcement Learning Algorithms
 Implements A3C, PPO, and SAC for optimal trading
 
 Author: AutoTrade Pro
 Version: 4.1
-"""
 
 from dataclasses import dataclass, asdict
 from typing import List, Dict, Any, Optional, Tuple
@@ -29,12 +27,12 @@ except ImportError:
 @dataclass
 class RLAction:
     """Reinforcement learning action"""
-    action_type: str  # 'buy', 'sell', 'hold'
-    action_size: str  # 'small', 'medium', 'large'
+    action_type: str
+    action_size: str
     percentage: float
     confidence: float
     expected_reward: float
-    algorithm: str  # 'a3c', 'ppo', 'sac'
+    algorithm: str
     policy_entropy: float = 0.0
     value_estimate: float = 0.0
 
@@ -52,9 +50,6 @@ class RLPerformance:
     max_drawdown: float
 
 
-# ============================================================================
-# 1. A3C (Asynchronous Advantage Actor-Critic)
-# ============================================================================
 
 class A3CNetwork(nn.Module if TORCH_AVAILABLE else object):
     """
@@ -71,15 +66,12 @@ class A3CNetwork(nn.Module if TORCH_AVAILABLE else object):
         if TORCH_AVAILABLE:
             super(A3CNetwork, self).__init__()
 
-            # Shared layers
             self.shared_fc1 = nn.Linear(state_dim, hidden_dim)
             self.shared_fc2 = nn.Linear(hidden_dim, hidden_dim)
 
-            # Actor head (policy)
             self.actor_fc = nn.Linear(hidden_dim, hidden_dim // 2)
             self.actor_out = nn.Linear(hidden_dim // 2, action_dim)
 
-            # Critic head (value function)
             self.critic_fc = nn.Linear(hidden_dim, hidden_dim // 2)
             self.critic_out = nn.Linear(hidden_dim // 2, 1)
 
@@ -88,15 +80,12 @@ class A3CNetwork(nn.Module if TORCH_AVAILABLE else object):
         if not TORCH_AVAILABLE:
             return None, None
 
-        # Shared layers
         x = F.relu(self.shared_fc1(state))
         x = F.relu(self.shared_fc2(x))
 
-        # Actor (policy)
         actor = F.relu(self.actor_fc(x))
         action_probs = F.softmax(self.actor_out(actor), dim=-1)
 
-        # Critic (value)
         critic = F.relu(self.critic_fc(x))
         state_value = self.critic_out(critic)
 
@@ -140,7 +129,6 @@ class A3CAgent:
             value: State value estimate
         """
         if not TORCH_AVAILABLE:
-            # Mock action
             action_idx = np.random.randint(0, self.action_dim)
             return action_idx, 0.8, 1.5
 
@@ -149,11 +137,9 @@ class A3CAgent:
             state_tensor = torch.FloatTensor(state).unsqueeze(0)
             action_probs, value = self.network(state_tensor)
 
-            # Sample action from probability distribution
             dist = Categorical(action_probs)
             action = dist.sample()
 
-            # Calculate entropy
             entropy = dist.entropy()
 
             return action.item(), entropy.item(), value.item()
@@ -161,7 +147,6 @@ class A3CAgent:
     def train_step(self, states: List[np.ndarray], actions: List[int],
                    rewards: List[float], next_states: List[np.ndarray],
                    dones: List[bool]) -> Dict[str, float]:
-        """
         Train A3C network
 
         Args:
@@ -173,22 +158,18 @@ class A3CAgent:
 
         Returns:
             Training metrics
-        """
         if not TORCH_AVAILABLE:
             return {'actor_loss': 0.01, 'critic_loss': 0.02, 'entropy': 0.8}
 
         self.network.train()
 
-        # Convert to tensors
         states_tensor = torch.FloatTensor(np.array(states))
         actions_tensor = torch.LongTensor(actions)
         rewards_tensor = torch.FloatTensor(rewards)
 
-        # Forward pass
         action_probs, values = self.network(states_tensor)
         values = values.squeeze()
 
-        # Calculate advantages
         returns = []
         R = 0
         for r, done in zip(reversed(rewards), reversed(dones)):
@@ -199,21 +180,16 @@ class A3CAgent:
         returns = torch.FloatTensor(returns)
         advantages = returns - values.detach()
 
-        # Actor loss (policy gradient)
         dist = Categorical(action_probs)
         log_probs = dist.log_prob(actions_tensor)
         actor_loss = -(log_probs * advantages).mean()
 
-        # Critic loss (value function)
         critic_loss = F.mse_loss(values, returns)
 
-        # Entropy bonus (exploration)
         entropy = dist.entropy().mean()
 
-        # Total loss
         loss = actor_loss + 0.5 * critic_loss - self.entropy_coef * entropy
 
-        # Optimize
         self.optimizer.zero_grad()
         loss.backward()
         torch.nn.utils.clip_grad_norm_(self.network.parameters(), 0.5)
@@ -236,9 +212,6 @@ class A3CAgent:
         }
 
 
-# ============================================================================
-# 2. PPO (Proximal Policy Optimization)
-# ============================================================================
 
 class PPONetwork(nn.Module if TORCH_AVAILABLE else object):
     """
@@ -254,7 +227,6 @@ class PPONetwork(nn.Module if TORCH_AVAILABLE else object):
         if TORCH_AVAILABLE:
             super(PPONetwork, self).__init__()
 
-            # Actor network
             self.actor = nn.Sequential(
                 nn.Linear(state_dim, hidden_dim),
                 nn.ReLU(),
@@ -264,7 +236,6 @@ class PPONetwork(nn.Module if TORCH_AVAILABLE else object):
                 nn.Softmax(dim=-1)
             )
 
-            # Critic network
             self.critic = nn.Sequential(
                 nn.Linear(state_dim, hidden_dim),
                 nn.ReLU(),
@@ -351,7 +322,6 @@ class PPOAgent:
 
     def store_transition(self, state: np.ndarray, action: int, reward: float,
                         value: float, log_prob: float, done: bool):
-        """Store transition in memory"""
         self.memory['states'].append(state)
         self.memory['actions'].append(action)
         self.memory['rewards'].append(reward)
@@ -397,25 +367,20 @@ class PPOAgent:
         if not TORCH_AVAILABLE or len(self.memory['states']) == 0:
             return {'policy_loss': 0.01, 'value_loss': 0.02}
 
-        # Compute advantages and returns
         advantages, returns = self.compute_gae()
 
-        # Normalize advantages
         advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
 
-        # Convert to tensors
         states = torch.FloatTensor(np.array(self.memory['states']))
         actions = torch.LongTensor(self.memory['actions'])
         old_log_probs = torch.FloatTensor(self.memory['log_probs'])
         returns = torch.FloatTensor(returns)
         advantages = torch.FloatTensor(advantages)
 
-        # PPO update for multiple epochs
         total_policy_loss = 0
         total_value_loss = 0
 
         for epoch in range(self.epochs):
-            # Mini-batch updates
             indices = np.arange(len(states))
             np.random.shuffle(indices)
 
@@ -429,29 +394,22 @@ class PPOAgent:
                 batch_returns = returns[batch_indices]
                 batch_advantages = advantages[batch_indices]
 
-                # Forward pass
                 action_probs, values = self.network(batch_states)
                 dist = Categorical(action_probs)
 
-                # New log probs and entropy
                 new_log_probs = dist.log_prob(batch_actions)
                 entropy = dist.entropy().mean()
 
-                # Ratio for PPO
                 ratio = torch.exp(new_log_probs - batch_old_log_probs)
 
-                # Clipped surrogate objective
                 surr1 = ratio * batch_advantages
                 surr2 = torch.clamp(ratio, 1 - self.clip_epsilon, 1 + self.clip_epsilon) * batch_advantages
                 policy_loss = -torch.min(surr1, surr2).mean()
 
-                # Value loss
                 value_loss = F.mse_loss(values.squeeze(), batch_returns)
 
-                # Total loss
                 loss = policy_loss + 0.5 * value_loss - 0.01 * entropy
 
-                # Optimize
                 self.optimizer.zero_grad()
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(self.network.parameters(), 0.5)
@@ -460,7 +418,6 @@ class PPOAgent:
                 total_policy_loss += policy_loss.item()
                 total_value_loss += value_loss.item()
 
-        # Clear memory
         self.memory = {k: [] for k in self.memory.keys()}
 
         self.performance['total_updates'] += 1
@@ -483,9 +440,6 @@ class PPOAgent:
         }
 
 
-# ============================================================================
-# 3. SAC (Soft Actor-Critic)
-# ============================================================================
 
 class SACNetwork(nn.Module if TORCH_AVAILABLE else object):
     """
@@ -502,7 +456,6 @@ class SACNetwork(nn.Module if TORCH_AVAILABLE else object):
         if TORCH_AVAILABLE:
             super(SACNetwork, self).__init__()
 
-            # Actor network (stochastic policy)
             self.actor = nn.Sequential(
                 nn.Linear(state_dim, hidden_dim),
                 nn.ReLU(),
@@ -512,7 +465,6 @@ class SACNetwork(nn.Module if TORCH_AVAILABLE else object):
             self.mean = nn.Linear(hidden_dim, action_dim)
             self.log_std = nn.Linear(hidden_dim, action_dim)
 
-            # Twin Q-networks
             self.q1 = nn.Sequential(
                 nn.Linear(state_dim + action_dim, hidden_dim),
                 nn.ReLU(),
@@ -573,7 +525,6 @@ class SACAgent:
                 lr=lr
             )
 
-            # Automatic entropy tuning
             self.target_entropy = -action_dim
             self.log_alpha = torch.zeros(1, requires_grad=True)
             self.alpha_optimizer = optim.Adam([self.log_alpha], lr=lr)
@@ -631,7 +582,6 @@ class SACAgent:
         if not TORCH_AVAILABLE or len(self.replay_buffer) < batch_size:
             return {'q_loss': 0.01, 'policy_loss': 0.02, 'alpha': self.alpha}
 
-        # Sample batch
         batch = [self.replay_buffer[i] for i in np.random.choice(len(self.replay_buffer), batch_size)]
         states, actions, rewards, next_states, dones = zip(*batch)
 
@@ -641,7 +591,6 @@ class SACAgent:
         next_states = torch.FloatTensor(np.array(next_states))
         dones = torch.FloatTensor(dones).unsqueeze(1)
 
-        # Update Q-functions
         with torch.no_grad():
             next_mean, next_log_std = self.network(next_states)
             next_std = next_log_std.exp()
@@ -664,7 +613,6 @@ class SACAgent:
         q_loss.backward()
         self.q_optimizer.step()
 
-        # Update policy
         mean, log_std = self.network(states)
         std = log_std.exp()
         dist = Normal(mean, std)
@@ -683,14 +631,12 @@ class SACAgent:
         policy_loss.backward()
         self.actor_optimizer.step()
 
-        # Update alpha
         alpha_loss = -(self.log_alpha * (log_probs + self.target_entropy).detach()).mean()
         self.alpha_optimizer.zero_grad()
         alpha_loss.backward()
         self.alpha_optimizer.step()
         self.alpha = self.log_alpha.exp().item()
 
-        # Soft update target networks
         for target_param, param in zip(self.target_network.parameters(), self.network.parameters()):
             target_param.data.copy_(self.tau * param.data + (1 - self.tau) * target_param.data)
 
@@ -717,9 +663,6 @@ class SACAgent:
         }
 
 
-# ============================================================================
-# Advanced RL Manager
-# ============================================================================
 
 class AdvancedRLManager:
     """
@@ -737,7 +680,7 @@ class AdvancedRLManager:
         self.ppo_agent = PPOAgent()
         self.sac_agent = SACAgent()
 
-        self.current_algorithm = 'ppo'  # Default
+        self.current_algorithm = 'ppo'
         self.performance_history = []
 
     def select_algorithm(self, market_volatility: float, trend_strength: float) -> str:
@@ -751,13 +694,10 @@ class AdvancedRLManager:
         Returns:
             Best algorithm name
         """
-        # High volatility → SAC (better exploration)
         if market_volatility > 0.7:
             return 'sac'
-        # Strong trend → PPO (stable exploitation)
         elif trend_strength > 0.6:
             return 'ppo'
-        # Normal conditions → A3C (balanced)
         else:
             return 'a3c'
 
@@ -775,7 +715,6 @@ class AdvancedRLManager:
         if algorithm is None:
             algorithm = self.current_algorithm
 
-        # Map continuous actions to discrete
         action_mapping = {
             0: ('hold', 'none', 0),
             1: ('buy', 'small', 10),
@@ -800,14 +739,12 @@ class AdvancedRLManager:
 
         elif algorithm == 'sac':
             action_continuous, entropy = self.sac_agent.select_action(state)
-            # Convert continuous to discrete
             action_idx = int((action_continuous[0] + 1) / 2 * 7) % 7
             action_type, action_size, percentage = action_mapping[action_idx]
             confidence = 1.0 - min(entropy, 1.0)
             expected_reward = np.mean(action_continuous)
 
         else:
-            # Default
             action_type, action_size, percentage = 'hold', 'none', 0
             confidence = 0.5
             expected_reward = 0.0
@@ -834,7 +771,6 @@ class AdvancedRLManager:
         }
 
 
-# Singleton instance
 _advanced_rl_manager = None
 
 def get_advanced_rl_manager() -> AdvancedRLManager:
@@ -851,7 +787,6 @@ if __name__ == '__main__':
 
     manager = get_advanced_rl_manager()
 
-    # Mock test
     state = np.random.randn(15)
     action = manager.get_action(state, algorithm='ppo')
 

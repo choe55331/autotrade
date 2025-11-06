@@ -1,7 +1,5 @@
-"""
 api/realtime.py
 실시간 데이터 API (WebSocket 기반)
-"""
 import logging
 from typing import Dict, Any, Optional, Callable, List
 
@@ -47,7 +45,6 @@ class RealtimeAPI:
         stock_codes: List[str],
         callback: Optional[Callable] = None
     ) -> bool:
-        """
         실시간 시세 구독
         
         Args:
@@ -56,7 +53,6 @@ class RealtimeAPI:
         
         Returns:
             성공 여부
-        """
         if not self.ws_manager:
             logger.error("WebSocket Manager가 설정되지 않았습니다")
             return False
@@ -134,7 +130,6 @@ class RealtimeAPI:
         stock_codes: List[str],
         callback: Optional[Callable] = None
     ) -> bool:
-        """
         실시간 호가 구독
         
         Args:
@@ -143,7 +138,6 @@ class RealtimeAPI:
         
         Returns:
             성공 여부
-        """
         if not self.ws_manager:
             logger.error("WebSocket Manager가 설정되지 않았습니다")
             return False
@@ -180,7 +174,6 @@ class RealtimeAPI:
         account_number: str,
         callback: Optional[Callable] = None
     ) -> bool:
-        """
         실시간 체결 구독
         
         Args:
@@ -189,7 +182,6 @@ class RealtimeAPI:
         
         Returns:
             성공 여부
-        """
         if not self.ws_manager:
             logger.error("WebSocket Manager가 설정되지 않았습니다")
             return False
@@ -235,21 +227,18 @@ class RealtimeAPI:
         try:
             tr_id = message.get('header', {}).get('tr_id', '')
             
-            # 시세 데이터
             if 'STCPR' in tr_id:
                 stock_code = message.get('body', {}).get('stock_code', '')
                 callback = self.subscriptions.get(f"price_{stock_code}")
                 if callback:
                     callback(message)
             
-            # 호가 데이터
             elif 'HOGABK' in tr_id:
                 stock_code = message.get('body', {}).get('stock_code', '')
                 callback = self.subscriptions.get(f"orderbook_{stock_code}")
                 if callback:
                     callback(message)
             
-            # 체결 데이터
             elif 'EXECRPT' in tr_id:
                 account_code = message.get('body', {}).get('account_code', '')
                 account_suffix = message.get('body', {}).get('account_suffix', '')

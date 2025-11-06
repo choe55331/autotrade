@@ -1,7 +1,5 @@
-"""
 ka10001 API 테스트 - NXT 종목코드 (_NX)
 키움 API 어시스턴트가 추천한 방법 검증
-"""
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
@@ -32,15 +30,12 @@ def test_ka10001(client, stock_code: str, description: str):
         if response and response.get('return_code') == 0:
             print(f"{GREEN}✓ API 호출 성공{RESET}")
 
-            # 응답 구조 출력
             import json
             print(f"\n{BLUE}[응답 데이터]{RESET}")
             print(json.dumps(response, ensure_ascii=False, indent=2)[:500])
 
-            # 현재가 추출 시도
             cur_prc = None
 
-            # 다양한 필드명 시도
             for key in ['cur_prc', '현재가', 'stk_prc', 'price']:
                 if key in response:
                     try:
@@ -81,7 +76,6 @@ def main():
     bot = TradingBotV2()
     client = bot.client
 
-    # 테스트 종목
     test_stocks = [
         ("249420", "일동제약"),
         ("052020", "에프엔에스테크"),
@@ -94,10 +88,8 @@ def main():
         print(f"{MAGENTA}종목: {code} ({name}){RESET}")
         print(f"{MAGENTA}{'='*80}{RESET}")
 
-        # 1. 기본 코드 테스트
         price_base = test_ka10001(client, code, f"기본 코드 ({code})")
 
-        # 2. _NX 코드 테스트 (어시스턴트 추천)
         price_nx = test_ka10001(client, f"{code}_NX", f"NX 코드 ({code}_NX)")
 
         results[code] = {
@@ -106,7 +98,6 @@ def main():
             'nx': price_nx
         }
 
-    # 결과 요약
     print(f"\n{BLUE}{'='*80}{RESET}")
     print(f"{BLUE}테스트 결과 요약{RESET}")
     print(f"{BLUE}{'='*80}{RESET}\n")
@@ -121,7 +112,6 @@ def main():
 
         print(f"{code:<10} {name:<15} {base_str:<29} {nx_str:<29}")
 
-    # 결론
     print(f"\n{YELLOW}[결론]{RESET}")
 
     any_base_success = any(r['base'] for r in results.values())

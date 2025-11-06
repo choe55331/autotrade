@@ -1,8 +1,5 @@
-#!/usr/bin/env python3
-"""
 analyze_no_data_failures.py
 데이터 없는 101개 API 호출 분석 및 최적화 방안 제시
-"""
 import json
 from pathlib import Path
 from collections import defaultdict
@@ -10,7 +7,6 @@ from collections import defaultdict
 def analyze_no_data_failures():
     """데이터 없는 실패 API 분석"""
 
-    # 테스트 결과 로드
     result_files = sorted(Path('.').glob('all_394_test_results_*.json'))
     if not result_files:
         print("❌ 테스트 결과 파일이 없습니다.")
@@ -22,7 +18,6 @@ def analyze_no_data_failures():
     with open(latest_result, 'r', encoding='utf-8') as f:
         results = json.load(f)
 
-    # 데이터 없는 API 필터링
     no_data_apis = [r for r in results if r['current_status'] == 'no_data']
     success_apis = [r for r in results if r['current_status'] == 'success']
 
@@ -34,7 +29,6 @@ def analyze_no_data_failures():
     print(f"  ❌ 실패 (데이터 못 받음): {len(no_data_apis)}개 ({len(no_data_apis)/len(results)*100:.1f}%)")
     print()
 
-    # API별 실패 집계
     api_failures = defaultdict(list)
     for api in no_data_apis:
         api_id = api['api_id']
@@ -44,11 +38,10 @@ def analyze_no_data_failures():
     print(f"📋 데이터 없는 API 목록 ({len(api_failures)}개 API)")
     print("="*80)
 
-    # 카테고리별 분류
-    account_apis = []  # kt00xxx
-    market_apis = []   # ka10xxx
-    ranking_apis = []  # ka10xxx ranking
-    gold_apis = []     # kt50xxx
+    account_apis = []
+    market_apis = []
+    ranking_apis = []
+    gold_apis = []
 
     for api_id, failed_calls in sorted(api_failures.items()):
         api_name = failed_calls[0]['api_name']
@@ -68,7 +61,6 @@ def analyze_no_data_failures():
     print("🔍 실패 원인 분석")
     print("="*80)
 
-    # 계좌 API 실패
     if account_apis:
         print(f"\n📁 계좌 API 실패 ({len(account_apis)}개):")
         for api_id, name, count in account_apis:
@@ -76,7 +68,6 @@ def analyze_no_data_failures():
         print("\n  💡 원인: 계좌에 해당 데이터 없음 (미체결, 주문내역 등)")
         print("  ✅ 해결: 실제 주문 후 테스트 or 과거 데이터 있는 날짜로 조회")
 
-    # 금현물 API 실패
     if gold_apis:
         print(f"\n🥇 금현물 API 실패 ({len(gold_apis)}개):")
         for api_id, name, count in gold_apis:
@@ -84,7 +75,6 @@ def analyze_no_data_failures():
         print("\n  💡 원인: 금현물 계좌 없음 or 거래 내역 없음")
         print("  ✅ 해결: 금현물 계좌 개설 or 해당 API 제외")
 
-    # 시장 API 실패
     if market_apis:
         print(f"\n📈 시장 API 실패 ({len(market_apis)}개):")
         for api_id, name, count in market_apis:
@@ -92,7 +82,6 @@ def analyze_no_data_failures():
         print("\n  💡 원인: 시간대 문제 or 파라미터 부적절")
         print("  ✅ 해결: 장 시간(9:00-15:30)에 재테스트 or 파라미터 조정")
 
-    # 원래 성공했다가 실패한 API 찾기
     print()
     print("="*80)
     print("⚠️  원래 성공 → 지금 데이터없음 (최적화 필요)")
@@ -115,7 +104,6 @@ def analyze_no_data_failures():
     else:
         print("  없음 - 모든 성공 API가 계속 성공!")
 
-    # 최적화 제안
     print()
     print("="*80)
     print("💡 성공률 높이는 방법")
@@ -136,7 +124,6 @@ def analyze_no_data_failures():
     print("  - 조건부 성공: 계좌 API (데이터 있을 때만)")
     print("  - 제외 추천: 금현물 API (계좌 없으면 불필요)")
 
-    # 성공한 API 통계
     print()
     print("="*80)
     print(f"✅ 항상 성공하는 API ({len(success_apis)}개)")
@@ -161,10 +148,8 @@ def create_optimized_api_list():
     with open(result_files[-1], 'r', encoding='utf-8') as f:
         results = json.load(f)
 
-    # 성공한 API만 추출
     success_apis = [r for r in results if r['current_status'] == 'success']
 
-    # API별로 그룹화
     optimized_calls = defaultdict(lambda: {
         'api_name': '',
         'success_count': 0,
@@ -183,7 +168,6 @@ def create_optimized_api_list():
             'data_key': api.get('data_key', '')
         })
 
-    # 저장
     output_file = 'optimized_success_apis.json'
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(dict(optimized_calls), f, ensure_ascii=False, indent=2)

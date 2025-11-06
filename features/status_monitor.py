@@ -1,7 +1,5 @@
-"""
 features/status_monitor.py
 시스템 상태 모니터링 - Gemini, REST API, WebSocket, 테스트모드 연결 상태 추적
-"""
 import logging
 import time
 from typing import Dict, Any, Optional
@@ -13,11 +11,11 @@ logger = logging.getLogger(__name__)
 
 class ConnectionStatus(Enum):
     """연결 상태"""
-    CONNECTED = "connected"        # 연결됨 (초록색)
-    DISCONNECTED = "disconnected"  # 연결 끊김 (빨간색)
-    CHECKING = "checking"          # 확인 중 (노란색)
-    DISABLED = "disabled"          # 비활성화 (회색)
-    ERROR = "error"               # 오류 (빨간색)
+    CONNECTED = "connected"
+    DISCONNECTED = "disconnected"
+    CHECKING = "checking"
+    DISABLED = "disabled"
+    ERROR = "error"
 
 
 class StatusMonitor:
@@ -80,15 +78,11 @@ class StatusMonitor:
             self.status["gemini"]["status"] = ConnectionStatus.CHECKING
             self.status["gemini"]["last_check"] = datetime.now().isoformat()
 
-            # Gemini 인스턴스 생성 시도
             try:
                 analyzer = GeminiAnalyzer()
 
-                # 간단한 테스트 프롬프트
                 test_prompt = "Test connection. Reply with OK."
 
-                # 실제 API 호출은 비용이 들 수 있으므로 인스턴스 생성만 확인
-                # 또는 설정에서 테스트 허용 시에만 실제 호출
                 if hasattr(analyzer, 'model') and analyzer.model is not None:
                     response_time = (time.time() - start_time) * 1000
 
@@ -128,10 +122,8 @@ class StatusMonitor:
             self.status["rest_api"]["status"] = ConnectionStatus.CHECKING
             self.status["rest_api"]["last_check"] = datetime.now().isoformat()
 
-            # REST 클라이언트 인스턴스 가져오기
             client = KiwoomRESTClient.get_instance()
 
-            # 토큰 유효성 확인
             if client._is_token_valid():
                 response_time = (time.time() - start_time) * 1000
 
@@ -143,7 +135,6 @@ class StatusMonitor:
                 logger.info("REST API 연결 확인 완료")
                 return ConnectionStatus.CONNECTED
             else:
-                # 토큰 재발급 시도
                 if client._get_token():
                     response_time = (time.time() - start_time) * 1000
 
@@ -174,16 +165,12 @@ class StatusMonitor:
             연결 상태
         """
         try:
-            # WebSocket 클라이언트가 별도로 관리되고 있다면 해당 인스턴스 확인
-            # 현재는 간단하게 모듈 존재 여부만 확인
             from core.websocket_client import WebSocketClient
 
             self.status["websocket"]["status"] = ConnectionStatus.DISABLED
             self.status["websocket"]["last_check"] = datetime.now().isoformat()
             self.status["websocket"]["error_message"] = "Not implemented - WebSocket client needs integration"
 
-            # 실제 WebSocket 연결 상태는 별도 인스턴스에서 확인 필요
-            # 여기서는 모듈만 확인
             logger.info("WebSocket 모듈 확인 완료 (연결 상태 미구현)")
             return ConnectionStatus.DISABLED
 
@@ -206,7 +193,6 @@ class StatusMonitor:
 
             self.status["test_mode"]["last_check"] = datetime.now().isoformat()
 
-            # 테스트 모드 매니저 인스턴스 생성
             test_manager = TestModeManager()
             is_test = test_manager.check_and_activate_test_mode()
 
@@ -215,7 +201,6 @@ class StatusMonitor:
                 self.status["test_mode"]["enabled"] = True
                 self.status["test_mode"]["test_date"] = test_manager.test_date
 
-                # 활성화 이유 파악
                 now = datetime.now()
                 if now.weekday() in [5, 6]:
                     reason = "주말"
@@ -322,11 +307,10 @@ class StatusMonitor:
             return "red"
         elif status == ConnectionStatus.CHECKING:
             return "yellow"
-        else:  # DISABLED
+        else:
             return "gray"
 
 
-# 전역 인스턴스
 _status_monitor_instance: Optional[StatusMonitor] = None
 
 

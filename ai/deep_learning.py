@@ -1,10 +1,8 @@
-"""
 Deep Learning Models for Advanced Price Prediction
 Implements LSTM, Transformer, and CNN models
 
 Author: AutoTrade Pro
 Version: 4.1
-"""
 
 from dataclasses import dataclass, asdict
 from typing import List, Dict, Any, Optional, Tuple
@@ -35,9 +33,9 @@ class DeepLearningPrediction:
     predicted_price_5d: float
     predicted_price_10d: float
     confidence: float
-    direction: str  # 'up', 'down', 'neutral'
+    direction: str
     expected_return: float
-    model_type: str  # 'lstm', 'transformer', 'cnn'
+    model_type: str
     attention_weights: Optional[List[float]] = None
     pattern_detected: Optional[str] = None
     volatility_forecast: float = 0.0
@@ -63,9 +61,6 @@ class ModelPerformance:
     max_drawdown: float
 
 
-# ============================================================================
-# 1. LSTM Model - Long Short-Term Memory for Time Series
-# ============================================================================
 
 class LSTMPricePredictor(nn.Module if TORCH_AVAILABLE else object):
     """
@@ -86,7 +81,6 @@ class LSTMPricePredictor(nn.Module if TORCH_AVAILABLE else object):
             self.hidden_size = hidden_size
             self.num_layers = num_layers
 
-            # LSTM layers
             self.lstm = nn.LSTM(
                 input_size=input_size,
                 hidden_size=hidden_size,
@@ -96,13 +90,11 @@ class LSTMPricePredictor(nn.Module if TORCH_AVAILABLE else object):
                 bidirectional=True
             )
 
-            # Attention layer
             self.attention = nn.Linear(hidden_size * 2, 1)
 
-            # Output layers
             self.fc1 = nn.Linear(hidden_size * 2, 64)
             self.fc2 = nn.Linear(64, 32)
-            self.fc3 = nn.Linear(32, 4)  # 1h, 1d, 5d, 10d predictions
+            self.fc3 = nn.Linear(32, 4)
 
             self.relu = nn.ReLU()
             self.dropout = nn.Dropout(dropout)
@@ -118,14 +110,11 @@ class LSTMPricePredictor(nn.Module if TORCH_AVAILABLE else object):
         if not TORCH_AVAILABLE:
             return None
 
-        # LSTM
         lstm_out, (hidden, cell) = self.lstm(x)
 
-        # Attention mechanism
         attention_weights = torch.softmax(self.attention(lstm_out), dim=1)
         context = torch.sum(attention_weights * lstm_out, dim=1)
 
-        # Fully connected layers
         out = self.relu(self.fc1(context))
         out = self.dropout(out)
         out = self.relu(self.fc2(out))
@@ -146,7 +135,6 @@ class LSTMPricePredictor(nn.Module if TORCH_AVAILABLE else object):
             attention_weights: Attention weights for each timestep
         """
         if not TORCH_AVAILABLE:
-            # Mock prediction
             base_price = sequence[-1, 0] if len(sequence) > 0 else 73500
             trend = np.random.uniform(-0.02, 0.03)
             return np.array([
@@ -163,9 +151,6 @@ class LSTMPricePredictor(nn.Module if TORCH_AVAILABLE else object):
             return predictions.numpy()[0], attention_weights.numpy()[0]
 
 
-# ============================================================================
-# 2. Transformer Model - Attention-based Architecture
-# ============================================================================
 
 class TransformerPricePredictor(nn.Module if TORCH_AVAILABLE else object):
     """
@@ -185,13 +170,10 @@ class TransformerPricePredictor(nn.Module if TORCH_AVAILABLE else object):
 
             self.d_model = d_model
 
-            # Input embedding
             self.input_projection = nn.Linear(input_size, d_model)
 
-            # Positional encoding
             self.positional_encoding = nn.Parameter(torch.zeros(1, 100, d_model))
 
-            # Transformer encoder
             encoder_layer = nn.TransformerEncoderLayer(
                 d_model=d_model,
                 nhead=nhead,
@@ -205,10 +187,9 @@ class TransformerPricePredictor(nn.Module if TORCH_AVAILABLE else object):
                 num_layers=num_layers
             )
 
-            # Output layers
             self.fc1 = nn.Linear(d_model, 64)
             self.fc2 = nn.Linear(64, 32)
-            self.fc3 = nn.Linear(32, 4)  # Multi-horizon predictions
+            self.fc3 = nn.Linear(32, 4)
 
             self.dropout = nn.Dropout(dropout)
             self.layer_norm = nn.LayerNorm(d_model)
@@ -223,21 +204,16 @@ class TransformerPricePredictor(nn.Module if TORCH_AVAILABLE else object):
         if not TORCH_AVAILABLE:
             return None
 
-        # Input projection
         x = self.input_projection(x)
 
-        # Add positional encoding
         seq_len = x.size(1)
         x = x + self.positional_encoding[:, :seq_len, :]
 
-        # Transformer encoding
         x = self.layer_norm(x)
         transformer_out = self.transformer(x)
 
-        # Take the last output
         last_output = transformer_out[:, -1, :]
 
-        # Prediction layers
         out = torch.relu(self.fc1(last_output))
         out = self.dropout(out)
         out = torch.relu(self.fc2(out))
@@ -249,7 +225,6 @@ class TransformerPricePredictor(nn.Module if TORCH_AVAILABLE else object):
     def predict(self, sequence: np.ndarray) -> np.ndarray:
         """Make prediction on sequence"""
         if not TORCH_AVAILABLE:
-            # Mock prediction
             base_price = sequence[-1, 0] if len(sequence) > 0 else 73500
             trend = np.random.uniform(-0.015, 0.04)
             volatility = np.random.uniform(0.005, 0.02)
@@ -267,9 +242,6 @@ class TransformerPricePredictor(nn.Module if TORCH_AVAILABLE else object):
             return predictions.numpy()[0]
 
 
-# ============================================================================
-# 3. CNN Model - Convolutional Neural Network for Pattern Recognition
-# ============================================================================
 
 class CNNPatternRecognizer(nn.Module if TORCH_AVAILABLE else object):
     """
@@ -286,7 +258,6 @@ class CNNPatternRecognizer(nn.Module if TORCH_AVAILABLE else object):
         if TORCH_AVAILABLE:
             super(CNNPatternRecognizer, self).__init__()
 
-            # Convolutional layers for pattern detection
             self.conv1 = nn.Conv1d(input_channels, 64, kernel_size=3, padding=1)
             self.conv2 = nn.Conv1d(64, 128, kernel_size=5, padding=2)
             self.conv3 = nn.Conv1d(128, 256, kernel_size=7, padding=3)
@@ -296,16 +267,13 @@ class CNNPatternRecognizer(nn.Module if TORCH_AVAILABLE else object):
             self.batch_norm2 = nn.BatchNorm1d(128)
             self.batch_norm3 = nn.BatchNorm1d(256)
 
-            # Calculate flattened size
             self.flatten_size = 256 * (sequence_length // 8)
 
-            # Pattern classification head
-            self.pattern_fc = nn.Linear(self.flatten_size, 10)  # 10 pattern types
+            self.pattern_fc = nn.Linear(self.flatten_size, 10)
 
-            # Price prediction head
             self.price_fc1 = nn.Linear(self.flatten_size, 128)
             self.price_fc2 = nn.Linear(128, 64)
-            self.price_fc3 = nn.Linear(64, 4)  # 4 time horizons
+            self.price_fc3 = nn.Linear(64, 4)
 
             self.relu = nn.ReLU()
             self.dropout = nn.Dropout(0.3)
@@ -326,7 +294,6 @@ class CNNPatternRecognizer(nn.Module if TORCH_AVAILABLE else object):
         if not TORCH_AVAILABLE:
             return None, None
 
-        # Convolutional layers
         x = self.relu(self.batch_norm1(self.conv1(x)))
         x = self.pool(x)
 
@@ -336,13 +303,10 @@ class CNNPatternRecognizer(nn.Module if TORCH_AVAILABLE else object):
         x = self.relu(self.batch_norm3(self.conv3(x)))
         x = self.pool(x)
 
-        # Flatten
         x = x.view(x.size(0), -1)
 
-        # Pattern classification
         pattern_logits = self.pattern_fc(x)
 
-        # Price prediction
         price = self.relu(self.price_fc1(x))
         price = self.dropout(price)
         price = self.relu(self.price_fc2(price))
@@ -363,7 +327,6 @@ class CNNPatternRecognizer(nn.Module if TORCH_AVAILABLE else object):
             pattern: Detected pattern name
         """
         if not TORCH_AVAILABLE:
-            # Mock prediction
             base_price = chart_data[0, -1] if chart_data.shape[1] > 0 else 73500
             trend = np.random.uniform(-0.02, 0.04)
             pattern_idx = np.random.randint(0, len(self.patterns))
@@ -386,9 +349,6 @@ class CNNPatternRecognizer(nn.Module if TORCH_AVAILABLE else object):
             return price_pred.numpy()[0], pattern
 
 
-# ============================================================================
-# Deep Learning Manager
-# ============================================================================
 
 class DeepLearningManager:
     """
@@ -431,10 +391,8 @@ class DeepLearningManager:
         - Volatility
         """
         if not historical_data:
-            # Mock data
             return np.random.randn(60, 10)
 
-        # Extract features (simplified)
         sequence = []
         for data in historical_data[-60:]:
             features = [
@@ -465,7 +423,6 @@ class DeepLearningManager:
         - Volume
         """
         if not historical_data:
-            # Mock chart data
             return np.random.randn(5, 60)
 
         chart = []
@@ -478,7 +435,6 @@ class DeepLearningManager:
 
     def predict(self, stock_code: str, stock_name: str,
                 historical_data: List[Dict], current_price: float) -> DeepLearningPrediction:
-        """
         Make ensemble prediction using all deep learning models
 
         Args:
@@ -489,34 +445,26 @@ class DeepLearningManager:
 
         Returns:
             Combined deep learning prediction
-        """
-        # Prepare data
         sequence = self.prepare_sequence(historical_data)
         chart_data = self.prepare_chart_data(historical_data)
 
-        # LSTM prediction
         lstm_pred, attention_weights = self.lstm_model.predict(sequence)
 
-        # Transformer prediction
         transformer_pred = self.transformer_model.predict(sequence)
 
-        # CNN prediction
         cnn_pred, pattern = self.cnn_model.predict(chart_data)
 
-        # Ensemble predictions (weighted average)
         ensemble_pred = (
             lstm_pred * self.model_weights['lstm'] +
             transformer_pred * self.model_weights['transformer'] +
             cnn_pred * self.model_weights['cnn']
         )
 
-        # Calculate confidence based on model agreement
         predictions_stack = np.stack([lstm_pred, transformer_pred, cnn_pred])
         std_dev = np.std(predictions_stack, axis=0)
         avg_std = np.mean(std_dev)
         confidence = max(0.5, 1.0 - (avg_std / current_price) * 10)
 
-        # Determine direction
         expected_return = (ensemble_pred[1] - current_price) / current_price * 100
         if expected_return > 1.0:
             direction = 'up'
@@ -525,7 +473,6 @@ class DeepLearningManager:
         else:
             direction = 'neutral'
 
-        # Volatility forecast (from attention weights)
         volatility_forecast = float(np.std(attention_weights)) if len(attention_weights) > 0 else 0.015
 
         return DeepLearningPrediction(
@@ -570,7 +517,6 @@ class DeepLearningManager:
         }
 
 
-# Singleton instance
 _deep_learning_manager = None
 
 def get_deep_learning_manager() -> DeepLearningManager:
@@ -587,7 +533,6 @@ if __name__ == '__main__':
 
     manager = get_deep_learning_manager()
 
-    # Mock test
     prediction = manager.predict(
         stock_code='005930',
         stock_name='삼성전자',

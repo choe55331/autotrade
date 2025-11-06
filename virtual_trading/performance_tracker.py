@@ -1,7 +1,5 @@
-"""
 virtual_trading/performance_tracker.py
 성과 추적 및 분석
-"""
 from typing import Dict, List
 from datetime import datetime, timedelta
 import json
@@ -37,13 +35,10 @@ class PerformanceTracker:
         if not snapshots:
             return {}
 
-        # 수익률 추이
         pnl_rates = [s['total_pnl_rate'] for s in snapshots]
 
-        # 최대 낙폭
         max_drawdown = self._calculate_max_drawdown(pnl_rates)
 
-        # 샤프 비율 (단순화)
         sharpe_ratio = self._calculate_sharpe(pnl_rates)
 
         return {
@@ -99,7 +94,7 @@ class PerformanceTracker:
 
         data = {
             'start_time': self.start_time.isoformat(),
-            'snapshots': self.daily_snapshots[-30:],  # 최근 30일
+            'snapshots': self.daily_snapshots[-30:],
         }
 
         with open(filepath, 'w', encoding='utf-8') as f:

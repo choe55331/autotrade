@@ -1,7 +1,5 @@
-"""
 Deep Scan 테스트 스크립트
 scan_strategies.py의 Deep Scan이 모든 데이터를 수집하는지 검증
-"""
 import sys
 import os
 
@@ -19,12 +17,10 @@ def test_deep_scan():
     print("="*80)
 
     try:
-        # API 초기화
         client = KiwoomRESTClient()
         market_api = MarketAPI(client)
         screener = Screener(market_api)
 
-        # 거래량 기반 전략으로 스캔 (Deep Scan 포함)
         strategy = VolumeBasedStrategy(market_api, screener)
 
         print("\n⏳ 스캔 시작...")
@@ -36,7 +32,6 @@ def test_deep_scan():
 
         print(f"\n✅ 스캔 완료: {len(candidates)}개 종목")
 
-        # 첫 번째 종목 상세 확인
         if candidates:
             print("\n" + "="*80)
             print(f"📊 첫 번째 종목 상세 데이터 확인: {candidates[0].name} ({candidates[0].code})")
@@ -44,13 +39,11 @@ def test_deep_scan():
 
             c = candidates[0]
 
-            # 기본 정보
             print(f"\n[기본 정보]")
             print(f"  가격: {c.price:,}원")
             print(f"  거래량: {c.volume:,}주")
             print(f"  등락률: {c.rate:.2f}%")
 
-            # Deep Scan 데이터
             print(f"\n[Deep Scan 수집 데이터]")
             print(f"  1. 기관/외국인 (ka10059)")
             print(f"     - 기관순매수: {c.institutional_net_buy:,}")
@@ -76,7 +69,6 @@ def test_deep_scan():
             print(f"  7. 프로그램매매 (ka90013)")
             print(f"     - 프로그램순매수: {c.program_net_buy:,}원" if c.program_net_buy else "     - 프로그램순매수: 없음")
 
-            # 검증
             print("\n" + "="*80)
             print("🔍 데이터 수집 검증")
             print("="*80)
@@ -107,7 +99,7 @@ def test_deep_scan():
                 return True
             else:
                 print("\n⚠️  일부 데이터 수집 실패 (비거래 시간일 수 있음)")
-                return success_count >= total_count * 0.5  # 50% 이상이면 통과
+                return success_count >= total_count * 0.5
 
     except Exception as e:
         print(f"\n❌ 테스트 실패: {e}")

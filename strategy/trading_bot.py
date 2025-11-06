@@ -1,7 +1,5 @@
-"""
 Automated Trading Bot - v5.14
 Multi-strategy automated trading with risk management and position control
-"""
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any, Callable
 from datetime import datetime, timedelta
@@ -24,9 +22,9 @@ class BotStatus(Enum):
 
 class TradingMode(Enum):
     """트레이딩 모드"""
-    LIVE = "live"  # 실제 거래
-    PAPER = "paper"  # 모의 거래
-    BACKTEST = "backtest"  # 백테스트
+    LIVE = "live"
+    PAPER = "paper"
+    BACKTEST = "backtest"
 
 
 class OrderSide(Enum):
@@ -94,12 +92,10 @@ class TradingStrategy:
 
     def generate_signals(self, market_data: Dict[str, Any],
                         price_history: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """
         시그널 생성
 
         Returns:
             List[Dict]: [{'action': 'buy'/'sell', 'stock_code': str, 'confidence': float, ...}]
-        """
         raise NotImplementedError
 
 
@@ -163,7 +159,6 @@ class MeanReversionStrategy(TradingStrategy):
 
         z_score = (current_price - mean) / std if std > 0 else 0
 
-        # Oversold → Buy
         if z_score < -self.params['std_threshold']:
             signals.append({
                 'action': 'buy',
@@ -171,7 +166,6 @@ class MeanReversionStrategy(TradingStrategy):
                 'confidence': min(0.9, 0.5 + abs(z_score) * 0.1),
                 'reason': f"Oversold (Z-score: {z_score:.2f})"
             })
-        # Overbought → Sell
         elif z_score > self.params['std_threshold']:
             signals.append({
                 'action': 'sell',
@@ -205,7 +199,6 @@ class BreakoutStrategy(TradingStrategy):
 
         current_price = market_data.get('price', recent[-1]['close'])
 
-        # Upward breakout
         if current_price > resistance * (1 + self.params['breakout_threshold']):
             signals.append({
                 'action': 'buy',
@@ -213,7 +206,6 @@ class BreakoutStrategy(TradingStrategy):
                 'confidence': 0.80,
                 'reason': f"Upward breakout above {resistance:,.0f}"
             })
-        # Downward breakout
         elif current_price < support * (1 - self.params['breakout_threshold']):
             signals.append({
                 'action': 'sell',
@@ -244,7 +236,6 @@ class AutomatedTradingBot:
                  stop_loss_pct: float = 0.05,
                  take_profit_pct: float = 0.10,
                  trading_mode: TradingMode = TradingMode.PAPER):
-        """
         Args:
             initial_capital: 초기 자본
             max_position_size: 최대 포지션 크기 (자본 대비 비율)
@@ -252,7 +243,6 @@ class AutomatedTradingBot:
             stop_loss_pct: 손절 비율
             take_profit_pct: 익절 비율
             trading_mode: 거래 모드
-        """
         self.initial_capital = initial_capital
         self.cash = initial_capital
         self.max_position_size = max_position_size
@@ -261,23 +251,18 @@ class AutomatedTradingBot:
         self.take_profit_pct = take_profit_pct
         self.trading_mode = trading_mode
 
-        # Status
         self.status = BotStatus.IDLE
         self.start_time: Optional[datetime] = None
 
-        # Positions and trades
         self.positions: Dict[str, Position] = {}
         self.trade_history: List[Trade] = []
 
-        # Strategies
         self.strategies: List[TradingStrategy] = []
 
-        # Performance tracking
         self.equity_curve: List[Dict[str, Any]] = []
         self.daily_returns: List[float] = []
 
-        # Emergency stop
-        self.max_drawdown_limit = 0.20  # 20% max drawdown
+        self.max_drawdown_limit = 0.20
         self.emergency_stopped = False
 
         logger.info(f"Trading Bot initialized: capital={initial_capital:,.0f}, "
@@ -317,13 +302,11 @@ class AutomatedTradingBot:
     def execute_cycle(self,
                       market_data: Dict[str, Dict[str, Any]],
                       price_histories: Dict[str, List[Dict[str, Any]]]):
-        """
         트레이딩 사이클 실행
 
         Args:
             market_data: 실시간 시장 데이터
             price_histories: 가격 히스토리
-        """
         if self.status != BotStatus.RUNNING:
             return
 
@@ -331,22 +314,17 @@ class AutomatedTradingBot:
             logger.warning("Emergency stop activated")
             return
 
-        # Update positions
         self._update_positions(market_data)
 
-        # Check emergency stop
         if self._check_emergency_stop():
             return
 
-        # Check exit conditions for existing positions
         self._check_exit_conditions(market_data)
 
-        # Generate new signals if we have capacity
         if len(self.positions) < self.max_positions:
             signals = self._generate_all_signals(market_data, price_histories)
             self._process_signals(signals, market_data)
 
-        # Update equity curve
         self._update_equity_curve()
 
         logger.debug(f"Cycle complete: positions={len(self.positions)}, "
@@ -372,7 +350,6 @@ class AutomatedTradingBot:
                 available_capital=self.cash
             )
 
-        # Calculate P&L from closed trades
         closed_trades_pnl = []
         for i in range(0, len(self.trade_history), 2):
             if i + 1 < len(self.trade_history):
@@ -390,13 +367,11 @@ class AutomatedTradingBot:
         total_pnl = sum(closed_trades_pnl) + sum(p.unrealized_pnl for p in self.positions.values())
         total_pnl_pct = (total_pnl / self.initial_capital) * 100
 
-        # Sharpe ratio
         if len(self.daily_returns) > 1:
             sharpe = np.mean(self.daily_returns) / (np.std(self.daily_returns) + 1e-10) * np.sqrt(252)
         else:
             sharpe = 0.0
 
-        # Max drawdown
         if self.equity_curve:
             equities = [e['equity'] for e in self.equity_curve]
             running_max = np.maximum.accumulate(equities)
@@ -428,16 +403,13 @@ class AutomatedTradingBot:
         self.status = BotStatus.ERROR
         logger.critical("EMERGENCY STOP ACTIVATED")
 
-        # Close all positions
         for position in list(self.positions.values()):
             self._close_position(position.stock_code, position.current_price, "Emergency stop")
 
-    # ===== PRIVATE METHODS =====
 
     def _generate_all_signals(self,
                              market_data: Dict[str, Dict[str, Any]],
                              price_histories: Dict[str, List[Dict[str, Any]]]) -> List[Dict[str, Any]]:
-        """모든 전략에서 시그널 생성"""
         all_signals = []
 
         for stock_code, data in market_data.items():
@@ -455,30 +427,24 @@ class AutomatedTradingBot:
                     signal['current_price'] = data.get('price', history[-1]['close'])
                     all_signals.append(signal)
 
-        # Sort by confidence
         all_signals.sort(key=lambda s: s.get('confidence', 0), reverse=True)
 
         return all_signals
 
     def _process_signals(self, signals: List[Dict[str, Any]],
                         market_data: Dict[str, Dict[str, Any]]):
-        """시그널 처리 및 주문 실행"""
         for signal in signals:
             stock_code = signal['stock_code']
 
-            # Skip if already have position
             if stock_code in self.positions:
                 continue
 
-            # Only process buy signals for new positions
             if signal['action'] != 'buy':
                 continue
 
-            # Check confidence threshold
             if signal.get('confidence', 0) < 0.70:
                 continue
 
-            # Calculate position size
             max_invest = self.cash * self.max_position_size
             current_price = signal['current_price']
             quantity = int(max_invest / current_price)
@@ -488,11 +454,9 @@ class AutomatedTradingBot:
 
             cost = quantity * current_price
 
-            # Check if enough cash
             if cost > self.cash:
                 continue
 
-            # Execute buy order
             self._execute_buy(
                 stock_code=stock_code,
                 stock_name=signal['stock_name'],
@@ -501,19 +465,16 @@ class AutomatedTradingBot:
                 strategy_name=signal['strategy_name']
             )
 
-            # Stop after filling one position per cycle
             break
 
     def _execute_buy(self, stock_code: str, stock_name: str,
                     price: float, quantity: int, strategy_name: str):
-        """매수 실행"""
         cost = price * quantity
 
         if cost > self.cash:
             logger.warning(f"Insufficient cash for {stock_code}")
             return
 
-        # Create position
         position = Position(
             stock_code=stock_code,
             stock_name=stock_name,
@@ -531,7 +492,6 @@ class AutomatedTradingBot:
         self.positions[stock_code] = position
         self.cash -= cost
 
-        # Record trade
         trade = Trade(
             trade_id=f"BUY_{stock_code}_{int(datetime.now().timestamp())}",
             stock_code=stock_code,
@@ -554,15 +514,12 @@ class AutomatedTradingBot:
 
         position = self.positions[stock_code]
 
-        # Calculate P&L
         proceeds = price * position.quantity
         pnl = proceeds - (position.entry_price * position.quantity)
         pnl_pct = (pnl / (position.entry_price * position.quantity)) * 100
 
-        # Update cash
         self.cash += proceeds
 
-        # Record trade
         trade = Trade(
             trade_id=f"SELL_{stock_code}_{int(datetime.now().timestamp())}",
             stock_code=stock_code,
@@ -577,7 +534,6 @@ class AutomatedTradingBot:
         )
         self.trade_history.append(trade)
 
-        # Remove position
         del self.positions[stock_code]
 
         logger.info(f"SELL: {position.stock_name} {position.quantity} @ {price:,.0f} "
@@ -590,7 +546,6 @@ class AutomatedTradingBot:
                 current_price = market_data[stock_code].get('price', position.current_price)
                 position.current_price = current_price
 
-                # Update P&L
                 position.unrealized_pnl = (current_price - position.entry_price) * position.quantity
                 position.unrealized_pnl_pct = ((current_price - position.entry_price) / position.entry_price) * 100
 
@@ -604,15 +559,12 @@ class AutomatedTradingBot:
 
             current_price = position.current_price
 
-            # Stop-loss
             if position.stop_loss and current_price <= position.stop_loss:
                 to_close.append((stock_code, current_price, "Stop-loss"))
 
-            # Take-profit
             elif position.take_profit and current_price >= position.take_profit:
                 to_close.append((stock_code, current_price, "Take-profit"))
 
-        # Close positions
         for stock_code, price, reason in to_close:
             self._execute_sell(stock_code, price, reason)
 
@@ -644,14 +596,12 @@ class AutomatedTradingBot:
             'num_positions': len(self.positions)
         })
 
-        # Calculate daily return
         if len(self.equity_curve) > 1:
             prev_equity = self.equity_curve[-2]['equity']
             daily_return = (current_equity - prev_equity) / prev_equity
             self.daily_returns.append(daily_return)
 
 
-# Global singleton
 _trading_bot: Optional[AutomatedTradingBot] = None
 
 
@@ -668,7 +618,6 @@ def get_trading_bot() -> AutomatedTradingBot:
             trading_mode=TradingMode.PAPER
         )
 
-        # Add default strategies
         _trading_bot.add_strategy(MomentumStrategy(lookback_period=20, threshold=0.05))
         _trading_bot.add_strategy(MeanReversionStrategy(lookback_period=20, std_threshold=2.0))
         _trading_bot.add_strategy(BreakoutStrategy(lookback_period=20, breakout_threshold=0.02))

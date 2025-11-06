@@ -1,6 +1,4 @@
-"""
 Unified Risk Manager Tests
-"""
 
 import pytest
 from strategy.risk.unified_risk_manager import UnifiedRiskManager, RiskMode
@@ -47,7 +45,7 @@ class TestUnifiedRiskManager:
         )
 
         assert kelly_pct > 0
-        assert kelly_pct <= 25.0  # 최대 25%
+        assert kelly_pct <= 25.0
 
     def test_mode_switching(self, risk_manager):
         """모드 전환 테스트"""

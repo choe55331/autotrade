@@ -1,4 +1,3 @@
-"""
 ai/advanced_backtester.py
 고급 백테스팅 엔진 (v5.11 NEW)
 
@@ -9,7 +8,6 @@ Features:
 - Monte Carlo 시뮬레이션
 - 워크포워드 분석
 - 성능 리포트 생성
-"""
 from typing import Dict, Any, List, Optional, Callable, Tuple
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
@@ -107,12 +105,11 @@ class AdvancedBacktester:
     def __init__(
         self,
         initial_capital: float = 10000000,
-        commission_rate: float = 0.00015,  # 0.015%
-        slippage_rate: float = 0.001,  # 0.1%
-        tax_rate: float = 0.0023,  # 0.23% (매도세)
-        risk_free_rate: float = 0.02  # 2%
+        commission_rate: float = 0.00015,
+        slippage_rate: float = 0.001,
+        tax_rate: float = 0.0023,
+        risk_free_rate: float = 0.02
     ):
-        """
         초기화
 
         Args:
@@ -121,16 +118,14 @@ class AdvancedBacktester:
             slippage_rate: 슬리피지율
             tax_rate: 세율 (매도세)
             risk_free_rate: 무위험 수익률
-        """
         self.initial_capital = initial_capital
         self.commission_rate = commission_rate
         self.slippage_rate = slippage_rate
         self.tax_rate = tax_rate
         self.risk_free_rate = risk_free_rate
 
-        # 백테스트 상태
         self.cash = initial_capital
-        self.positions: Dict[str, Dict[str, Any]] = {}  # stock_code -> position
+        self.positions: Dict[str, Dict[str, Any]] = {}
         self.orders: List[BacktestOrder] = []
         self.trades: List[BacktestTrade] = []
         self.equity_curve: List[Tuple[datetime, float]] = []
@@ -141,11 +136,10 @@ class AdvancedBacktester:
     def run_backtest(
         self,
         strategy: Callable,
-        data: Dict[str, List[Dict]],  # stock_code -> OHLCV list
+        data: Dict[str, List[Dict]],
         start_date: Optional[datetime] = None,
         end_date: Optional[datetime] = None
     ) -> BacktestResult:
-        """
         백테스트 실행
 
         Args:
@@ -156,45 +150,34 @@ class AdvancedBacktester:
 
         Returns:
             백테스트 결과
-        """
-        # Reset state
         self._reset()
 
-        # Get all dates
         all_dates = self._get_all_dates(data, start_date, end_date)
 
         logger.info(f"Running backtest: {len(all_dates)} days, {len(data)} stocks")
 
-        # Simulate day by day
         for i, date in enumerate(all_dates):
             self.current_time = date
 
-            # Get data up to current date
             current_data = self._get_data_until(data, date)
 
-            # Run strategy
             try:
                 signals = strategy(self, current_data)
 
-                # Execute signals
                 if signals:
                     self._execute_signals(signals, current_data)
 
             except Exception as e:
                 logger.error(f"Strategy error on {date}: {e}")
 
-            # Update equity
             equity = self._calculate_equity(current_data)
             self.equity_curve.append((date, equity))
 
-            # Progress logging
             if i % 30 == 0:
                 logger.debug(f"Backtest progress: {i}/{len(all_dates)} days, Equity: {equity:,.0f}")
 
-        # Close all positions at end
         self._close_all_positions(data)
 
-        # Calculate results
         result = self._calculate_results()
 
         logger.info(f"Backtest complete: Return {result.total_return_percent:.2f}%, Sharpe {result.sharpe_ratio:.2f}")
@@ -208,7 +191,6 @@ class AdvancedBacktester:
         price: Optional[float] = None,
         order_type: OrderType = OrderType.MARKET
     ) -> BacktestOrder:
-        """
         매수 주문
 
         Args:
@@ -219,7 +201,6 @@ class AdvancedBacktester:
 
         Returns:
             주문 객체
-        """
         order = BacktestOrder(
             timestamp=self.current_time,
             stock_code=stock_code,
@@ -239,7 +220,6 @@ class AdvancedBacktester:
         price: Optional[float] = None,
         order_type: OrderType = OrderType.MARKET
     ) -> BacktestOrder:
-        """
         매도 주문
 
         Args:
@@ -250,7 +230,6 @@ class AdvancedBacktester:
 
         Returns:
             주문 객체
-        """
         order = BacktestOrder(
             timestamp=self.current_time,
             stock_code=stock_code,
@@ -284,7 +263,6 @@ class AdvancedBacktester:
         num_simulations: int = 1000,
         num_trades: Optional[int] = None
     ) -> Dict[str, Any]:
-        """
         Monte Carlo 시뮬레이션
 
         Args:
@@ -294,11 +272,9 @@ class AdvancedBacktester:
 
         Returns:
             시뮬레이션 결과
-        """
         if not result.trades:
             return {'error': 'No trades to simulate'}
 
-        # Extract trade returns
         returns = [trade.pnl_percent for trade in result.trades]
 
         if num_trades is None:
@@ -309,10 +285,8 @@ class AdvancedBacktester:
         final_equities = []
 
         for _ in range(num_simulations):
-            # Random sampling with replacement
             simulated_returns = np.random.choice(returns, size=num_trades, replace=True)
 
-            # Calculate equity curve
             equity = self.initial_capital
             for ret in simulated_returns:
                 equity *= (1 + ret / 100)
@@ -338,9 +312,6 @@ class AdvancedBacktester:
             'probability_of_profit': sum(1 for r in final_returns if r > 0) / len(final_returns) * 100
         }
 
-    # ========================================================================
-    # Private Helper Methods
-    # ========================================================================
 
     def _reset(self):
         """상태 초기화"""
@@ -357,7 +328,6 @@ class AdvancedBacktester:
         start: Optional[datetime],
         end: Optional[datetime]
     ) -> List[datetime]:
-        """모든 거래일 추출"""
         all_dates = set()
 
         for stock_data in data.values():
@@ -380,7 +350,6 @@ class AdvancedBacktester:
         data: Dict[str, List[Dict]],
         date: datetime
     ) -> Dict[str, List[Dict]]:
-        """특정 날짜까지 데이터 추출"""
         result = {}
 
         for stock_code, bars in data.items():
@@ -419,17 +388,14 @@ class AdvancedBacktester:
         if stock_code not in data or not data[stock_code]:
             return
 
-        # Get current price
         current_bar = data[stock_code][-1]
         price = current_bar.get('close', 0)
 
         if price <= 0:
             return
 
-        # Apply slippage (worse for buyer)
         filled_price = price * (1 + self.slippage_rate)
 
-        # Calculate cost
         cost = filled_price * quantity
         commission = cost * self.commission_rate
         total_cost = cost + commission
@@ -438,10 +404,8 @@ class AdvancedBacktester:
             logger.debug(f"Insufficient cash for buy: {total_cost:,.0f} > {self.cash:,.0f}")
             return
 
-        # Update cash
         self.cash -= total_cost
 
-        # Update position
         if stock_code in self.positions:
             pos = self.positions[stock_code]
             total_quantity = pos['quantity'] + quantity
@@ -471,7 +435,6 @@ class AdvancedBacktester:
         if quantity <= 0:
             return
 
-        # Get current price
         if stock_code not in data or not data[stock_code]:
             return
 
@@ -481,24 +444,19 @@ class AdvancedBacktester:
         if price <= 0:
             return
 
-        # Apply slippage (worse for seller)
         filled_price = price * (1 - self.slippage_rate)
 
-        # Calculate proceeds
         proceeds = filled_price * quantity
         commission = proceeds * self.commission_rate
         tax = proceeds * self.tax_rate
         net_proceeds = proceeds - commission - tax
 
-        # Update cash
         self.cash += net_proceeds
 
-        # Calculate P&L
         entry_price = position['avg_price']
         pnl = (filled_price - entry_price) * quantity - commission - tax
         pnl_percent = (filled_price - entry_price) / entry_price * 100
 
-        # Record trade
         holding_days = (self.current_time - position['entry_time']).days
 
         trade = BacktestTrade(
@@ -517,7 +475,6 @@ class AdvancedBacktester:
 
         self.trades.append(trade)
 
-        # Update position
         position['quantity'] -= quantity
 
         if position['quantity'] <= 0:
@@ -547,14 +504,11 @@ class AdvancedBacktester:
         """결과 계산"""
         final_capital = self.cash
 
-        # Basic metrics
         total_return = final_capital - self.initial_capital
         total_return_percent = (total_return / self.initial_capital) * 100
 
-        # Max drawdown
         max_drawdown, max_drawdown_percent = self._calculate_max_drawdown()
 
-        # Trade statistics
         if self.trades:
             winning_trades = [t for t in self.trades if t.win]
             losing_trades = [t for t in self.trades if not t.win]
@@ -581,11 +535,9 @@ class AdvancedBacktester:
             winning_trades = []
             losing_trades = []
 
-        # Sharpe & Sortino ratios
         sharpe_ratio = self._calculate_sharpe_ratio()
         sortino_ratio = self._calculate_sortino_ratio()
 
-        # Drawdown curve
         drawdown_curve = self._calculate_drawdown_curve()
 
         return BacktestResult(
@@ -657,7 +609,6 @@ class AdvancedBacktester:
         if len(self.equity_curve) < 2:
             return 0
 
-        # Calculate daily returns
         returns = []
         for i in range(1, len(self.equity_curve)):
             prev_equity = self.equity_curve[i-1][1]
@@ -674,7 +625,6 @@ class AdvancedBacktester:
         if std_return == 0:
             return 0
 
-        # Annualize (assuming 252 trading days)
         daily_rf_rate = self.risk_free_rate / 252
         sharpe = (avg_return - daily_rf_rate) / std_return * np.sqrt(252)
 
@@ -685,7 +635,6 @@ class AdvancedBacktester:
         if len(self.equity_curve) < 2:
             return 0
 
-        # Calculate daily returns
         returns = []
         for i in range(1, len(self.equity_curve)):
             prev_equity = self.equity_curve[i-1][1]
@@ -698,7 +647,6 @@ class AdvancedBacktester:
 
         avg_return = statistics.mean(returns)
 
-        # Downside deviation
         downside_returns = [r for r in returns if r < 0]
 
         if not downside_returns:
@@ -709,7 +657,6 @@ class AdvancedBacktester:
         if downside_std == 0:
             return 0
 
-        # Annualize
         daily_rf_rate = self.risk_free_rate / 252
         sortino = (avg_return - daily_rf_rate) / downside_std * np.sqrt(252)
 

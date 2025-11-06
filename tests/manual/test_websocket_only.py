@@ -1,4 +1,3 @@
-"""
 WebSocket 전용 테스트
 다양한 WebSocket 구독 조건을 테스트하여 정답을 찾습니다.
 
@@ -26,7 +25,6 @@ WebSocket 전용 테스트
     - 실제 WebSocket 연결이 발생합니다
     - 일부 테스트는 5-10초 소요됩니다
     - 비거래 시간에는 실시간 데이터가 없을 수 있습니다
-"""
 
 import sys
 import os
@@ -36,7 +34,6 @@ import asyncio
 import websockets
 import time
 
-# 프로젝트 루트를 Python 경로에 추가
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
 from core.rest_client import KiwoomRESTClient
@@ -48,7 +45,7 @@ class WebSocketTester:
     def __init__(self):
         """테스터 초기화"""
         self.rest_client = KiwoomRESTClient()
-        self.test_stock = "005930"  # 삼성전자
+        self.test_stock = "005930"
         self.test_results = {
             'websocket_tests': [],
             'timestamp': datetime.now().strftime("%Y%m%d_%H%M%S"),
@@ -60,11 +57,9 @@ class WebSocketTester:
             }
         }
 
-        # 토큰 추출
         self.access_token = self.rest_client.token if hasattr(self.rest_client, 'token') else ''
         self.base_url = self.rest_client.base_url
 
-        # WebSocket URL 결정
         if 'mockapi' in self.base_url:
             self.ws_url = "wss://mockapi.kiwoom.com:10000/api/dostk/websocket"
         else:
@@ -85,7 +80,6 @@ class WebSocketTester:
         expected_response_type: str = None,
         login_request: dict = None
     ) -> dict:
-        """
         WebSocket 연결 및 구독 테스트
 
         Args:
@@ -97,7 +91,6 @@ class WebSocketTester:
 
         Returns:
             테스트 결과
-        """
         print(f"\n{'─'*80}")
         print(f"🧪 {test_name}")
         print(f"{'─'*80}")
@@ -121,7 +114,6 @@ class WebSocketTester:
         }
 
         try:
-            # WebSocket 연결 (Python 3.13+ 호환)
             async with websockets.connect(
                 self.ws_url,
                 additional_headers={
@@ -133,13 +125,11 @@ class WebSocketTester:
                 result['connected'] = True
                 print(f"✅ WebSocket 연결 성공")
 
-                # 로그인/인증 메시지 전송 (있는 경우)
                 if login_request:
                     login_json = json.dumps(login_request)
                     await websocket.send(login_json)
                     print(f"📤 로그인 요청 전송 완료")
 
-                    # 로그인 응답 대기 (짧게 1초)
                     try:
                         login_response = await asyncio.wait_for(websocket.recv(), timeout=1.0)
                         login_data = json.loads(login_response)
@@ -162,18 +152,15 @@ class WebSocketTester:
                     except Exception as e:
                         print(f"⚠️  로그인 응답 처리 오류: {e}")
 
-                # 구독 요청 전송
                 subscribe_json = json.dumps(subscribe_request)
                 await websocket.send(subscribe_json)
                 print(f"📤 구독 요청 전송 완료")
 
-                # 응답 대기 및 수집
                 start_time = time.time()
                 while time.time() - start_time < duration:
                     try:
                         message = await asyncio.wait_for(websocket.recv(), timeout=1.0)
 
-                        # JSON 파싱
                         try:
                             data = json.loads(message)
                         except json.JSONDecodeError:
@@ -183,15 +170,12 @@ class WebSocketTester:
                         result['messages_received'] += 1
                         msg_type = data.get('trnm', 'UNKNOWN')
 
-                        # 응답 타입 추적
                         if msg_type not in result['response_types']:
                             result['response_types'].append(msg_type)
 
-                        # 처음 5개 메시지만 샘플로 저장
                         if len(result['sample_messages']) < 5:
                             result['sample_messages'].append(data)
 
-                        # 구독 응답 확인 (다양한 패턴)
                         if msg_type == 'REG':
                             return_code = data.get('return_code')
                             if return_code == 0:
@@ -200,37 +184,30 @@ class WebSocketTester:
                             else:
                                 print(f"⚠️  구독 응답 (REG) - 코드 {return_code}: {data.get('return_msg', '')}")
 
-                        # 실시간 데이터 수신 확인
                         elif msg_type == 'REAL':
                             if result['messages_received'] == 1 or result['messages_received'] % 10 == 0:
                                 print(f"📨 실시간 데이터 수신 (REAL) - 총 {result['messages_received']}개")
                                 if result['messages_received'] <= 3:
                                     print(f"   샘플: {json.dumps(data, ensure_ascii=False)[:150]}...")
 
-                        # 기타 응답
                         else:
                             print(f"📩 응답 수신 ({msg_type}): {json.dumps(data, ensure_ascii=False)[:150]}...")
 
                     except asyncio.TimeoutError:
-                        # 타임아웃은 정상 (메시지 없을 수 있음)
                         continue
                     except Exception as e:
                         print(f"⚠️  메시지 수신 오류: {str(e)}")
                         break
 
-                # 결과 판정
-                # 로그인이 필요한 경우: 연결 AND 로그인 AND (구독 성공 OR 메시지 수신)
-                # 로그인 없는 경우: 연결 AND (구독 성공 OR 메시지 수신)
                 if login_request:
                     result['success'] = result['connected'] and result['login_success'] and (
-                        result['subscription_success'] or result['messages_received'] > 1  # 로그인 응답 제외
+                        result['subscription_success'] or result['messages_received'] > 1
                     )
                 else:
                     result['success'] = result['connected'] and (
                         result['subscription_success'] or result['messages_received'] > 0
                     )
 
-                # 결과 출력
                 print(f"\n{'─'*80}")
                 if result['success']:
                     print(f"✅ 테스트 성공")
@@ -260,12 +237,10 @@ class WebSocketTester:
         print(f"  WebSocket 테스트 시작")
         print(f"{'='*80}\n")
 
-        # ===== 카테고리 0: 로그인 패턴 테스트 =====
         print(f"\n{'='*80}")
         print(f"📦 카테고리 0: 로그인/인증 패턴 테스트")
         print(f"{'='*80}")
 
-        # 다양한 로그인 메시지 패턴 시도
         login_patterns = [
             {"trnm": "LOGIN", "token": self.access_token},
             {"trnm": "AUTH", "token": self.access_token},
@@ -273,7 +248,7 @@ class WebSocketTester:
             {"trnm": "CONN", "token": self.access_token},
             {"trnm": "CONNECT", "token": self.access_token},
             {"trnm": "REG", "token": self.access_token, "grp_no": "0"},
-            {"token": self.access_token},  # trnm 없이
+            {"token": self.access_token},
         ]
 
         for idx, login_pattern in enumerate(login_patterns, 1):
@@ -293,7 +268,6 @@ class WebSocketTester:
                 expected_response_type='REAL'
             )
 
-        # ===== 카테고리 1: 주문/체결 관련 =====
         print(f"\n{'='*80}")
         print(f"📦 카테고리 1: 주문/체결 구독 (로그인 없이)")
         print(f"{'='*80}")
@@ -328,7 +302,6 @@ class WebSocketTester:
             expected_response_type='REG'
         )
 
-        # ===== 카테고리 2: 실시간 시세 (단일 종목) =====
         print(f"\n{'='*80}")
         print(f"📦 카테고리 2: 실시간 시세 구독 (단일 종목)")
         print(f"{'='*80}")
@@ -393,7 +366,6 @@ class WebSocketTester:
             expected_response_type='REAL'
         )
 
-        # ===== 카테고리 3: 복수 구독 =====
         print(f"\n{'='*80}")
         print(f"📦 카테고리 3: 복수 항목 구독")
         print(f"{'='*80}")
@@ -449,7 +421,6 @@ class WebSocketTester:
             expected_response_type='REAL'
         )
 
-        # ===== 카테고리 4: refresh 파라미터 테스트 =====
         print(f"\n{'='*80}")
         print(f"📦 카테고리 4: refresh 파라미터 테스트")
         print(f"{'='*80}")
@@ -484,7 +455,6 @@ class WebSocketTester:
             expected_response_type='REAL'
         )
 
-        # ===== 카테고리 5: grp_no 다양한 값 테스트 =====
         print(f"\n{'='*80}")
         print(f"📦 카테고리 5: grp_no 파라미터 테스트")
         print(f"{'='*80}")
@@ -505,7 +475,6 @@ class WebSocketTester:
                 expected_response_type='REAL'
             )
 
-        # ===== 카테고리 6: item 빈 값 테스트 =====
         print(f"\n{'='*80}")
         print(f"📦 카테고리 6: item 빈 값 테스트")
         print(f"{'='*80}")
@@ -567,7 +536,6 @@ class WebSocketTester:
         print(f"전체 성공: {success}개 ({success/total*100:.1f}%)")
         print(f"총 수신 메시지: {total_messages}개")
 
-        # 성공한 케이스
         print(f"\n{'─'*80}")
         print(f"✅ 성공한 케이스:")
         print(f"{'─'*80}")
@@ -581,7 +549,6 @@ class WebSocketTester:
         else:
             print("  없음")
 
-        # 실패한 케이스
         print(f"\n{'─'*80}")
         print(f"❌ 실패한 케이스:")
         print(f"{'─'*80}")
@@ -617,10 +584,8 @@ async def main():
     tester = WebSocketTester()
 
     try:
-        # 모든 테스트 실행
         await tester.run_all_tests()
 
-        # 결과 요약 및 저장
         tester.print_summary()
         tester.save_results()
 

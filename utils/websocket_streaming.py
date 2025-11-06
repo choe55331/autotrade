@@ -1,7 +1,5 @@
-"""
 Advanced WebSocket Streaming System - v5.13
 Real-time data streaming with connection management, backpressure, and optimization
-"""
 from dataclasses import dataclass, asdict
 from typing import Dict, List, Optional, Callable, Any, Set
 from datetime import datetime, timedelta
@@ -18,10 +16,10 @@ logger = logging.getLogger(__name__)
 
 class MessagePriority(Enum):
     """메시지 우선순위"""
-    CRITICAL = 1  # 즉시 전송 필요 (거래 체결, 긴급 알림)
-    HIGH = 2      # 높은 우선순위 (가격 업데이트)
-    NORMAL = 3    # 일반 (차트 데이터)
-    LOW = 4       # 낮은 우선순위 (통계)
+    CRITICAL = 1
+    HIGH = 2
+    NORMAL = 3
+    LOW = 4
 
 
 class ConnectionState(Enum):
@@ -70,7 +68,7 @@ class ClientConnection:
     state: ConnectionState
     stats: Dict[str, int]
     max_queue_size: int = 1000
-    websocket: Optional[Any] = None  # Actual WebSocket connection
+    websocket: Optional[Any] = None
 
 
 class WebSocketStreamManager:
@@ -92,27 +90,22 @@ class WebSocketStreamManager:
                  max_message_queue: int = 1000,
                  message_ttl_seconds: int = 30,
                  heartbeat_interval_seconds: int = 30):
-        """
         Args:
             max_connections: 최대 동시 연결 수
             max_message_queue: 클라이언트당 최대 메시지 큐 크기
             message_ttl_seconds: 메시지 TTL
             heartbeat_interval_seconds: Heartbeat 간격
-        """
         self.max_connections = max_connections
         self.max_message_queue = max_message_queue
         self.message_ttl_seconds = message_ttl_seconds
         self.heartbeat_interval = heartbeat_interval_seconds
 
-        # Connections
         self.connections: Dict[str, ClientConnection] = {}
         self.connections_lock = Lock()
 
-        # Channels
-        self.channels: Dict[str, Set[str]] = {}  # channel -> set of client_ids
+        self.channels: Dict[str, Set[str]] = {}
         self.channels_lock = Lock()
 
-        # Statistics
         self.stats = {
             'messages_sent': 0,
             'messages_dropped': 0,
@@ -123,12 +116,10 @@ class WebSocketStreamManager:
         }
         self.stats_lock = Lock()
 
-        # Rate limiting
-        self.rate_limits: Dict[str, deque] = {}  # client_id -> deque of timestamps
+        self.rate_limits: Dict[str, deque] = {}
         self.max_messages_per_second = 100
 
-        # Message history for replay
-        self.message_history: Dict[str, deque] = {}  # channel -> deque of messages
+        self.message_history: Dict[str, deque] = {}
         self.max_history_per_channel = 100
 
         logger.info(f"WebSocket Stream Manager initialized: "
@@ -181,7 +172,6 @@ class WebSocketStreamManager:
 
             connection = self.connections[client_id]
 
-            # Unsubscribe from all channels
             for channel in list(connection.subscribed_channels):
                 self._unsubscribe_from_channel(client_id, channel)
 
@@ -219,7 +209,6 @@ class WebSocketStreamManager:
 
         logger.info(f"Client {client_id} subscribed to channel {channel}")
 
-        # Replay history if requested
         if replay_history and channel in self.message_history:
             self._replay_history(client_id, channel)
 
@@ -232,7 +221,6 @@ class WebSocketStreamManager:
     def broadcast(self, channel: str, data: Any,
                   priority: MessagePriority = MessagePriority.NORMAL,
                   ttl_seconds: Optional[int] = None) -> int:
-        """
         채널에 메시지 브로드캐스트
 
         Args:
@@ -243,7 +231,6 @@ class WebSocketStreamManager:
 
         Returns:
             int: 전송된 클라이언트 수
-        """
         with self.channels_lock:
             if channel not in self.channels:
                 logger.debug(f"No subscribers for channel {channel}")
@@ -254,7 +241,6 @@ class WebSocketStreamManager:
         if not subscribers:
             return 0
 
-        # Create message
         message_id = f"{channel}_{int(time.time() * 1000)}"
         ttl = ttl_seconds if ttl_seconds is not None else self.message_ttl_seconds
         expires_at = (datetime.now() + timedelta(seconds=ttl)).isoformat()
@@ -268,10 +254,8 @@ class WebSocketStreamManager:
             expires_at=expires_at
         )
 
-        # Save to history
         self._save_to_history(channel, message)
 
-        # Send to all subscribers
         sent_count = 0
         for client_id in subscribers:
             if self._queue_message(client_id, message):
@@ -282,7 +266,6 @@ class WebSocketStreamManager:
 
     def send_to_client(self, client_id: str, channel: str, data: Any,
                       priority: MessagePriority = MessagePriority.NORMAL) -> bool:
-        """특정 클라이언트에게 메시지 전송"""
         with self.connections_lock:
             if client_id not in self.connections:
                 return False
@@ -316,20 +299,17 @@ class WebSocketStreamManager:
             connection = self.connections[client_id]
             messages = []
 
-            # Get messages by priority
             priority_messages = {p: [] for p in MessagePriority}
 
             for msg in connection.message_queue:
                 priority_messages[msg.priority].append(msg)
 
-            # Collect messages in priority order
             for priority in [MessagePriority.CRITICAL, MessagePriority.HIGH,
                            MessagePriority.NORMAL, MessagePriority.LOW]:
                 for msg in priority_messages[priority]:
                     if len(messages) >= max_messages:
                         break
 
-                    # Check expiration
                     if msg.expires_at:
                         expires = datetime.fromisoformat(msg.expires_at)
                         if datetime.now() >= expires:
@@ -341,18 +321,15 @@ class WebSocketStreamManager:
                 if len(messages) >= max_messages:
                     break
 
-            # Remove messages from queue
             for msg in messages:
                 try:
                     connection.message_queue.remove(msg)
                 except ValueError:
                     pass
 
-            # Update activity
             connection.last_activity = datetime.now()
             connection.stats['messages_sent'] += len(messages)
 
-            # Update global stats
             with self.stats_lock:
                 self.stats['messages_sent'] += len(messages)
                 self.stats['bytes_sent'] += sum(len(json.dumps(asdict(m))) for m in messages)
@@ -371,12 +348,10 @@ class WebSocketStreamManager:
         if client_id not in self.rate_limits:
             return True
 
-        # Remove old timestamps
         rate_queue = self.rate_limits[client_id]
         while rate_queue and rate_queue[0] < now - 1:
             rate_queue.popleft()
 
-        # Check limit
         if len(rate_queue) >= self.max_messages_per_second:
             logger.warning(f"Rate limit exceeded for client {client_id}")
             return False
@@ -411,13 +386,11 @@ class WebSocketStreamManager:
         with self.stats_lock:
             uptime = (datetime.now() - self.stats['start_time']).total_seconds()
 
-            # Calculate peak messages per second
             peak_mps = 0
             if uptime > 0:
                 peak_mps = int(self.stats['messages_sent'] / uptime)
 
-            # Calculate average latency (mock)
-            avg_latency = 5.0  # ms
+            avg_latency = 5.0
 
             return StreamStatistics(
                 messages_sent=self.stats['messages_sent'],
@@ -457,7 +430,6 @@ class WebSocketStreamManager:
                 if inactive_duration > timeout_seconds:
                     inactive_clients.append(client_id)
 
-        # Remove inactive connections
         removed = 0
         for client_id in inactive_clients:
             if self.unregister_connection(client_id):
@@ -466,7 +438,6 @@ class WebSocketStreamManager:
 
         return removed
 
-    # ===== PRIVATE METHODS =====
 
     def _queue_message(self, client_id: str, message: StreamMessage) -> bool:
         """메시지를 클라이언트 큐에 추가"""
@@ -476,9 +447,7 @@ class WebSocketStreamManager:
 
             connection = self.connections[client_id]
 
-            # Check if queue is full
             if len(connection.message_queue) >= connection.max_queue_size:
-                # Backpressure: drop lowest priority messages
                 dropped = self._apply_backpressure(connection)
                 if dropped > 0:
                     with self.stats_lock:
@@ -492,11 +461,10 @@ class WebSocketStreamManager:
         """백프레셔 적용 - 낮은 우선순위 메시지 제거"""
         dropped = 0
 
-        # Remove low priority messages first
         for priority in [MessagePriority.LOW, MessagePriority.NORMAL]:
             to_remove = [msg for msg in connection.message_queue if msg.priority == priority]
 
-            for msg in to_remove[:5]:  # Remove up to 5 messages
+            for msg in to_remove[:5]:
                 try:
                     connection.message_queue.remove(msg)
                     dropped += 1
@@ -523,7 +491,6 @@ class WebSocketStreamManager:
             if channel in self.channels:
                 self.channels[channel].discard(client_id)
 
-                # Remove channel if no subscribers
                 if not self.channels[channel]:
                     del self.channels[channel]
 
@@ -590,7 +557,6 @@ class StreamingDataAggregator:
             return [ch for ch, data in self.pending_data.items() if data]
 
 
-# Global singleton
 _stream_manager: Optional[WebSocketStreamManager] = None
 _data_aggregator: Optional[StreamingDataAggregator] = None
 

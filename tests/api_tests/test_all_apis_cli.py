@@ -1,9 +1,5 @@
-#!/usr/bin/env python3
-# test_all_apis_cli.py - CLI 기반 모든 API 자동 테스트 스크립트
-"""
 comprehensive_api_debugger.py의 GUI 없는 CLI 버전
 모든 Kiwoom REST API를 자동으로 테스트하고 결과를 저장합니다.
-"""
 import sys
 import logging
 import json
@@ -12,7 +8,6 @@ import traceback
 import time
 from typing import Dict, Any, List, Tuple
 
-# 기존 모듈 Import
 try:
     from core.rest_client import KiwoomRESTClient
     import config
@@ -21,7 +16,6 @@ except ImportError as e:
     print(f"오류: 필수 모듈(core.rest_client, config, api.account)을 찾을 수 없습니다. {e}")
     sys.exit(1)
 
-# 로깅 설정
 logging.basicConfig(
     level=logging.INFO,
     format="[%(asctime)s] [%(levelname)s] %(message)s",
@@ -39,7 +33,6 @@ class APITesterCLI:
         self.total_tests = 0
         self.total_variants = 0
 
-        # comprehensive_api_debugger.py의 탭 구성과 동일
         self.api_categories = {
             "계좌": ["kt00005", "kt00018", "ka10085", "ka10075", "ka10076", "kt00001", "kt00004", "kt00010", "kt00011", "kt00012", "kt00013", "ka10077", "ka10074", "ka10073", "ka10072", "ka01690", "kt00007", "kt00009", "kt00015", "kt00017", "kt00002", "kt00003", "kt00008", "kt00016", "ka10088", "ka10170"],
             "기본시세": ["ka10001", "ka10004", "ka10003", "ka10007", "ka10087", "ka10006", "ka10005"],
@@ -50,10 +43,8 @@ class APITesterCLI:
             "업종/테마": ["ka20001", "ka20002", "ka20003", "ka20009", "ka10010", "ka10051", "ka90001", "ka90002"],
             "수급/대차": ["ka10008", "ka10009", "ka10131", "ka10034", "ka10035", "ka10036", "ka10037", "ka10038", "ka10039", "ka10040", "ka10042", "ka10053", "ka10058", "ka10062", "ka10065", "ka90009", "ka90004", "ka90005", "ka90007", "ka90008", "ka90013", "ka10014", "ka10068", "ka10069", "ka20068", "ka90012"],
             "ELW/ETF/금": ["ka10048", "ka10050", "ka30001", "ka30002", "ka30003", "ka30004", "ka30005", "ka30009", "ka30010", "ka30011", "ka30012", "ka40001", "ka40002", "ka40003", "ka40004", "ka40006", "ka40007", "ka40008", "ka40009", "ka40010", "ka50010", "ka50012", "ka50087", "ka50100", "ka50101", "ka52301", "kt50020", "kt50021", "kt50030", "kt50031", "kt50032", "kt50075"],
-            # 주문 API는 제외 (위험)
         }
 
-        # 제외할 API (주문, WS, 실시간)
         self.exclude_api_ids = {
             "kt10000", "kt10001", "kt10002", "kt10003", "kt10006", "kt10007", "kt10008", "kt10009",
             "kt50000", "kt50001", "kt50002", "kt50003",
@@ -84,7 +75,6 @@ class APITesterCLI:
         """공통 파라미터 생성 (account.py 기반)"""
         params = account.p_common.copy()
 
-        # 날짜 갱신
         today = datetime.date.today()
         params["today_str"] = today.strftime("%Y%m%d")
         params["start_dt"] = (today - datetime.timedelta(days=7)).strftime("%Y%m%d")
@@ -100,7 +90,6 @@ class APITesterCLI:
         """단일 API 테스트"""
         results = []
 
-        # Variant 생성
         try:
             func = account.get_api_definition(api_id)
             if not func:
@@ -120,7 +109,6 @@ class APITesterCLI:
             logger.error(f"❌ '{api_id}' Variant 생성 오류: {e}")
             return [{"api_id": api_id, "status": "error", "reason": f"Variant 생성 오류: {e}"}]
 
-        # 각 Variant 테스트
         logger.info(f"  -> '{api_id}' 테스트 시작 ({len(variants)} variants)")
 
         for idx, (path_prefix, body) in enumerate(variants):
@@ -140,31 +128,26 @@ class APITesterCLI:
             }
 
             try:
-                # API 호출
                 response = self.api_client.request(
                     api_id=api_id,
                     body=body,
                     path_prefix=path_prefix
                 )
 
-                # 응답 분석
                 if isinstance(response, dict):
                     rc = response.get('return_code')
                     rm = response.get('return_msg', '')
                     result["return_code"] = rc
                     result["return_msg"] = rm
 
-                    # 데이터 키 추출
                     data_keys = [k for k in response.keys() if k not in ['return_code', 'return_msg', 'api-id', 'cont-yn', 'next-key']]
                     result["data_keys"] = data_keys
 
-                    # 데이터 개수 계산
                     for key in data_keys:
                         val = response.get(key)
                         if isinstance(val, list):
                             result["data_count"] += len(val)
 
-                    # 상태 판정
                     if rc == 0:
                         if result["data_count"] > 0 or any(response.get(k) for k in data_keys):
                             result["status"] = "success"
@@ -189,7 +172,7 @@ class APITesterCLI:
                 logger.error(f"    ❌ Var {variant_idx}/{len(variants)} 예외: {e}")
 
             results.append(result)
-            time.sleep(0.05)  # API 호출 간 짧은 지연
+            time.sleep(0.05)
 
         return results
 
@@ -205,13 +188,11 @@ class APITesterCLI:
 
         common_params = self.get_common_params()
 
-        # 카테고리별 테스트
         for category, api_ids in self.api_categories.items():
             logger.info(f"\n📁 카테고리: {category}")
             logger.info("-"*80)
 
             for api_id in api_ids:
-                # 제외 대상 확인
                 if api_id in self.exclude_api_ids:
                     logger.debug(f"  ⚪ '{api_id}' 건너뜀 (주문/WS/실시간 API)")
                     self.test_results.append({
@@ -222,13 +203,12 @@ class APITesterCLI:
                     })
                     continue
 
-                # API 테스트
                 results = self.test_single_api(api_id, common_params)
                 for result in results:
                     result["category"] = category
                     self.test_results.append(result)
 
-                time.sleep(0.1)  # API 간 짧은 지연
+                time.sleep(0.1)
 
         logger.info("\n" + "="*80)
         logger.info("✅ 모든 테스트 완료")
@@ -256,7 +236,6 @@ class APITesterCLI:
             if status in summary["stats"]:
                 summary["stats"][status] += 1
 
-            # 카테고리별 집계
             category = result.get("category", "Unknown")
             if category not in summary["by_category"]:
                 summary["by_category"][category] = {
@@ -323,18 +302,14 @@ def main():
 
     tester = APITesterCLI()
 
-    # API 클라이언트 초기화
     if not tester.init_api_client():
         logger.error("API 클라이언트 초기화 실패. 종료합니다.")
         sys.exit(1)
 
-    # 모든 테스트 실행
     tester.run_all_tests()
 
-    # 요약 출력
     tester.print_summary()
 
-    # 결과 저장
     output_file = f"api_test_results_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
     tester.save_results(output_file)
 

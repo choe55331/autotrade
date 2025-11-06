@@ -1,4 +1,3 @@
-"""
 NXT 거래시간 가격 비교 테스트
 
 목적:
@@ -9,17 +8,14 @@ NXT 거래시간 가격 비교 테스트
 실행 시간:
 - NXT 거래 시간 (08:00-09:00, 15:30-20:00)과
 - 일반 시간 모두에서 실행하여 비교
-"""
 import sys
 from pathlib import Path
 from datetime import datetime
 import json
 
-# 프로젝트 루트를 Python 경로에 추가
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-# 색상 코드
 GREEN = '\033[92m'
 RED = '\033[91m'
 BLUE = '\033[94m'
@@ -41,7 +37,6 @@ def test_price_detail(client, stock_code: str, stock_name: str):
     print(f"{BLUE}종목: {stock_name} ({stock_code}){RESET}")
     print(f"{BLUE}{'='*80}{RESET}")
 
-    # 현재 시간 정보
     now = datetime.now()
     in_nxt_hours = is_nxt_hours()
 
@@ -49,7 +44,6 @@ def test_price_detail(client, stock_code: str, stock_name: str):
     print(f"  시간: {now.strftime('%Y-%m-%d %H:%M:%S')}")
     print(f"  NXT 거래 시간: {'✅ 예 (08:00-09:00 또는 15:30-20:00)' if in_nxt_hours else '❌ 아니오'}")
 
-    # ka10001로 기본 코드 조회
     print(f"\n{CYAN}📊 ka10001 API - 기본 코드 조회{RESET}")
     response = client.request(
         api_id="ka10001",
@@ -62,10 +56,8 @@ def test_price_detail(client, stock_code: str, stock_name: str):
         print(f"\n{YELLOW}전체 응답:{RESET}")
         print(json.dumps(response, indent=2, ensure_ascii=False))
 
-        # 중요 필드 추출
         print(f"\n{CYAN}🔍 주요 정보 분석{RESET}")
 
-        # 현재가 관련 필드들
         price_fields = ['cur_prc', 'crnt_pric', 'stk_pric', 'now_pric', 'current_price']
         found_price = None
         found_field = None
@@ -86,14 +78,12 @@ def test_price_detail(client, stock_code: str, stock_name: str):
             print(f"  ❌ 현재가 필드를 찾을 수 없음")
             print(f"  사용 가능한 필드: {list(response.keys())}")
 
-        # 거래소 정보
         stex_fields = ['stex_tp', 'mrkt_tp', 'market_type', 'exchange']
         for field in stex_fields:
             if field in response:
                 print(f"  🏢 거래소: {response[field]} (필드: {field})")
                 break
 
-        # 시간 정보
         time_fields = ['tm', 'time', 'cntr_tm', 'trade_time']
         for field in time_fields:
             if field in response:
@@ -104,7 +94,6 @@ def test_price_detail(client, stock_code: str, stock_name: str):
         error_msg = response.get('return_msg') if response else 'No response'
         print(f"{RED}❌ API 호출 실패: {error_msg}{RESET}")
 
-    # ka10003으로도 조회 (비교용)
     print(f"\n{CYAN}📊 ka10003 API - 기본 코드 조회 (비교){RESET}")
     response2 = client.request(
         api_id="ka10003",
@@ -153,7 +142,6 @@ def main():
         print(f"{GREEN}✅ API 연결 성공{RESET}")
         client = bot.client
 
-        # 테스트 종목
         test_stocks = [
             ("249420", "일동제약"),
             ("052020", "에프엔에스테크"),
@@ -162,7 +150,6 @@ def main():
         for code, name in test_stocks:
             test_price_detail(client, code, name)
 
-        # 최종 결론
         print(f"\n{MAGENTA}{'='*80}{RESET}")
         print(f"{MAGENTA}💡 해석 가이드{RESET}")
         print(f"{MAGENTA}{'='*80}{RESET}")

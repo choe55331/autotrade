@@ -1,4 +1,3 @@
-"""
 AutoTrade Pro v4.0 - FastAPI REST API Server
 완전한 REST API 엔드포인트 제공
 
@@ -9,14 +8,12 @@ AutoTrade Pro v4.0 - FastAPI REST API Server
 - 백테스팅 및 최적화
 - 시스템 모니터링
 - 설정 관리
-"""
 import sys
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 import logging
 
-# Add parent directory to path
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(BASE_DIR))
 
@@ -26,7 +23,6 @@ from fastapi.responses import JSONResponse, FileResponse
 from pydantic import BaseModel, Field
 import uvicorn
 
-# App initialization
 app = FastAPI(
     title="AutoTrade Pro API",
     description="Complete REST API for AutoTrade Pro Trading System",
@@ -35,26 +31,20 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 프로덕션에서는 특정 도메인만 허용
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Logger
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Global bot instance (will be injected)
 bot_instance = None
 
 
-# ============================================================================
-# Pydantic Models
-# ============================================================================
 
 class SystemStatus(BaseModel):
     """시스템 상태"""
@@ -126,9 +116,6 @@ class SettingsUpdate(BaseModel):
     settings: Dict[str, Any]
 
 
-# ============================================================================
-# Health Check & System Status
-# ============================================================================
 
 @app.get("/")
 async def root():
@@ -157,13 +144,10 @@ async def get_system_status():
     try:
         from features.status_monitor import get_status_monitor
 
-        # 상태 모니터 인스턴스 가져오기
         monitor = get_status_monitor()
 
-        # 모든 시스템 상태 확인
         status_summary = monitor.check_all_status()
 
-        # 연결 상태 추출
         components = status_summary.get('components', {})
         connections = {
             "rest_api": components.get('rest_api', {}).get('connected', False),
@@ -171,7 +155,6 @@ async def get_system_status():
             "gemini": components.get('gemini', {}).get('connected', False)
         }
 
-        # 테스트 모드 정보
         test_mode_info = components.get('test_mode', {})
         test_mode = {
             "active": test_mode_info.get('enabled', False),
@@ -179,11 +162,9 @@ async def get_system_status():
             "reason": test_mode_info.get('reason')
         }
 
-        # 시스템 실행 상태 (bot_instance 확인)
         running = bot_instance is not None
         trading_enabled = running and connections.get('rest_api', False)
 
-        # 업타임 계산 (TODO: 실제 시작 시간 추적 필요)
         uptime = "Running"
 
         return SystemStatus(
@@ -199,9 +180,6 @@ async def get_system_status():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ============================================================================
-# Account APIs
-# ============================================================================
 
 @app.get("/api/account/info", response_model=AccountInfo)
 async def get_account_info():
@@ -218,9 +196,7 @@ async def get_account_info():
                 profit_loss_pct=0
             )
 
-        # 예수금 조회
         deposit_info = bot_instance.account_api.get_deposit()
-        # 계좌평가잔고 조회
         balance_info = bot_instance.account_api.get_account_balance()
 
         if not deposit_info or not balance_info:
@@ -234,17 +210,14 @@ async def get_account_info():
                 profit_loss_pct=0
             )
 
-        # 데이터 파싱
         deposit_data = deposit_info.get('output', {})
         balance_data = balance_info.get('output1', [{}])[0] if balance_info.get('output1') else {}
 
-        # 현금 및 자산 정보
-        cash = float(deposit_data.get('d_ord_aval_cash', 0) or 0)  # 주문가능현금
-        stock_value = float(balance_data.get('sttl_prsm', 0) or 0)  # 평가금액
-        total_assets = float(deposit_data.get('tot_evl_amt', 0) or 0)  # 총평가금액
-        profit_loss = float(balance_data.get('prsm_sum', 0) or 0)  # 평가손익합계
+        cash = float(deposit_data.get('d_ord_aval_cash', 0) or 0)
+        stock_value = float(balance_data.get('sttl_prsm', 0) or 0)
+        total_assets = float(deposit_data.get('tot_evl_amt', 0) or 0)
+        profit_loss = float(balance_data.get('prsm_sum', 0) or 0)
 
-        # 수익률 계산
         if total_assets > 0:
             profit_loss_pct = (profit_loss / (total_assets - profit_loss)) * 100
         else:
@@ -273,19 +246,15 @@ async def get_positions():
             logger.warning("Bot instance not initialized")
             return {"positions": [], "total_count": 0}
 
-        # 체결잔고 조회 (KRX)
         balance_krx = bot_instance.account_api.get_balance(market_type="KRX")
-        # NXT 시장도 조회
         balance_nxt = bot_instance.account_api.get_balance(market_type="NXT")
 
         positions = []
 
-        # KRX 시장 포지션 처리
         if balance_krx and balance_krx.get('return_code') == 0:
             output2 = balance_krx.get('output2', [])
             for item in output2:
                 stock_code = item.get('종목코드', '')
-                # ✅ v5.16: _NX 접미사 유지
 
                 stock_name = item.get('종목명', '')
                 quantity = int(item.get('보유수량', 0) or 0)
@@ -293,7 +262,6 @@ async def get_positions():
                 current_price = float(item.get('현재가', 0) or 0)
                 profit_loss = float(item.get('평가손익', 0) or 0)
 
-                # 수익률 계산
                 if avg_price > 0:
                     profit_loss_pct = ((current_price - avg_price) / avg_price) * 100
                 else:
@@ -310,12 +278,10 @@ async def get_positions():
                     "market": "KRX"
                 })
 
-        # NXT 시장 포지션 처리
         if balance_nxt and balance_nxt.get('return_code') == 0:
             output2 = balance_nxt.get('output2', [])
             for item in output2:
                 stock_code = item.get('종목코드', '')
-                # ✅ v5.16: _NX 접미사 유지
 
                 stock_name = item.get('종목명', '')
                 quantity = int(item.get('보유수량', 0) or 0)
@@ -323,7 +289,6 @@ async def get_positions():
                 current_price = float(item.get('현재가', 0) or 0)
                 profit_loss = float(item.get('평가손익', 0) or 0)
 
-                # 수익률 계산
                 if avg_price > 0:
                     profit_loss_pct = ((current_price - avg_price) / avg_price) * 100
                 else:
@@ -351,9 +316,6 @@ async def get_positions():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ============================================================================
-# Market & Stock APIs
-# ============================================================================
 
 @app.get("/api/market/stocks")
 async def search_stocks(query: str = "", limit: int = 20):
@@ -363,7 +325,6 @@ async def search_stocks(query: str = "", limit: int = 20):
             logger.warning("Bot instance not initialized")
             return {"stocks": [], "total": 0}
 
-        # 거래량 순위로 종목 조회 (검색어 필터링은 추후 구현)
         volume_rank = bot_instance.market_api.get_volume_rank(
             market='ALL',
             limit=limit
@@ -379,7 +340,6 @@ async def search_stocks(query: str = "", limit: int = 20):
                 "volume": item.get('volume', 0)
             })
 
-        # 검색어가 있으면 필터링
         if query:
             query_lower = query.lower()
             stocks = [
@@ -412,15 +372,12 @@ async def get_stock_detail(stock_code: str):
                 "volume": 0
             }
 
-        # ✅ v5.15: NXT 실시간 가격 관리자 사용
         from utils.nxt_realtime_price import get_nxt_price_manager
         nxt_manager = get_nxt_price_manager(bot_instance.market_api)
 
-        # 종목 현재가 조회 (NXT 시간대 자동 처리)
         price_result = nxt_manager.get_realtime_price(stock_code)
 
         if not price_result:
-            # Fallback to direct API call
             price_result = bot_instance.market_api.get_stock_price(stock_code)
             if not price_result:
                 logger.error(f"Failed to get stock price for {stock_code}")
@@ -431,12 +388,10 @@ async def get_stock_detail(stock_code: str):
                     "change_rate": 0,
                     "volume": 0
                 }
-            # Convert to expected format
             price_info = price_result
         else:
-            # NXT manager returns different format - convert to API format
             price_info = {
-                'stock_name': stock_code,  # Will try to get from orderbook
+                'stock_name': stock_code,
                 'current_price': price_result['current_price'],
                 'change_rate': price_result.get('change_rate', 0),
                 'volume': price_result.get('volume', 0),
@@ -455,7 +410,6 @@ async def get_stock_detail(stock_code: str):
                 "volume": 0
             }
 
-        # 호가 정보 조회
         orderbook = bot_instance.market_api.get_orderbook(stock_code)
 
         result = {
@@ -469,7 +423,6 @@ async def get_stock_detail(stock_code: str):
             "open_price": int(price_info.get('open_price', 0) or 0),
         }
 
-        # 호가 정보 추가
         if orderbook:
             result["orderbook"] = {
                 "buy_price1": orderbook.get('buy_price1', 0),
@@ -486,15 +439,11 @@ async def get_stock_detail(stock_code: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ============================================================================
-# AI Analysis APIs
-# ============================================================================
 
 @app.post("/api/analysis/analyze")
 async def analyze_stock(request: AnalysisRequest, background_tasks: BackgroundTasks):
     """AI 종목 분석"""
     try:
-        # TODO: Implement real AI analysis
         return {
             "stock_code": request.stock_code,
             "stock_name": request.stock_name,
@@ -511,7 +460,6 @@ async def analyze_stock(request: AnalysisRequest, background_tasks: BackgroundTa
 async def get_analysis_results(stock_code: str):
     """AI 분석 결과 조회"""
     try:
-        # TODO: Implement real analysis results retrieval
         return {
             "stock_code": stock_code,
             "timestamp": datetime.now().isoformat(),
@@ -526,15 +474,11 @@ async def get_analysis_results(stock_code: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ============================================================================
-# Backtesting APIs
-# ============================================================================
 
 @app.post("/api/backtest/run")
 async def run_backtest(request: BacktestRequest, background_tasks: BackgroundTasks):
     """백테스팅 실행"""
     try:
-        # TODO: Implement real backtesting
         return {
             "backtest_id": "bt_" + datetime.now().strftime("%Y%m%d%H%M%S"),
             "status": "running",
@@ -549,7 +493,6 @@ async def run_backtest(request: BacktestRequest, background_tasks: BackgroundTas
 async def get_backtest_results(backtest_id: str):
     """백테스팅 결과 조회"""
     try:
-        # TODO: Implement real backtest results retrieval
         return {
             "backtest_id": backtest_id,
             "status": "completed",
@@ -569,7 +512,6 @@ async def get_backtest_results(backtest_id: str):
 async def download_backtest_report(backtest_id: str, format: str = "html"):
     """백테스팅 리포트 다운로드 (HTML/PDF)"""
     try:
-        # TODO: Implement real report generation
         report_path = f"/tmp/{backtest_id}_report.{format}"
         return FileResponse(
             path=report_path,
@@ -581,15 +523,11 @@ async def download_backtest_report(backtest_id: str, format: str = "html"):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ============================================================================
-# Optimization APIs
-# ============================================================================
 
 @app.post("/api/optimization/run")
 async def run_optimization(request: OptimizationRequest, background_tasks: BackgroundTasks):
     """전략 파라미터 최적화 실행"""
     try:
-        # TODO: Implement real optimization
         return {
             "optimization_id": "opt_" + datetime.now().strftime("%Y%m%d%H%M%S"),
             "status": "running",
@@ -604,7 +542,6 @@ async def run_optimization(request: OptimizationRequest, background_tasks: Backg
 async def get_optimization_results(optimization_id: str):
     """최적화 결과 조회"""
     try:
-        # TODO: Implement real optimization results retrieval
         return {
             "optimization_id": optimization_id,
             "status": "completed",
@@ -619,15 +556,11 @@ async def get_optimization_results(optimization_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ============================================================================
-# Trading APIs
-# ============================================================================
 
 @app.post("/api/trading/order")
 async def place_order(order: TradeOrder):
     """주문 실행"""
     try:
-        # TODO: Implement real order placement
         return {
             "order_id": "ord_" + datetime.now().strftime("%Y%m%d%H%M%S"),
             "status": "submitted",
@@ -642,7 +575,6 @@ async def place_order(order: TradeOrder):
 async def get_orders(status: Optional[str] = None):
     """주문 내역 조회"""
     try:
-        # TODO: Implement real orders retrieval
         return {
             "orders": [],
             "total": 0
@@ -652,15 +584,11 @@ async def get_orders(status: Optional[str] = None):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ============================================================================
-# Settings APIs
-# ============================================================================
 
 @app.get("/api/settings")
 async def get_all_settings():
     """모든 설정 조회"""
     try:
-        # TODO: Implement real settings retrieval
         return {
             "risk_management": {},
             "trading_params": {},
@@ -676,7 +604,6 @@ async def get_all_settings():
 async def get_settings_by_category(category: str):
     """카테고리별 설정 조회"""
     try:
-        # TODO: Implement real settings retrieval
         return {
             "category": category,
             "settings": {}
@@ -690,7 +617,6 @@ async def get_settings_by_category(category: str):
 async def update_settings(category: str, settings: Dict[str, Any]):
     """설정 업데이트"""
     try:
-        # TODO: Implement real settings update
         return {
             "category": category,
             "status": "updated",
@@ -701,9 +627,6 @@ async def update_settings(category: str, settings: Dict[str, Any]):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ============================================================================
-# Strategy APIs
-# ============================================================================
 
 @app.get("/api/strategies")
 async def get_strategies():
@@ -735,9 +658,6 @@ async def execute_strategy(strategy_name: str, params: Optional[Dict[str, Any]] 
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ============================================================================
-# Monitoring & Logs
-# ============================================================================
 
 @app.get("/api/monitoring/system")
 async def get_system_monitoring():
@@ -767,9 +687,6 @@ async def get_recent_logs(limit: int = 100):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# ============================================================================
-# Main Entry Point
-# ============================================================================
 
 def set_bot_instance(instance):
     """봇 인스턴스 설정"""

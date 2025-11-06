@@ -1,7 +1,5 @@
-"""
 strategy/base_strategy.py
 전략 기본 클래스
-"""
 import logging
 from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional, List
@@ -23,24 +21,20 @@ class BaseStrategy(ABC):
         client,
         config: Dict[str, Any] = None
     ):
-        """
         전략 초기화
         
         Args:
             name: 전략 이름
             client: KiwoomRESTClient 인스턴스
             config: 전략 설정
-        """
         self.name = name
         self.client = client
         self.config = config or {}
         
-        # 전략 상태
         self.is_active = False
-        self.positions = {}  # {stock_code: position_info}
-        self.orders = {}     # {order_id: order_info}
+        self.positions = {}
+        self.orders = {}
         
-        # 통계
         self.stats = {
             'total_trades': 0,
             'winning_trades': 0,
@@ -106,7 +100,6 @@ class BaseStrategy(ABC):
         current_price: int,
         available_cash: int
     ) -> int:
-        """
         포지션 크기 계산 (추상 메서드)
         
         Args:
@@ -116,10 +109,8 @@ class BaseStrategy(ABC):
         
         Returns:
             매수 수량
-        """
         pass
     
-    # ==================== 공통 메서드 ====================
     
     def start(self):
         """전략 시작"""
@@ -139,7 +130,6 @@ class BaseStrategy(ABC):
         purchase_price: float,
         order_id: str = None
     ):
-        """
         포지션 추가
         
         Args:
@@ -147,7 +137,6 @@ class BaseStrategy(ABC):
             quantity: 수량
             purchase_price: 매수가
             order_id: 주문번호
-        """
         self.positions[stock_code] = {
             'stock_code': stock_code,
             'quantity': quantity,
@@ -179,20 +168,17 @@ class BaseStrategy(ABC):
         stock_code: str,
         current_price: float
     ):
-        """
         포지션 업데이트
         
         Args:
             stock_code: 종목코드
             current_price: 현재가
-        """
         if stock_code not in self.positions:
             return
         
         position = self.positions[stock_code]
         position['current_price'] = current_price
         
-        # 손익 계산
         purchase_price = position['purchase_price']
         quantity = position['quantity']
         
@@ -232,7 +218,6 @@ class BaseStrategy(ABC):
         """포지션 개수"""
         return len(self.positions)
     
-    # ==================== 통계 관리 ====================
     
     def record_trade(
         self,
@@ -242,7 +227,6 @@ class BaseStrategy(ABC):
         price: float,
         profit_loss: float = 0.0
     ):
-        """
         거래 기록
         
         Args:
@@ -251,7 +235,6 @@ class BaseStrategy(ABC):
             quantity: 수량
             price: 가격
             profit_loss: 손익 (매도 시)
-        """
         self.stats['total_trades'] += 1
         self.stats['last_trade_time'] = datetime.now()
         
@@ -280,13 +263,11 @@ class BaseStrategy(ABC):
         winning_trades = self.stats['winning_trades']
         losing_trades = self.stats['losing_trades']
         
-        # 승률 계산
         if total_trades > 0:
             win_rate = (winning_trades / total_trades) * 100
         else:
             win_rate = 0.0
         
-        # 운영 시간 계산
         if self.stats['start_time']:
             running_time = datetime.now() - self.stats['start_time']
             running_hours = running_time.total_seconds() / 3600
@@ -319,7 +300,6 @@ class BaseStrategy(ABC):
         }
         logger.info(f"{self.name} 통계 초기화")
     
-    # ==================== 설정 관리 ====================
     
     def get_config(self, key: str, default=None):
         """
@@ -349,7 +329,6 @@ class BaseStrategy(ABC):
         """전체 설정 조회"""
         return self.config.copy()
     
-    # ==================== 상태 정보 ====================
     
     def get_state(self) -> Dict[str, Any]:
         """

@@ -19,29 +19,23 @@ class GeminiAnalyzer(BaseAnalyzer):
     Gemini API를 사용한 종목/시장 분석
     """
 
-    # 종목 분석 프롬프트 템플릿 (v6.1.1 - SIMPLIFIED FOR RELIABILITY)
-    # 복잡한 프롬프트는 JSON 생성 실패 가능성이 높음 - 간소화
-    STOCK_ANALYSIS_PROMPT_TEMPLATE_SIMPLE = """# 종목 투자 분석 요청
+    STOCK_ANALYSIS_PROMPT_TEMPLATE_SIMPLE = """
 
 당신은 전문 트레이더입니다. 다음 종목을 분석하여 **반드시 JSON 형식으로만** 응답하세요.
 
-## 종목 정보
 - 종목: {stock_name} ({stock_code})
 - 현재가: {current_price:,}원
 - 등락률: {change_rate:+.2f}%
 - 거래량: {volume:,}주
 
-## 평가 점수
 - 종합 점수: {score}/{percentage:.1f}%
 - 세부 점수:
 {score_breakdown_detailed}
 
-## 투자자 동향
 - 기관 순매수: {institutional_net_buy:,}원
 - 외국인 순매수: {foreign_net_buy:,}원
 - 매수호가 비율: {bid_ask_ratio:.2f}
 
-## 포트폴리오
 {portfolio_info}
 
 ---
@@ -59,22 +53,18 @@ class GeminiAnalyzer(BaseAnalyzer):
 }}
 ```"""
 
-    # 종목 분석 프롬프트 템플릿 (v6.1 - ULTRA ENHANCED - 복잡함, 실패 가능성 높음)
-    STOCK_ANALYSIS_PROMPT_TEMPLATE_COMPLEX = """# 🎯 PROFESSIONAL QUANTITATIVE TRADING ANALYSIS REQUEST (v6.1 - Gemini Pro)
+    STOCK_ANALYSIS_PROMPT_TEMPLATE_COMPLEX = """
 
 당신은 20년 이상의 경력을 가진 퀀트 헤지펀드 매니저이자 리스크 관리 전문가입니다.
 다음 한국 주식에 대한 심층 분석을 수행해주세요.
 
-## 📊 STOCK IDENTIFICATION
 **종목**: {stock_name} ({stock_code})
 **현재가**: {current_price:,}원
 **등락률**: {change_rate:+.2f}%
 **거래량**: {volume:,}주
 
-## 🔢 QUANTITATIVE SCORING SYSTEM (440점 만점)
 **종합 점수**: {score}/440점 ({percentage:.1f}%)
 
-### 세부 점수 분석 (10개 지표):
 {score_breakdown_detailed}
 
 **점수 해석 가이드**:
@@ -84,7 +74,6 @@ class GeminiAnalyzer(BaseAnalyzer):
 - 200-249점 (45-56%): C등급 - 중립
 - 200점 미만 (45%-): D/F등급 - 부정적 신호
 
-## 💰 INVESTOR FLOW ANALYSIS (스마트머니 추적)
 **기관 순매수**: {institutional_net_buy:,}원
 **외국인 순매수**: {foreign_net_buy:,}원
 **매수호가 강도**: {bid_ask_ratio:.2f}
@@ -95,32 +84,26 @@ class GeminiAnalyzer(BaseAnalyzer):
 - 매수호가강도 > 1.5 = 강한 매수세
 - 매수호가강도 < 0.7 = 강한 매도세
 
-## 📈 CURRENT PORTFOLIO CONTEXT
 {portfolio_info}
 
 ---
 
-## 🎓 REQUIRED COMPREHENSIVE ANALYSIS
 
-### 1. TECHNICAL SCORE VALIDATION (점수 타당성 분석)
 - 10가지 세부 점수를 개별적으로 평가
 - 각 점수가 실제 시장 상황과 부합하는지 검증
 - 과대평가되었거나 과소평가된 지표 식별
 - 점수의 신뢰도 평가 (0-100%)
 
-### 2. SMART MONEY FLOW ANALYSIS (스마트머니 흐름)
 - 기관/외국인 매매 패턴 해석
 - 개인 vs 기관/외국인 포지션 비교
 - 누적 매수/매도 흐름 분석
 - 스마트머니가 보내는 신호 해독
 
-### 3. PRICE ACTION & MOMENTUM (가격 행동 분석)
 - 단기 급등 vs 추세 전환 vs 조정 후 재상승 구분
 - 현재 모멘텀의 지속 가능성 평가
 - 과매수/과매도 상태 판단
 - 변동성 분석 및 예상 가격 범위
 
-### 4. RISK-REWARD ASSESSMENT (위험-보상 분석)
 **주요 리스크 요인**:
 - 기술적 리스크 (저항선, 지지선 이탈 가능성)
 - 펀더멘털 리스크 (밸류에이션, 업종 리스크)
@@ -133,7 +116,6 @@ class GeminiAnalyzer(BaseAnalyzer):
 - 📊 Base Case (확률 ___%): [기본 시나리오]
 - 🐻 Bear Case (확률 ___%): [하락 시나리오]
 
-### 5. TRADING STRATEGY (구체적 매매 전략)
 **진입 전략**:
 - 즉시 매수 vs 대기 vs 분할 매수
 - 최적 진입 가격 및 타이밍
@@ -145,13 +127,11 @@ class GeminiAnalyzer(BaseAnalyzer):
 - 최대 보유 기간
 - 손익비 (Risk-Reward Ratio)
 
-### 6. PROBABILITY ASSESSMENT (확률 기반 평가)
 - 수익 확률: ___%
 - 손실 확률: ___%
 - 기대 수익률: ___% (확률 가중 평균)
 - 최대 손실 예상: ___%
 
-### 7. SENSITIVITY ANALYSIS (민감도 분석)
 **시장 변동에 대한 민감도**:
 - KOSPI ±1% 변동 시 예상 가격 변화: 베타 계수 기반 추정
 - 거래량 급증/급감 시 가격 영향
@@ -163,20 +143,17 @@ class GeminiAnalyzer(BaseAnalyzer):
 - 단기 지지선까지 거리: ___원 (___%)
 - 손익분기점 분석
 
-### 8. MARKET MICROSTRUCTURE (시장 미세구조 분석)
 - 호가창 분석: 매수/매도 벽 위치 및 강도
 - 체결강도 분석: 시장가 vs 호가 체결 비율
 - 틱(Tick) 방향성: 상승틱 vs 하락틱 비율
 - 유동성 분석: 스프레드, 주문 깊이
 - 내부자 거래 의심 신호 (급격한 거래 패턴 변화)
 
-### 9. CORRELATION & REGIME ANALYSIS (상관관계 및 레짐 분석)
 - 업종 평균 대비 상대 강도
 - 주요 경쟁사 대비 모멘텀
 - 시장 레짐: 강세장/약세장/횡보장
 - 섹터 로테이션 관점에서의 위치
 
-### 10. BEHAVIORAL & SENTIMENT ANALYSIS (행동 패턴 분석)
 - 개인 투자자 패닉 매수/매도 징후
 - 기관의 분산 매수/매도 패턴
 - 뉴스 및 공시 임팩트 평가
@@ -184,7 +161,6 @@ class GeminiAnalyzer(BaseAnalyzer):
 
 ---
 
-## 📋 REQUIRED OUTPUT FORMAT (JSON 형식):
 
 ```json
 {
@@ -289,14 +265,14 @@ class GeminiAnalyzer(BaseAnalyzer):
   },
 
   "key_insights": [
-    "Most critical insight #1",
-    "Most critical insight #2",
-    "Most critical insight #3"
+    "Most critical insight
+    "Most critical insight
+    "Most critical insight
   ],
 
   "warnings": [
-    "Critical warning #1",
-    "Critical warning #2"
+    "Critical warning
+    "Critical warning
   ],
 
   "detailed_reasoning": "<3-5 paragraph comprehensive analysis covering all aspects>",
@@ -305,7 +281,6 @@ class GeminiAnalyzer(BaseAnalyzer):
 }
 ```
 
-## ⚠️ CRITICAL ANALYSIS GUIDELINES:
 
 1. **Be Brutally Honest**: Don't sugarcoat risks or force a bullish view
 2. **Probabilistic Thinking**: Express everything in probabilities, not certainties
@@ -328,12 +303,10 @@ class GeminiAnalyzer(BaseAnalyzer):
         """
         super().__init__("GeminiAnalyzer")
 
-        # API 설정
         if api_key is None:
             from config import GEMINI_API_KEY, GEMINI_MODEL_NAME, GEMINI_ENABLE_CROSS_CHECK
             self.api_key = GEMINI_API_KEY
             self.model_name = model_name or GEMINI_MODEL_NAME or 'gemini-2.5-flash'
-            # config에서 enable_cross_check 읽어오기 (파라미터가 명시적으로 전달되지 않은 경우)
             if enable_cross_check is False and GEMINI_ENABLE_CROSS_CHECK:
                 enable_cross_check = GEMINI_ENABLE_CROSS_CHECK
         else:
@@ -342,14 +315,12 @@ class GeminiAnalyzer(BaseAnalyzer):
 
         self.model = None
 
-        # 크로스 체크 설정
         self.enable_cross_check = enable_cross_check
-        self.model_2_0 = None  # gemini-2.0-flash-exp
-        self.model_2_5 = None  # gemini-2.5-flash
+        self.model_2_0 = None
+        self.model_2_5 = None
 
-        # v5.7.5: AI 분석 TTL 캐시 (5분)
         self._analysis_cache = {}
-        self._cache_ttl = 300  # 5분 (초)
+        self._cache_ttl = 300
 
         cross_check_status = "크로스체크 활성화" if enable_cross_check else "단일 모델"
         logger.info(f"GeminiAnalyzer 초기화 (모델: {self.model_name}, {cross_check_status})")
@@ -364,14 +335,11 @@ class GeminiAnalyzer(BaseAnalyzer):
         try:
             import google.generativeai as genai
 
-            # API 키 설정
             genai.configure(api_key=self.api_key)
 
-            # 기본 모델 생성
             self.model = genai.GenerativeModel(self.model_name)
             logger.info(f"기본 모델 초기화: {self.model_name}")
 
-            # 크로스 체크 모드: 두 모델 모두 초기화
             if self.enable_cross_check:
                 try:
                     self.model_2_0 = genai.GenerativeModel('gemini-2.0-flash-exp')
@@ -408,7 +376,6 @@ class GeminiAnalyzer(BaseAnalyzer):
         score_info: Dict[str, Any] = None,
         portfolio_info: str = None
     ) -> Dict[str, Any]:
-        """
         종목 분석
 
         Args:
@@ -419,51 +386,40 @@ class GeminiAnalyzer(BaseAnalyzer):
 
         Returns:
             분석 결과
-        """
-        # 초기화 확인
         if not self.is_initialized:
             if not self.initialize():
                 return self._get_error_result("분석기 초기화 실패")
 
-        # 데이터 검증
         is_valid, msg = self.validate_stock_data(stock_data)
         if not is_valid:
             return self._get_error_result(msg)
 
-        # v5.7.5: 캐시 확인 (종목코드 + 점수 기준)
         stock_code = stock_data.get('stock_code', '')
         score = score_info.get('score', 0) if score_info else 0
-        cache_key = f"{stock_code}_{int(score)}"  # 점수는 정수로 (소수점 무시)
+        cache_key = f"{stock_code}_{int(score)}"
 
-        # 크로스 체크 활성화시 캐시 키에 표시
         if self.enable_cross_check:
             cache_key += "_crosscheck"
 
-        # 캐시에서 조회
         if cache_key in self._analysis_cache:
             cached_entry = self._analysis_cache[cache_key]
             cached_time = cached_entry['timestamp']
             cached_result = cached_entry['result']
 
-            # TTL 체크
             if (time.time() - cached_time) < self._cache_ttl:
                 logger.info(f"AI 분석 캐시 히트: {stock_code} (캐시 유효시간: {int(self._cache_ttl - (time.time() - cached_time))}초)")
                 print(f"   💾 AI 분석 캐시 사용 (캐시 유효: {int(self._cache_ttl - (time.time() - cached_time))}초)")
                 return cached_result
             else:
-                # TTL 만료 - 캐시 삭제
                 del self._analysis_cache[cache_key]
                 logger.info(f"AI 분석 캐시 만료: {stock_code}")
 
-        # 분석 시작
         start_time = time.time()
 
-        # ========== 크로스 체크 모드 ==========
         if self.enable_cross_check and self.model_2_0 and self.model_2_5:
             logger.info(f"🔀 크로스체크 분석 시작: {stock_code}")
             print(f"   🔀 AI 크로스체크 분석 (2.0 vs 2.5)")
 
-            # 프롬프트 준비
             if score_info:
                 score = score_info.get('score', 0)
                 percentage = score_info.get('percentage', 0)
@@ -496,7 +452,6 @@ class GeminiAnalyzer(BaseAnalyzer):
                 portfolio_info=portfolio_text
             )
 
-            # 두 모델 동시 분석
             result_2_0 = self._analyze_with_single_model(
                 self.model_2_0,
                 'gemini-2.0-flash-exp',
@@ -511,20 +466,16 @@ class GeminiAnalyzer(BaseAnalyzer):
                 stock_data
             )
 
-            # 결과 크로스 체크
             result = self._cross_check_results(result_2_0, result_2_5)
 
-            # 캐시 저장
             self._analysis_cache[cache_key] = {
                 'timestamp': time.time(),
                 'result': result
             }
 
-            # 통계 업데이트
             elapsed_time = time.time() - start_time
             self.update_statistics(True, elapsed_time)
 
-            # 크로스 체크 정보 출력
             if 'cross_check' in result:
                 cc = result['cross_check']
                 if cc.get('agreement'):
@@ -539,19 +490,15 @@ class GeminiAnalyzer(BaseAnalyzer):
 
             return result
 
-        # ========== 일반 분석 모드 (단일 모델) ==========
-        # 재시도 로직 (최대 3회)
         max_retries = 3
-        retry_delay = 2  # 초
+        retry_delay = 2
 
         for attempt in range(max_retries):
             try:
-                # 점수 정보 포맷팅
                 if score_info:
                     score = score_info.get('score', 0)
                     percentage = score_info.get('percentage', 0)
                     breakdown = score_info.get('breakdown', {})
-                    # 10가지 세부 점수 상세 표시
                     score_breakdown_detailed = "\n".join([
                         f"  {k}: {v:.1f}점" for k, v in breakdown.items() if v >= 0
                     ])
@@ -560,16 +507,12 @@ class GeminiAnalyzer(BaseAnalyzer):
                     percentage = 0
                     score_breakdown_detailed = "  점수 정보 없음"
 
-                # 포트폴리오 정보 (없으면 기본 메시지)
                 portfolio_text = portfolio_info or "보유 종목 없음"
 
-                # 투자자 동향 데이터
                 institutional_net_buy = stock_data.get('institutional_net_buy', 0)
                 foreign_net_buy = stock_data.get('foreign_net_buy', 0)
                 bid_ask_ratio = stock_data.get('bid_ask_ratio', 1.0)
 
-                # v6.1.1: 간단한 프롬프트 사용 (신뢰성 향상)
-                # 복잡한 프롬프트는 JSON 생성 실패율이 높음
                 prompt = self.STOCK_ANALYSIS_PROMPT_TEMPLATE_SIMPLE.format(
                     stock_name=stock_data.get('stock_name', ''),
                     stock_code=stock_data.get('stock_code', ''),
@@ -585,31 +528,25 @@ class GeminiAnalyzer(BaseAnalyzer):
                     portfolio_info=portfolio_text
                 )
 
-                # Gemini API 호출 - 타임아웃 30초 설정
-                # safety_settings 없이 호출 (기본값 사용)
                 try:
                     response = self.model.generate_content(
                         prompt,
-                        request_options={'timeout': 30}  # 30초 타임아웃
+                        request_options={'timeout': 30}
                     )
                 except Exception as timeout_error:
-                    # 타임아웃이나 API 에러 발생 시 재시도
                     raise ValueError(f"Gemini API timeout or error: {timeout_error}")
 
-                # 응답 검증 (finish_reason 체크)
                 if not response.candidates:
                     raise ValueError("Gemini API returned no candidates")
 
                 candidate = response.candidates[0]
                 finish_reason = candidate.finish_reason
 
-                # finish_reason: 1=STOP(정상), 2=SAFETY(안전필터), 3=MAX_TOKENS, 4=RECITATION, 5=OTHER
-                if finish_reason != 1:  # 1 = STOP (정상 완료)
+                if finish_reason != 1:
                     reason_map = {2: "SAFETY", 3: "MAX_TOKENS", 4: "RECITATION", 5: "OTHER"}
                     reason_name = reason_map.get(finish_reason, f"UNKNOWN({finish_reason})")
                     raise ValueError(f"Gemini blocked: {reason_name}")
 
-                # 응답 텍스트 검증 (v6.1.1 - 빈 응답 체크 추가)
                 if not hasattr(response, 'text'):
                     raise ValueError("Gemini API response has no 'text' attribute")
 
@@ -617,20 +554,16 @@ class GeminiAnalyzer(BaseAnalyzer):
                 if not response_text or len(response_text.strip()) == 0:
                     raise ValueError("Gemini API returned empty response")
 
-                # 디버깅: 응답 길이 로깅
                 logger.debug(f"Gemini 응답 길이: {len(response_text)} chars")
 
-                # 응답 파싱
                 result = self._parse_stock_analysis_response(response_text, stock_data)
 
-                # v5.7.5: 캐시에 저장
                 self._analysis_cache[cache_key] = {
                     'timestamp': time.time(),
                     'result': result
                 }
                 logger.info(f"AI 분석 결과 캐시 저장: {stock_code} (TTL: {self._cache_ttl}초)")
 
-                # 통계 업데이트
                 elapsed_time = time.time() - start_time
                 self.update_statistics(True, elapsed_time)
 
@@ -644,14 +577,12 @@ class GeminiAnalyzer(BaseAnalyzer):
             except Exception as e:
                 error_msg = str(e)
 
-                # 재시도 로그 (모든 시도 표시)
                 if attempt < max_retries - 1:
                     logger.warning(f"AI 분석 실패 (시도 {attempt+1}/{max_retries}), {retry_delay}초 후 재시도: {error_msg}")
                     print(f"   ⚠️ AI 응답 지연 또는 에러 (시도 {attempt+1}/{max_retries}), {retry_delay}초 후 재시도...")
                     time.sleep(retry_delay)
-                    retry_delay *= 2  # 지수 백오프
+                    retry_delay *= 2
                 else:
-                    # 모든 시도 실패 - 최종 에러
                     logger.error(f"AI 분석 최종 실패 ({max_retries}회 시도): {error_msg}")
                     print(f"   ❌ AI 분석 최종 실패: {error_msg}")
                     self.update_statistics(False)
@@ -674,16 +605,12 @@ class GeminiAnalyzer(BaseAnalyzer):
         start_time = time.time()
         
         try:
-            # 프롬프트 생성
             prompt = self._create_market_analysis_prompt(market_data)
             
-            # Gemini API 호출
             response = self.model.generate_content(prompt)
             
-            # 응답 파싱
             result = self._parse_market_analysis_response(response.text)
             
-            # 통계 업데이트
             elapsed_time = time.time() - start_time
             self.update_statistics(True, elapsed_time)
             
@@ -713,16 +640,12 @@ class GeminiAnalyzer(BaseAnalyzer):
         start_time = time.time()
         
         try:
-            # 프롬프트 생성
             prompt = self._create_portfolio_analysis_prompt(portfolio_data)
             
-            # Gemini API 호출
             response = self.model.generate_content(prompt)
             
-            # 응답 파싱
             result = self._parse_portfolio_analysis_response(response.text)
             
-            # 통계 업데이트
             elapsed_time = time.time() - start_time
             self.update_statistics(True, elapsed_time)
             
@@ -735,7 +658,6 @@ class GeminiAnalyzer(BaseAnalyzer):
             self.update_statistics(False)
             return self._get_error_result(str(e))
     
-    # ==================== 프롬프트 생성 ====================
 
     def _create_market_analysis_prompt(self, market_data: Dict[str, Any]) -> str:
         """시장 분석 프롬프트 생성"""
@@ -752,7 +674,6 @@ class GeminiAnalyzer(BaseAnalyzer):
 점수: [0~10점]
 분석: [시장 상황 분석 3-5줄]
 추천: [투자 전략 추천 2-3가지]
-"""
         
         return prompt
     
@@ -772,46 +693,36 @@ class GeminiAnalyzer(BaseAnalyzer):
 
 **분석 요청:**
 포트폴리오의 강점, 약점, 개선사항을 분석해주세요.
-"""
         
         return prompt
     
-    # ==================== 응답 파싱 ====================
     
     def _parse_stock_analysis_response(
         self,
         response_text: str,
         stock_data: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """종목 분석 응답 파싱 - JSON 또는 텍스트 형식 모두 지원 (v6.1.1 강화)"""
 
-        # v6.1.1: 응답 텍스트 검증 추가
         if not response_text:
             logger.error("빈 응답 텍스트를 받았습니다")
             raise ValueError("Empty response text")
 
-        # 응답 미리보기 로깅 (디버깅용)
         preview_len = min(300, len(response_text))
         logger.debug(f"응답 미리보기 ({preview_len}/{len(response_text)} chars): {response_text[:preview_len]}")
 
-        # v6.1: 더 강력한 JSON 파싱
         try:
             import re
             import json
 
-            # Clean response text
             cleaned_text = response_text.strip()
 
-            # Try multiple JSON extraction strategies
             json_str = None
 
-            # Strategy 1: Extract from ```json code block
             json_match = re.search(r'```json\s*\n(.*?)\n```', cleaned_text, re.DOTALL)
             if json_match:
                 json_str = json_match.group(1)
                 logger.debug("Found JSON in code block")
 
-            # Strategy 2: Extract from ``` code block (without json)
             if not json_str:
                 json_match = re.search(r'```\s*\n(.*?)\n```', cleaned_text, re.DOTALL)
                 if json_match:
@@ -820,43 +731,33 @@ class GeminiAnalyzer(BaseAnalyzer):
                         json_str = potential_json
                         logger.debug("Found JSON in generic code block")
 
-            # Strategy 3: Find largest {...} block with better nested matching
             if not json_str:
-                # Try to find complete JSON objects (including nested objects)
-                # Use a more robust pattern that handles nesting
                 pattern = r'\{(?:[^{}]|(?:\{[^{}]*\}))*\}'
                 json_blocks = re.findall(pattern, cleaned_text, re.DOTALL)
 
                 if not json_blocks:
-                    # Try an even simpler approach: find anything between first { and last }
                     first_brace = cleaned_text.find('{')
                     last_brace = cleaned_text.rfind('}')
                     if first_brace != -1 and last_brace != -1 and last_brace > first_brace:
                         json_str = cleaned_text[first_brace:last_brace+1]
                         logger.debug("Extracted JSON from first { to last }")
                 elif json_blocks:
-                    # Get the largest JSON block
                     json_str = max(json_blocks, key=len)
                     logger.debug("Found JSON block in text")
 
-            # Strategy 4: Try parsing entire response as JSON
             if not json_str:
                 if cleaned_text.startswith('{'):
                     json_str = cleaned_text
                     logger.debug("Entire response appears to be JSON")
 
-            # Try parsing JSON
             if json_str:
                 try:
-                    # Clean common JSON issues
                     json_str = json_str.strip()
-                    # Remove trailing commas
                     json_str = re.sub(r',\s*}', '}', json_str)
                     json_str = re.sub(r',\s*]', ']', json_str)
 
                     data = json.loads(json_str)
 
-                    # Extract values from JSON response
                     signal_map = {
                         'STRONG_BUY': 'buy',
                         'BUY': 'buy',
@@ -869,19 +770,16 @@ class GeminiAnalyzer(BaseAnalyzer):
 
                     signal = signal_map.get(str(data.get('signal', 'HOLD')).upper(), 'hold')
 
-                    # Extract detailed reasoning
                     reasons = []
                     if 'detailed_reasoning' in data:
                         reasons.append(data['detailed_reasoning'])
                     if 'key_insights' in data and isinstance(data.get('key_insights'), list):
                         reasons.extend(data['key_insights'])
 
-                    # Extract warnings
                     warnings = data.get('warnings', [])
                     if isinstance(warnings, str):
                         warnings = [warnings]
 
-                    # Extract trading plan
                     trading_plan = data.get('trading_plan', {})
                     entry_strategy = trading_plan.get('entry_strategy', '') if isinstance(trading_plan, dict) else ''
 
@@ -902,7 +800,6 @@ class GeminiAnalyzer(BaseAnalyzer):
                     return result
 
                 except json.JSONDecodeError as e:
-                    # v6.1.1: 더 상세한 에러 로깅
                     logger.warning(f"JSON 파싱 실패 (위치: {e.pos}, 메시지: {e.msg}), 텍스트 파싱으로 전환")
                     if json_str:
                         error_context = json_str[max(0, e.pos-50):min(len(json_str), e.pos+50)]
@@ -921,12 +818,10 @@ class GeminiAnalyzer(BaseAnalyzer):
             logger.warning(f"JSON 추출 중 예외 발생: {type(e).__name__}: {e}, 텍스트 파싱으로 전환")
             logger.debug(f"원본 응답 (처음 500자): {response_text[:500]}")
 
-        # ===== Fallback: 간단한 텍스트 파싱 =====
         logger.info("텍스트 파싱 모드로 전환")
 
-        # 기본 신호 추출 (buy/sell/hold 키워드 찾기)
         text_lower = response_text.lower()
-        signal = 'hold'  # 기본값
+        signal = 'hold'
 
         if 'strong buy' in text_lower or 'strong_buy' in text_lower:
             signal = 'buy'
@@ -960,7 +855,6 @@ class GeminiAnalyzer(BaseAnalyzer):
             'recommendations': [],
         }
         
-        # 간단한 키워드 기반 파싱
         text_lower = response_text.lower()
         
         if 'bullish' in text_lower or '상승' in response_text:
@@ -981,7 +875,6 @@ class GeminiAnalyzer(BaseAnalyzer):
             'recommendations': [],
         }
     
-    # ==================== 유틸리티 ====================
     
     def _format_technical_data(self, technical: Dict[str, Any]) -> str:
         """기술적 지표 포맷팅"""
@@ -993,7 +886,6 @@ class GeminiAnalyzer(BaseAnalyzer):
 - 20일 이동평균: {technical.get('ma20', 0):,.0f}원
 - RSI(14): {technical.get('rsi', 50):.1f}
 - 가격 위치: {technical.get('price_position', 0.5)*100:.1f}%
-"""
     
     def _format_investor_data(self, investor: Dict[str, Any]) -> str:
         """투자자 동향 포맷팅"""
@@ -1003,7 +895,6 @@ class GeminiAnalyzer(BaseAnalyzer):
         return f"""
 - 외국인 순매수: {investor.get('foreign_net', 0):,}주
 - 기관 순매수: {investor.get('institution_net', 0):,}주
-"""
     
     def _format_market_data(self, market_data: Dict[str, Any]) -> str:
         """시장 데이터 포맷팅"""
@@ -1015,7 +906,7 @@ class GeminiAnalyzer(BaseAnalyzer):
             return "보유 종목 없음"
         
         text = ""
-        for h in holdings[:5]:  # 최대 5개만
+        for h in holdings[:5]:
             text += f"- {h.get('stock_name', '')}: {h.get('profit_loss_rate', 0):+.2f}%\n"
         
         return text
@@ -1033,7 +924,6 @@ class GeminiAnalyzer(BaseAnalyzer):
             'risks': [],
         }
 
-    # ==================== 크로스 체크 ====================
 
     def _analyze_with_single_model(
         self,
@@ -1042,7 +932,6 @@ class GeminiAnalyzer(BaseAnalyzer):
         prompt: str,
         stock_data: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
-        """
         단일 모델로 분석 수행
 
         Args:
@@ -1053,17 +942,14 @@ class GeminiAnalyzer(BaseAnalyzer):
 
         Returns:
             분석 결과 또는 None (실패시)
-        """
         try:
             logger.info(f"[{model_name}] 분석 시작")
 
-            # API 호출
             response = model.generate_content(
                 prompt,
                 request_options={'timeout': 30}
             )
 
-            # 응답 검증
             if not response.candidates:
                 logger.warning(f"[{model_name}] No candidates")
                 return None
@@ -1071,13 +957,12 @@ class GeminiAnalyzer(BaseAnalyzer):
             candidate = response.candidates[0]
             finish_reason = candidate.finish_reason
 
-            if finish_reason != 1:  # 1 = STOP (정상)
+            if finish_reason != 1:
                 reason_map = {2: "SAFETY", 3: "MAX_TOKENS", 4: "RECITATION", 5: "OTHER"}
                 reason_name = reason_map.get(finish_reason, f"UNKNOWN({finish_reason})")
                 logger.warning(f"[{model_name}] Blocked: {reason_name}")
                 return None
 
-            # 응답 텍스트 검증
             if not hasattr(response, 'text'):
                 logger.warning(f"[{model_name}] No text attribute")
                 return None
@@ -1087,7 +972,6 @@ class GeminiAnalyzer(BaseAnalyzer):
                 logger.warning(f"[{model_name}] Empty response")
                 return None
 
-            # 응답 파싱
             result = self._parse_stock_analysis_response(response_text, stock_data)
             result['model_name'] = model_name
             logger.info(f"[{model_name}] 분석 완료: {result['signal']}")
@@ -1103,7 +987,6 @@ class GeminiAnalyzer(BaseAnalyzer):
         result_2_0: Optional[Dict[str, Any]],
         result_2_5: Optional[Dict[str, Any]]
     ) -> Dict[str, Any]:
-        """
         두 모델의 결과를 크로스 체크하여 최종 결과 생성
 
         Args:
@@ -1112,13 +995,10 @@ class GeminiAnalyzer(BaseAnalyzer):
 
         Returns:
             통합 분석 결과
-        """
-        # 둘 다 실패
         if not result_2_0 and not result_2_5:
             logger.error("크로스체크: 모든 모델 실패")
             return self._get_error_result("모든 모델 분석 실패")
 
-        # 하나만 성공
         if not result_2_0:
             logger.warning("크로스체크: 2.0 실패, 2.5만 사용")
             result_2_5['cross_check'] = {
@@ -1139,21 +1019,17 @@ class GeminiAnalyzer(BaseAnalyzer):
             }
             return result_2_0
 
-        # 둘 다 성공 - 비교
         signal_2_0 = result_2_0['signal']
         signal_2_5 = result_2_5['signal']
 
         logger.info(f"크로스체크: 2.0={signal_2_0}, 2.5={signal_2_5}")
 
-        # 신호 일치 여부
         signals_match = (signal_2_0 == signal_2_5)
 
         if signals_match:
-            # 신호 일치 - 신뢰도 높임
             logger.info(f"✅ 크로스체크 일치: {signal_2_0}")
-            final_result = result_2_5.copy()  # 2.5를 기본으로 사용
+            final_result = result_2_5.copy()
 
-            # 신뢰도 상향 (Medium → High, High → Very High)
             confidence_map = {
                 'Low': 'Medium',
                 'Medium': 'High',
@@ -1173,15 +1049,12 @@ class GeminiAnalyzer(BaseAnalyzer):
             }
 
         else:
-            # 신호 불일치 - 보수적 선택
             logger.warning(f"⚠️ 크로스체크 불일치: 2.0={signal_2_0}, 2.5={signal_2_5}")
 
-            # 보수적 신호 선택 로직
             signal_priority = {'sell': 0, 'hold': 1, 'buy': 2}
             priority_2_0 = signal_priority.get(signal_2_0, 1)
             priority_2_5 = signal_priority.get(signal_2_5, 1)
 
-            # 더 보수적인 신호 선택 (hold 우선)
             if 'hold' in [signal_2_0, signal_2_5]:
                 final_signal = 'hold'
                 chosen_model = '보수적 선택'
@@ -1194,13 +1067,11 @@ class GeminiAnalyzer(BaseAnalyzer):
 
             logger.info(f"최종 신호: {final_signal} (선택: {chosen_model})")
 
-            # 결과 병합
-            final_result = result_2_5.copy()  # 기본 구조는 2.5 사용
+            final_result = result_2_5.copy()
             final_result['signal'] = final_signal
             final_result['recommendation'] = final_signal
-            final_result['confidence'] = 'Medium'  # 불일치시 신뢰도 낮춤
+            final_result['confidence'] = 'Medium'
 
-            # 이유 병합
             reasons_combined = []
             if result_2_0.get('reasons'):
                 reasons_combined.append(f"[2.0] " + "; ".join(result_2_0['reasons'][:2]))

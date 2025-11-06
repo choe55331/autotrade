@@ -1,7 +1,5 @@
-"""
 AutoTrade Pro - 성능 프로파일링 도구
 코드 성능 측정 및 최적화 지원
-"""
 import time
 import cProfile
 import pstats
@@ -97,7 +95,6 @@ class PerformanceProfiler:
         print("성능 프로파일링 결과")
         print("="*80)
 
-        # 총 시간 기준 정렬
         sorted_metrics = sorted(
             self.metrics.items(),
             key=lambda x: x[1].total_time,
@@ -169,12 +166,11 @@ class DetailedProfiler:
 
         profiler.disable()
 
-        # 결과 출력
         stream = io.StringIO()
         stats = pstats.Stats(profiler, stream=stream)
         stats.strip_dirs()
         stats.sort_stats('cumulative')
-        stats.print_stats(20)  # 상위 20개
+        stats.print_stats(20)
 
         print("\n" + "="*80)
         print(f"상세 프로파일링: {func.__name__}")
@@ -205,7 +201,6 @@ class DetailedProfiler:
         print(stream.getvalue())
 
 
-# 글로벌 프로파일러
 _global_profiler = PerformanceProfiler()
 
 
@@ -234,17 +229,12 @@ def reset_performance_stats():
     _global_profiler.reset()
 
 
-# 사용 예시 가이드
-"""
-# 예시 1: 함수 데코레이터
 from utils.performance_profiler import measure_performance
 
 @measure_performance()
 def my_slow_function():
-    # ... 시간이 오래 걸리는 작업
     pass
 
-# 예시 2: 코드 블록 측정
 from utils.performance_profiler import profile_code
 
 def process_data():
@@ -256,18 +246,13 @@ def process_data():
 
     return result
 
-# 예시 3: 통계 확인
 from utils.performance_profiler import print_performance_stats
 
-# 작업 수행 후...
 print_performance_stats(top_n=20)
 
-# 예시 4: 상세 프로파일링
 from utils.performance_profiler import DetailedProfiler
 
 def heavy_computation():
-    # ... 복잡한 연산
     pass
 
 DetailedProfiler.profile_function(heavy_computation)
-"""

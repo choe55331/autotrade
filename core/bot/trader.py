@@ -1,7 +1,5 @@
-"""
 Trade Executor Module
 매매 실행 모듈
-"""
 
 import logging
 from typing import Dict, Any, Optional
@@ -31,7 +29,6 @@ class TradeExecutor:
         alert_manager,
         monitor
     ):
-        """초기화"""
         self.order_api = order_api
         self.account_api = account_api
         self.market_api = market_api
@@ -51,7 +48,6 @@ class TradeExecutor:
         candidate,
         scoring_result
     ) -> bool:
-        """
         매수 실행
 
         Args:
@@ -60,10 +56,8 @@ class TradeExecutor:
 
         Returns:
             성공 여부
-        """
 
         try:
-            # 주문 불가 시간 확인
             if self.market_status.get('can_cancel_only'):
                 logger.warning(f"⚠️  {self.market_status['market_type']}: 신규 매수 주문 불가")
                 return False
@@ -72,11 +66,9 @@ class TradeExecutor:
             stock_name = candidate.name
             current_price = candidate.price
 
-            # 가용 현금
             deposit = self.account_api.get_deposit()
             available_cash = int(str(deposit.get('100stk_ord_alow_amt', '0')).replace(',', '')) if deposit else 0
 
-            # 포지션 크기 계산
             quantity = self.dynamic_risk_manager.calculate_position_size(
                 stock_price=current_price,
                 available_cash=available_cash
@@ -93,10 +85,8 @@ class TradeExecutor:
                 f"(총 {total_amount:,}원)"
             )
 
-            # 주문 유형 결정
             order_type = self._determine_order_type()
 
-            # 주문 실행
             order_result = self.order_api.buy(
                 stock_code=stock_code,
                 quantity=quantity,
@@ -107,7 +97,6 @@ class TradeExecutor:
             if order_result:
                 order_no = order_result.get('order_no', '')
 
-                # DB 기록
                 self._record_trade(
                     stock_code=stock_code,
                     stock_name=stock_name,
@@ -123,7 +112,6 @@ class TradeExecutor:
 
                 logger.info(f"✅ {stock_name} 매수 성공 (주문번호: {order_no})")
 
-                # 알림
                 self.alert_manager.alert_position_opened(
                     stock_code=stock_code,
                     stock_name=stock_name,
@@ -131,7 +119,6 @@ class TradeExecutor:
                     quantity=quantity
                 )
 
-                # 모니터
                 self.monitor.log_activity(
                     'buy',
                     f'✅ {stock_name} 매수: {quantity}주 @ {current_price:,}원',
@@ -157,15 +144,12 @@ class TradeExecutor:
         profit_loss_rate: float,
         reason: str
     ) -> bool:
-        """
         매도 실행
 
         Returns:
             성공 여부
-        """
 
         try:
-            # 주문 불가 시간 확인
             if self.market_status.get('can_cancel_only'):
                 logger.warning(f"⚠️  {self.market_status['market_type']}: 신규 매도 주문 불가")
                 return False
@@ -175,10 +159,8 @@ class TradeExecutor:
                 f"(손익: {profit_loss:+,}원, {profit_loss_rate:+.2f}%)"
             )
 
-            # 주문 유형 결정
             order_type = self._determine_order_type()
 
-            # 주문 실행
             order_result = self.order_api.sell(
                 stock_code=stock_code,
                 quantity=quantity,
@@ -189,7 +171,6 @@ class TradeExecutor:
             if order_result:
                 order_no = order_result.get('order_no', '')
 
-                # DB 기록
                 self._record_trade(
                     stock_code=stock_code,
                     stock_name=stock_name,
@@ -205,7 +186,6 @@ class TradeExecutor:
                 log_level = 'success' if profit_loss >= 0 else 'warning'
                 logger.info(f"✅ {stock_name} 매도 성공 (주문번호: {order_no})")
 
-                # 알림
                 self.alert_manager.alert_position_closed(
                     stock_code=stock_code,
                     stock_name=stock_name,
@@ -215,7 +195,6 @@ class TradeExecutor:
                     reason=reason
                 )
 
-                # 모니터
                 self.monitor.log_activity(
                     'sell',
                     f'✅ {stock_name} 매도: {quantity}주 @ {price:,}원 (손익: {profit_loss:+,}원)',
@@ -240,11 +219,11 @@ class TradeExecutor:
         if is_nxt_hours():
             now = datetime.now()
             if now.hour == 8:
-                return '61'  # 장시작전시간외
+                return '61'
             else:
-                return '81'  # 장마감후시간외
+                return '81'
         else:
-            return '0'  # 보통 지정가
+            return '0'
 
     def _record_trade(self, **kwargs):
         """거래 기록"""

@@ -1,8 +1,6 @@
-"""
 키움 순위 API 전체 테스트 및 응답 구조 문서화
 
 23개 순위 API를 모두 테스트하고 응답 구조를 JSON 파일로 저장합니다.
-"""
 import os
 import sys
 import requests
@@ -10,15 +8,12 @@ import json
 from datetime import datetime, timedelta
 from pathlib import Path
 
-# 프로젝트 루트 경로 추가
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-# credentials.py에서 API 키 로드
 from config import get_credentials
 
 class KiwoomAPITester:
     def __init__(self):
-        # secrets.json에서 설정 로드
         credentials = get_credentials()
         kiwoom_config = credentials.get_kiwoom_config()
 
@@ -66,11 +61,9 @@ class KiwoomAPITester:
         response = self.request(api_id, body)
 
         if response and response.get('return_code') == 0:
-            # 응답 구조 분석
             keys = list(response.keys())
             data_keys = [k for k in keys if k not in ['return_code', 'return_msg']]
 
-            # 데이터 찾기
             data_count = 0
             data_key = None
             sample_data = None
@@ -111,7 +104,6 @@ class KiwoomAPITester:
         self.results[api_id] = result
         return result
 
-# 테스트 케이스 정의
 TEST_CASES = [
     ("ka10020", "호가잔량상위요청", {
         "mrkt_tp": "0", "sort_tp": "0", "trde_qty_tp": "0",
@@ -207,7 +199,6 @@ print("="*70)
 print("키움 순위 API 전체 테스트")
 print("="*70)
 
-# 클라이언트 초기화
 tester = KiwoomAPITester()
 print("\n[1] 토큰 발급")
 if not tester.get_token():
@@ -215,12 +206,10 @@ if not tester.get_token():
     sys.exit(1)
 print("✅ 토큰 발급 성공\n")
 
-# 모든 API 테스트
 print("[2] API 테스트 시작")
 for api_id, name, body in TEST_CASES:
     tester.test_api(api_id, name, body)
 
-# 결과 요약
 print("\n" + "="*70)
 print("테스트 결과 요약")
 print("="*70)
@@ -232,20 +221,17 @@ print(f"\n총 {len(tester.results)}개 API 테스트")
 print(f"  ✅ 성공: {success_count}개")
 print(f"  ❌ 실패: {failed_count}개")
 
-# 성공한 API의 데이터 키 요약
 print(f"\n📋 데이터 키 요약:")
 for api_id, result in tester.results.items():
     if result['status'] == 'success' and result['data_key']:
         print(f"  {api_id}: '{result['data_key']}' ({result['data_count']}개)")
 
-# 결과를 JSON 파일로 저장
 output_file = "kiwoom_api_test_results.json"
 with open(output_file, 'w', encoding='utf-8') as f:
     json.dump(tester.results, f, indent=2, ensure_ascii=False)
 
 print(f"\n💾 전체 결과 저장: {output_file}")
 
-# 응답 구조 명세 생성
 spec_file = "kiwoom_api_response_spec.json"
 spec = {}
 for api_id, result in tester.results.items():

@@ -1,4 +1,3 @@
-"""
 Portfolio Optimizer
 AI-based portfolio analysis and optimization suggestions
 
@@ -8,7 +7,6 @@ Features:
 - Correlation matrix computation
 - Position sizing optimization
 - Rebalancing recommendations
-"""
 import json
 import numpy as np
 import pandas as pd
@@ -30,7 +28,7 @@ class PortfolioPosition:
     avg_price: float
     current_price: float
     value: float
-    weight: float  # Portfolio weight in %
+    weight: float
     sector: str
     profit_loss: float
     profit_loss_percent: float
@@ -41,7 +39,7 @@ class SectorAllocation:
     """Sector allocation info"""
     sector: str
     value: float
-    weight: float  # % of portfolio
+    weight: float
     position_count: int
     avg_return: float
 
@@ -52,18 +50,18 @@ class PortfolioMetrics:
     total_value: float
     position_count: int
     sector_count: int
-    diversification_score: float  # 0-100, higher is better
-    concentration_risk: str  # 'Low', 'Medium', 'High'
+    diversification_score: float
+    concentration_risk: str
     largest_position_weight: float
-    top3_concentration: float  # Weight of top 3 positions
-    avg_correlation: float  # Average correlation between positions
+    top3_concentration: float
+    avg_correlation: float
 
 
 @dataclass
 class OptimizationSuggestion:
     """Single optimization suggestion"""
-    type: str  # 'rebalance', 'reduce', 'add', 'diversify'
-    priority: str  # 'high', 'medium', 'low'
+    type: str
+    priority: str
     title: str
     description: str
     action: str
@@ -78,7 +76,7 @@ class PortfolioOptimization:
     positions: List[PortfolioPosition]
     sector_allocation: List[SectorAllocation]
     suggestions: List[OptimizationSuggestion]
-    risk_level: str  # 'Conservative', 'Moderate', 'Aggressive'
+    risk_level: str
 
     def to_dict(self) -> Dict:
         """Convert to dictionary for JSON serialization"""
@@ -95,18 +93,17 @@ class PortfolioOptimization:
 class PortfolioOptimizer:
     """Portfolio optimization and analysis service"""
 
-    # Korean sector mapping
     SECTOR_MAP = {
-        '005930': '반도체',  # 삼성전자
-        '000660': '반도체',  # SK하이닉스
-        '035420': '인터넷/게임',  # NAVER
-        '035720': '인터넷/게임',  # 카카오
-        '051910': '화학',  # LG화학
-        '006400': '자동차',  # 삼성SDI
-        '207940': '바이오',  # 삼성바이오로직스
-        '068270': '음식료',  # 셀트리온
-        '028260': '음식료',  # 삼성물산
-        '105560': '금융',  # KB금융
+        '005930': '반도체',
+        '000660': '반도체',
+        '035420': '인터넷/게임',
+        '035720': '인터넷/게임',
+        '051910': '화학',
+        '006400': '자동차',
+        '207940': '바이오',
+        '068270': '음식료',
+        '028260': '음식료',
+        '105560': '금융',
     }
 
     def __init__(self, market_api=None):
@@ -118,7 +115,7 @@ class PortfolioOptimizer:
         """
         self.market_api = market_api
         self.cache_file = Path('data/portfolio_cache.json')
-        self.cache_ttl = 300  # 5 minutes
+        self.cache_ttl = 300
         self._ensure_data_dir()
 
     def _ensure_data_dir(self):
@@ -127,11 +124,9 @@ class PortfolioOptimizer:
 
     def _get_sector(self, stock_code: str) -> str:
         """Get sector for stock code"""
-        # Use predefined mapping first
         if stock_code in self.SECTOR_MAP:
             return self.SECTOR_MAP[stock_code]
 
-        # Default sectors based on code prefix
         code_int = int(stock_code)
         if code_int < 100000:
             return '제조업'
@@ -151,16 +146,12 @@ class PortfolioOptimizer:
         if not positions:
             return 0.0
 
-        # Factor 1: Number of positions (0-40 points)
         position_score = min(40, len(positions) * 4)
 
-        # Factor 2: Sector diversity (0-30 points)
         sectors = set(p.sector for p in positions)
         sector_score = min(30, len(sectors) * 6)
 
-        # Factor 3: Weight distribution (0-30 points)
         weights = [p.weight for p in positions]
-        # Perfect distribution would be equal weights
         ideal_weight = 100.0 / len(positions)
         weight_variance = np.var([abs(w - ideal_weight) for w in weights])
         weight_score = max(0, 30 - weight_variance)
@@ -182,7 +173,6 @@ class PortfolioOptimizer:
         largest_weight = weights[0]
         top3_weight = sum(weights[:3]) if len(weights) >= 3 else sum(weights)
 
-        # Risk classification
         if largest_weight > 40 or top3_weight > 70:
             risk = 'High'
         elif largest_weight > 25 or top3_weight > 50:
@@ -226,7 +216,6 @@ class PortfolioOptimizer:
                 avg_return=avg_return
             ))
 
-        # Sort by weight descending
         allocations.sort(key=lambda x: x.weight, reverse=True)
         return allocations
 
@@ -236,10 +225,8 @@ class PortfolioOptimizer:
         metrics: PortfolioMetrics,
         sector_allocation: List[SectorAllocation]
     ) -> List[OptimizationSuggestion]:
-        """Generate optimization suggestions based on analysis"""
         suggestions = []
 
-        # 1. High concentration risk
         if metrics.concentration_risk == 'High':
             if metrics.largest_position_weight > 40:
                 suggestions.append(OptimizationSuggestion(
@@ -261,7 +248,6 @@ class PortfolioOptimizer:
                     impact='분산 투자, 리스크 감소'
                 ))
 
-        # 2. Sector concentration
         if sector_allocation:
             top_sector = sector_allocation[0]
             if top_sector.weight > 50:
@@ -274,7 +260,6 @@ class PortfolioOptimizer:
                     impact='섹터 리스크 감소, 안정성 향상'
                 ))
 
-        # 3. Low diversification
         if metrics.diversification_score < 40:
             suggestions.append(OptimizationSuggestion(
                 type='add',
@@ -294,9 +279,7 @@ class PortfolioOptimizer:
                 impact='리스크 감소'
             ))
 
-        # 4. Position-specific suggestions
         for pos in positions:
-            # Large losing position
             if pos.weight > 15 and pos.profit_loss_percent < -10:
                 suggestions.append(OptimizationSuggestion(
                     type='rebalance',
@@ -307,7 +290,6 @@ class PortfolioOptimizer:
                     impact='손실 제한, 자금 재배치'
                 ))
 
-            # Take profit suggestion
             if pos.weight > 20 and pos.profit_loss_percent > 30:
                 suggestions.append(OptimizationSuggestion(
                     type='rebalance',
@@ -318,7 +300,6 @@ class PortfolioOptimizer:
                     impact='수익 확정, 리스크 감소'
                 ))
 
-        # 5. Good diversification
         if metrics.diversification_score >= 70 and metrics.concentration_risk == 'Low':
             suggestions.append(OptimizationSuggestion(
                 type='maintain',
@@ -335,7 +316,6 @@ class PortfolioOptimizer:
         """Determine overall portfolio risk level"""
         risk_score = 0
 
-        # Factor 1: Concentration risk
         if metrics.concentration_risk == 'High':
             risk_score += 3
         elif metrics.concentration_risk == 'Medium':
@@ -343,7 +323,6 @@ class PortfolioOptimizer:
         else:
             risk_score += 1
 
-        # Factor 2: Diversification
         if metrics.diversification_score < 40:
             risk_score += 3
         elif metrics.diversification_score < 60:
@@ -351,13 +330,11 @@ class PortfolioOptimizer:
         else:
             risk_score += 1
 
-        # Factor 3: Position count
         if metrics.position_count < 3:
             risk_score += 2
         elif metrics.position_count < 5:
             risk_score += 1
 
-        # Classify
         if risk_score >= 7:
             return 'Aggressive'
         elif risk_score >= 5:
@@ -381,10 +358,8 @@ class PortfolioOptimizer:
                 logger.warning("No positions to optimize")
                 return None
 
-            # Calculate total value
             total_value = sum(p['value'] for p in positions_data)
 
-            # Build position objects
             positions = []
             for p in positions_data:
                 quantity = p['quantity']
@@ -409,13 +384,10 @@ class PortfolioOptimizer:
                     profit_loss_percent=profit_loss_percent
                 ))
 
-            # Sort by weight descending
             positions.sort(key=lambda x: x.weight, reverse=True)
 
-            # Analyze sectors
             sector_allocation = self._analyze_sectors(positions)
 
-            # Calculate metrics
             diversification_score = self._calculate_diversification_score(positions)
             concentration_risk, largest_weight, top3_weight = self._calculate_concentration_risk(positions)
 
@@ -427,13 +399,11 @@ class PortfolioOptimizer:
                 concentration_risk=concentration_risk,
                 largest_position_weight=largest_weight,
                 top3_concentration=top3_weight,
-                avg_correlation=0.0  # Placeholder - would need historical data
+                avg_correlation=0.0
             )
 
-            # Generate suggestions
             suggestions = self._generate_suggestions(positions, metrics, sector_allocation)
 
-            # Determine risk level
             risk_level = self._determine_risk_level(metrics)
 
             return PortfolioOptimization(
@@ -478,9 +448,7 @@ class PortfolioOptimizer:
             }
 
 
-# Example usage
 if __name__ == '__main__':
-    # Test with sample data
     sample_positions = [
         {'code': '005930', 'name': '삼성전자', 'quantity': 100, 'avg_price': 70000, 'current_price': 73500, 'value': 7350000},
         {'code': '000660', 'name': 'SK하이닉스', 'quantity': 50, 'avg_price': 125000, 'current_price': 130000, 'value': 6500000},

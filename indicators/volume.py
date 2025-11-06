@@ -1,9 +1,7 @@
-"""
 Volume Indicators
 - Volume SMA
 - OBV (On-Balance Volume)
 - Volume Ratio Analysis
-"""
 import numpy as np
 import pandas as pd
 from typing import Dict
@@ -68,7 +66,6 @@ def volume_ratio(current_volume: int, avg_volume: float) -> float:
 def calculate_volume_score(volume: pd.Series,
                             prices: pd.Series,
                             period: int = 20) -> Dict:
-    """
     Calculate comprehensive volume analysis
 
     Args:
@@ -78,7 +75,6 @@ def calculate_volume_score(volume: pd.Series,
 
     Returns:
         Dictionary with volume analysis
-    """
     if len(volume) < period:
         return {
             'score': 50,
@@ -94,7 +90,6 @@ def calculate_volume_score(volume: pd.Series,
         'indicators': {}
     }
 
-    # Volume SMA
     vol_sma = volume_sma(volume, period)
     current_volume = volume.iloc[-1]
     avg_volume = vol_sma.iloc[-1]
@@ -108,7 +103,6 @@ def calculate_volume_score(volume: pd.Series,
         'condition': 'normal'
     }
 
-    # Volume ratio analysis
     if vol_ratio >= 2.0:
         result['indicators']['volume_ratio']['condition'] = 'very_high'
         volume_score = 90
@@ -128,7 +122,6 @@ def calculate_volume_score(volume: pd.Series,
         result['indicators']['volume_ratio']['condition'] = 'normal'
         volume_score = 50
 
-    # OBV Analysis
     obv_values = obv(prices, volume)
     current_obv = obv_values.iloc[-1]
     obv_ma = obv_values.rolling(window=period).mean()
@@ -140,7 +133,6 @@ def calculate_volume_score(volume: pd.Series,
         'condition': 'neutral'
     }
 
-    # OBV trend
     if len(obv_values) >= period:
         obv_trend = current_obv - obv_values.iloc[-period]
         price_trend = prices.iloc[-1] - prices.iloc[-period]
@@ -153,20 +145,18 @@ def calculate_volume_score(volume: pd.Series,
             obv_score = 30
         elif obv_trend > 0 and price_trend < 0:
             result['indicators']['obv']['condition'] = 'bullish_divergence'
-            obv_score = 75  # Bullish signal
+            obv_score = 75
         elif obv_trend < 0 and price_trend > 0:
             result['indicators']['obv']['condition'] = 'bearish_divergence'
-            obv_score = 25  # Bearish signal
+            obv_score = 25
         else:
             result['indicators']['obv']['condition'] = 'neutral'
             obv_score = 50
     else:
         obv_score = 50
 
-    # Calculate overall score
     result['score'] = (volume_score + obv_score) / 2
 
-    # Determine signal
     if result['score'] >= 65 and vol_ratio >= 1.5:
         result['signal'] = 'STRONG_BUY'
         result['strength'] = 'strong'
@@ -190,7 +180,6 @@ def detect_volume_climax(volume: pd.Series,
                           prices: pd.Series,
                           period: int = 20,
                           threshold: float = 2.5) -> Dict:
-    """
     Detect volume climax (potential reversal points)
 
     Args:
@@ -201,7 +190,6 @@ def detect_volume_climax(volume: pd.Series,
 
     Returns:
         Dictionary with climax detection
-    """
     if len(volume) < period:
         return {
             'is_climax': False,
@@ -214,30 +202,27 @@ def detect_volume_climax(volume: pd.Series,
 
     vol_ratio = volume_ratio(current_volume, avg_volume)
 
-    # Detect price movement
     if len(prices) >= 2:
         price_change = ((prices.iloc[-1] / prices.iloc[-2]) - 1) * 100
     else:
         price_change = 0
 
-    # Buying climax: High volume + Sharp price increase
     if vol_ratio >= threshold and price_change >= 3.0:
         return {
             'is_climax': True,
             'type': 'buying_climax',
             'volume_ratio': vol_ratio,
             'price_change': price_change,
-            'signal': 'SELL'  # Potential reversal
+            'signal': 'SELL'
         }
 
-    # Selling climax: High volume + Sharp price decrease
     if vol_ratio >= threshold and price_change <= -3.0:
         return {
             'is_climax': True,
             'type': 'selling_climax',
             'volume_ratio': vol_ratio,
             'price_change': price_change,
-            'signal': 'BUY'  # Potential reversal
+            'signal': 'BUY'
         }
 
     return {
@@ -251,7 +236,6 @@ def detect_volume_climax(volume: pd.Series,
 def calculate_volume_profile(prices: pd.Series,
                               volume: pd.Series,
                               num_bins: int = 10) -> Dict:
-    """
     Calculate volume profile (volume distribution by price level)
 
     Args:
@@ -261,21 +245,18 @@ def calculate_volume_profile(prices: pd.Series,
 
     Returns:
         Dictionary with volume profile analysis
-    """
     if len(prices) < 10 or len(volume) < 10:
         return {
-            'poc': 0,  # Point of Control
-            'vah': 0,  # Value Area High
-            'val': 0,  # Value Area Low
+            'poc': 0,
+            'vah': 0,
+            'val': 0,
             'distribution': []
         }
 
-    # Create price bins
     price_min = prices.min()
     price_max = prices.max()
     bins = np.linspace(price_min, price_max, num_bins + 1)
 
-    # Calculate volume for each bin
     volume_profile = []
     for i in range(len(bins) - 1):
         bin_low = bins[i]
@@ -290,18 +271,14 @@ def calculate_volume_profile(prices: pd.Series,
             'volume': bin_volume
         })
 
-    # Find Point of Control (price level with highest volume)
     max_volume_bin = max(volume_profile, key=lambda x: x['volume'])
     poc = max_volume_bin['price_mid']
 
-    # Calculate Value Area (70% of total volume)
     total_volume = sum([b['volume'] for b in volume_profile])
     target_volume = total_volume * 0.7
 
-    # Sort bins by volume
     sorted_bins = sorted(volume_profile, key=lambda x: x['volume'], reverse=True)
 
-    # Find bins that make up 70% of volume
     cumulative_volume = 0
     value_area_bins = []
     for bin_data in sorted_bins:
@@ -310,7 +287,6 @@ def calculate_volume_profile(prices: pd.Series,
         if cumulative_volume >= target_volume:
             break
 
-    # Value Area High/Low
     value_area_prices = [b['price_mid'] for b in value_area_bins]
     vah = max(value_area_prices)
     val = min(value_area_prices)

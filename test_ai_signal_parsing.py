@@ -1,10 +1,8 @@
-"""
 AI 신호 파싱 테스트 스크립트
 다양한 조건으로 Gemini AI 응답 테스트 및 성공 조건 파악
 
 문제: '\n "signal"' 파싱 오류 발생
 목적: 성공하는 프롬프트/파싱 조합 찾기
-"""
 
 import os
 import sys
@@ -14,7 +12,6 @@ import time
 from typing import Dict, Any, Optional, Tuple
 import logging
 
-# 로깅 설정
 logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s - %(levelname)s - %(message)s'
@@ -44,7 +41,7 @@ class AISignalTester:
         genai.configure(api_key=self.api_key)
 
         model_names = [
-            'gemini-2.5-flash',  # 우선순위 1: 최신 정식 모델 (Thinking 엔진 탑재)
+            'gemini-2.5-flash',
             'gemini-2.0-flash-exp',
             'gemini-1.5-flash',
             'gemini-1.5-pro',
@@ -57,7 +54,6 @@ class AISignalTester:
             except Exception as e:
                 print(f"⚠️ {model_name} 초기화 실패: {e}")
 
-    # ========== 프롬프트 전략 ==========
 
     def prompt_strategy_1_simple(self, stock_data: Dict[str, Any]) -> str:
         """전략 1: 극도로 간단한 프롬프트 + 명확한 JSON 요청"""
@@ -101,7 +97,6 @@ Provide a JSON response following this exact schema:
 
 Your JSON response:
 ```json
-"""
 
     def prompt_strategy_3_minimal_fields(self, stock_data: Dict[str, Any]) -> str:
         """전략 3: 최소 필드만 요청 (signal + confidence만)"""
@@ -141,9 +136,7 @@ Example Output:
 
 Your Input: {stock_data['stock_name']} - {stock_data['current_price']:,} KRW ({stock_data['change_rate']:+.2f}%)
 Your Output:
-"""
 
-    # ========== JSON 파싱 전략 ==========
 
     def parse_strategy_1_simple(self, response_text: str) -> Tuple[bool, Optional[Dict], str]:
         """전략 1: 가장 간단한 {} 추출"""
@@ -163,14 +156,12 @@ Your Output:
     def parse_strategy_2_code_block(self, response_text: str) -> Tuple[bool, Optional[Dict], str]:
         """전략 2: ```json 코드 블록 추출"""
         try:
-            # Try ```json block
             match = re.search(r'```json\s*\n(.*?)\n```', response_text, re.DOTALL)
             if match:
                 json_str = match.group(1)
                 data = json.loads(json_str)
                 return True, data, "Code block (```json) extraction successful"
 
-            # Try ``` block
             match = re.search(r'```\s*\n(.*?)\n```', response_text, re.DOTALL)
             if match:
                 json_str = match.group(1).strip()
@@ -185,14 +176,11 @@ Your Output:
     def parse_strategy_3_clean_and_parse(self, response_text: str) -> Tuple[bool, Optional[Dict], str]:
         """전략 3: 응답 정리 후 파싱"""
         try:
-            # 1. 코드 블록 제거
             cleaned = re.sub(r'```json\s*\n', '', response_text)
             cleaned = re.sub(r'```\s*\n?', '', cleaned)
 
-            # 2. 줄바꿈 정리
             cleaned = cleaned.strip()
 
-            # 3. JSON 추출
             first_brace = cleaned.find('{')
             last_brace = cleaned.rfind('}')
 
@@ -201,7 +189,6 @@ Your Output:
 
             json_str = cleaned[first_brace:last_brace+1]
 
-            # 4. 잘못된 쉼표 제거
             json_str = re.sub(r',\s*}', '}', json_str)
             json_str = re.sub(r',\s*]', ']', json_str)
 
@@ -250,7 +237,6 @@ Your Output:
 
         return False, None, "All aggressive strategies failed"
 
-    # ========== 테스트 실행 ==========
 
     def run_single_test(
         self,
@@ -261,7 +247,6 @@ Your Output:
         parse_func,
         stock_data: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """단일 테스트 실행"""
 
         test_name = f"{model_name} + {prompt_strategy_name} + {parse_strategy_name}"
         print(f"\n{'='*80}")
@@ -289,7 +274,6 @@ Your Output:
                 print(f"❌ {result['error']}")
                 return result
 
-            # API 호출
             print(f"📤 프롬프트 전송 중... (길이: {len(prompt)} chars)")
             start_time = time.time()
 
@@ -301,7 +285,6 @@ Your Output:
             execution_time = time.time() - start_time
             result['execution_time'] = execution_time
 
-            # 응답 검증
             if not response.candidates:
                 result['error'] = "No candidates in response"
                 print(f"❌ {result['error']}")
@@ -310,7 +293,7 @@ Your Output:
             candidate = response.candidates[0]
             finish_reason = candidate.finish_reason
 
-            if finish_reason != 1:  # 1 = STOP (정상)
+            if finish_reason != 1:
                 reason_map = {2: "SAFETY", 3: "MAX_TOKENS", 4: "RECITATION", 5: "OTHER"}
                 result['error'] = f"Blocked: {reason_map.get(finish_reason, finish_reason)}"
                 print(f"❌ {result['error']}")
@@ -323,7 +306,6 @@ Your Output:
             print(f"✅ API 응답 수신 ({execution_time:.2f}s, {len(response_text)} chars)")
             print(f"📝 응답 미리보기:\n{response_text[:300]}...")
 
-            # JSON 파싱
             print(f"\n🔍 JSON 파싱 시도: {parse_strategy_name}")
             parse_success, parsed_data, parse_msg = parse_func(response_text)
 
@@ -340,7 +322,6 @@ Your Output:
                 result['error'] = parse_msg
                 print(f"❌ 파싱 실패: {parse_msg}")
 
-                # 디버깅: 응답 전체 출력
                 print(f"\n🔍 디버깅 - 전체 응답:\n{response_text}")
 
         except Exception as e:
@@ -361,7 +342,6 @@ Your Output:
         print(f"현재가: {stock_data['current_price']:,}원 ({stock_data['change_rate']:+.2f}%)")
         print("="*80)
 
-        # 프롬프트 전략 목록
         prompt_strategies = [
             ('Simple', self.prompt_strategy_1_simple),
             ('Structured', self.prompt_strategy_2_structured),
@@ -370,7 +350,6 @@ Your Output:
             ('Example', self.prompt_strategy_5_example_driven),
         ]
 
-        # 파싱 전략 목록
         parse_strategies = [
             ('Aggressive', self.parse_strategy_5_aggressive),
             ('CodeBlock', self.parse_strategy_2_code_block),
@@ -378,7 +357,6 @@ Your Output:
             ('Simple', self.parse_strategy_1_simple),
         ]
 
-        # 모든 조합 테스트
         total_tests = 0
         successful_tests = 0
 
@@ -405,10 +383,8 @@ Your Output:
                     else:
                         print(f"\n❌ 실패 ({successful_tests}/{total_tests})")
 
-                    # API 부하 방지
                     time.sleep(2)
 
-        # 결과 요약
         self.print_summary()
 
     def run_quick_test(self, stock_data: Dict[str, Any]):
@@ -420,7 +396,6 @@ Your Output:
         print(f"테스트 종목: {stock_data['stock_name']}")
         print("="*80)
 
-        # 우선순위가 높은 조합 (2.5 Flash 우선)
         test_configs = [
             ('gemini-2.5-flash', 'Simple', self.prompt_strategy_1_simple, 'Aggressive', self.parse_strategy_5_aggressive),
             ('gemini-2.5-flash', 'Minimal', self.prompt_strategy_3_minimal_fields, 'Aggressive', self.parse_strategy_5_aggressive),
@@ -488,7 +463,6 @@ Your Output:
             for error, count in sorted(error_counts.items(), key=lambda x: -x[1]):
                 print(f"  - {error}: {count}건")
 
-        # 최고의 조합 추천
         if successful:
             best = min(successful, key=lambda x: x['execution_time'])
             print(f"\n🏆 추천 조합 (가장 빠른 성공):")
@@ -497,7 +471,6 @@ Your Output:
             print(f"  파싱 전략: {best['parse_strategy']}")
             print(f"  실행 시간: {best['execution_time']:.2f}s")
 
-        # 결과를 JSON 파일로 저장
         with open('ai_test_results.json', 'w', encoding='utf-8') as f:
             json.dump(self.test_results, f, indent=2, ensure_ascii=False, default=str)
         print(f"\n💾 상세 결과가 ai_test_results.json에 저장되었습니다")
@@ -506,11 +479,9 @@ Your Output:
 def main():
     """메인 함수"""
 
-    # API 키 확인 (환경변수 또는 config에서)
     api_key = os.getenv('GEMINI_API_KEY')
 
     if not api_key:
-        # config에서 가져오기 시도
         try:
             sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
             from config import GEMINI_API_KEY
@@ -525,7 +496,6 @@ def main():
         print("❌ GEMINI_API_KEY가 비어있습니다")
         sys.exit(1)
 
-    # 테스트 데이터
     test_stock = {
         'stock_name': '삼성전자',
         'stock_code': '005930',
@@ -534,7 +504,6 @@ def main():
         'volume': 10000000,
     }
 
-    # 테스터 초기화
     tester = AISignalTester(api_key)
     tester.initialize_models()
 
@@ -542,7 +511,6 @@ def main():
         print("❌ 사용 가능한 모델이 없습니다")
         sys.exit(1)
 
-    # 실행 모드 선택
     print("\n테스트 모드 선택:")
     print("1. 빠른 테스트 (4개 조합, ~1분)")
     print("2. 종합 테스트 (모든 조합, ~10분)")
@@ -551,7 +519,7 @@ def main():
     try:
         mode = input("\n선택 (1/2/3): ").strip()
     except:
-        mode = "1"  # 기본값
+        mode = "1"
 
     if mode == "2":
         tester.run_comprehensive_test(test_stock)

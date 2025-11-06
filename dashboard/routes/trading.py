@@ -1,20 +1,15 @@
-"""
 Trading Routes Module
 Handles all trading-related API endpoints including control, paper trading, virtual trading, and backtesting
-"""
 import json
 import logging
 from datetime import datetime, timedelta
 from pathlib import Path
 from flask import Blueprint, jsonify, request
 
-# Create logger
 logger = logging.getLogger(__name__)
 
-# Create Blueprint
 trading_bp = Blueprint('trading', __name__)
 
-# Module-level variables
 _bot_instance = None
 _socketio = None
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -43,9 +38,6 @@ def set_control_status(enabled: bool) -> bool:
         return False
 
 
-# ============================================================================
-# TRADING CONTROL API
-# ============================================================================
 
 @trading_bp.route('/api/control/start', methods=['POST'])
 def start_trading():
@@ -67,9 +59,6 @@ def stop_trading():
     return jsonify({'success': False, 'message': 'Failed to stop'}), 500
 
 
-# ============================================================================
-# PAPER TRADING API
-# ============================================================================
 
 @trading_bp.route('/api/paper_trading/status')
 def get_paper_trading_status():
@@ -79,13 +68,12 @@ def get_paper_trading_status():
 
         engine = get_paper_trading_engine(
             getattr(_bot_instance, 'market_api', None),
-            None  # Will integrate with AI agent later
+            None
         )
 
         data = engine.get_dashboard_data()
         return jsonify(data)
     except ModuleNotFoundError as e:
-        # Missing dependencies (numpy, pandas, etc.)
         return jsonify({
             'success': False,
             'message': 'Paper trading requires numpy. Install: pip install numpy pandas',
@@ -161,9 +149,6 @@ def get_paper_trading_account(strategy_name: str):
         return jsonify({'success': False, 'message': str(e)})
 
 
-# ============================================================================
-# VIRTUAL TRADING API
-# ============================================================================
 
 @trading_bp.route('/api/virtual_trading/status')
 def get_virtual_trading_status():
@@ -184,10 +169,8 @@ def get_virtual_trading_status():
                 'enabled': False
             })
 
-        # Get all account summaries
         summaries = virtual_trader.get_all_summaries()
 
-        # Get best strategy
         best_strategy = virtual_trader.get_best_strategy()
 
         return jsonify({
@@ -218,7 +201,6 @@ def get_virtual_trading_account(strategy_name: str):
         account = virtual_trader.accounts[strategy_name]
         summary = account.get_summary()
 
-        # Get positions details
         positions = []
         for stock_code, position in account.positions.items():
             positions.append(position.to_dict())
@@ -245,13 +227,11 @@ def get_virtual_trading_trades():
         if not trade_logger:
             return jsonify({'success': False, 'message': 'Trade logger not enabled'})
 
-        # Get recent trades
         limit = request.args.get('limit', default=20, type=int)
         strategy = request.args.get('strategy', default=None, type=str)
 
         recent_trades = trade_logger.get_recent_trades(limit=limit, strategy=strategy)
 
-        # Get trade analysis
         analysis = trade_logger.get_trade_analysis(strategy=strategy)
 
         return jsonify({
@@ -278,10 +258,8 @@ def get_virtual_trades():
         trades_by_strategy = {}
 
         for strategy_name, account in virtual_trader.accounts.items():
-            # 최근 50건 거래 기록
             trades = account.trade_history[-50:] if account.trade_history else []
 
-            # 역순 정렬 (최신순)
             trades = list(reversed(trades))
 
             trades_by_strategy[strategy_name] = {
@@ -302,9 +280,6 @@ def get_virtual_trades():
         }), 500
 
 
-# ============================================================================
-# BACKTESTING API
-# ============================================================================
 
 @trading_bp.route('/api/v4.1/backtest/run', methods=['POST'])
 def run_backtest():
@@ -316,16 +291,13 @@ def run_backtest():
         import numpy as np
         from datetime import datetime, timedelta
 
-        # Get parameters from request
         data = request.get_json() or {}
         strategy_name = data.get('strategy_name', 'Custom Strategy')
         initial_capital = data.get('initial_capital', 10000000)
 
-        # Create config
         config = BacktestConfig(initial_capital=initial_capital)
         engine = get_backtest_engine(config)
 
-        # Generate mock historical data
         historical_data = []
         base_price = 73000
         for i in range(100):
@@ -345,18 +317,16 @@ def run_backtest():
 
             base_price = close_price
 
-        # Run backtest
         result = engine.run_backtest(
             historical_data=historical_data,
             strategy_fn=moving_average_crossover_strategy,
             strategy_name=strategy_name
         )
 
-        # Convert to dict (excluding large arrays)
         result_dict = asdict(result)
-        result_dict['equity_curve'] = result_dict['equity_curve'][-10:]  # Last 10 only
+        result_dict['equity_curve'] = result_dict['equity_curve'][-10:]
         result_dict['daily_returns'] = result_dict['daily_returns'][-10:]
-        result_dict['trades'] = result_dict['trades'][-10:]  # Last 10 trades
+        result_dict['trades'] = result_dict['trades'][-10:]
 
         return jsonify({
             'success': True,
@@ -375,7 +345,6 @@ def run_backtest_v4():
     try:
         params = request.json
 
-        # TODO: 실제 백테스팅 엔진 연동
         backtest_id = f"bt_{datetime.now().strftime('%Y%m%d%H%M%S')}"
 
         return jsonify({
@@ -393,7 +362,6 @@ def run_optimization():
     try:
         params = request.json
 
-        # TODO: 실제 최적화 엔진 연동
         optimization_id = f"opt_{datetime.now().strftime('%Y%m%d%H%M%S')}"
 
         return jsonify({
@@ -405,9 +373,6 @@ def run_optimization():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
-# ============================================================================
-# OPTIONS AND HFT API
-# ============================================================================
 
 @trading_bp.route('/api/v4.2/options/price', methods=['POST'])
 def price_option():
@@ -459,20 +424,15 @@ def get_hft_status():
         return jsonify({'success': False, 'message': str(e)})
 
 
-# ============================================================================
-# QUICK ACTION API (Emergency Controls)
-# ============================================================================
 
 @trading_bp.route('/api/emergency-stop', methods=['POST'])
 def emergency_stop():
     """Emergency stop: Stop all trading immediately"""
     try:
         if _bot_instance:
-            # Stop the bot
             if hasattr(_bot_instance, 'stop'):
                 _bot_instance.stop()
             
-            # Update control.json
             set_control_status(False)
             
             logger.warning("⚠️ Emergency stop triggered")
@@ -500,7 +460,6 @@ def sell_all_positions():
         if not hasattr(_bot_instance, 'trading_api'):
             return jsonify({'success': False, 'error': 'Trading API not available'})
         
-        # Get current positions
         if hasattr(_bot_instance, 'account_api'):
             holdings = _bot_instance.account_api.get_holdings(market_type="KRX+NXT")
             
@@ -518,12 +477,11 @@ def sell_all_positions():
                 
                 if stock_code and quantity > 0:
                     try:
-                        # Place market sell order
                         result = _bot_instance.trading_api.sell_stock(
                             stock_code=stock_code,
                             quantity=quantity,
-                            price=0,  # Market price
-                            order_type="03"  # Market order
+                            price=0,
+                            order_type="03"
                         )
                         if result:
                             sell_count += 1
@@ -550,19 +508,16 @@ def pause_trading():
     try:
         control_file = BASE_DIR / 'data' / 'control.json'
         
-        # Read current control status
         current_status = {}
         if control_file.exists():
             with open(control_file, 'r', encoding='utf-8') as f:
                 current_status = json.load(f)
         
-        # Toggle pause_buy
         current_pause = current_status.get('pause_buy', False)
         new_pause = not current_pause
         
         current_status['pause_buy'] = new_pause
         
-        # Write back
         with open(control_file, 'w', encoding='utf-8') as f:
             json.dump(current_status, f, indent=2)
         
@@ -579,9 +534,6 @@ def pause_trading():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
-# ============================================================================
-# QUICK BUY API
-# ============================================================================
 
 @trading_bp.route('/api/quick-buy', methods=['POST'])
 def quick_buy():
@@ -617,42 +569,35 @@ def quick_buy():
         if not stock_code or not stock_name:
             return jsonify({'success': False, 'error': '종목 코드 또는 이름이 없습니다'}), 400
 
-        # bot_instance 확인
         if not _bot_instance:
             return jsonify({'success': False, 'error': '봇 인스턴스가 연결되지 않았습니다'}), 503
 
-        # 테스트 모드 확인
         if hasattr(_bot_instance, 'market_status') and _bot_instance.market_status.get('is_test_mode'):
             return jsonify({
                 'success': False,
                 'error': '테스트 모드에서는 실제 주문을 실행할 수 없습니다'
             }), 403
 
-        # 매수 금액 계산 (포트폴리오 관리자 사용)
         if hasattr(_bot_instance, 'portfolio_manager'):
             position_size = _bot_instance.portfolio_manager.calculate_position_size(price)
             quantity = int(position_size / price)
         else:
-            # 기본값: 100만원 / 가격
             quantity = int(1_000_000 / price)
 
         if quantity == 0:
             return jsonify({'success': False, 'error': '매수 수량이 0입니다'}), 400
 
-        # 매수 주문 실행
         if hasattr(_bot_instance, 'order_api'):
-            # 지정가 주문 (현재가 기준)
             order_response = _bot_instance.order_api.buy(
                 stock_code=stock_code,
                 quantity=quantity,
                 price=price,
-                order_type='02'  # 02: 지정가
+                order_type='02'
             )
 
             if order_response and order_response.get('status') == 'ordered':
                 logger.info(f"✅ Quick buy success: {stock_name}({stock_code}) {quantity}주 @ {price:,}원")
 
-                # 소켓으로 알림
                 if _socketio:
                     _socketio.emit('trade_executed', {
                         'action': 'BUY',

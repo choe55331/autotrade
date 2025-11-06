@@ -1,4 +1,3 @@
-"""
 AutoTrade Pro v4.0 - 변동성 돌파 전략
 래리 윌리엄스 변동성 돌파 전략 구현
 
@@ -6,12 +5,10 @@ AutoTrade Pro v4.0 - 변동성 돌파 전략
 - 전일 변동폭(고가-저가)의 K배만큼 시가에서 상승하면 매수
 - 당일 종가까지 보유 후 청산
 - 거래량 필터 적용 가능
-"""
 import logging
 from typing import Dict, Any, Optional, List
 from datetime import datetime, time
 
-# 공통 유틸리티 임포트
 from utils.time_utils import parse_time_string
 from utils.profit_calculator import calculate_profit_loss, calculate_profit_loss_rate
 from utils.position_calculator import calculate_position_size_by_ratio
@@ -45,9 +42,8 @@ class VolatilityBreakoutStrategy:
         self.min_volume_ratio = self.settings.get('min_volume_ratio', 1.2)
         self.stop_loss_pct = self.settings.get('stop_loss_pct', 0.03)
 
-        # 상태 관리
-        self.positions: Dict[str, Dict] = {}  # 보유 포지션
-        self.daily_range: Dict[str, float] = {}  # 전일 변동폭
+        self.positions: Dict[str, Dict] = {}
+        self.daily_range: Dict[str, float] = {}
 
         logger.info(
             f"변동성 돌파 전략 초기화: K={self.k_value}, "
@@ -61,7 +57,6 @@ class VolatilityBreakoutStrategy:
         yesterday_low: float,
         yesterday_close: float
     ):
-        """
         전일 데이터 업데이트
 
         Args:
@@ -69,7 +64,6 @@ class VolatilityBreakoutStrategy:
             yesterday_high: 전일 고가
             yesterday_low: 전일 저가
             yesterday_close: 전일 종가
-        """
         range_value = yesterday_high - yesterday_low
         self.daily_range[stock_code] = {
             'range': range_value,
@@ -92,7 +86,6 @@ class VolatilityBreakoutStrategy:
         current_volume: float,
         avg_volume: float
     ) -> tuple[bool, Optional[str]]:
-        """
         매수 신호 체크
 
         Args:
@@ -105,30 +98,23 @@ class VolatilityBreakoutStrategy:
 
         Returns:
             (should_buy, reason)
-        """
-        # 시간 체크
         if current_time < self.entry_time:
             return False, "아직 진입 시간 아님"
 
-        # 이미 보유 중인지 체크
         if stock_code in self.positions:
             return False, "이미 보유 중"
 
-        # 전일 데이터 확인
         if stock_code not in self.daily_range:
             return False, "전일 데이터 없음"
 
         daily_data = self.daily_range[stock_code]
         range_value = daily_data['range']
 
-        # 목표가 계산
         target_price = today_open + (range_value * self.k_value)
 
-        # 돌파 여부 체크
         if current_price < target_price:
             return False, f"목표가 미달 (현재={current_price:,}, 목표={target_price:,})"
 
-        # 거래량 필터
         if self.use_volume_filter:
             volume_ratio = current_volume / avg_volume if avg_volume > 0 else 0
             if volume_ratio < self.min_volume_ratio:
@@ -149,7 +135,6 @@ class VolatilityBreakoutStrategy:
         entry_price: float,
         quantity: int
     ):
-        """포지션 진입"""
         stop_loss_price = entry_price * (1 - self.stop_loss_pct)
 
         self.positions[stock_code] = {
@@ -170,7 +155,6 @@ class VolatilityBreakoutStrategy:
         current_time: time,
         current_price: float
     ) -> tuple[bool, Optional[str]]:
-        """
         매도 신호 체크
 
         Args:
@@ -180,13 +164,11 @@ class VolatilityBreakoutStrategy:
 
         Returns:
             (should_sell, reason)
-        """
         if stock_code not in self.positions:
             return False, None
 
         position = self.positions[stock_code]
 
-        # 손절 체크
         if current_price <= position['stop_loss_price']:
             logger.warning(
                 f"[{stock_code}] 손절 신호! "
@@ -194,7 +176,6 @@ class VolatilityBreakoutStrategy:
             )
             return True, "STOP_LOSS"
 
-        # 청산 시간 체크
         if current_time >= self.exit_time:
             logger.info(f"[{stock_code}] 청산 시간 도래")
             return True, "EXIT_TIME"
@@ -209,7 +190,6 @@ class VolatilityBreakoutStrategy:
 
         position = self.positions[stock_code]
 
-        # 공통 유틸리티를 사용한 손익 계산
         profit_loss = calculate_profit_loss(
             entry_price=position['entry_price'],
             exit_price=exit_price,
@@ -242,7 +222,6 @@ class VolatilityBreakoutStrategy:
         current_price: float,
         max_position_ratio: float = 0.10
     ) -> int:
-        """
         포지션 크기 계산 (공통 유틸리티 사용)
 
         Args:
@@ -252,8 +231,6 @@ class VolatilityBreakoutStrategy:
 
         Returns:
             매수 수량
-        """
-        # 공통 유틸리티를 사용한 포지션 사이즈 계산
         quantity = calculate_position_size_by_ratio(
             capital=total_capital,
             price=current_price,
@@ -264,11 +241,9 @@ class VolatilityBreakoutStrategy:
         return quantity
 
 
-# 테스트
 if __name__ == "__main__":
     strategy = VolatilityBreakoutStrategy()
 
-    # 전일 데이터 설정
     strategy.update_daily_range(
         "005930",
         yesterday_high=72000,
@@ -276,12 +251,11 @@ if __name__ == "__main__":
         yesterday_close=71000
     )
 
-    # 매수 신호 체크
     should_buy, reason = strategy.check_entry_signal(
         "005930",
         current_time=time(9, 10),
         today_open=71000,
-        current_price=72000,  # 시가 + 변동폭*0.5 = 71000 + 1000 = 72000
+        current_price=72000,
         current_volume=1000000,
         avg_volume=800000
     )

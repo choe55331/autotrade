@@ -1,8 +1,6 @@
-"""
 실시간 분봉 차트 생성기
 
 WebSocket으로 받은 체결 데이터를 1분 단위로 집계하여 OHLCV 생성
-"""
 
 import asyncio
 from datetime import datetime, timedelta
@@ -63,14 +61,11 @@ class RealtimeMinuteChart:
         self.stock_code = stock_code
         self.ws_manager = websocket_manager
 
-        # 분봉 데이터 저장 (최대 1일치: 390분 = 6.5시간)
         self.candles: Dict[datetime, MinuteCandle] = {}
-        self.max_candles = 390  # 09:00 ~ 15:30
+        self.max_candles = 390
 
-        # 현재 처리 중인 분봉 타임스탬프
         self.current_minute = None
 
-        # 구독 상태
         self.is_subscribed = False
 
         logger.info(f"RealtimeMinuteChart 초기화: {stock_code}")
@@ -87,7 +82,6 @@ class RealtimeMinuteChart:
             return True
 
         try:
-            # WebSocket 연결 확인
             if not self.ws_manager.is_connected:
                 logger.info("WebSocket 연결 시작...")
                 success = await self.ws_manager.connect()
@@ -95,16 +89,14 @@ class RealtimeMinuteChart:
                     logger.error("WebSocket 연결 실패")
                     return False
 
-            # 체결 데이터 구독
             logger.info(f"{self.stock_code} 체결 데이터 구독 중...")
             success = await self.ws_manager.subscribe(
                 stock_codes=[self.stock_code],
-                types=["0B"],  # 주식체결
+                types=["0B"],
                 grp_no=f"minute_{self.stock_code}"
             )
 
             if success:
-                # 콜백 등록
                 self.ws_manager.register_callback('0B', self._on_tick)
                 self.is_subscribed = True
                 logger.info(f"✅ {self.stock_code} 실시간 분봉 수집 시작")
@@ -146,22 +138,19 @@ class RealtimeMinuteChart:
                 }
         """
         try:
-            # 종목 필터링
             item_code = data.get('item', '')
             if item_code != self.stock_code:
                 return
 
             values = data.get('values', {})
 
-            # 체결 데이터 파싱
-            price = int(values.get('10', 0))  # 현재가
-            volume = int(values.get('15', 0))  # 체결량
-            time_str = values.get('16', '')  # 체결시각 HHMMSS
+            price = int(values.get('10', 0))
+            volume = int(values.get('15', 0))
+            time_str = values.get('16', '')
 
             if price == 0 or volume == 0:
                 return
 
-            # 현재 시각 (체결시각 사용 또는 현재 시각)
             now = datetime.now()
             if time_str and len(time_str) == 6:
                 try:
@@ -173,25 +162,18 @@ class RealtimeMinuteChart:
             else:
                 now = now.replace(second=0, microsecond=0)
 
-            # 장외 시간 필터링 (08:00 ~ 20:00)
-            # 한국 정규 장: 09:00-15:30
-            # 확장 시간: 08:00-20:00 (프리마켓/애프터마켓 포함)
             if now.hour < 8 or now.hour >= 20:
                 return
 
-            # 분봉 업데이트
             if now not in self.candles:
-                # 새로운 분봉 생성
                 self.candles[now] = MinuteCandle(timestamp=now)
 
-                # 오래된 데이터 제거 (최대 390개 유지)
                 if len(self.candles) > self.max_candles:
                     oldest = min(self.candles.keys())
                     del self.candles[oldest]
 
                 logger.debug(f"새 분봉 생성: {now.strftime('%H:%M')} (총 {len(self.candles)}개)")
 
-            # 캔들 업데이트
             self.candles[now].update(price, volume)
             self.current_minute = now
 
@@ -211,13 +193,10 @@ class RealtimeMinuteChart:
         if not self.candles:
             return []
 
-        # 시간순 정렬
         sorted_candles = sorted(self.candles.items(), key=lambda x: x[0])
 
-        # 최근 N개 추출
         recent_candles = sorted_candles[-minutes:] if len(sorted_candles) > minutes else sorted_candles
 
-        # 딕셔너리로 변환
         return [candle.to_dict() for timestamp, candle in recent_candles]
 
     def get_current_candle(self) -> Optional[Dict[str, Any]]:

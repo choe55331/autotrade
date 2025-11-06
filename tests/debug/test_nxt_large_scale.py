@@ -1,4 +1,3 @@
-"""
 NXT 실시간 가격 조회 대규모 테스트
 
 목적:
@@ -6,17 +5,14 @@ NXT 실시간 가격 조회 대규모 테스트
 - 5초 간격 10회 조회
 - 가격 변동 여부 상세 확인
 - NXT 시간대에 실시간 가격 조회 가능 여부 최종 판정
-"""
 import sys
 from pathlib import Path
 from datetime import datetime
 import time
 
-# 프로젝트 루트를 Python 경로에 추가
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-# 색상 코드
 GREEN = '\033[92m'
 RED = '\033[91m'
 BLUE = '\033[94m'
@@ -32,11 +28,9 @@ def is_nxt_hours():
     now = datetime.now()
     current_time = now.time()
 
-    # 오전: 08:00-09:00
     morning_start = datetime.strptime("08:00", "%H:%M").time()
     morning_end = datetime.strptime("09:00", "%H:%M").time()
 
-    # 오후: 15:30-20:00
     afternoon_start = datetime.strptime("15:30", "%H:%M").time()
     afternoon_end = datetime.strptime("20:00", "%H:%M").time()
 
@@ -64,7 +58,6 @@ def test_price_monitoring(client, test_stocks, rounds=10, interval=5):
     print(f"{CYAN}조회 간격: {interval}초{RESET}")
     print(f"{CYAN}예상 소요 시간: {rounds * interval}초 ({rounds * interval // 60}분 {rounds * interval % 60}초){RESET}")
 
-    # 각 종목별 가격 기록
     price_history = {code: [] for code, _ in test_stocks}
     stex_tp_history = {code: [] for code, _ in test_stocks}
     time_history = {code: [] for code, _ in test_stocks}
@@ -76,7 +69,6 @@ def test_price_monitoring(client, test_stocks, rounds=10, interval=5):
         print(f"{MAGENTA}{'='*100}{RESET}")
 
         for stock_code, stock_name in test_stocks:
-            # ka10003으로 조회
             response = client.request(
                 api_id="ka10003",
                 body={"stk_cd": stock_code},
@@ -88,22 +80,17 @@ def test_price_monitoring(client, test_stocks, rounds=10, interval=5):
                 if cntr_infr and len(cntr_infr) > 0:
                     latest = cntr_infr[0]
 
-                    # 현재가
                     cur_prc_str = latest.get('cur_prc', '0').replace('+', '').replace('-', '')
                     price = int(cur_prc_str) if cur_prc_str else 0
 
-                    # 거래소 정보
                     stex_tp = latest.get('stex_tp', '')
 
-                    # 시간
                     tm = latest.get('tm', '')
 
-                    # 기록
                     price_history[stock_code].append(price)
                     stex_tp_history[stock_code].append(stex_tp)
                     time_history[stock_code].append(tm)
 
-                    # 변동 계산
                     change_symbol = ""
                     if len(price_history[stock_code]) > 1:
                         prev_price = price_history[stock_code][-2]
@@ -115,7 +102,6 @@ def test_price_monitoring(client, test_stocks, rounds=10, interval=5):
                         else:
                             change_symbol = " ➡️  변동없음"
 
-                    # 출력
                     stex_icon = "🟢" if stex_tp == "NXT" else "🔵" if stex_tp == "KRX" else "⚪"
                     print(f"  {stex_icon} {stock_name:15} ({stock_code}) | {price:7,}원 | {stex_tp:3} | {tm:6}{change_symbol}")
                 else:
@@ -124,12 +110,10 @@ def test_price_monitoring(client, test_stocks, rounds=10, interval=5):
                 error_msg = response.get('return_msg') if response else 'No response'
                 print(f"  ❌ {stock_name:15} ({stock_code}) | 실패: {error_msg}")
 
-        # 다음 회차 전 대기
         if round_num < rounds:
             print(f"\n  {CYAN}⏳ {interval}초 대기 중...{RESET}")
             time.sleep(interval)
 
-    # 최종 결과 분석
     print(f"\n{BLUE}{'='*100}{RESET}")
     print(f"{BLUE}📊 최종 결과 분석{RESET}")
     print(f"{BLUE}{'='*100}{RESET}")
@@ -147,20 +131,17 @@ def test_price_monitoring(client, test_stocks, rounds=10, interval=5):
         if not prices:
             continue
 
-        # 가격 변동 분석
         unique_prices = set(prices)
         has_change = len(unique_prices) > 1
 
         if has_change:
             stocks_with_change += 1
 
-        # 거래소 분석
         if 'NXT' in stex_tps:
             nxt_stocks += 1
         if 'KRX' in stex_tps:
             krx_stocks += 1
 
-        # 개별 종목 요약
         min_price = min(prices)
         max_price = max(prices)
         price_range = max_price - min_price
@@ -173,7 +154,6 @@ def test_price_monitoring(client, test_stocks, rounds=10, interval=5):
         print(f"  {stex_icon} 거래소: {', '.join(set(stex_tps))}")
         print(f"  ⏰ 시간: {', '.join(set(times))}")
 
-    # 전체 통계
     print(f"\n{MAGENTA}{'='*100}{RESET}")
     print(f"{MAGENTA}📈 전체 통계{RESET}")
     print(f"{MAGENTA}{'='*100}{RESET}")
@@ -187,7 +167,6 @@ def test_price_monitoring(client, test_stocks, rounds=10, interval=5):
     print(f"  • NXT 표시 종목: {nxt_stocks}개")
     print(f"  • KRX 표시 종목: {krx_stocks}개")
 
-    # 최종 결론
     print(f"\n{MAGENTA}{'='*100}{RESET}")
     print(f"{MAGENTA}🎯 최종 결론{RESET}")
     print(f"{MAGENTA}{'='*100}{RESET}")
@@ -222,7 +201,6 @@ def main():
     print(f"{BLUE}🚀 NXT 대규모 가격 모니터링 테스트{RESET}")
     print(f"{BLUE}{'='*100}{RESET}")
 
-    # 현재 시간 확인
     now = datetime.now()
     in_nxt_hours = is_nxt_hours()
 
@@ -239,7 +217,6 @@ def main():
     print(f"\n{GREEN}✅ 지금이 NXT 거래 시간입니다! 테스트를 시작합니다.{RESET}")
 
     try:
-        # REST Client 초기화
         from core.rest_client import KiwoomRESTClient
 
         client = KiwoomRESTClient()
@@ -250,7 +227,6 @@ def main():
 
         print(f"{GREEN}✅ API 연결 성공{RESET}")
 
-        # 테스트 종목 10개 (NXT 거래 활발한 종목들)
         test_stocks = [
             ("249420", "일동제약"),
             ("052020", "에프엔에스테크"),
@@ -268,12 +244,11 @@ def main():
         for i, (code, name) in enumerate(test_stocks, 1):
             print(f"  {i:2}. {name:20} ({code})")
 
-        # 대규모 모니터링 실행
         test_price_monitoring(
             client=client,
             test_stocks=test_stocks,
-            rounds=10,  # 10회
-            interval=5  # 5초 간격
+            rounds=10,
+            interval=5
         )
 
     except Exception as e:

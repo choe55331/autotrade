@@ -1,9 +1,7 @@
-"""
 utils/alert_manager.py
 v5.7.5: 실시간 알림 시스템
 
 손익 임계값 도달 시 알림 발생
-"""
 from typing import Dict, List, Optional, Callable
 from dataclasses import dataclass
 from datetime import datetime
@@ -22,12 +20,12 @@ class AlertLevel(Enum):
 
 class AlertType(Enum):
     """알림 유형"""
-    PROFIT_TARGET = "profit_target"  # 익절 목표 도달
-    STOP_LOSS = "stop_loss"  # 손절 기준 도달
-    BIG_PROFIT = "big_profit"  # 큰 수익 (예: 10% 이상)
-    BIG_LOSS = "big_loss"  # 큰 손실 (예: -5% 이상)
-    POSITION_OPENED = "position_opened"  # 신규 포지션
-    POSITION_CLOSED = "position_closed"  # 포지션 청산
+    PROFIT_TARGET = "profit_target"
+    STOP_LOSS = "stop_loss"
+    BIG_PROFIT = "big_profit"
+    BIG_LOSS = "big_loss"
+    POSITION_OPENED = "position_opened"
+    POSITION_CLOSED = "position_closed"
 
 
 @dataclass
@@ -70,25 +68,22 @@ class AlertManager:
     def __init__(self):
         """초기화"""
         self.alerts: List[Alert] = []
-        self.max_alerts = 100  # 최대 알림 개수
+        self.max_alerts = 100
 
-        # 임계값 설정
         self.thresholds = {
-            'profit_target': 10.0,  # 익절 목표: 10% 이상
-            'stop_loss': -5.0,  # 손절 기준: -5% 이하
-            'big_profit': 5.0,  # 큰 수익 알림: 5% 이상
-            'big_loss': -3.0,  # 큰 손실 알림: -3% 이하
+            'profit_target': 10.0,
+            'stop_loss': -5.0,
+            'big_profit': 5.0,
+            'big_loss': -3.0,
         }
 
-        # 알림 발생 이력 (중복 방지)
         self._alert_history: Dict[str, datetime] = {}
-        self._cooldown_seconds = 300  # 같은 알림 5분 쿨다운
+        self._cooldown_seconds = 300
 
         logger.info("🔔 알림 관리자 초기화 완료")
 
     def set_thresholds(self, profit_target: float = None, stop_loss: float = None,
                       big_profit: float = None, big_loss: float = None):
-        """임계값 설정"""
         if profit_target is not None:
             self.thresholds['profit_target'] = profit_target
         if stop_loss is not None:
@@ -103,7 +98,6 @@ class AlertManager:
     def check_position_alerts(self, stock_code: str, stock_name: str,
                              current_price: int, buy_price: int,
                              profit_loss_rate: float, profit_loss_amount: int):
-        """
         포지션 손익 체크하여 알림 발생
 
         Args:
@@ -113,8 +107,6 @@ class AlertManager:
             buy_price: 매수가
             profit_loss_rate: 손익률 (%)
             profit_loss_amount: 손익 금액 (원)
-        """
-        # 익절 목표 도달
         if profit_loss_rate >= self.thresholds['profit_target']:
             self._create_alert(
                 alert_type=AlertType.PROFIT_TARGET,
@@ -128,7 +120,6 @@ class AlertManager:
                 profit_loss_amount=profit_loss_amount
             )
 
-        # 손절 기준 도달
         elif profit_loss_rate <= self.thresholds['stop_loss']:
             self._create_alert(
                 alert_type=AlertType.STOP_LOSS,
@@ -142,7 +133,6 @@ class AlertManager:
                 profit_loss_amount=profit_loss_amount
             )
 
-        # 큰 수익 알림
         elif profit_loss_rate >= self.thresholds['big_profit']:
             self._create_alert(
                 alert_type=AlertType.BIG_PROFIT,
@@ -156,7 +146,6 @@ class AlertManager:
                 profit_loss_amount=profit_loss_amount
             )
 
-        # 큰 손실 알림
         elif profit_loss_rate <= self.thresholds['big_loss']:
             self._create_alert(
                 alert_type=AlertType.BIG_LOSS,
@@ -172,7 +161,6 @@ class AlertManager:
 
     def alert_position_opened(self, stock_code: str, stock_name: str,
                              buy_price: int, quantity: int):
-        """신규 포지션 오픈 알림"""
         self._create_alert(
             alert_type=AlertType.POSITION_OPENED,
             level=AlertLevel.INFO,
@@ -186,7 +174,6 @@ class AlertManager:
     def alert_position_closed(self, stock_code: str, stock_name: str,
                              sell_price: int, profit_loss_rate: float,
                              profit_loss_amount: int, reason: str):
-        """포지션 청산 알림"""
         level = AlertLevel.INFO if profit_loss_rate > 0 else AlertLevel.WARNING
 
         self._create_alert(
@@ -205,17 +192,14 @@ class AlertManager:
                      title: str, message: str, stock_code: str, stock_name: str,
                      current_price: int = None, profit_loss_rate: float = None,
                      profit_loss_amount: int = None):
-        """알림 생성 (중복 체크 포함)"""
 
-        # 중복 체크 (쿨다운)
         alert_key = f"{stock_code}_{alert_type.value}"
         if alert_key in self._alert_history:
             last_time = self._alert_history[alert_key]
             elapsed = (datetime.now() - last_time).total_seconds()
             if elapsed < self._cooldown_seconds:
-                return  # 쿨다운 중이면 알림 생성하지 않음
+                return
 
-        # 알림 생성
         alert = Alert(
             id=f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{stock_code}",
             timestamp=datetime.now(),
@@ -230,14 +214,12 @@ class AlertManager:
             profit_loss_amount=profit_loss_amount
         )
 
-        self.alerts.insert(0, alert)  # 최신 알림이 앞에
+        self.alerts.insert(0, alert)
         self._alert_history[alert_key] = datetime.now()
 
-        # 최대 개수 초과 시 오래된 알림 제거
         if len(self.alerts) > self.max_alerts:
             self.alerts = self.alerts[:self.max_alerts]
 
-        # 로그 출력
         logger.info(f"🔔 [알림] {title}: {message}")
         print(f"\n🔔 [알림] {title}")
         print(f"   {message}")
@@ -282,7 +264,6 @@ class AlertManager:
         logger.info(f"오래된 알림 삭제 완료 (보존: {days}일)")
 
 
-# 전역 인스턴스
 _alert_manager = None
 
 

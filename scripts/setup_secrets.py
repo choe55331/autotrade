@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-"""
 setup_secrets.py
 API 키 및 민감정보 안전 설정 스크립트
 
@@ -7,14 +5,12 @@ API 키 및 민감정보 안전 설정 스크립트
 1. 사용자로부터 API 키를 안전하게 입력받습니다 (복사 붙여넣기 가능)
 2. _immutable/credentials/secrets.json 파일을 생성합니다
 3. 파일을 읽기 전용(400)으로 설정하여 실수로 수정되지 않도록 보호합니다
-"""
 
 import json
 import os
 import sys
 from pathlib import Path
 
-# 색상 코드
 GREEN = '\033[92m'
 YELLOW = '\033[93m'
 RED = '\033[91m'
@@ -22,7 +18,6 @@ BLUE = '\033[94m'
 BOLD = '\033[1m'
 RESET = '\033[0m'
 
-# 경로 설정
 PROJECT_ROOT = Path(__file__).parent
 SECRETS_DIR = PROJECT_ROOT / '_immutable' / 'credentials'
 SECRETS_FILE = SECRETS_DIR / 'secrets.json'
@@ -46,7 +41,6 @@ def check_existing_file():
             print(f"{RED}❌ 설정을 취소했습니다.{RESET}")
             sys.exit(0)
 
-        # 기존 파일 권한 변경 (쓰기 가능하게)
         try:
             os.chmod(SECRETS_FILE, 0o600)
             print(f"{GREEN}✅ 기존 파일을 덮어쓸 수 있도록 권한을 변경했습니다.{RESET}\n")
@@ -61,7 +55,6 @@ def input_with_default(prompt, default="", required=True, mask=False):
     default_display = f" [{default}]" if default else ""
     required_mark = " (필수)" if required else " (선택)"
 
-    # mask는 표시만 하지 않고, 복사 붙여넣기는 허용
     if mask:
         print(f"{YELLOW}💡 보안 정보입니다. 복사 붙여넣기를 사용하세요.{RESET}")
 
@@ -160,17 +153,14 @@ def collect_credentials():
 def save_secrets(secrets):
     """secrets.json 저장 및 보호"""
     try:
-        # 디렉토리 생성 (이미 존재하면 무시)
         SECRETS_DIR.mkdir(parents=True, exist_ok=True)
 
-        # JSON 파일 저장
         with open(SECRETS_FILE, 'w', encoding='utf-8') as f:
             json.dump(secrets, f, indent=2, ensure_ascii=False)
 
         print(f"\n{GREEN}✅ secrets.json 파일이 생성되었습니다.{RESET}")
         print(f"{BLUE}📁 위치: {SECRETS_FILE}{RESET}")
 
-        # 파일 권한을 읽기 전용(400)으로 설정
         os.chmod(SECRETS_FILE, 0o400)
         print(f"{GREEN}🔒 파일이 읽기 전용으로 보호되었습니다 (chmod 400).{RESET}")
 
@@ -191,7 +181,6 @@ def verify_secrets():
         print(f"{BOLD}{GREEN}✅ 설정 완료!{RESET}")
         print(f"{BOLD}{GREEN}{'='*80}{RESET}\n")
 
-        # 설정된 항목 요약
         kiwoom = secrets.get('kiwoom_rest', {})
         gemini = secrets.get('gemini', {})
         telegram = secrets.get('telegram', {})
@@ -224,16 +213,13 @@ def main():
     try:
         print_header()
 
-        # 기존 파일 확인
         check_existing_file()
 
-        # 자격증명 수집
         print(f"{BOLD}{BLUE}API 키를 입력해주세요:{RESET}\n")
         print(f"{YELLOW}💡 복사 붙여넣기를 사용하세요 (Ctrl+V 또는 Cmd+V).{RESET}\n")
 
         secrets = collect_credentials()
 
-        # 확인
         print(f"\n{BOLD}{YELLOW}{'='*80}{RESET}")
         print(f"{BOLD}{YELLOW}⚠️  입력한 정보를 확인하세요{RESET}")
         print(f"{BOLD}{YELLOW}{'='*80}{RESET}\n")
@@ -244,7 +230,6 @@ def main():
             print(f"{RED}❌ 설정을 취소했습니다.{RESET}")
             sys.exit(0)
 
-        # 저장 및 보호
         if save_secrets(secrets):
             verify_secrets()
         else:

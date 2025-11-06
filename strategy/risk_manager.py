@@ -1,7 +1,5 @@
-"""
 strategy/risk_manager.py
 리스크 관리
-"""
 import logging
 from typing import Dict, Any, Optional, List
 from datetime import datetime, timedelta
@@ -39,7 +37,6 @@ class RiskManager:
         """
         self.config = config or {}
         
-        # 리스크 파라미터
         self.max_position_size = self.config.get('max_position_size', 0.30)
         self.max_daily_loss = self.config.get('max_daily_loss', 0.03)
         self.max_total_loss = self.config.get('max_total_loss', 0.10)
@@ -48,27 +45,23 @@ class RiskManager:
         self.position_limit = self.config.get('position_limit', 5)
         self.emergency_stop_loss = self.config.get('emergency_stop_loss', 0.15)
         
-        # 상태 추적
         self.daily_profit_loss = 0.0
         self.total_profit_loss = 0.0
         self.consecutive_losses = 0
         self.trading_enabled = True
         self.emergency_stop = False
         
-        # 거래 이력
         self.trade_history = []
         self.daily_reset_time = None
         
         logger.info("RiskManager 초기화 완료")
     
-    # ==================== 포지션 크기 검증 ====================
     
     def validate_position_size(
         self,
         position_value: float,
         total_assets: float
     ) -> tuple[bool, str]:
-        """
         포지션 크기 검증
         
         Args:
@@ -77,7 +70,6 @@ class RiskManager:
         
         Returns:
             (검증 통과 여부, 메시지)
-        """
         if total_assets == 0:
             return False, "총 자산이 0입니다"
         
@@ -100,14 +92,12 @@ class RiskManager:
         """
         return total_assets * self.max_position_size
     
-    # ==================== 손실 관리 ====================
     
     def check_stop_loss(
         self,
         purchase_price: float,
         current_price: float
     ) -> tuple[bool, str]:
-        """
         손절 여부 확인
         
         Args:
@@ -116,17 +106,14 @@ class RiskManager:
         
         Returns:
             (손절 여부, 메시지)
-        """
         if purchase_price == 0:
             return False, "매수가 정보 없음"
         
         loss_rate = (current_price - purchase_price) / purchase_price
         
-        # 긴급 손절
         if loss_rate <= -self.emergency_stop_loss:
             return True, f"긴급 손절 발동 ({loss_rate*100:.2f}% 손실)"
         
-        # 일반 손절
         if loss_rate <= -self.stop_loss_rate:
             return True, f"손절 조건 충족 ({loss_rate*100:.2f}% 손실)"
         
@@ -139,7 +126,6 @@ class RiskManager:
         Returns:
             (거래 가능 여부, 메시지)
         """
-        # 일일 리셋 확인
         self._check_daily_reset()
         
         if abs(self.daily_profit_loss) >= self.max_daily_loss:
@@ -173,20 +159,15 @@ class RiskManager:
         profit_loss: float,
         is_win: bool
     ):
-        """
         손익 업데이트
         
         Args:
             profit_loss: 손익 금액
             is_win: 수익 여부
-        """
-        # 일일 손익
         self.daily_profit_loss += profit_loss
         
-        # 총 손익
         self.total_profit_loss += profit_loss
         
-        # 연속 손실 추적
         if is_win:
             self.consecutive_losses = 0
         else:
@@ -208,13 +189,11 @@ class RiskManager:
             self.daily_reset_time = now
             return
         
-        # 날짜가 바뀌면 리셋
         if now.date() > self.daily_reset_time.date():
             logger.info(f"일일 손익 리셋 (이전: {self.daily_profit_loss:+,.0f}원)")
             self.daily_profit_loss = 0.0
             self.daily_reset_time = now
     
-    # ==================== 포지션 수 제한 ====================
     
     def can_open_position(self, current_positions: int) -> tuple[bool, str]:
         """
@@ -231,7 +210,6 @@ class RiskManager:
         
         return True, f"포지션 추가 가능 ({current_positions}/{self.position_limit})"
     
-    # ==================== 거래 가능 여부 ====================
     
     def can_trade(self, reason: str = "") -> tuple[bool, str]:
         """
@@ -243,20 +221,16 @@ class RiskManager:
         Returns:
             (거래 가능 여부, 메시지)
         """
-        # 긴급 정지 확인
         if self.emergency_stop:
             return False, "긴급 정지 상태"
         
-        # 거래 비활성화 확인
         if not self.trading_enabled:
             return False, "거래 비활성화됨"
         
-        # 일일 손실 한도 확인
         can_trade_daily, msg_daily = self.check_daily_loss_limit()
         if not can_trade_daily:
             return False, msg_daily
         
-        # 연속 손실 확인
         if self.consecutive_losses >= self.max_consecutive_losses:
             return False, f"연속 손실 {self.consecutive_losses}회 도달"
         
@@ -277,7 +251,6 @@ class RiskManager:
         self.emergency_stop = False
         logger.warning("긴급 정지 해제됨")
     
-    # ==================== 리스크 평가 ====================
     
     def assess_risk_level(
         self,
@@ -285,7 +258,6 @@ class RiskManager:
         total_assets: float,
         position_count: int
     ) -> Dict[str, Any]:
-        """
         리스크 수준 평가
         
         Args:
@@ -295,11 +267,9 @@ class RiskManager:
         
         Returns:
             리스크 평가 결과
-        """
         risk_score = 0
         risk_factors = []
         
-        # 1. 포지션 집중도 (0~3점)
         if total_assets > 0:
             concentration = portfolio_value / total_assets
             if concentration > 0.8:
@@ -311,7 +281,6 @@ class RiskManager:
             elif concentration > 0.4:
                 risk_score += 1
         
-        # 2. 일일 손실 (0~3점)
         if abs(self.daily_profit_loss) > self.max_daily_loss * 0.8:
             risk_score += 3
             risk_factors.append("높은 일일 손실")
@@ -319,14 +288,12 @@ class RiskManager:
             risk_score += 2
             risk_factors.append("중간 일일 손실")
         
-        # 3. 연속 손실 (0~2점)
         if self.consecutive_losses >= 2:
             risk_score += 2
             risk_factors.append(f"연속 손실 {self.consecutive_losses}회")
         elif self.consecutive_losses >= 1:
             risk_score += 1
         
-        # 4. 포지션 수 (0~2점)
         if position_count >= self.position_limit:
             risk_score += 2
             risk_factors.append("최대 포지션 수 도달")
@@ -334,7 +301,6 @@ class RiskManager:
             risk_score += 1
             risk_factors.append("높은 포지션 수")
         
-        # 리스크 레벨 결정
         if risk_score >= 7:
             risk_level = "Critical"
             recommendation = "즉시 포지션 축소 및 손실 제한 필요"
@@ -359,7 +325,6 @@ class RiskManager:
             'consecutive_losses': self.consecutive_losses,
         }
     
-    # ==================== 거래 이력 ====================
     
     def record_trade(
         self,
@@ -369,7 +334,6 @@ class RiskManager:
         price: float,
         profit_loss: float = 0.0
     ):
-        """
         거래 기록
         
         Args:
@@ -378,7 +342,6 @@ class RiskManager:
             quantity: 수량
             price: 가격
             profit_loss: 손익 (매도 시)
-        """
         trade = {
             'timestamp': datetime.now(),
             'stock_code': stock_code,
@@ -390,7 +353,6 @@ class RiskManager:
         
         self.trade_history.append(trade)
         
-        # 최근 100개만 유지
         if len(self.trade_history) > 100:
             self.trade_history = self.trade_history[-100:]
     
@@ -406,7 +368,6 @@ class RiskManager:
         """
         return self.trade_history[-count:] if self.trade_history else []
     
-    # ==================== 상태 정보 ====================
     
     def get_status(self) -> Dict[str, Any]:
         """

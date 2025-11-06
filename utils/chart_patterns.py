@@ -1,4 +1,3 @@
-"""
 utils/chart_patterns.py
 고급 차트 패턴 인식 모듈 (v5.10 NEW)
 
@@ -8,7 +7,6 @@ Features:
 - 추세선 자동 그리기
 - 피보나치 되돌림 계산
 - 볼린저 밴드 분석
-"""
 from typing import List, Dict, Any, Optional, Tuple
 from dataclasses import dataclass
 import numpy as np
@@ -23,19 +21,19 @@ logger = get_logger()
 class CandlePattern:
     """캔들 패턴 정보"""
     name: str
-    type: str  # 'bullish', 'bearish', 'neutral'
-    strength: int  # 1-10
+    type: str
+    strength: int
     description: str
-    confidence: float  # 0-1
+    confidence: float
 
 
 @dataclass
 class SupportResistance:
     """지지/저항 레벨"""
     level: float
-    strength: int  # 1-10
-    type: str  # 'support', 'resistance'
-    touches: int  # 터치 횟수
+    strength: int
+    type: str
+    touches: int
     last_touch_date: str
 
 
@@ -62,7 +60,6 @@ class ChartPatternAnalyzer:
         ohlc_data: List[Dict[str, Any]],
         lookback: int = 20
     ) -> List[CandlePattern]:
-        """
         캔들스틱 패턴 분석
 
         Args:
@@ -71,7 +68,6 @@ class ChartPatternAnalyzer:
 
         Returns:
             감지된 패턴 리스트
-        """
         if len(ohlc_data) < lookback:
             logger.warning(f"Insufficient data: {len(ohlc_data)} < {lookback}")
             return []
@@ -79,32 +75,26 @@ class ChartPatternAnalyzer:
         patterns = []
         recent_data = ohlc_data[-lookback:]
 
-        # 1. Doji (도지)
         doji = self._detect_doji(recent_data)
         if doji:
             patterns.append(doji)
 
-        # 2. Hammer / Hanging Man (망치 / 교수형)
         hammer = self._detect_hammer(recent_data)
         if hammer:
             patterns.append(hammer)
 
-        # 3. Shooting Star (슈팅스타)
         shooting_star = self._detect_shooting_star(recent_data)
         if shooting_star:
             patterns.append(shooting_star)
 
-        # 4. Engulfing Pattern (포용형)
         engulfing = self._detect_engulfing(recent_data)
         if engulfing:
             patterns.append(engulfing)
 
-        # 5. Morning/Evening Star (샛별 / 저녁별)
         star = self._detect_star_pattern(recent_data)
         if star:
             patterns.append(star)
 
-        # 6. Three White Soldiers / Three Black Crows
         soldiers_crows = self._detect_three_soldiers_crows(recent_data)
         if soldiers_crows:
             patterns.append(soldiers_crows)
@@ -118,7 +108,6 @@ class ChartPatternAnalyzer:
         num_levels: int = 5,
         tolerance: float = 0.02
     ) -> List[SupportResistance]:
-        """
         지지/저항 레벨 자동 탐지
 
         Args:
@@ -128,21 +117,18 @@ class ChartPatternAnalyzer:
 
         Returns:
             지지/저항 레벨 리스트
-        """
         if len(price_data) < 20:
             return []
 
         levels = []
         price_array = np.array(price_data)
 
-        # Local maxima (저항선)
         for i in range(2, len(price_array) - 2):
             if (price_array[i] > price_array[i-1] and
                 price_array[i] > price_array[i-2] and
                 price_array[i] > price_array[i+1] and
                 price_array[i] > price_array[i+2]):
 
-                # 기존 레벨과 너무 가까운지 확인
                 is_new = True
                 for level in levels:
                     if abs(price_array[i] - level['price']) / level['price'] < tolerance:
@@ -158,7 +144,6 @@ class ChartPatternAnalyzer:
                         'index': i
                     })
 
-        # Local minima (지지선)
         for i in range(2, len(price_array) - 2):
             if (price_array[i] < price_array[i-1] and
                 price_array[i] < price_array[i-2] and
@@ -180,11 +165,9 @@ class ChartPatternAnalyzer:
                         'index': i
                     })
 
-        # 강도 계산 및 정렬
         for level in levels:
             level['strength'] = min(10, level['touches'] * 2)
 
-        # 터치 횟수로 정렬하고 상위 N개 반환
         levels.sort(key=lambda x: x['touches'], reverse=True)
 
         result = []
@@ -205,7 +188,6 @@ class ChartPatternAnalyzer:
         high: float,
         low: float
     ) -> Dict[str, float]:
-        """
         피보나치 되돌림 레벨 계산
 
         Args:
@@ -214,7 +196,6 @@ class ChartPatternAnalyzer:
 
         Returns:
             피보나치 레벨 딕셔너리
-        """
         diff = high - low
 
         levels = {
@@ -237,7 +218,6 @@ class ChartPatternAnalyzer:
         period: int = 20,
         std_dev: float = 2.0
     ) -> Dict[str, Any]:
-        """
         볼린저 밴드 분석
 
         Args:
@@ -247,35 +227,26 @@ class ChartPatternAnalyzer:
 
         Returns:
             볼린저 밴드 분석 결과
-        """
         if len(prices) < period:
             return {}
 
         price_array = np.array(prices[-period:])
 
-        # SMA (Simple Moving Average)
         sma = np.mean(price_array)
 
-        # Standard Deviation
         std = np.std(price_array)
 
-        # Bollinger Bands
         upper_band = sma + (std_dev * std)
         lower_band = sma - (std_dev * std)
 
-        # Current price
         current_price = prices[-1]
 
-        # Bandwidth
         bandwidth = ((upper_band - lower_band) / sma) * 100
 
-        # %B (Position within bands)
         percent_b = (current_price - lower_band) / (upper_band - lower_band)
 
-        # Squeeze detection
-        is_squeeze = bandwidth < 10  # Less than 10% is considered squeeze
+        is_squeeze = bandwidth < 10
 
-        # Analysis
         analysis = {
             'sma': round(sma, 2),
             'upper_band': round(upper_band, 2),
@@ -288,9 +259,6 @@ class ChartPatternAnalyzer:
 
         return analysis
 
-    # ============================================================================
-    # Private Helper Methods
-    # ============================================================================
 
     def _detect_doji(self, data: List[Dict]) -> Optional[CandlePattern]:
         """도지 패턴 감지"""
@@ -311,7 +279,7 @@ class ChartPatternAnalyzer:
 
         body_ratio = body / total_range
 
-        if body_ratio < 0.1:  # Body is less than 10% of total range
+        if body_ratio < 0.1:
             return CandlePattern(
                 name="Doji",
                 type="neutral",
@@ -343,12 +311,10 @@ class ChartPatternAnalyzer:
         if total_range == 0:
             return None
 
-        # Hammer criteria
         if (lower_shadow > 2 * body and
             upper_shadow < body * 0.3 and
             body / total_range < 0.3):
 
-            # Bullish if in downtrend
             is_bullish = prev.get('close', 0) < prev.get('open', 0)
 
             return CandlePattern(
@@ -382,12 +348,10 @@ class ChartPatternAnalyzer:
         if total_range == 0:
             return None
 
-        # Shooting star criteria
         if (upper_shadow > 2 * body and
             lower_shadow < body * 0.3 and
             body / total_range < 0.3):
 
-            # Bearish if in uptrend
             is_uptrend = prev.get('close', 0) > prev.get('open', 0)
 
             if is_uptrend:
@@ -417,12 +381,11 @@ class ChartPatternAnalyzer:
         last_body = abs(last_close - last_open)
         prev_body = abs(prev_close - prev_open)
 
-        # Bullish engulfing
-        if (prev_close < prev_open and  # Previous bearish
-            last_close > last_open and   # Current bullish
-            last_close > prev_open and   # Engulfs previous
+        if (prev_close < prev_open and
+            last_close > last_open and
+            last_close > prev_open and
             last_open < prev_close and
-            last_body > prev_body * 1.5): # Significantly larger
+            last_body > prev_body * 1.5):
 
             return CandlePattern(
                 name="Bullish Engulfing",
@@ -432,10 +395,9 @@ class ChartPatternAnalyzer:
                 confidence=0.85
             )
 
-        # Bearish engulfing
-        if (prev_close > prev_open and  # Previous bullish
-            last_close < last_open and   # Current bearish
-            last_close < prev_open and   # Engulfs previous
+        if (prev_close > prev_open and
+            last_close < last_open and
+            last_close < prev_open and
             last_open > prev_close and
             last_body > prev_body * 1.5):
 
@@ -458,11 +420,10 @@ class ChartPatternAnalyzer:
         star = data[-2]
         last = data[-1]
 
-        # Morning Star (bullish)
-        if (first.get('close', 0) < first.get('open', 0) and  # First bearish
-            abs(star.get('close', 0) - star.get('open', 0)) < abs(first.get('close', 0) - first.get('open', 0)) * 0.3 and  # Small star
-            last.get('close', 0) > last.get('open', 0) and  # Last bullish
-            last.get('close', 0) > (first.get('open', 0) + first.get('close', 0)) / 2):  # Closes above midpoint
+        if (first.get('close', 0) < first.get('open', 0) and
+            abs(star.get('close', 0) - star.get('open', 0)) < abs(first.get('close', 0) - first.get('open', 0)) * 0.3 and
+            last.get('close', 0) > last.get('open', 0) and
+            last.get('close', 0) > (first.get('open', 0) + first.get('close', 0)) / 2):
 
             return CandlePattern(
                 name="Morning Star",
@@ -472,11 +433,10 @@ class ChartPatternAnalyzer:
                 confidence=0.85
             )
 
-        # Evening Star (bearish)
-        if (first.get('close', 0) > first.get('open', 0) and  # First bullish
-            abs(star.get('close', 0) - star.get('open', 0)) < abs(first.get('close', 0) - first.get('open', 0)) * 0.3 and  # Small star
-            last.get('close', 0) < last.get('open', 0) and  # Last bearish
-            last.get('close', 0) < (first.get('open', 0) + first.get('close', 0)) / 2):  # Closes below midpoint
+        if (first.get('close', 0) > first.get('open', 0) and
+            abs(star.get('close', 0) - star.get('open', 0)) < abs(first.get('close', 0) - first.get('open', 0)) * 0.3 and
+            last.get('close', 0) < last.get('open', 0) and
+            last.get('close', 0) < (first.get('open', 0) + first.get('close', 0)) / 2):
 
             return CandlePattern(
                 name="Evening Star",
@@ -495,7 +455,6 @@ class ChartPatternAnalyzer:
 
         last3 = data[-3:]
 
-        # Three White Soldiers (bullish)
         if all(candle.get('close', 0) > candle.get('open', 0) for candle in last3):
             if all(last3[i].get('close', 0) > last3[i-1].get('close', 0) for i in range(1, 3)):
                 return CandlePattern(
@@ -506,7 +465,6 @@ class ChartPatternAnalyzer:
                     confidence=0.8
                 )
 
-        # Three Black Crows (bearish)
         if all(candle.get('close', 0) < candle.get('open', 0) for candle in last3):
             if all(last3[i].get('close', 0) < last3[i-1].get('close', 0) for i in range(1, 3)):
                 return CandlePattern(
@@ -527,7 +485,6 @@ class ChartPatternAnalyzer:
         lower: float,
         percent_b: float
     ) -> str:
-        """볼린저 밴드 신호 해석"""
         if percent_b > 1.0:
             return "Overbought - price above upper band"
         elif percent_b < 0.0:

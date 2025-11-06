@@ -1,20 +1,14 @@
-"""
 Deep Learning v4.1 Routes
 Handles LSTM, Transformer, CNN, Advanced RL, AutoML, and Backtesting endpoints
-"""
 from flask import Blueprint, jsonify, request
 from dataclasses import asdict
 import numpy as np
 from datetime import datetime, timedelta
 from .common import get_bot_instance
 
-# Create blueprint
 deep_learning_bp = Blueprint('deep_learning', __name__)
 
 
-# ============================================================================
-# Deep Learning v4.1 - LSTM, Transformer, CNN, Advanced RL, AutoML, Backtesting
-# ============================================================================
 
 @deep_learning_bp.route('/api/v4.1/deep_learning/predict/<stock_code>')
 def get_deep_learning_prediction(stock_code: str):
@@ -25,7 +19,6 @@ def get_deep_learning_prediction(stock_code: str):
 
         manager = get_deep_learning_manager()
 
-        # Mock historical data
         historical_data = []
 
         prediction = manager.predict(
@@ -54,10 +47,8 @@ def get_advanced_rl_action():
 
         manager = get_advanced_rl_manager()
 
-        # Mock state
         state = np.random.randn(15)
 
-        # Get algorithm from query params
         algorithm = request.args.get('algorithm', None)
 
         action = manager.get_action(state, algorithm)
@@ -97,7 +88,6 @@ def run_automl_optimization():
         from dataclasses import asdict
         import numpy as np
 
-        # Get parameters from request
         data = request.get_json() or {}
         model_types = data.get('model_types', ['random_forest', 'xgboost'])
         optimization_method = data.get('method', 'bayesian')
@@ -105,7 +95,6 @@ def run_automl_optimization():
 
         manager = get_automl_manager()
 
-        # Mock data for demo
         X = np.random.randn(100, 5)
         y = np.random.randn(100)
 
@@ -117,7 +106,6 @@ def run_automl_optimization():
             n_trials=n_trials
         )
 
-        # Convert dataclasses to dict
         result_dict = asdict(result)
 
         return jsonify({
@@ -160,16 +148,13 @@ def run_backtest():
         import numpy as np
         from datetime import datetime, timedelta
 
-        # Get parameters from request
         data = request.get_json() or {}
         strategy_name = data.get('strategy_name', 'Custom Strategy')
         initial_capital = data.get('initial_capital', 10000000)
 
-        # Create config
         config = BacktestConfig(initial_capital=initial_capital)
         engine = get_backtest_engine(config)
 
-        # Generate mock historical data
         historical_data = []
         base_price = 73000
         for i in range(100):
@@ -189,18 +174,16 @@ def run_backtest():
 
             base_price = close_price
 
-        # Run backtest
         result = engine.run_backtest(
             historical_data=historical_data,
             strategy_fn=moving_average_crossover_strategy,
             strategy_name=strategy_name
         )
 
-        # Convert to dict (excluding large arrays)
         result_dict = asdict(result)
-        result_dict['equity_curve'] = result_dict['equity_curve'][-10:]  # Last 10 only
+        result_dict['equity_curve'] = result_dict['equity_curve'][-10:]
         result_dict['daily_returns'] = result_dict['daily_returns'][-10:]
-        result_dict['trades'] = result_dict['trades'][-10:]  # Last 10 trades
+        result_dict['trades'] = result_dict['trades'][-10:]
 
         return jsonify({
             'success': True,

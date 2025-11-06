@@ -1,10 +1,8 @@
-"""
 Real-time Data Processing System
 WebSocket-based streaming and event-driven trading
 
 Author: AutoTrade Pro
 Version: 4.2
-"""
 
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional, Callable
@@ -44,7 +42,7 @@ class StreamingTick:
 class StreamingCandle:
     """Real-time candle aggregation"""
     stock_code: str
-    interval: str  # '1m', '5m', '1h'
+    interval: str
     open: float
     high: float
     low: float
@@ -57,15 +55,12 @@ class StreamingCandle:
 @dataclass
 class StreamingEvent:
     """Trading event"""
-    event_type: str  # 'tick', 'candle', 'signal', 'order', 'fill'
+    event_type: str
     timestamp: str
     data: Dict[str, Any]
     priority: int = 0
 
 
-# ============================================================================
-# Real-time Data Stream
-# ============================================================================
 
 class RealTimeDataStream:
     """
@@ -96,7 +91,6 @@ class RealTimeDataStream:
         self.is_running = False
         self.websocket = None
 
-        # Performance metrics
         self.metrics = {
             'ticks_received': 0,
             'candles_generated': 0,
@@ -132,19 +126,16 @@ class RealTimeDataStream:
             stock_codes: List of stock codes to stream
         """
         if not WEBSOCKETS_AVAILABLE:
-            # Mock streaming
             await self._mock_stream(stock_codes)
             return
 
         try:
-            # Subscribe to symbols
             subscribe_msg = {
                 'action': 'subscribe',
                 'symbols': stock_codes
             }
             await self.websocket.send(json.dumps(subscribe_msg))
 
-            # Stream loop
             while self.is_running:
                 message = await self.websocket.recv()
                 tick = self._parse_tick(message)
@@ -164,7 +155,6 @@ class RealTimeDataStream:
 
         while self.is_running:
             for code in stock_codes:
-                # Generate mock tick
                 price_change = random.uniform(-0.005, 0.005)
                 price = base_prices[code] * (1 + price_change)
                 base_prices[code] = price
@@ -183,7 +173,7 @@ class RealTimeDataStream:
 
                 await self._process_tick(tick)
 
-            await asyncio.sleep(0.1)  # 100ms per tick
+            await asyncio.sleep(0.1)
 
     def _parse_tick(self, message: str) -> Optional[StreamingTick]:
         """Parse tick from message"""
@@ -196,15 +186,12 @@ class RealTimeDataStream:
 
     async def _process_tick(self, tick: StreamingTick):
         """Process incoming tick"""
-        # Update metrics
         self.metrics['ticks_received'] += 1
 
-        # Store in buffer
         if tick.stock_code not in self.tick_buffer:
             self.tick_buffer[tick.stock_code] = deque(maxlen=self.buffer_size)
         self.tick_buffer[tick.stock_code].append(tick)
 
-        # Notify tick subscribers
         event = StreamingEvent(
             event_type='tick',
             timestamp=tick.timestamp,
@@ -212,7 +199,6 @@ class RealTimeDataStream:
         )
         self._publish_event(event)
 
-        # Aggregate to candles
         await self._aggregate_candle(tick)
 
     async def _aggregate_candle(self, tick: StreamingTick):
@@ -225,11 +211,9 @@ class RealTimeDataStream:
             if candle_key not in self.candle_buffer:
                 self.candle_buffer[candle_key] = deque(maxlen=1000)
 
-            # Get or create current candle
             candles = self.candle_buffer[candle_key]
 
             if not candles or self._should_new_candle(candles[-1], tick.timestamp, interval):
-                # Create new candle
                 candle = StreamingCandle(
                     stock_code=tick.stock_code,
                     interval=interval,
@@ -242,12 +226,10 @@ class RealTimeDataStream:
                 )
                 candles.append(candle)
 
-                # Close previous candle
                 if len(candles) > 1:
                     candles[-2].is_closed = True
                     self._publish_candle(candles[-2])
             else:
-                # Update existing candle
                 candle = candles[-1]
                 candle.high = max(candle.high, tick.price)
                 candle.low = min(candle.low, tick.price)
@@ -296,7 +278,7 @@ class RealTimeDataStream:
 
         while retry_count < max_retries and self.is_running:
             try:
-                await asyncio.sleep(2 ** retry_count)  # Exponential backoff
+                await asyncio.sleep(2 ** retry_count)
                 await self.connect(self.websocket.remote_address)
                 await self.stream_data(stock_codes)
                 return
@@ -334,9 +316,6 @@ class RealTimeDataStream:
             asyncio.create_task(self.websocket.close())
 
 
-# ============================================================================
-# Event-Driven Trading Engine
-# ============================================================================
 
 class EventDrivenTradingEngine:
     """
@@ -358,7 +337,6 @@ class EventDrivenTradingEngine:
         self.pnl = 0.0
         self.unrealized_pnl = 0.0
 
-        # Subscribe to events
         self.data_stream.subscribe('tick', self.on_tick)
         self.data_stream.subscribe('candle', self.on_candle)
         self.data_stream.subscribe('signal', self.on_signal)
@@ -367,20 +345,17 @@ class EventDrivenTradingEngine:
         """Handle tick event"""
         tick = event.data['tick']
 
-        # Update positions
         if tick.stock_code in self.positions:
             pos = self.positions[tick.stock_code]
             pos['current_price'] = tick.price
             pos['unrealized_pnl'] = (tick.price - pos['avg_price']) * pos['quantity']
 
-        # Check stop loss / take profit
         self._check_exit_conditions(tick)
 
     def on_candle(self, event: StreamingEvent):
         """Handle candle event"""
         candle = event.data['candle']
 
-        # Generate trading signals
         signal = self._generate_signal(candle)
 
         if signal:
@@ -395,7 +370,6 @@ class EventDrivenTradingEngine:
         """Handle signal event"""
         signal = event.data['signal']
 
-        # Execute order based on signal
         if signal['action'] == 'buy':
             self.place_order('buy', signal['stock_code'], signal['quantity'])
         elif signal['action'] == 'sell':
@@ -403,25 +377,23 @@ class EventDrivenTradingEngine:
 
     def _generate_signal(self, candle: StreamingCandle) -> Optional[Dict]:
         """Generate trading signal from candle"""
-        # Get recent candles
         candles = self.data_stream.get_candles(candle.stock_code, candle.interval, count=20)
 
         if len(candles) < 20:
             return None
 
-        # Simple moving average crossover
         prices = [c.close for c in candles]
         ma_short = sum(prices[-5:]) / 5
         ma_long = sum(prices[-20:]) / 20
 
-        if ma_short > ma_long * 1.01:  # 1% above
+        if ma_short > ma_long * 1.01:
             return {
                 'action': 'buy',
                 'stock_code': candle.stock_code,
                 'quantity': 10,
                 'reason': 'MA crossover bullish'
             }
-        elif ma_short < ma_long * 0.99:  # 1% below
+        elif ma_short < ma_long * 0.99:
             if candle.stock_code in self.positions:
                 return {
                     'action': 'sell',
@@ -452,7 +424,6 @@ class EventDrivenTradingEngine:
 
         self.pending_orders.append(order)
 
-        # Simulate instant fill (in reality would wait for exchange)
         self._fill_order(order)
 
     def _fill_order(self, order: Dict):
@@ -460,7 +431,6 @@ class EventDrivenTradingEngine:
         order['status'] = 'filled'
         self.filled_orders.append(order)
 
-        # Update position
         if order['action'] == 'buy':
             if order['stock_code'] not in self.positions:
                 self.positions[order['stock_code']] = {
@@ -486,7 +456,6 @@ class EventDrivenTradingEngine:
                 if pos['quantity'] <= 0:
                     del self.positions[order['stock_code']]
 
-        # Remove from pending
         self.pending_orders = [o for o in self.pending_orders if o['order_id'] != order['order_id']]
 
     def _check_exit_conditions(self, tick: StreamingTick):
@@ -497,11 +466,9 @@ class EventDrivenTradingEngine:
         pos = self.positions[tick.stock_code]
         pnl_pct = (tick.price - pos['avg_price']) / pos['avg_price'] * 100
 
-        # Stop loss at -3%
         if pnl_pct < -3:
             self.place_order('sell', tick.stock_code, pos['quantity'])
 
-        # Take profit at +5%
         elif pnl_pct > 5:
             self.place_order('sell', tick.stock_code, pos['quantity'])
 
@@ -524,7 +491,6 @@ class EventDrivenTradingEngine:
         }
 
 
-# Singleton instances
 _data_stream = None
 _trading_engine = None
 
@@ -551,10 +517,7 @@ if __name__ == '__main__':
         stream = get_data_stream()
         engine = get_trading_engine()
 
-        # Start streaming
         stream.is_running = True
         await stream._mock_stream(['005930', '000660'])
 
-    # Run test
-    # asyncio.run(test())
     print("✅ Real-time system ready")

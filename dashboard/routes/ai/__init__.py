@@ -1,4 +1,3 @@
-"""
 AI Routes Module - Modularized Structure
 Handles all AI-related API endpoints
 
@@ -11,10 +10,8 @@ Modules:
 - market_commentary: Real-time AI market commentary
 
 Refactored from monolithic ai.py (2,045 lines) to modular structure (6 modules)
-"""
 from flask import Blueprint
 
-# Import all sub-blueprints
 from .ai_mode import ai_mode_bp
 from .advanced_ai import advanced_ai_bp
 from .deep_learning import deep_learning_bp
@@ -22,10 +19,8 @@ from .advanced_systems import advanced_systems_bp
 from .auto_analysis import auto_analysis_bp
 from .market_commentary import market_commentary_bp
 
-# Import common utilities
 from .common import set_bot_instance, get_bot_instance
 
-# Create main blueprint
 ai_bp = Blueprint('ai', __name__)
 
 
@@ -40,7 +35,6 @@ def register_ai_routes(app):
         from dashboard.routes.ai import register_ai_routes
         register_ai_routes(app)
     """
-    # Register all sub-blueprints
     app.register_blueprint(ai_mode_bp)
     app.register_blueprint(advanced_ai_bp)
     app.register_blueprint(deep_learning_bp)
@@ -58,13 +52,11 @@ def register_ai_routes(app):
     print("  Total: 34 AI endpoints")
 
 
-# For backward compatibility: export main blueprint
 __all__ = [
     'ai_bp',
     'register_ai_routes',
     'set_bot_instance',
     'get_bot_instance',
-    # Sub-blueprints
     'ai_mode_bp',
     'advanced_ai_bp',
     'deep_learning_bp',

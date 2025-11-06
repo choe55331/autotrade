@@ -1,7 +1,5 @@
-"""
 v6.0 기능 검증 스크립트
 백엔드 기능들이 실제로 작동하는지 확인
-"""
 import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
@@ -27,7 +25,6 @@ def test_virtual_trading_data_enricher():
         enricher = create_enricher()
         print("✅ Data Enricher 초기화 성공")
 
-        # 테스트 데이터 (부족한 필드들)
         test_stock_data = {
             'stock_code': '005930',
             'stock_name': '삼성전자',
@@ -36,10 +33,8 @@ def test_virtual_trading_data_enricher():
             'volume': 10000000,
         }
 
-        # Enrichment 실행
         enriched = enricher.enrich_stock_data(test_stock_data)
 
-        # 추가된 필드 확인
         added_fields = [
             'rsi', 'macd', 'macd_signal', 'macd_histogram', 'bb_position',
             'ma20', 'volatility', 'consecutive_down_days', 'high_52week',
@@ -84,7 +79,6 @@ def test_virtual_trading_strategies():
         strategies = create_all_diverse_strategies()
         print(f"✅ {len(strategies)}개 전략 로드 성공\n")
 
-        # 테스트용 enriched 데이터
         from virtual_trading.data_enricher import create_enricher
         enricher = create_enricher()
 
@@ -168,7 +162,6 @@ def test_unified_risk_manager():
         manager = UnifiedRiskManager(risk_mode='balanced')
         print(f"✅ Risk Manager 초기화 성공 (모드: balanced)")
 
-        # 포지션 사이징 테스트
         position_size = manager.calculate_position_size(
             stock_price=70000,
             available_cash=10000000,
@@ -183,7 +176,6 @@ def test_unified_risk_manager():
         print(f"  - 계산된 포지션: {position_size:,}원")
         print(f"  - 비중: {position_size/10000000*100:.1f}%")
 
-        # 4가지 모드 테스트
         print(f"\n📊 4가지 Risk Modes 테스트:")
         modes = ['conservative', 'moderate', 'aggressive', 'defensive']
         for mode in modes:
@@ -209,31 +201,25 @@ def test_batch_api_client():
     try:
         from api.batch_client import BatchAPIClient
 
-        # Mock API 클라이언트 생성
         class MockAPI:
             def get_current_price(self, code):
-                time.sleep(0.01)  # 10ms 지연 시뮬레이션
+                time.sleep(0.01)
                 return 70000
 
         client = BatchAPIClient(MockAPI(), batch_size=10, max_workers=5)
         print(f"✅ Batch Client 초기화 (배치크기: 10, workers: 5)")
 
-        # 100개 종목 테스트
         test_codes = [f"{i:06d}" for i in range(100)]
 
         print(f"\n📊 100개 종목 가격 조회 테스트:")
         print(f"  (각 API 호출: 10ms 지연)")
 
-        # 순차 처리 시뮬레이션
         sequential_time = 100 * 0.01
         print(f"  - 순차 처리 예상: {sequential_time:.2f}초")
 
-        # 병렬 처리 실제 측정
         start = time.time()
-        # 실제로는 API 호출 안 함 (MockAPI 사용)
         elapsed = time.time() - start
 
-        # 이론적 개선율
         improvement = (1 - (sequential_time / 10) / sequential_time) * 100
         print(f"  - 병렬 처리 예상: {sequential_time/10:.2f}초")
         print(f"  - 성능 개선: ~{improvement:.0f}%")
@@ -255,15 +241,12 @@ def test_redis_cache():
     try:
         from utils.redis_cache import cache_manager
 
-        # 캐시 테스트
         test_key = "test_key_v6"
         test_value = {"test": "data", "timestamp": time.time()}
 
-        # 저장
         cache_manager.set(test_key, test_value, ttl=60)
         print(f"✅ 캐시 저장 성공")
 
-        # 조회
         cached = cache_manager.get(test_key)
         if cached == test_value:
             print(f"✅ 캐시 조회 성공")
@@ -283,7 +266,7 @@ def test_redis_cache():
     except Exception as e:
         print(f"❌ 테스트 실패: {e}")
         print(f"⚠️ Redis가 없어도 Memory fallback으로 작동합니다")
-        return True  # Memory fallback은 정상
+        return True
 
 
 def main():

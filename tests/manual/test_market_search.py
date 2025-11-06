@@ -1,11 +1,7 @@
-#!/usr/bin/env python3
-"""
 시장탐색 기능 직접 테스트
-"""
 import sys
 from pathlib import Path
 
-# Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from core import KiwoomRESTClient
@@ -19,17 +15,14 @@ def test_volume_rank():
     print("=" * 80)
 
     try:
-        # 1. REST 클라이언트 초기화
         print("\n1. REST 클라이언트 초기화 중...")
         client = KiwoomRESTClient()
         print("✅ REST 클라이언트 초기화 완료")
 
-        # 2. DataFetcher 생성
         print("\n2. DataFetcher 생성 중...")
         fetcher = DataFetcher(client)
         print("✅ DataFetcher 생성 완료")
 
-        # 3. 거래량 순위 조회
         print("\n3. 거래량 순위 조회 중...")
         print("   - 시장: KOSPI")
         print("   - 개수: 20개")
@@ -38,7 +31,6 @@ def test_volume_rank():
 
         print(f"\n✅ 조회 완료! {len(result)}개 종목")
 
-        # 4. 결과 출력
         if result:
             print("\n" + "=" * 80)
             print("거래량 순위 결과")
@@ -46,7 +38,7 @@ def test_volume_rank():
             print(f"{'순위':<5} {'종목명':<15} {'종목코드':<10} {'현재가':>12} {'등락률':>10} {'거래량':>15}")
             print("-" * 80)
 
-            for i, item in enumerate(result[:10], 1):  # 상위 10개만 출력
+            for i, item in enumerate(result[:10], 1):
                 name = item.get('name', item.get('stock_name', '-'))
                 code = item.get('code', item.get('stock_code', '-'))
                 price = item.get('price', item.get('current_price', 0))
@@ -121,15 +113,11 @@ def main():
 시장탐색 기능이 정상 작동하는지 확인합니다.
 
 대시보드를 실행하지 않아도 테스트할 수 있습니다.
-    """)
 
-    # Test 1: 거래량 순위
     success1 = test_volume_rank()
 
-    # Test 2: 등락률 순위
     success2 = test_price_change_rank()
 
-    # 결과 요약
     print("\n" + "=" * 80)
     print("테스트 결과 요약")
     print("=" * 80)

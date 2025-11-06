@@ -1,7 +1,5 @@
-"""
 ai/mock_analyzer.py
 Mock AI 분석기 (테스트/개발용)
-"""
 import logging
 import random
 import time
@@ -47,7 +45,6 @@ class MockAnalyzer(BaseAnalyzer):
         stock_data: Dict[str, Any],
         analysis_type: str = 'comprehensive'
     ) -> Dict[str, Any]:
-        """
         종목 분석 (Mock)
         
         Args:
@@ -56,29 +53,22 @@ class MockAnalyzer(BaseAnalyzer):
         
         Returns:
             Mock 분석 결과
-        """
-        # 초기화 확인
         if not self.is_initialized:
             self.initialize()
         
-        # 데이터 검증
         is_valid, msg = self.validate_stock_data(stock_data)
         if not is_valid:
             return self._get_error_result(msg)
         
-        # 지연 시뮬레이션
         time.sleep(self.delay)
         
-        # 통계 업데이트
         self.update_statistics(True, self.delay)
         
-        # Mock 결과 생성
         stock_code = stock_data.get('stock_code', '')
         stock_name = stock_data.get('stock_name', '')
         current_price = stock_data.get('current_price', 0)
         change_rate = stock_data.get('change_rate', 0)
         
-        # 등락률에 따른 기본 점수
         base_score = 5.0
         if change_rate > 5:
             base_score = 8.0
@@ -91,11 +81,9 @@ class MockAnalyzer(BaseAnalyzer):
         elif change_rate < -1:
             base_score = 4.0
         
-        # 랜덤 변동 추가
         score = base_score + random.uniform(-1, 1)
         score = max(0, min(10, score))
         
-        # 신호 결정
         if score >= 7.5:
             signal = 'buy'
             confidence = 'High'
@@ -109,10 +97,8 @@ class MockAnalyzer(BaseAnalyzer):
             signal = 'sell'
             confidence = 'Low'
         
-        # 이유 생성
         reasons = self._generate_reasons(signal, stock_data)
         
-        # 리스크 생성
         risks = self._generate_risks(stock_data)
         
         result = {
@@ -151,11 +137,9 @@ class MockAnalyzer(BaseAnalyzer):
         time.sleep(self.delay)
         self.update_statistics(True, self.delay)
         
-        # 랜덤 시장 심리
         sentiments = ['bullish', 'bearish', 'neutral']
         sentiment = random.choice(sentiments)
         
-        # 심리에 따른 점수
         if sentiment == 'bullish':
             score = random.uniform(6.5, 8.5)
         elif sentiment == 'bearish':
@@ -217,14 +201,12 @@ class MockAnalyzer(BaseAnalyzer):
         
         return result
     
-    # ==================== Mock 데이터 생성 ====================
     
     def _generate_reasons(
         self,
         signal: str,
         stock_data: Dict[str, Any]
     ) -> list:
-        """매수/매도 이유 생성"""
         change_rate = stock_data.get('change_rate', 0)
         volume = stock_data.get('volume', 0)
         

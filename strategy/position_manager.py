@@ -1,14 +1,11 @@
-"""
 AutoTrade Pro - 통합 포지션 관리자
 모든 전략에서 공통으로 사용하는 포지션 관리 로직
 
-v4.2 CRITICAL #2: Use standard Position from core
-"""
+v4.2 CRITICAL
 from datetime import datetime
 from typing import Dict, List, Optional, Any
 import logging
 
-# v4.2: Use standard Position from core
 from core import Position
 
 logger = logging.getLogger(__name__)
@@ -32,7 +29,6 @@ class PositionManager:
         take_profit_price: Optional[float] = None,
         **metadata
     ) -> Position:
-        """
         포지션 추가
 
         Args:
@@ -47,10 +43,8 @@ class PositionManager:
 
         Returns:
             추가된 Position 객체
-        """
         if stock_code in self.positions:
             logger.warning(f"[{stock_code}] 이미 포지션이 존재합니다. 기존 포지션을 업데이트합니다.")
-            # 기존 포지션 업데이트 (평균 단가 계산)
             existing = self.positions[stock_code]
             total_quantity = existing.quantity + quantity
             total_cost = (existing.quantity * existing.purchase_price) + (quantity * purchase_price)
@@ -62,7 +56,6 @@ class PositionManager:
 
             return existing
         else:
-            # Prepare metadata (include order_id if provided)
             meta = dict(metadata)
             if order_id:
                 meta['order_id'] = order_id
@@ -73,7 +66,7 @@ class PositionManager:
                 quantity=quantity,
                 purchase_price=purchase_price,
                 current_price=purchase_price,
-                entry_time=datetime.now(),  # core.Position uses entry_time
+                entry_time=datetime.now(),
                 stop_loss_price=stop_loss_price,
                 take_profit_price=take_profit_price,
                 metadata=meta
@@ -137,7 +130,6 @@ class PositionManager:
             new_quantity = position.quantity + quantity_change
 
             if new_quantity <= 0:
-                # 전체 청산
                 self.remove_position(stock_code)
             else:
                 position.quantity = new_quantity
@@ -233,7 +225,6 @@ class PositionManager:
         return False
 
 
-# 싱글톤 패턴을 위한 글로벌 인스턴스
 _position_manager_instance: Optional[PositionManager] = None
 
 

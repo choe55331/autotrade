@@ -1,9 +1,6 @@
-#!/usr/bin/env python3
-"""
 AutoTrade 시스템 종합 기능 보고서 생성기
 
 모든 주요 기능을 정리하고 테이블 형식으로 결과 표시
-"""
 
 import os
 from datetime import datetime
@@ -15,10 +12,8 @@ def generate_comprehensive_report():
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-    # 모든 기능 정리
     features = []
 
-    # 카테고리 1: 계좌 API
     features.extend([
         ("1. 계좌 API", "kt00001 - 예수금 조회", "✅ 작동", "✅", "대시보드 계좌 섹션"),
         ("1. 계좌 API", "kt00004 - 계좌평가 조회", "✅ 작동", "✅", "총 자산 계산"),
@@ -33,7 +28,6 @@ def generate_comprehensive_report():
         ("1. 계좌 API", "ka10076 - 계좌잔고", "✅ 작동", "❌", ""),
     ])
 
-    # 카테고리 2: 시장 API - 시세
     features.extend([
         ("2. 시장 API - 시세", "ka10003 - 종목 체결정보", "✅ 작동", "✅", "현재가 조회"),
         ("2. 시장 API - 시세", "ka10004 - 호가 조회", "✅ 작동", "✅", "매수/매도 호가"),
@@ -46,7 +40,6 @@ def generate_comprehensive_report():
         ("2. 시장 API - 시세", "DOSK_0005 - 종목코드리스트", "✅ 작동", "✅", "종목 검색"),
     ])
 
-    # 카테고리 2: 시장 API - 순위
     features.extend([
         ("2. 시장 API - 순위", "ka10031 - 거래량 순위", "✅ 작동", "✅", "Fast Scan 사용"),
         ("2. 시장 API - 순위", "ka10027 - 등락률 순위", "✅ 작동", "✅", "Fast Scan 사용"),
@@ -56,7 +49,6 @@ def generate_comprehensive_report():
         ("2. 시장 API - 순위", "ka10033 - 신용비율 순위", "✅ 작동", "❌", ""),
     ])
 
-    # 카테고리 2: 시장 API - 외국인/기관
     features.extend([
         ("2. 시장 API - 외국인/기관", "ka10034 - 외국인 기간별매매", "✅ 작동", "❌", "순위 정보"),
         ("2. 시장 API - 외국인/기관", "ka10035 - 외국인 연속매매", "✅ 작동", "❌", "연속 순매수"),
@@ -69,20 +61,17 @@ def generate_comprehensive_report():
         ("2. 시장 API - 외국인/기관", "ka10078 - 증권사별 매매동향", "✅ 작동", "✅", "Deep Scan 사용"),
     ])
 
-    # 카테고리 2: 시장 API - 기타
     features.extend([
         ("2. 시장 API - 기타", "ka10047 - 체결강도", "✅ 작동", "✅", "Deep Scan 핵심"),
         ("2. 시장 API - 기타", "ka90013 - 프로그램매매", "✅ 작동", "✅", "Deep Scan 사용"),
     ])
 
-    # 카테고리 3: 주문 API
     features.extend([
         ("3. 주문 API", "DOSK_0001 - 현금 주식 주문", "✅ 작동", "✅", "main.py 매수/매도"),
         ("3. 주문 API", "DOSK_0011 - 현금 주식 정정", "✅ 작동", "❌", ""),
         ("3. 주문 API", "DOSK_0012 - 현금 주식 취소", "✅ 작동", "❌", ""),
     ])
 
-    # 카테고리 4: WebSocket
     features.extend([
         ("4. WebSocket", "WebSocketManager 클래스", "✅ 구현", "✅", "core/websocket_manager.py"),
         ("4. WebSocket", "WebSocket 연결", "✅ 구현", "✅", "LOGIN 메시지"),
@@ -96,7 +85,6 @@ def generate_comprehensive_report():
         ("4. WebSocket", "main.py 통합", "✅ 완료", "✅", "L201-270 초기화"),
     ])
 
-    # 카테고리 5: AI 분석
     features.extend([
         ("5. AI 분석", "Gemini AI 통합", "✅ 구현", "✅", "ai/gemini_analyzer.py"),
         ("5. AI 분석", "GPT-4 통합", "✅ 구현", "❌", "ai/gpt4_analyzer.py"),
@@ -108,7 +96,6 @@ def generate_comprehensive_report():
         ("5. AI 분석", "Multi-Agent 시스템", "✅ 구현", "✅", "consensus_analyzer.py"),
     ])
 
-    # 카테고리 6: 스캐너
     features.extend([
         ("6. 스캐너", "Fast Scan - 거래량 급등", "✅ 구현", "✅", "ka10023 사용"),
         ("6. 스캐너", "Fast Scan - 등락률 상위", "✅ 구현", "✅", "ka10027 사용"),
@@ -123,7 +110,6 @@ def generate_comprehensive_report():
         ("6. 스캐너", "스캐너 파이프라인", "✅ 구현", "✅", "3단계 스캔 시스템"),
     ])
 
-    # 카테고리 7: 전략 및 스코어링
     features.extend([
         ("7. 전략/스코어링", "스코어링 시스템", "✅ 구현", "✅", "strategy/scoring_system.py"),
         ("7. 전략/스코어링", "거래량 분석", "✅ 구현", "✅", "평균 대비 비율"),
@@ -139,7 +125,6 @@ def generate_comprehensive_report():
         ("7. 전략/스코어링", "페어 트레이딩", "✅ 구현", "❌", "strategy/pairs.py"),
     ])
 
-    # 카테고리 8: 포트폴리오 최적화
     features.extend([
         ("8. 포트폴리오", "Markowitz 최적화", "✅ 구현", "✅", "대시보드 포트폴리오 탭"),
         ("8. 포트폴리오", "Black-Litterman 모델", "✅ 구현", "✅", "AI 의견 반영"),
@@ -149,7 +134,6 @@ def generate_comprehensive_report():
         ("8. 포트폴리오", "VaR/CVaR 계산", "✅ 구현", "✅", "리스크 관리"),
     ])
 
-    # 카테고리 9: 대시보드
     features.extend([
         ("9. 대시보드", "Flask 웹 서버", "✅ 구현", "✅", "app_apple.py"),
         ("9. 대시보드", "계좌 정보 표시", "✅ 구현", "✅", "예수금/평가금액/총자산"),
@@ -168,7 +152,6 @@ def generate_comprehensive_report():
         ("9. 대시보드", "WebSocket 통합", "✅ 구현", "✅", "실시간 데이터"),
     ])
 
-    # 카테고리 10: 유틸리티
     features.extend([
         ("10. 유틸리티", "로깅 시스템", "✅ 구현", "✅", "logger_new.py"),
         ("10. 유틸리티", "거래일 계산", "✅ 구현", "✅", "trading_date.py"),
@@ -183,12 +166,10 @@ def generate_comprehensive_report():
         ("10. 유틸리티", "페이퍼 트레이딩", "✅ 구현", "✅", "가상 거래"),
     ])
 
-    # 통계 계산
     total = len(features)
     working = sum(1 for f in features if "✅ 작동" in f[2] or "✅ 구현" in f[2])
     dashboard = sum(1 for f in features if "✅" in f[3])
 
-    # 콘솔 출력
     print("\n" + "=" * 150)
     print("  🚀 AutoTrade 시스템 종합 기능 보고서")
     print("=" * 150)
@@ -209,7 +190,6 @@ def generate_comprehensive_report():
     print(f"  대시보드 연동: {dashboard}개 ({dashboard/total*100:.1f}%)")
     print("=" * 150 + "\n")
 
-    # CSV 저장
     csv_filename = f"system_features_{timestamp}.csv"
     with open(csv_filename, 'w', newline='', encoding='utf-8-sig') as f:
         writer = csv.writer(f)
@@ -218,7 +198,6 @@ def generate_comprehensive_report():
 
     print(f"✅ CSV 파일 저장: {csv_filename}\n")
 
-    # HTML 보고서 생성
     html_filename = f"system_features_{timestamp}.html"
     html_content = f"""<!DOCTYPE html>
 <html lang="ko">
@@ -230,22 +209,22 @@ def generate_comprehensive_report():
         * {{ margin: 0; padding: 0; box-sizing: border-box; }}
         body {{
             font-family: 'Segoe UI', 'Noto Sans KR', Arial, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            color: #e0e0e0;
+            background: linear-gradient(135deg,
+            color:
             padding: 30px;
             line-height: 1.6;
         }}
         .container {{ max-width: 1600px; margin: 0 auto; }}
         h1 {{
             text-align: center;
-            color: #00d4ff;
+            color:
             font-size: 36px;
             margin-bottom: 10px;
             text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
         }}
         .timestamp {{
             text-align: center;
-            color: #888;
+            color:
             margin-bottom: 30px;
             font-size: 14px;
         }}
@@ -268,11 +247,11 @@ def generate_comprehensive_report():
         .summary-value {{
             font-size: 48px;
             font-weight: bold;
-            color: #00d4ff;
+            color:
             margin-bottom: 10px;
         }}
         .summary-label {{
-            color: #aaa;
+            color:
             font-size: 14px;
             text-transform: uppercase;
         }}
@@ -287,13 +266,13 @@ def generate_comprehensive_report():
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }}
         thead {{
-            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            background: linear-gradient(135deg,
         }}
         th {{
             padding: 15px 20px;
             text-align: left;
             font-weight: 600;
-            color: #fff;
+            color:
             font-size: 14px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -306,13 +285,13 @@ def generate_comprehensive_report():
         tr:hover td {{
             background: rgba(0, 212, 255, 0.1);
         }}
-        .status-ok {{ color: #4caf50; font-weight: bold; }}
-        .status-impl {{ color: #2196f3; font-weight: bold; }}
-        .status-warn {{ color: #ff9800; font-weight: bold; }}
-        .dashboard-yes {{ color: #4caf50; font-weight: bold; }}
-        .dashboard-no {{ color: #666; }}
-        .dashboard-warn {{ color: #ff9800; }}
-        .category {{ font-weight: 600; color: #00d4ff; }}
+        .status-ok {{ color:
+        .status-impl {{ color:
+        .status-warn {{ color:
+        .dashboard-yes {{ color:
+        .dashboard-no {{ color:
+        .dashboard-warn {{ color:
+        .category {{ font-weight: 600; color:
     </style>
 </head>
 <body>
@@ -346,7 +325,6 @@ def generate_comprehensive_report():
                 </tr>
             </thead>
             <tbody>
-"""
 
     for category, feature, status, dashboard_yn, notes in features:
         status_class = "status-ok" if "✅ 작동" in status else ("status-impl" if "✅ 구현" in status else "status-warn")
@@ -360,7 +338,6 @@ def generate_comprehensive_report():
                     <td class="{dashboard_class}">{dashboard_yn}</td>
                     <td>{notes}</td>
                 </tr>
-"""
 
     html_content += """
             </tbody>
@@ -368,7 +345,6 @@ def generate_comprehensive_report():
     </div>
 </body>
 </html>
-"""
 
     with open(html_filename, 'w', encoding='utf-8') as f:
         f.write(html_content)

@@ -1,7 +1,5 @@
-"""
 Real-Time Market Scanner - v5.14
 Advanced market scanning with anomaly detection, pattern recognition, and opportunity discovery
-"""
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Any, Callable
 from datetime import datetime, timedelta
@@ -41,7 +39,7 @@ class MarketSignal:
     stock_name: str
     signal_type: ScannerSignal
     strength: SignalStrength
-    confidence: float  # 0-1
+    confidence: float
     current_price: float
     trigger_value: float
     reference_value: float
@@ -81,23 +79,19 @@ class MarketScanner:
                  volatility_threshold: float = 2.5,
                  breakout_lookback: int = 20,
                  scan_interval_seconds: int = 60):
-        """
         Args:
             volume_spike_threshold: 거래량 급증 임계값 (평균 대비 배수)
             volatility_threshold: 변동성 임계값 (표준편차 배수)
             breakout_lookback: 돌파 감지 기간 (일)
             scan_interval_seconds: 스캔 간격 (초)
-        """
         self.volume_spike_threshold = volume_spike_threshold
         self.volatility_threshold = volatility_threshold
         self.breakout_lookback = breakout_lookback
         self.scan_interval_seconds = scan_interval_seconds
 
-        # Signal history
         self.signal_history: deque = deque(maxlen=1000)
         self.last_scan_time: Optional[datetime] = None
 
-        # Statistics
         self.stats = {
             'total_signals': 0,
             'signals_by_type': {},
@@ -111,7 +105,6 @@ class MarketScanner:
     def scan_market(self,
                     market_data: Dict[str, Dict[str, Any]],
                     price_histories: Dict[str, List[Dict[str, Any]]]) -> List[MarketSignal]:
-        """
         시장 스캔
 
         Args:
@@ -135,7 +128,6 @@ class MarketScanner:
 
         Returns:
             List[MarketSignal]
-        """
         scan_start = datetime.now()
         signals = []
 
@@ -151,38 +143,32 @@ class MarketScanner:
 
             stock_name = current_data.get('stock_name', stock_code)
 
-            # Check multiple signals
             stock_signals = []
 
-            # 1. Volume spike
             vol_signal = self._detect_volume_spike(
                 stock_code, stock_name, current_data, history
             )
             if vol_signal:
                 stock_signals.append(vol_signal)
 
-            # 2. Price breakout
             breakout_signal = self._detect_price_breakout(
                 stock_code, stock_name, current_data, history
             )
             if breakout_signal:
                 stock_signals.append(breakout_signal)
 
-            # 3. Unusual volatility
             vol_signal = self._detect_unusual_volatility(
                 stock_code, stock_name, current_data, history
             )
             if vol_signal:
                 stock_signals.append(vol_signal)
 
-            # 4. Momentum shift
             momentum_signal = self._detect_momentum_shift(
                 stock_code, stock_name, current_data, history
             )
             if momentum_signal:
                 stock_signals.append(momentum_signal)
 
-            # 5. Pattern detection
             pattern_signal = self._detect_patterns(
                 stock_code, stock_name, current_data, history
             )
@@ -191,7 +177,6 @@ class MarketScanner:
 
             signals.extend(stock_signals)
 
-        # Update statistics
         self._update_statistics(signals)
         self.last_scan_time = datetime.now()
 
@@ -206,7 +191,6 @@ class MarketScanner:
                              min_confidence: float = 0.7,
                              min_strength: SignalStrength = SignalStrength.MODERATE,
                              top_n: int = 10) -> List[MarketSignal]:
-        """
         상위 기회 추출
 
         Args:
@@ -217,14 +201,11 @@ class MarketScanner:
 
         Returns:
             List[MarketSignal]
-        """
-        # Filter by confidence and strength
         filtered = [
             s for s in signals
             if s.confidence >= min_confidence and s.strength.value >= min_strength.value
         ]
 
-        # Sort by confidence * strength
         sorted_signals = sorted(
             filtered,
             key=lambda s: s.confidence * s.strength.value,
@@ -246,22 +227,19 @@ class MarketScanner:
             signals_by_type=self.stats['signals_by_type'].copy(),
             signals_by_strength=self.stats['signals_by_strength'].copy(),
             avg_confidence=avg_confidence,
-            stocks_scanned=0,  # Updated during scan
-            scan_duration_ms=0,  # Updated during scan
+            stocks_scanned=0,
+            scan_duration_ms=0,
             opportunities_found=len([s for s in self.signal_history if s.confidence > 0.7])
         )
 
-    # ===== DETECTION METHODS =====
 
     def _detect_volume_spike(self, stock_code: str, stock_name: str,
                             current_data: Dict[str, Any],
                             history: List[Dict[str, Any]]) -> Optional[MarketSignal]:
-        """거래량 급증 감지"""
         current_volume = current_data.get('volume', 0)
         if current_volume == 0:
             return None
 
-        # Calculate average volume (20 days)
         recent_volumes = [h['volume'] for h in history[-20:] if h.get('volume', 0) > 0]
         if not recent_volumes:
             return None
@@ -272,11 +250,9 @@ class MarketScanner:
 
         volume_ratio = current_volume / avg_volume
 
-        # Check threshold
         if volume_ratio < self.volume_spike_threshold:
             return None
 
-        # Determine strength
         if volume_ratio > 5.0:
             strength = SignalStrength.VERY_STRONG
             confidence = 0.95
@@ -313,7 +289,6 @@ class MarketScanner:
     def _detect_price_breakout(self, stock_code: str, stock_name: str,
                                current_data: Dict[str, Any],
                                history: List[Dict[str, Any]]) -> Optional[MarketSignal]:
-        """가격 돌파 감지"""
         current_price = current_data.get('price', 0)
         if current_price == 0:
             return None
@@ -329,8 +304,7 @@ class MarketScanner:
         resistance = max(highs)
         support = min(lows)
 
-        # Upward breakout
-        if current_price > resistance * 1.01:  # 1% above resistance
+        if current_price > resistance * 1.01:
             breakout_pct = ((current_price - resistance) / resistance) * 100
 
             if breakout_pct > 5:
@@ -365,8 +339,7 @@ class MarketScanner:
                 }
             )
 
-        # Downward breakout
-        elif current_price < support * 0.99:  # 1% below support
+        elif current_price < support * 0.99:
             breakout_pct = ((support - current_price) / support) * 100
 
             strength = SignalStrength.MODERATE if breakout_pct > 2 else SignalStrength.WEAK
@@ -396,15 +369,12 @@ class MarketScanner:
     def _detect_unusual_volatility(self, stock_code: str, stock_name: str,
                                    current_data: Dict[str, Any],
                                    history: List[Dict[str, Any]]) -> Optional[MarketSignal]:
-        """비정상 변동성 감지"""
         if len(history) < 20:
             return None
 
-        # Calculate recent volatility
         recent_closes = [h['close'] for h in history[-20:]]
         returns = np.diff(recent_closes) / recent_closes[:-1]
 
-        # Current intraday volatility
         current_high = current_data.get('high', current_data.get('price', 0))
         current_low = current_data.get('low', current_data.get('price', 0))
         current_price = current_data.get('price', 0)
@@ -414,7 +384,6 @@ class MarketScanner:
 
         intraday_range = (current_high - current_low) / current_price
 
-        # Historical average range
         avg_range = np.mean([(h['high'] - h['low']) / h['close'] for h in history[-20:]])
 
         if avg_range == 0:
@@ -422,11 +391,9 @@ class MarketScanner:
 
         range_ratio = intraday_range / avg_range
 
-        # Check threshold
         if range_ratio < self.volatility_threshold:
             return None
 
-        # Determine strength
         if range_ratio > 4.0:
             strength = SignalStrength.VERY_STRONG
             confidence = 0.90
@@ -462,20 +429,15 @@ class MarketScanner:
     def _detect_momentum_shift(self, stock_code: str, stock_name: str,
                                current_data: Dict[str, Any],
                                history: List[Dict[str, Any]]) -> Optional[MarketSignal]:
-        """모멘텀 전환 감지"""
         if len(history) < 10:
             return None
 
         closes = np.array([h['close'] for h in history[-10:]])
 
-        # Calculate short-term momentum
         short_returns = (closes[-1] - closes[-3]) / closes[-3]
 
-        # Calculate medium-term momentum
         medium_returns = (closes[-3] - closes[0]) / closes[0]
 
-        # Momentum shift detection
-        # Positive shift: short-term reverses from negative medium-term
         if short_returns > 0.02 and medium_returns < -0.05:
             strength = SignalStrength.STRONG if short_returns > 0.05 else SignalStrength.MODERATE
             confidence = 0.75
@@ -499,7 +461,6 @@ class MarketScanner:
                 }
             )
 
-        # Negative shift: short-term reverses from positive medium-term
         elif short_returns < -0.02 and medium_returns > 0.05:
             strength = SignalStrength.MODERATE
             confidence = 0.70
@@ -528,14 +489,12 @@ class MarketScanner:
     def _detect_patterns(self, stock_code: str, stock_name: str,
                         current_data: Dict[str, Any],
                         history: List[Dict[str, Any]]) -> Optional[MarketSignal]:
-        """차트 패턴 감지"""
         if len(history) < 5:
             return None
 
         recent = history[-5:]
         closes = [h['close'] for h in recent]
 
-        # Simple pattern: Higher lows (bullish)
         lows = [h['low'] for h in recent]
         if all(lows[i] <= lows[i+1] for i in range(len(lows)-1)):
             strength = SignalStrength.MODERATE
@@ -559,7 +518,6 @@ class MarketScanner:
                 }
             )
 
-        # Simple pattern: Lower highs (bearish)
         highs = [h['high'] for h in recent]
         if all(highs[i] >= highs[i+1] for i in range(len(highs)-1)):
             strength = SignalStrength.MODERATE
@@ -590,21 +548,17 @@ class MarketScanner:
         self.stats['total_signals'] += len(signals)
 
         for signal in signals:
-            # By type
             signal_type = signal.signal_type.value
             self.stats['signals_by_type'][signal_type] = \
                 self.stats['signals_by_type'].get(signal_type, 0) + 1
 
-            # By strength
             strength = signal.strength.name
             self.stats['signals_by_strength'][strength] = \
                 self.stats['signals_by_strength'].get(strength, 0) + 1
 
-            # Add to history
             self.signal_history.append(signal)
 
 
-# Global singleton
 _market_scanner: Optional[MarketScanner] = None
 
 

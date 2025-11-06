@@ -1,4 +1,3 @@
-"""
 Notification System
 Multi-channel notification system for trading alerts
 
@@ -8,7 +7,6 @@ Features:
 - Telegram bot integration
 - Priority-based alerting
 - Notification history
-"""
 import json
 import os
 from typing import Dict, List, Optional, Any
@@ -42,12 +40,12 @@ class Notification:
     """Single notification"""
     id: str
     timestamp: str
-    priority: str  # 'low', 'medium', 'high', 'critical'
-    category: str  # 'trade', 'ai', 'alert', 'system'
+    priority: str
+    category: str
     title: str
     message: str
-    channels: List[str]  # Which channels to use
-    data: Dict[str, Any] = None  # Additional data
+    channels: List[str]
+    data: Dict[str, Any] = None
     delivered: bool = False
     read: bool = False
 
@@ -66,7 +64,6 @@ class NotificationManager:
         self.desktop_enabled = True
         self.telegram_enabled = False
 
-        # Telegram config - credentials.py에서 초기값 로드
         try:
             from config import get_credentials
             creds = get_credentials()
@@ -74,7 +71,6 @@ class NotificationManager:
             self.telegram_bot_token: Optional[str] = telegram_config.get('bot_token')
             self.telegram_chat_id: Optional[str] = telegram_config.get('chat_id')
 
-            # 텔레그램 설정이 있으면 자동 활성화
             if self.telegram_bot_token and self.telegram_chat_id:
                 self.telegram_enabled = True
                 logger.info("Telegram 설정을 credentials에서 로드했습니다")
@@ -83,14 +79,11 @@ class NotificationManager:
             self.telegram_bot_token: Optional[str] = None
             self.telegram_chat_id: Optional[str] = None
 
-        # Notification history
         self.notifications: List[Notification] = []
 
-        # Sound files directory
         self.sounds_dir = Path('dashboard/static/sounds')
         self.sounds_dir.mkdir(parents=True, exist_ok=True)
 
-        # Config file
         self.config_file = Path('config/notifications.json')
         self.history_file = Path('data/notifications.json')
 
@@ -134,7 +127,7 @@ class NotificationManager:
             if self.history_file.exists():
                 with open(self.history_file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
-                    self.notifications = [Notification(**n) for n in data.get('notifications', [])][-100:]  # Keep last 100
+                    self.notifications = [Notification(**n) for n in data.get('notifications', [])][-100:]
         except Exception as e:
             logger.error(f"Error loading notification history: {e}")
 
@@ -159,7 +152,6 @@ class NotificationManager:
         channels: List[str] = None,
         data: Dict[str, Any] = None
     ) -> Notification:
-        """
         Send notification
 
         Args:
@@ -172,15 +164,12 @@ class NotificationManager:
 
         Returns:
             Notification object
-        """
         if not self.enabled:
             return None
 
-        # Auto-select channels based on priority if not specified
         if channels is None:
             channels = self._auto_select_channels(priority)
 
-        # Create notification
         notification = Notification(
             id=f"notif_{int(datetime.now().timestamp())}",
             timestamp=datetime.now().isoformat(),
@@ -194,7 +183,6 @@ class NotificationManager:
             read=False
         )
 
-        # Deliver to each channel
         for channel in channels:
             try:
                 if channel == 'sound' and self.sound_enabled:
@@ -228,7 +216,6 @@ class NotificationManager:
     def _send_sound(self, notification: Notification):
         """Play sound notification"""
         try:
-            # Determine sound file based on priority
             sound_map = {
                 'critical': 'critical_alert.wav',
                 'high': 'high_alert.wav',
@@ -239,17 +226,10 @@ class NotificationManager:
             sound_file = sound_map.get(notification.priority, 'notification.wav')
             sound_path = self.sounds_dir / sound_file
 
-            # Create placeholder sound file if not exists
             if not sound_path.exists():
-                # In production, use actual sound files
-                # For now, just log
                 logger.info(f"Would play sound: {sound_file}")
                 return
 
-            # Play sound (platform-specific)
-            # Windows: winsound.PlaySound(str(sound_path), winsound.SND_FILENAME)
-            # Mac: os.system(f"afplay {sound_path}")
-            # Linux: os.system(f"aplay {sound_path}")
 
             logger.info(f"🔊 Sound played: {sound_file}")
 
@@ -259,11 +239,7 @@ class NotificationManager:
     def _send_desktop(self, notification: Notification):
         """Send desktop notification"""
         try:
-            # Use platform-specific notification system
-            # Windows: win10toast
-            # Mac/Linux: notify-send
 
-            # For cross-platform, use plyer library
             try:
                 from plyer import notification as plyer_notif
                 plyer_notif.notify(
@@ -274,7 +250,6 @@ class NotificationManager:
                 )
                 logger.info(f"📢 Desktop notification sent: {notification.title}")
             except ImportError:
-                # Fallback: just log
                 logger.info(f"📢 [Desktop] {notification.title}: {notification.message}")
 
         except Exception as e:
@@ -289,7 +264,6 @@ class NotificationManager:
         try:
             import requests
 
-            # Format message
             priority_emoji = {
                 'critical': '🚨',
                 'high': '⚠️',
@@ -301,7 +275,6 @@ class NotificationManager:
 
             telegram_message = f"{emoji} **{notification.title}**\n\n{notification.message}"
 
-            # Send via Telegram Bot API
             url = f"https://api.telegram.org/bot{self.telegram_bot_token}/sendMessage"
             payload = {
                 'chat_id': self.telegram_chat_id,
@@ -319,7 +292,6 @@ class NotificationManager:
         except Exception as e:
             logger.error(f"Error sending Telegram notification: {e}")
 
-    # Convenience methods for common notifications
 
     def notify_trade(
         self,
@@ -329,14 +301,12 @@ class NotificationManager:
         price: float,
         reason: str
     ):
-        """Notify about a trade"""
         title = f"{'🟢 매수' if action == 'buy' else '🔴 매도'}: {stock_name}"
         message = f"""
 수량: {quantity}주
 가격: {price:,}원
 총액: {price * quantity:,}원
 이유: {reason}
-        """.strip()
 
         self.send(
             title=title,
@@ -358,13 +328,11 @@ class NotificationManager:
         confidence: float,
         reasoning: List[str]
     ):
-        """Notify about AI decision"""
         title = f"🤖 AI 결정: {decision_type.upper()} - {stock_name}"
         message = f"""
 신뢰도: {confidence:.0%}
 이유:
 {chr(10).join(f"  • {r}" for r in reasoning)}
-        """.strip()
 
         priority = 'high' if confidence > 0.8 else 'medium'
 
@@ -387,7 +355,6 @@ class NotificationManager:
         message: str,
         priority: str = 'medium'
     ):
-        """Send general alert"""
         self.send(
             title=f"⚠️ {title}",
             message=message,
@@ -402,13 +369,11 @@ class NotificationManager:
         stock_name: str,
         profit_pct: float
     ):
-        """Notify about paper trading result"""
         emoji = '📈' if profit_pct > 0 else '📉'
         title = f"{emoji} 가상매매: {strategy_name}"
         message = f"""
 {action}: {stock_name}
 수익률: {profit_pct:+.1f}%
-        """.strip()
 
         self.send(
             title=title,
@@ -459,7 +424,6 @@ class NotificationManager:
         }
 
 
-# Global instance
 _notification_manager: Optional[NotificationManager] = None
 
 
@@ -471,15 +435,12 @@ def get_notification_manager() -> NotificationManager:
     return _notification_manager
 
 
-# Example usage
 if __name__ == '__main__':
-    # Test notification manager
     manager = NotificationManager()
 
     print("\n📢 Notification System Test")
     print("=" * 60)
 
-    # Test trade notification
     manager.notify_trade(
         action='buy',
         stock_name='삼성전자',
@@ -488,7 +449,6 @@ if __name__ == '__main__':
         reason='AI 신뢰도 85%로 강력 매수'
     )
 
-    # Test AI decision notification
     manager.notify_ai_decision(
         decision_type='buy',
         stock_name='SK하이닉스',
@@ -500,7 +460,6 @@ if __name__ == '__main__':
         ]
     )
 
-    # Test alert
     manager.notify_alert(
         alert_type='system',
         title='AI 모드 활성화',

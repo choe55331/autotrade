@@ -1,4 +1,3 @@
-"""
 NXT 주문 테스트 (키움증권 API 문서 기반)
 
 공식 문서의 정확한 trde_tp 코드 사용:
@@ -8,7 +7,6 @@ NXT 주문 테스트 (키움증권 API 문서 기반)
 
 사용법:
     python test_nxt_orders_correct.py
-"""
 
 import json
 import logging
@@ -43,7 +41,6 @@ class NXTOrderCorrectTest:
         self.hour = now.hour
         self.minute = now.minute
 
-        # 결과 저장
         self.results = {
             'timestamp': datetime.now().isoformat(),
             'is_nxt_time': self.is_nxt,
@@ -67,7 +64,6 @@ class NXTOrderCorrectTest:
 
     def test_order(self, dmst_stex_tp: str, trde_tp: str, desc: str,
                    stock_code: str = '005930', price: int = 50000) -> Dict[str, Any]:
-        """주문 테스트"""
 
         logger.info(f"\n{'='*70}")
         logger.info(f"🧪 {desc}")
@@ -141,13 +137,11 @@ class NXTOrderCorrectTest:
         logger.info(f"NXT 시간: {self.is_nxt}")
         logger.info(f"정규장: {self.is_market}")
 
-        # 테스트 케이스 정의 (문서 기반)
         test_cases = []
 
         if period == '프리마켓':
             logger.info("\n📌 프리마켓 테스트 (08:00-09:00)")
             test_cases = [
-                # 문서 기반
                 ('KRX', '61', '📘 문서: KRX + 장시작전시간외(61)'),
                 ('NXT', '61', '📘 문서: NXT + 장시작전시간외(61)'),
                 ('KRX', '62', '📘 문서: KRX + 시간외단일가(62)'),
@@ -159,7 +153,6 @@ class NXTOrderCorrectTest:
         elif period == '애프터마켓':
             logger.info("\n📌 애프터마켓 테스트 (15:30-20:00)")
             test_cases = [
-                # 문서 기반
                 ('KRX', '81', '📘 문서: KRX + 장마감후시간외(81)'),
                 ('NXT', '81', '📘 문서: NXT + 장마감후시간외(81)'),
                 ('KRX', '62', '📘 문서: KRX + 시간외단일가(62)'),
@@ -186,7 +179,6 @@ class NXTOrderCorrectTest:
                 ('NXT', '62', '📘 문서: NXT + 시간외단일가(62)'),
             ]
 
-        # 확인
         logger.info("\n" + "="*80)
         logger.info("⚠️  실제 주문이 발생합니다!")
         logger.info("="*80)
@@ -200,12 +192,10 @@ class NXTOrderCorrectTest:
             logger.info("테스트를 취소합니다.")
             return
 
-        # 테스트 실행
         for dmst, trde, desc in test_cases:
             result = self.test_order(dmst, trde, desc)
             self.results['tests'].append(result)
 
-        # 결과 요약
         self.print_summary()
         self.save_results()
 
@@ -228,38 +218,29 @@ class NXTOrderCorrectTest:
                 logger.info(f"      trde_tp={test['trde_tp']}")
                 logger.info(f"      주문번호: {test['ord_no']}")
 
-            # 권장 코드
             best = success_tests[0]
             logger.info("\n" + "="*80)
             logger.info("💡 권장 코드 (api/order.py)")
             logger.info("="*80)
 
-            # 시간대 확인
             period = self.get_trading_period()
 
             if period == '프리마켓':
                 logger.info(f"""
-# 프리마켓 (08:00-09:00) 매수
 dmst_stex_tp = "{best['dmst_stex_tp']}"
-trde_tp = "{best['trde_tp']}"  # {best['description']}
-""")
+trde_tp = "{best['trde_tp']}"
             elif period == '애프터마켓':
                 logger.info(f"""
-# 애프터마켓 (15:30-20:00) 매수
 dmst_stex_tp = "{best['dmst_stex_tp']}"
-trde_tp = "{best['trde_tp']}"  # {best['description']}
-""")
+trde_tp = "{best['trde_tp']}"
             else:
                 logger.info(f"""
-# NXT 시간대 매수
 dmst_stex_tp = "{best['dmst_stex_tp']}"
-trde_tp = "{best['trde_tp']}"  # {best['description']}
-""")
+trde_tp = "{best['trde_tp']}"
 
         else:
             logger.warning("\n❌ 성공한 조합이 없습니다.")
 
-            # 오류 분석
             error_msgs = {}
             for test in tests:
                 msg = test.get('return_msg', test.get('error', 'Unknown'))

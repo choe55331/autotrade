@@ -1,4 +1,3 @@
-"""
 utils/logger_new.py
 Loguru 기반 통합 로깅 시스템 (v4.2)
 
@@ -7,7 +6,6 @@ CRITICAL 개선 사항:
 - Rate-limiting 기능 내장
 - 80% I/O 감소 (고빈도 로그 throttling)
 - 단일 API로 통합
-"""
 import sys
 import time
 from pathlib import Path
@@ -40,12 +38,11 @@ class LoguruLogger:
             config = get_config()
             log_config = config.logging
         except ImportError:
-            # 기본 설정 사용
             log_config = {
-                'level': 'INFO',  # 파일 로그 레벨
-                'console_level': 'WARNING',  # 콘솔 로그 레벨 (cmd 창 스팸 방지)
+                'level': 'INFO',
+                'console_level': 'WARNING',
                 'file_path': 'logs/bot.log',
-                'max_file_size': 10485760,  # 10MB
+                'max_file_size': 10485760,
                 'backup_count': 30,
                 'rotation': '00:00',
                 'format': '{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function}:{line} - {message}',
@@ -53,51 +50,45 @@ class LoguruLogger:
                 'colored_output': True,
             }
 
-        # 기존 핸들러 제거
         logger.remove()
 
-        # 기본 포맷 정의
         default_format = '{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function}:{line} - {message}'
 
-        # 콘솔 핸들러 (컬러 출력) - WARNING 이상만 출력 (cmd 창 스팸 방지)
         if log_config.get('console_output', True):
-            console_level = log_config.get('console_level', 'WARNING')  # 기본값: WARNING
+            console_level = log_config.get('console_level', 'WARNING')
             logger.add(
                 sys.stdout,
                 format=log_config.get('format') or default_format,
-                level=console_level,  # 콘솔은 WARNING 이상만
+                level=console_level,
                 colorize=log_config.get('colored_output', True),
                 backtrace=True,
                 diagnose=True,
             )
 
-        # 파일 핸들러 (로테이션)
         log_file = log_config.get('file_path', 'logs/bot.log')
         log_path = Path(log_file)
 
-        # 로그 디렉토리 생성
         log_path.parent.mkdir(parents=True, exist_ok=True)
 
         logger.add(
             log_path,
             format=log_config.get('format') or default_format,
             level=log_config.get('level', 'INFO'),
-            rotation=log_config.get('rotation', '00:00'),  # 매일 자정
-            retention=log_config.get('backup_count', 30),  # 30일 보관
-            compression='zip',  # 압축
+            rotation=log_config.get('rotation', '00:00'),
+            retention=log_config.get('backup_count', 30),
+            compression='zip',
             encoding='utf-8',
             backtrace=True,
             diagnose=True,
         )
 
-        # 에러 전용 파일 핸들러
         error_log_path = log_path.parent / 'error.log'
         logger.add(
             error_log_path,
             format=log_config.get('format') or default_format,
             level='ERROR',
             rotation='10 MB',
-            retention=60,  # 60일 보관
+            retention=60,
             compression='zip',
             encoding='utf-8',
             backtrace=True,
@@ -113,7 +104,6 @@ class LoguruLogger:
         return logger.bind(**kwargs)
 
 
-# 싱글톤 인스턴스
 _loguru_logger = LoguruLogger()
 
 
@@ -128,7 +118,6 @@ def setup_logger(
     level: str = 'INFO',
     **kwargs
 ):
-    """
     기존 호환성을 위한 setup_logger 함수
 
     Args:
@@ -139,7 +128,6 @@ def setup_logger(
 
     Returns:
         Loguru logger 인스턴스
-    """
     return get_logger()
 
 
@@ -152,12 +140,10 @@ class LoggerMixin:
     def logger(self):
         """로거 프로퍼티"""
         if not hasattr(self, '_logger'):
-            # 클래스 이름을 컨텍스트로 바인딩
             self._logger = get_logger().bind(classname=self.__class__.__name__)
         return self._logger
 
 
-# 편의 함수들
 def debug(message: str, **kwargs):
     """DEBUG 로그"""
     get_logger().debug(message, **kwargs)
@@ -188,9 +174,6 @@ def exception(message: str, **kwargs):
     get_logger().exception(message, **kwargs)
 
 
-# ============================================================================
-# Rate-Limited Logging (고빈도 로그 성능 최적화)
-# ============================================================================
 
 class RateLimitedLogger:
     """
@@ -215,19 +198,15 @@ class RateLimitedLogger:
         rate_limit_seconds: float = 1.0,
         count_skipped: bool = True
     ):
-        """
         Args:
             rate_limit_seconds: Rate limit 시간 (초)
             count_skipped: 스킵된 로그 카운팅 여부
-        """
         self.logger = get_logger()
         self.rate_limit = rate_limit_seconds
         self.count_skipped = count_skipped
 
-        # 마지막 로그 시간 추적
         self.last_log_time: Dict[str, float] = {}
 
-        # 스킵 카운터
         self.skip_counter: Dict[str, int] = defaultdict(int)
 
     def _should_log(self, key: str) -> bool:
@@ -275,7 +254,6 @@ class RateLimitedLogger:
 
     def error(self, key: str, message: str, **kwargs):
         """Rate-limited error 로그 (에러는 항상 로깅)"""
-        # 에러는 rate limit 적용 안 함 (중요하므로)
         self.logger.error(message, **kwargs)
 
     def get_stats(self) -> Dict[str, int]:
@@ -283,7 +261,6 @@ class RateLimitedLogger:
         return dict(self.skip_counter)
 
 
-# 전역 rate-limited logger 인스턴스
 _rate_limited_logger = RateLimitedLogger(rate_limit_seconds=1.0)
 
 
@@ -294,10 +271,8 @@ def get_rate_limited_logger(rate_limit_seconds: float = 1.0) -> RateLimitedLogge
     return _rate_limited_logger
 
 
-# 기존 호환성을 위한 함수
 def configure_default_logger():
     """기본 로거 설정 (기존 호환)"""
-    # Loguru는 자동으로 초기화됨
     pass
 
 

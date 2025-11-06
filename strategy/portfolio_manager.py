@@ -1,7 +1,5 @@
-"""
 strategy/portfolio_manager.py
 포트폴리오 관리
-"""
 import logging
 from typing import Dict, Any, Optional, List
 from datetime import datetime
@@ -37,23 +35,19 @@ class PortfolioManager:
         self.client = client
         self.config = config or {}
         
-        # 기본 설정
         self.max_positions = self.config.get('max_positions', 5)
         self.max_position_size = self.config.get('max_position_size', 0.30)
         self.cash_reserve_ratio = self.config.get('cash_reserve_ratio', 0.10)
         self.rebalance_threshold = self.config.get('rebalance_threshold', 0.05)
         
-        # 포트폴리오 상태
-        self.positions = {}  # {stock_code: position_info}
-        self.target_weights = {}  # {stock_code: target_weight}
+        self.positions = {}
+        self.target_weights = {}
         self.total_assets = 0
         
-        # 이력
         self.history = []
         
         logger.info("PortfolioManager 초기화 완료")
     
-    # ==================== 포지션 관리 ====================
     
     def update_portfolio(self, holdings: List[Dict[str, Any]], cash: int):
         """
@@ -65,7 +59,6 @@ class PortfolioManager:
         """
         self.positions.clear()
         
-        # 총 자산 계산
         stocks_value = 0
         for holding in holdings:
             stock_code = holding.get('stock_code', '')
@@ -85,7 +78,6 @@ class PortfolioManager:
         
         self.total_assets = cash + stocks_value
         
-        # 비중 계산
         for stock_code, position in self.positions.items():
             if self.total_assets > 0:
                 position['weight'] = position['evaluation_amount'] / self.total_assets
@@ -101,7 +93,6 @@ class PortfolioManager:
         quantity: int,
         purchase_price: float
     ):
-        """
         포지션 추가
         
         Args:
@@ -109,7 +100,6 @@ class PortfolioManager:
             stock_name: 종목명
             quantity: 수량
             purchase_price: 매수가
-        """
         evaluation_amount = quantity * purchase_price
         
         self.positions[stock_code] = {
@@ -179,7 +169,6 @@ class PortfolioManager:
         """
         return stock_code in self.positions
     
-    # ==================== 포지션 크기 계산 ====================
     
     def calculate_position_size(
         self,
@@ -188,7 +177,6 @@ class PortfolioManager:
         available_cash: int,
         target_weight: float = None
     ) -> int:
-        """
         포지션 크기 계산
         
         Args:
@@ -199,33 +187,25 @@ class PortfolioManager:
         
         Returns:
             매수 수량
-        """
         if current_price == 0:
             return 0
         
-        # 포지션 수 확인
         if self.get_position_count() >= self.max_positions:
             logger.warning(f"최대 포지션 수 {self.max_positions}개 도달")
             return 0
         
-        # 목표 비중 결정
         if target_weight is None:
-            # 균등 배분
             remaining_positions = self.max_positions - self.get_position_count()
             target_weight = 1.0 / self.max_positions
         
-        # 최대 포지션 크기 제한
         if target_weight > self.max_position_size:
             target_weight = self.max_position_size
         
-        # 투자 금액 계산
         invest_amount = int(self.total_assets * target_weight)
         
-        # 가용 현금 확인
         if invest_amount > available_cash:
             invest_amount = available_cash
         
-        # 수수료 고려
         commission_rate = 0.00015
         quantity = int(invest_amount / (current_price * (1 + commission_rate)))
         
@@ -254,7 +234,6 @@ class PortfolioManager:
         """
         return max(0, self.max_positions - self.get_position_count())
     
-    # ==================== 리밸런싱 ====================
     
     def set_target_weights(self, target_weights: Dict[str, float]):
         """
@@ -285,7 +264,6 @@ class PortfolioManager:
             position = self.get_position(stock_code)
             
             if position is None:
-                # 포지션이 없는데 목표 비중이 있으면 리밸런싱 필요
                 if target_weight > 0:
                     logger.info(f"리밸런싱 필요: {stock_code} 포지션 없음 (목표: {target_weight*100:.1f}%)")
                     return True
@@ -293,7 +271,6 @@ class PortfolioManager:
                 current_weight = position.get('weight', 0)
                 weight_diff = abs(current_weight - target_weight)
                 
-                # 비중 차이가 임계값을 초과하면 리밸런싱 필요
                 if weight_diff > self.rebalance_threshold:
                     logger.info(
                         f"리밸런싱 필요: {stock_code} "
@@ -330,7 +307,6 @@ class PortfolioManager:
             target_amount = self.total_assets * target_weight
             
             if position is None:
-                # 신규 매수
                 if target_weight > 0:
                     orders.append({
                         'stock_code': stock_code,
@@ -344,7 +320,6 @@ class PortfolioManager:
                 
                 if abs(diff_amount) > self.total_assets * self.rebalance_threshold:
                     if diff_amount > 0:
-                        # 추가 매수
                         orders.append({
                             'stock_code': stock_code,
                             'action': 'buy',
@@ -352,7 +327,6 @@ class PortfolioManager:
                             'reason': f'비중 상향 조정 ({position["weight"]*100:.1f}% → {target_weight*100:.1f}%)'
                         })
                     else:
-                        # 일부 매도
                         orders.append({
                             'stock_code': stock_code,
                             'action': 'sell',
@@ -363,7 +337,6 @@ class PortfolioManager:
         logger.info(f"리밸런싱 주문 {len(orders)}개 생성")
         return orders
     
-    # ==================== 성과 분석 ====================
     
     def get_portfolio_summary(self) -> Dict[str, Any]:
         """
@@ -375,19 +348,16 @@ class PortfolioManager:
         total_evaluation = sum(p['evaluation_amount'] for p in self.positions.values())
         total_profit_loss = sum(p['profit_loss'] for p in self.positions.values())
         
-        # 총 매수금액 계산
         total_purchase = sum(
             p['quantity'] * p['purchase_price']
             for p in self.positions.values()
         )
         
-        # 수익률 계산
         if total_purchase > 0:
             total_profit_loss_rate = (total_profit_loss / total_purchase) * 100
         else:
             total_profit_loss_rate = 0.0
         
-        # 현금 비중
         cash = self.total_assets - total_evaluation
         cash_ratio = (cash / self.total_assets * 100) if self.total_assets > 0 else 0
         
@@ -425,7 +395,6 @@ class PortfolioManager:
                 'weight': round(position.get('weight', 0) * 100, 2),
             })
         
-        # 수익률 순으로 정렬
         positions.sort(key=lambda x: x['profit_loss_rate'], reverse=True)
         
         return positions
@@ -458,7 +427,6 @@ class PortfolioManager:
         positions.sort(key=lambda x: x['profit_loss_rate'])
         return positions[:top_n]
     
-    # ==================== 리스크 지표 ====================
     
     def get_concentration_risk(self) -> Dict[str, Any]:
         """
@@ -475,14 +443,11 @@ class PortfolioManager:
                 'diversification_ratio': 0.0,
             }
         
-        # 최대 비중 포지션
         max_position = max(self.positions.values(), key=lambda x: x.get('weight', 0))
         max_weight = max_position.get('weight', 0)
         
-        # Herfindahl 지수 (집중도 측정)
         herfindahl = sum(p.get('weight', 0) ** 2 for p in self.positions.values())
         
-        # 분산 비율
         n = len(self.positions)
         diversification_ratio = (1.0 / herfindahl) / n if n > 0 and herfindahl > 0 else 0
         
@@ -504,7 +469,6 @@ class PortfolioManager:
         
         self.history.append(snapshot)
         
-        # 최근 30개만 유지
         if len(self.history) > 30:
             self.history = self.history[-30:]
         

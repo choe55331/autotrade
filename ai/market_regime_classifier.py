@@ -1,4 +1,3 @@
-"""
 AutoTrade Pro v4.0 - AI 기반 시장 레짐 분류기
 현재 시장이 상승장/하락장/횡보장 중 어느 상태인지 AI로 분류
 
@@ -6,7 +5,6 @@ AutoTrade Pro v4.0 - AI 기반 시장 레짐 분류기
 - 다양한 지표 기반 시장 상태 분류
 - 추천 전략 자동 전환
 - 히스토리 저장 및 분석
-"""
 import logging
 from typing import Dict, Any, Optional, Tuple
 from datetime import datetime
@@ -19,9 +17,9 @@ logger = logging.getLogger(__name__)
 
 class RegimeType(str, Enum):
     """시장 레짐 유형"""
-    BULL = "bull"          # 상승장
-    BEAR = "bear"          # 하락장
-    SIDEWAYS = "sideways"  # 횡보장
+    BULL = "bull"
+    BEAR = "bear"
+    SIDEWAYS = "sideways"
 
 
 class VolatilityLevel(str, Enum):
@@ -55,17 +53,15 @@ class MarketRegimeClassifier:
         self.bear_threshold = self.settings.get('bear_threshold', -0.02)
         self.high_volatility_threshold = self.settings.get('high_volatility_threshold', 0.02)
 
-        # 현재 레짐
         self.current_regime = RegimeType.SIDEWAYS
         self.current_volatility = VolatilityLevel.MEDIUM
         self.confidence = 0.5
         self.last_update = None
 
-        # 전략 매핑
         self.strategy_mapping = {
-            RegimeType.BULL: "momentum",           # 상승장 -> 모멘텀
-            RegimeType.BEAR: "defensive",          # 하락장 -> 방어적
-            RegimeType.SIDEWAYS: "mean_reversion"  # 횡보장 -> 역추세
+            RegimeType.BULL: "momentum",
+            RegimeType.BEAR: "defensive",
+            RegimeType.SIDEWAYS: "mean_reversion"
         }
 
         logger.info("시장 레짐 분류기 초기화")
@@ -75,7 +71,6 @@ class MarketRegimeClassifier:
         price_history: list,
         volume_history: list = None
     ) -> Tuple[RegimeType, VolatilityLevel, float]:
-        """
         시장 레짐 분류
 
         Args:
@@ -84,32 +79,24 @@ class MarketRegimeClassifier:
 
         Returns:
             (regime_type, volatility_level, confidence)
-        """
         if len(price_history) < 20:
             logger.warning("데이터 부족: 최소 20일 필요")
             return RegimeType.SIDEWAYS, VolatilityLevel.MEDIUM, 0.3
 
         prices = np.array(price_history)
 
-        # 1. 추세 강도 계산
         trend_strength = self._calculate_trend_strength(prices)
 
-        # 2. 변동성 계산
         volatility = self._calculate_volatility(prices)
 
-        # 3. 모멘텀 계산
         momentum = self._calculate_momentum(prices)
 
-        # 4. 레짐 분류
         regime = self._classify_regime(trend_strength, momentum)
 
-        # 5. 변동성 수준 분류
         volatility_level = self._classify_volatility(volatility)
 
-        # 6. 신뢰도 계산
         confidence = self._calculate_confidence(trend_strength, volatility, momentum)
 
-        # 상태 업데이트
         self.current_regime = regime
         self.current_volatility = volatility_level
         self.confidence = confidence
@@ -128,7 +115,6 @@ class MarketRegimeClassifier:
         coefficients = np.polyfit(x, prices, 1)
         slope = coefficients[0]
 
-        # 정규화 (가격 대비 기울기)
         trend_strength = slope / np.mean(prices)
         return trend_strength
 
@@ -148,7 +134,6 @@ class MarketRegimeClassifier:
 
     def _classify_regime(self, trend_strength: float, momentum: float) -> RegimeType:
         """레짐 분류"""
-        # 추세와 모멘텀을 종합적으로 고려
         combined_signal = (trend_strength + momentum) / 2
 
         if combined_signal > self.bull_threshold:
@@ -173,13 +158,10 @@ class MarketRegimeClassifier:
         volatility: float,
         momentum: float
     ) -> float:
-        """신뢰도 계산"""
-        # 추세가 강하고 변동성이 낮을수록 높은 신뢰도
-        trend_confidence = min(abs(trend_strength) / 0.05, 1.0)  # 0.05 = 5%
+        trend_confidence = min(abs(trend_strength) / 0.05, 1.0)
         volatility_confidence = max(1.0 - volatility / 0.05, 0.0)
-        momentum_confidence = min(abs(momentum) / 0.10, 1.0)  # 0.10 = 10%
+        momentum_confidence = min(abs(momentum) / 0.10, 1.0)
 
-        # 가중 평균
         confidence = (
             trend_confidence * 0.4 +
             volatility_confidence * 0.3 +
@@ -218,11 +200,9 @@ class MarketRegimeClassifier:
         }
 
 
-# 테스트
 if __name__ == "__main__":
     classifier = MarketRegimeClassifier()
 
-    # 상승 추세 시뮬레이션
     prices = [70000 + i * 500 + np.random.normal(0, 500) for i in range(60)]
 
     regime, volatility, confidence = classifier.classify(prices)

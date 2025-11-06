@@ -1,4 +1,3 @@
-"""
 strategy/scoring_system.py
 10가지 기준 스코어링 시스템 (440점 만점)
 
@@ -6,7 +5,6 @@ v5.9 Performance Enhancements:
 - 캐싱: 동일 종목 중복 계산 방지 (30초 TTL)
 - 병렬 처리: 다중 종목 동시 스코어링
 - 성능 최적화: 30-50% 속도 향상
-"""
 from typing import Dict, Any, List
 from dataclasses import dataclass, field
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -29,7 +27,6 @@ class ScoringResult:
     max_score: float = 440.0
     percentage: float = 0.0
 
-    # 세부 점수
     volume_surge_score: float = 0.0
     price_momentum_score: float = 0.0
     institutional_buying_score: float = 0.0
@@ -41,7 +38,6 @@ class ScoringResult:
     theme_news_score: float = 0.0
     volatility_pattern_score: float = 0.0
 
-    # 평가 내역
     details: Dict[str, Any] = field(default_factory=dict)
 
     def calculate_percentage(self):
@@ -83,21 +79,17 @@ class ScoringSystem:
         """
         self.market_api = market_api
 
-        # 설정 로드
         self.config = get_config()
         self.scoring_config = self.config.scoring
         self.criteria_config = self.scoring_config.get('criteria', {})
 
-        # v5.9: 캐싱 설정
         self.enable_cache = enable_cache
         self.cache_manager = get_cache_manager() if enable_cache else None
-        self.cache_ttl = 30  # 30초 TTL
+        self.cache_ttl = 30
 
         logger.info("📊 10가지 기준 스코어링 시스템 초기화 완료 (v5.9 - 캐싱/병렬 지원)")
 
-        # v5.7.5: 스캔 타입별 가중치 프로파일
         self.scan_type_weights = {
-            # VolumeBasedStrategy: 거래량, 체결강도, 호가비율 중시
             'volume_based': {
                 'volume_surge': 1.5,
                 'price_momentum': 0.8,
@@ -110,7 +102,6 @@ class ScoringSystem:
                 'theme_news': 0.9,
                 'volatility_pattern': 1.0,
             },
-            # PriceChangeStrategy: 가격모멘텀, 기술지표, 변동성 중시
             'price_change': {
                 'volume_surge': 0.9,
                 'price_momentum': 1.5,
@@ -123,7 +114,6 @@ class ScoringSystem:
                 'theme_news': 1.2,
                 'volatility_pattern': 1.3,
             },
-            # AIDrivenStrategy: 기관매수, 증권사, 프로그램매매 중시
             'ai_driven': {
                 'volume_surge': 1.0,
                 'price_momentum': 1.0,
@@ -136,7 +126,6 @@ class ScoringSystem:
                 'theme_news': 1.3,
                 'volatility_pattern': 0.9,
             },
-            # Default: 모든 항목 동일 가중치
             'default': {
                 'volume_surge': 1.0,
                 'price_momentum': 1.0,
@@ -162,7 +151,6 @@ class ScoringSystem:
         Returns:
             캐시 키
         """
-        # 종목코드 + 가격 + 거래량 + 스캔타입으로 키 생성
         key_data = {
             'code': stock_data.get('stock_code', ''),
             'price': stock_data.get('current_price', 0),
@@ -183,7 +171,6 @@ class ScoringSystem:
         Returns:
             ScoringResult 객체
         """
-        # v5.9: 캐시 확인
         if self.enable_cache and self.cache_manager:
             cache_key = self._generate_cache_key(stock_data, scan_type)
             cached_result = self.cache_manager.get(cache_key)
@@ -193,40 +180,28 @@ class ScoringSystem:
 
         result = ScoringResult()
 
-        # v5.7.5: 스캔 타입별 가중치 적용
         weights = self.scan_type_weights.get(scan_type, self.scan_type_weights['default'])
 
-        # 1. 거래량 급증 (60점)
         result.volume_surge_score = self._score_volume_surge(stock_data) * weights['volume_surge']
 
-        # 2. 가격 모멘텀 (60점)
         result.price_momentum_score = self._score_price_momentum(stock_data) * weights['price_momentum']
 
-        # 3. 기관 매수세 (60점)
         result.institutional_buying_score = self._score_institutional_buying(stock_data) * weights['institutional_buying']
 
-        # 4. 매수 호가 강도 (40점)
         result.bid_strength_score = self._score_bid_strength(stock_data) * weights['bid_strength']
 
-        # 5. 체결 강도 (40점)
         result.execution_intensity_score = self._score_execution_intensity(stock_data) * weights['execution_intensity']
 
-        # 6. 주요 증권사 활동 (40점)
         result.broker_activity_score = self._score_broker_activity(stock_data) * weights['broker_activity']
 
-        # 7. 프로그램 매매 (40점)
         result.program_trading_score = self._score_program_trading(stock_data) * weights['program_trading']
 
-        # 8. 기술적 지표 (40점)
         result.technical_indicators_score = self._score_technical_indicators(stock_data) * weights['technical_indicators']
 
-        # 9. 시장 모멘텀 (40점)
         result.theme_news_score = self._score_market_momentum(stock_data) * weights['theme_news']
 
-        # 10. 변동성 패턴 (20점)
         result.volatility_pattern_score = self._score_volatility_pattern(stock_data) * weights['volatility_pattern']
 
-        # 총점 계산
         result.total_score = (
             result.volume_surge_score +
             result.price_momentum_score +
@@ -242,12 +217,10 @@ class ScoringSystem:
 
         result.calculate_percentage()
 
-        # v5.9: 캐시 저장
         if self.enable_cache and self.cache_manager:
             cache_key = self._generate_cache_key(stock_data, scan_type)
             self.cache_manager.set(cache_key, result, ttl=self.cache_ttl)
 
-        # v5.7.5: 스캔 타입 로깅
         scan_type_display = {
             'volume_based': '거래량 기반',
             'price_change': '상승률 기반',
@@ -268,7 +241,6 @@ class ScoringSystem:
         scan_type: str = 'default',
         max_workers: int = 4
     ) -> List[Dict[str, Any]]:
-        """
         다중 종목 병렬 스코어링 (v5.9 NEW)
 
         Args:
@@ -278,13 +250,11 @@ class ScoringSystem:
 
         Returns:
             스코어링 결과 리스트 (원본 데이터 + 점수)
-        """
         if not stocks_data:
             return []
 
         results = []
 
-        # 단일 종목이면 병렬 처리 불필요
         if len(stocks_data) == 1:
             stock = stocks_data[0]
             score = self.calculate_score(stock, scan_type)
@@ -293,15 +263,12 @@ class ScoringSystem:
 
         logger.info(f"🚀 병렬 스코어링 시작: {len(stocks_data)}개 종목 (워커 {max_workers}개)")
 
-        # 병렬 처리
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            # 작업 제출
             future_to_stock = {
                 executor.submit(self.calculate_score, stock, scan_type): stock
                 for stock in stocks_data
             }
 
-            # 결과 수집
             for future in as_completed(future_to_stock):
                 stock = future_to_stock[future]
                 try:
@@ -310,11 +277,9 @@ class ScoringSystem:
                     results.append(stock)
                 except Exception as e:
                     logger.error(f"스코어링 실패: {stock.get('name', 'Unknown')} - {e}")
-                    # 실패한 종목도 포함 (점수 0)
                     stock['scoring_result'] = ScoringResult()
                     results.append(stock)
 
-        # 원래 순서 유지를 위해 정렬
         results.sort(key=lambda x: stocks_data.index(x) if x in stocks_data else 999)
 
         logger.info(f"✅ 병렬 스코어링 완료: {len(results)}개 종목")
@@ -336,10 +301,8 @@ class ScoringSystem:
         volume = stock_data.get('volume', 0)
         avg_volume = stock_data.get('avg_volume', None)
 
-        # v5.7.5: 상세 로그
         stock_code = stock_data.get('stock_code', 'Unknown')
 
-        # avg_volume이 있으면 비율 계산
         if avg_volume and avg_volume > 0:
             volume_ratio = volume / avg_volume
             print(f"   [거래량] {stock_code}: 현재={volume:,}주, 평균={avg_volume:,.0f}주, 비율={volume_ratio:.2f}배", end="")
@@ -363,7 +326,6 @@ class ScoringSystem:
                 print(f" → 0점 (평균 미만)")
                 return 0.0
 
-        # avg_volume이 없으면 절대값 기준
         print(f"   [거래량] {stock_code}: 현재={volume:,}주 (평균 데이터 없음)", end="")
 
         if volume >= 5_000_000:
@@ -398,21 +360,19 @@ class ScoringSystem:
         """
         max_score = 60
 
-        # change_rate를 % 단위로 받음 (예: 3.5는 3.5%)
         change_rate = stock_data.get('change_rate', stock_data.get('rate', 0.0))
 
-        # 상승률 기준 점수 (강화)
-        if change_rate >= 10.0:  # 10% 이상
+        if change_rate >= 10.0:
             return max_score
-        elif change_rate >= 7.0:  # 7% 이상
+        elif change_rate >= 7.0:
             return max_score * 0.85
-        elif change_rate >= 5.0:  # 5% 이상
+        elif change_rate >= 5.0:
             return max_score * 0.7
-        elif change_rate >= 3.0:  # 3% 이상
+        elif change_rate >= 3.0:
             return max_score * 0.55
-        elif change_rate >= 2.0:  # 2% 이상
+        elif change_rate >= 2.0:
             return max_score * 0.4
-        elif change_rate >= 1.0:  # 1% 이상
+        elif change_rate >= 1.0:
             return max_score * 0.25
         else:
             return 0.0
@@ -440,14 +400,12 @@ class ScoringSystem:
 
         min_net_buy = config.get('min_net_buy', 10_000_000)
 
-        # v5.7.5: 상세 로그
         stock_code = stock_data.get('stock_code', 'Unknown')
         print(f"   [기관매수] {stock_code}: 기관={institutional_net_buy:,}원, 외국인={foreign_net_buy:,}원", end="")
 
         score = 0.0
         score_details = []
 
-        # 1) 기관 순매수 - 일별 (40점)
         if institutional_net_buy >= min_net_buy * 5:
             score += 40.0
             score_details.append("기관+40")
@@ -458,7 +416,6 @@ class ScoringSystem:
             score += 20.0
             score_details.append("기관+20")
 
-        # 2) 외국인 순매수 - 일별 (10점)
         if foreign_net_buy >= min_net_buy:
             score += 10.0
             score_details.append("외국인+10")
@@ -466,7 +423,6 @@ class ScoringSystem:
             score += 5.0
             score_details.append("외국인+5")
 
-        # 3) 기관/외국인 매매 추이 - 5일 (10점)
         if institutional_trend:
             trend_score = 0.0
             try:
@@ -513,17 +469,15 @@ class ScoringSystem:
 
         bid_ask_ratio = stock_data.get('bid_ask_ratio', 0.0)
 
-        # 호가비율 기준 (매수호가/매도호가)
-        # 1.0 이상 = 매수 우위, 1.0 미만 = 매도 우위
-        if bid_ask_ratio >= 1.5:  # 강한 매수 우위
+        if bid_ask_ratio >= 1.5:
             return max_score
-        elif bid_ask_ratio >= 1.2:  # 매수 우위
+        elif bid_ask_ratio >= 1.2:
             return max_score * 0.75
-        elif bid_ask_ratio >= 0.8:  # 균형 (약간 매도 우위)
+        elif bid_ask_ratio >= 0.8:
             return max_score * 0.5
-        elif bid_ask_ratio >= 0.5:  # 매도 우위
+        elif bid_ask_ratio >= 0.5:
             return max_score * 0.25
-        else:  # 강한 매도 우위
+        else:
             return 0.0
 
     def _score_execution_intensity(self, stock_data: Dict[str, Any]) -> float:
@@ -543,26 +497,23 @@ class ScoringSystem:
 
         execution_intensity = stock_data.get('execution_intensity')
 
-        # 디버그: 체결강도 값 확인
         stock_code = stock_data.get('stock_code', 'Unknown')
         print(f"[DEBUG 체결강도] {stock_code}: execution_intensity={execution_intensity} (type={type(execution_intensity)})")
 
-        # execution_intensity 데이터가 없으면 0점
         if execution_intensity is None or execution_intensity == 0:
             print(f"[DEBUG 체결강도] {stock_code}: 데이터 없음 또는 0 → 0점")
             return 0.0
 
-        # 체결강도 기준 점수 계산
-        min_value = 50  # 강제 하드코딩: config 무시
+        min_value = 50
         print(f"[DEBUG 체결강도] {stock_code}: min_value={min_value} (하드코딩)")
 
-        if execution_intensity >= min_value * 3.0:  # 150 이상
+        if execution_intensity >= min_value * 3.0:
             score = max_score
-        elif execution_intensity >= min_value * 2.0:  # 100 이상
+        elif execution_intensity >= min_value * 2.0:
             score = max_score * 0.75
-        elif execution_intensity >= min_value * 1.4:  # 70 이상
+        elif execution_intensity >= min_value * 1.4:
             score = max_score * 0.5
-        elif execution_intensity >= min_value:  # 50 이상
+        elif execution_intensity >= min_value:
             score = max_score * 0.25
         else:
             score = 0.0
@@ -586,13 +537,13 @@ class ScoringSystem:
         broker_buy_count = stock_data.get('top_broker_buy_count', 0)
         top_brokers = config.get('top_brokers', 5)
 
-        if broker_buy_count >= top_brokers:  # 5개
+        if broker_buy_count >= top_brokers:
             return max_score
-        elif broker_buy_count >= top_brokers * 0.6:  # 3개
+        elif broker_buy_count >= top_brokers * 0.6:
             return max_score * 0.67
-        elif broker_buy_count >= top_brokers * 0.4:  # 2개
+        elif broker_buy_count >= top_brokers * 0.4:
             return max_score * 0.33
-        elif broker_buy_count >= 1:  # 1개라도 있으면
+        elif broker_buy_count >= 1:
             return max_score * 0.17
         else:
             return 0.0
@@ -614,28 +565,24 @@ class ScoringSystem:
 
         program_net_buy = stock_data.get('program_net_buy')
 
-        # 디버그: 프로그램매매 값 확인
         stock_code = stock_data.get('stock_code', 'Unknown')
         print(f"[DEBUG 프로그램] {stock_code}: program_net_buy={program_net_buy} (type={type(program_net_buy)})")
 
-        # 데이터가 없으면 0점
         if program_net_buy is None:
             print(f"[DEBUG 프로그램] {stock_code}: 데이터 없음 → 0점")
             return 0.0
 
-        # 양수(순매수)만 점수, 음수(순매도)는 0점
         if program_net_buy <= 0:
             print(f"[DEBUG 프로그램] {stock_code}: 음수 또는 0 → 0점")
             return 0.0
 
-        # 프로그램 순매수 금액 기준 (원 단위)
-        if program_net_buy >= 5_000_000:  # 500만원 이상
+        if program_net_buy >= 5_000_000:
             score = max_score
-        elif program_net_buy >= 3_000_000:  # 300만원 이상
+        elif program_net_buy >= 3_000_000:
             score = max_score * 0.75
-        elif program_net_buy >= 1_000_000:  # 100만원 이상
+        elif program_net_buy >= 1_000_000:
             score = max_score * 0.5
-        elif program_net_buy >= 100_000:  # 10만원 이상
+        elif program_net_buy >= 100_000:
             score = max_score * 0.25
         else:
             score = 0.0
@@ -657,19 +604,16 @@ class ScoringSystem:
         max_score = 40
         score = 0.0
 
-        # v5.7.5: 상세 로그
         stock_code = stock_data.get('stock_code', 'Unknown')
         score_parts = []
 
-        # RSI (15점)
         rsi = stock_data.get('rsi', None)
         if rsi is not None:
-            if 30 <= rsi <= 70:  # 과매도/과매수 아님
+            if 30 <= rsi <= 70:
                 rsi_score = max_score * 0.375
                 score += rsi_score
                 score_parts.append(f"RSI({rsi:.0f})+{rsi_score:.0f}")
         else:
-            # RSI 없으면 상승률로 추정
             change_rate = stock_data.get('change_rate', 0)
             if 0.5 <= change_rate <= 20.0:
                 score_ratio = min(change_rate / 10.0, 1.0)
@@ -681,7 +625,6 @@ class ScoringSystem:
                 score += rsi_score
                 score_parts.append(f"RSI추정+{rsi_score:.0f}")
 
-        # MACD (15점)
         macd_bullish = stock_data.get('macd_bullish_crossover', False)
         macd = stock_data.get('macd', None)
         macd_positive = False
@@ -696,7 +639,6 @@ class ScoringSystem:
             score += macd_score
             score_parts.append(f"MACD+{macd_score:.0f}")
         else:
-            # MACD 없으면 거래량+상승률로 추정
             change_rate = stock_data.get('change_rate', 0)
             volume = stock_data.get('volume', 0)
             if change_rate > 0 and volume > 500_000:
@@ -708,7 +650,6 @@ class ScoringSystem:
                 score += macd_score
                 score_parts.append(f"MACD추정+{macd_score:.0f}")
 
-        # 볼린저밴드 (BB) (5점)
         bollinger_bands = stock_data.get('bollinger_bands', None)
         bb_position = bollinger_bands.get('position') if isinstance(bollinger_bands, dict) else stock_data.get('bb_position', None)
 
@@ -723,7 +664,6 @@ class ScoringSystem:
                 score += bb_score
                 score_parts.append(f"BB추정+{bb_score:.0f}")
 
-        # 이동평균 (MA) (5점)
         ma5 = stock_data.get('ma5', None)
         ma20 = stock_data.get('ma20', None)
         current_price = stock_data.get('current_price', 0)
@@ -763,48 +703,40 @@ class ScoringSystem:
 
         score = 0.0
 
-        # 거래량 모멘텀 (20점)
         is_trending_theme = stock_data.get('is_trending_theme', False)
         if is_trending_theme:
             score += max_score * 0.5
         else:
-            # 거래량+상승률 기반 시장 모멘텀 추정
             volume = stock_data.get('volume', 0)
             avg_volume = stock_data.get('avg_volume')
             change_rate = stock_data.get('change_rate', 0)
 
-            # avg_volume이 있고 0보다 큰 경우에만 비율 계산
             if avg_volume and avg_volume > 0:
                 volume_ratio = volume / avg_volume
 
-                # 거래량 2배 이상 + 상승률 3% 이상 = 강한 모멘텀
                 if volume_ratio >= 2.0 and change_rate >= 3.0:
-                    score += max_score * 0.4  # 16점
+                    score += max_score * 0.4
                 elif volume_ratio >= 1.5 and change_rate >= 1.5:
-                    score += max_score * 0.25  # 10점
+                    score += max_score * 0.25
                 elif volume_ratio >= 1.2 or change_rate >= 0.5:
-                    score += max_score * 0.125  # 5점
+                    score += max_score * 0.125
 
-        # 가격 모멘텀 (20점)
         has_positive_news = stock_data.get('has_positive_news', False)
         if has_positive_news:
             score += max_score * 0.5
         else:
-            # 가격 모멘텀+기관 매수 기반 가격 강도 추정
             change_rate = stock_data.get('change_rate', 0)
             institutional_net = stock_data.get('institutional_net_buy')
 
-            # None 체크
             if institutional_net is None:
                 institutional_net = 0
 
-            # 상승률 5% 이상 + 기관 순매수 100만원 이상 = 강한 가격 강도
             if change_rate >= 5.0 and institutional_net >= 1_000_000:
-                score += max_score * 0.4  # 16점
+                score += max_score * 0.4
             elif change_rate >= 2.0 and institutional_net >= 500_000:
-                score += max_score * 0.25  # 10점
+                score += max_score * 0.25
             elif change_rate >= 0.5 or institutional_net >= 100_000:
-                score += max_score * 0.125  # 5점
+                score += max_score * 0.125
 
         return score
 
@@ -827,13 +759,10 @@ class ScoringSystem:
         min_volatility = config.get('min_volatility', 0.02)
         max_volatility = config.get('max_volatility', 0.15)
 
-        # volatility 데이터가 없으면 0점
         if volatility is None:
             return 0.0
 
-        # volatility가 있으면 적정 변동성 범위 체크
         if min_volatility <= volatility <= max_volatility:
-            # 중간값에 가까울수록 높은 점수
             mid_volatility = (min_volatility + max_volatility) / 2
             distance_from_mid = abs(volatility - mid_volatility)
             max_distance = (max_volatility - min_volatility) / 2

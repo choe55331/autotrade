@@ -1,4 +1,3 @@
-"""
 종합 테스트: 스코어링 데이터 수집 + WebSocket 연결 조건 찾기
 
 이 테스트는 다음 두 가지를 수행합니다:
@@ -23,7 +22,6 @@
     - 자동으로 _test_results/ 디렉토리에 저장
 
 주의: 실제 API 호출이 발생하며, 시간이 다소 소요될 수 있습니다.
-"""
 
 import sys
 import os
@@ -33,7 +31,6 @@ import time
 import asyncio
 import websockets
 
-# 프로젝트 루트를 Python 경로에 추가
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
 from core.rest_client import KiwoomRESTClient
@@ -45,19 +42,17 @@ class ComprehensiveDataTester:
 
     def __init__(self):
         """테스터 초기화"""
-        self.rest_client = KiwoomRESTClient()  # 싱글톤 패턴으로 동작
-        self.test_stock = "005930"  # 삼성전자 (테스트용)
+        self.rest_client = KiwoomRESTClient()
+        self.test_stock = "005930"
         self.test_results = {
             'scoring_apis': [],
             'websocket_tests': [],
             'timestamp': datetime.now().strftime("%Y%m%d_%H%M%S")
         }
 
-        # WebSocket 테스트를 위한 토큰 추출
         self.access_token = self.rest_client.token if hasattr(self.rest_client, 'token') else ''
         self.base_url = self.rest_client.base_url
 
-        # WebSocket URL 결정
         if 'mockapi' in self.base_url:
             self.ws_url = "wss://mockapi.kiwoom.com:10000/api/dostk/websocket"
         else:
@@ -69,9 +64,6 @@ class ComprehensiveDataTester:
         print(f"  {title}")
         print("=" * 80 + "\n")
 
-    # ================================================================
-    # Part 1: 스코어링 데이터 수집 API 테스트
-    # ================================================================
 
     def test_scoring_api(self, test_name: str, api_id: str, body: dict, path: str) -> dict:
         """
@@ -113,12 +105,10 @@ class ComprehensiveDataTester:
             }
 
             if success:
-                # 응답에서 데이터 키 추출 (return_code, return_msg 제외)
                 data_keys = [k for k in response.keys() if k not in ['return_code', 'return_msg', 'api-id', 'cont-yn', 'next-key']]
                 result['data_keys'] = data_keys
                 result['has_data'] = len(data_keys) > 0
 
-                # 샘플 데이터 추출 (첫 번째 데이터만)
                 if data_keys:
                     first_key = data_keys[0]
                     first_value = response.get(first_key)
@@ -166,10 +156,8 @@ class ComprehensiveDataTester:
         print("   5. 종목 체결 정보 (현재가, 거래량 등)")
         print("\n🎯 다양한 API 조합으로 데이터 수집을 테스트합니다...\n")
 
-        # 날짜 파라미터 준비
         today = get_last_trading_date()
 
-        # ===== 테스트 케이스 1: 주식호가 (ka10004) =====
         self.test_scoring_api(
             test_name="Case 1-1: 주식호가 기본 조회 (KRX)",
             api_id="ka10004",
@@ -191,7 +179,6 @@ class ComprehensiveDataTester:
             path="mrkcond"
         )
 
-        # ===== 테스트 케이스 2: 주식체결정보 (ka10003) =====
         self.test_scoring_api(
             test_name="Case 2-1: 주식체결정보 기본 조회",
             api_id="ka10003",
@@ -206,16 +193,15 @@ class ComprehensiveDataTester:
             path="stkinfo"
         )
 
-        # ===== 테스트 케이스 3: 투자자별 매매 (ka10059) =====
         self.test_scoring_api(
             test_name="Case 3-1: 투자자별 매매 - 금액/순매수",
             api_id="ka10059",
             body={
                 "stk_cd": self.test_stock,
                 "dt": today,
-                "amt_qty_tp": "1",  # 1:금액
-                "trde_tp": "0",     # 0:순매수
-                "unit_tp": "1000"   # 1000:천주
+                "amt_qty_tp": "1",
+                "trde_tp": "0",
+                "unit_tp": "1000"
             },
             path="stkinfo"
         )
@@ -226,7 +212,7 @@ class ComprehensiveDataTester:
             body={
                 "stk_cd": self.test_stock,
                 "dt": today,
-                "amt_qty_tp": "2",  # 2:수량
+                "amt_qty_tp": "2",
                 "trde_tp": "0",
                 "unit_tp": "1000"
             },
@@ -240,7 +226,7 @@ class ComprehensiveDataTester:
                 "stk_cd": self.test_stock,
                 "dt": today,
                 "amt_qty_tp": "2",
-                "trde_tp": "1",     # 1:매수
+                "trde_tp": "1",
                 "unit_tp": "1000"
             },
             path="stkinfo"
@@ -253,13 +239,12 @@ class ComprehensiveDataTester:
                 "stk_cd": self.test_stock,
                 "dt": today,
                 "amt_qty_tp": "2",
-                "trde_tp": "2",     # 2:매도
+                "trde_tp": "2",
                 "unit_tp": "1000"
             },
             path="stkinfo"
         )
 
-        # ===== 테스트 케이스 4: 외국인 종목별 매매동향 (ka10008) =====
         self.test_scoring_api(
             test_name="Case 4-1: 외국인 종목별 매매동향",
             api_id="ka10008",
@@ -274,7 +259,6 @@ class ComprehensiveDataTester:
             path="frgnistt"
         )
 
-        # ===== 테스트 케이스 5: 기관 요청 (ka10009) =====
         self.test_scoring_api(
             test_name="Case 5-1: 주식기관 정보",
             api_id="ka10009",
@@ -282,19 +266,18 @@ class ComprehensiveDataTester:
             path="frgnistt"
         )
 
-        # ===== 테스트 케이스 6: 기관외국인 연속매매 (ka10131) =====
         self.test_scoring_api(
             test_name="Case 6-1: 기관외국인 연속매매 - 최근 1일/KRX/순매수",
             api_id="ka10131",
             body={
-                "dt": "1",           # 1:최근일
+                "dt": "1",
                 "strt_dt": "",
                 "end_dt": "",
-                "mrkt_tp": "001",    # 001:코스피
-                "netslmt_tp": "2",   # 2:순매수
-                "stk_inds_tp": "0",  # 0:종목
-                "amt_qty_tp": "0",   # 0:금액
-                "stex_tp": "1"       # 1:KRX
+                "mrkt_tp": "001",
+                "netslmt_tp": "2",
+                "stk_inds_tp": "0",
+                "amt_qty_tp": "0",
+                "stex_tp": "1"
             },
             path="frgnistt"
         )
@@ -309,7 +292,7 @@ class ComprehensiveDataTester:
                 "mrkt_tp": "001",
                 "netslmt_tp": "2",
                 "stk_inds_tp": "0",
-                "amt_qty_tp": "1",   # 1:수량
+                "amt_qty_tp": "1",
                 "stex_tp": "1"
             },
             path="frgnistt"
@@ -326,7 +309,7 @@ class ComprehensiveDataTester:
                 "netslmt_tp": "2",
                 "stk_inds_tp": "0",
                 "amt_qty_tp": "0",
-                "stex_tp": "2"       # 2:NXT
+                "stex_tp": "2"
             },
             path="frgnistt"
         )
@@ -342,22 +325,21 @@ class ComprehensiveDataTester:
                 "netslmt_tp": "2",
                 "stk_inds_tp": "0",
                 "amt_qty_tp": "0",
-                "stex_tp": "3"       # 3:통합
+                "stex_tp": "3"
             },
             path="frgnistt"
         )
 
-        # ===== 테스트 케이스 7: 장중 투자자별 매매 (ka10063) =====
         self.test_scoring_api(
             test_name="Case 7-1: 장중 투자자별매매 - 기관계/금액",
             api_id="ka10063",
             body={
-                "mrkt_tp": "001",         # 시장구분: 001=코스피
-                "amt_qty_tp": "1",        # 금액수량구분: 1=금액
-                "invsr": "7",             # 투자자별: 7=기관계
-                "frgn_all": "0",          # 외국계전체: 0=미체크
-                "smtm_netprps_tp": "0",   # 동시순매수구분: 0=미체크
-                "stex_tp": "1"            # 거래소구분: 1=KRX
+                "mrkt_tp": "001",
+                "amt_qty_tp": "1",
+                "invsr": "7",
+                "frgn_all": "0",
+                "smtm_netprps_tp": "0",
+                "stex_tp": "1"
             },
             path="mrkcond"
         )
@@ -367,24 +349,23 @@ class ComprehensiveDataTester:
             api_id="ka10063",
             body={
                 "mrkt_tp": "001",
-                "amt_qty_tp": "2",        # 금액수량구분: 2=수량
-                "invsr": "6",             # 투자자별: 6=외국인
-                "frgn_all": "1",          # 외국계전체: 1=체크
+                "amt_qty_tp": "2",
+                "invsr": "6",
+                "frgn_all": "1",
                 "smtm_netprps_tp": "0",
                 "stex_tp": "1"
             },
             path="mrkcond"
         )
 
-        # ===== 테스트 케이스 8: 장마감후 투자자별 매매 (ka10066) =====
         self.test_scoring_api(
             test_name="Case 8-1: 장마감후 투자자별매매 - 순매수/금액",
             api_id="ka10066",
             body={
-                "mrkt_tp": "001",      # 시장구분: 001=코스피
-                "amt_qty_tp": "1",     # 금액수량구분: 1=금액
-                "trde_tp": "0",        # 매매구분: 0=순매수
-                "stex_tp": "1"         # 거래소구분: 1=KRX
+                "mrkt_tp": "001",
+                "amt_qty_tp": "1",
+                "trde_tp": "0",
+                "stex_tp": "1"
             },
             path="mrkcond"
         )
@@ -394,15 +375,13 @@ class ComprehensiveDataTester:
             api_id="ka10066",
             body={
                 "mrkt_tp": "001",
-                "amt_qty_tp": "2",     # 금액수량구분: 2=수량
+                "amt_qty_tp": "2",
                 "trde_tp": "0",
                 "stex_tp": "1"
             },
             path="mrkcond"
         )
 
-        # ===== 테스트 케이스 9: 종목별 기관매매추이 (ka10045) =====
-        # 날짜 범위 계산 (최근 5일)
         from datetime import datetime, timedelta
         end_date = datetime.strptime(today, "%Y%m%d")
         start_date = end_date - timedelta(days=5)
@@ -413,10 +392,10 @@ class ComprehensiveDataTester:
             api_id="ka10045",
             body={
                 "stk_cd": self.test_stock,
-                "strt_dt": start_dt_str,      # 필수: 시작일자
-                "end_dt": today,               # 필수: 종료일자
-                "orgn_prsm_unp_tp": "1",       # 필수: 기관추정단가구분 (1=매수단가, 2=매도단가)
-                "for_prsm_unp_tp": "1"         # 필수: 외인추정단가구분 (1=매수단가, 2=매도단가)
+                "strt_dt": start_dt_str,
+                "end_dt": today,
+                "orgn_prsm_unp_tp": "1",
+                "for_prsm_unp_tp": "1"
             },
             path="mrkcond"
         )
@@ -428,39 +407,35 @@ class ComprehensiveDataTester:
                 "stk_cd": self.test_stock,
                 "strt_dt": today,
                 "end_dt": today,
-                "orgn_prsm_unp_tp": "2",       # 매도단가
-                "for_prsm_unp_tp": "2"         # 매도단가
+                "orgn_prsm_unp_tp": "2",
+                "for_prsm_unp_tp": "2"
             },
             path="mrkcond"
         )
 
-        # ===== 테스트 케이스 10: 증권사별 종목매매동향 (ka10078) =====
-        # 주요 증권사 코드 예시
         securities_firms = [
             ("040", "KB증권"),
             ("039", "교보증권"),
             ("001", "한국투자증권")
         ]
 
-        # 날짜 범위 계산 (최근 3일)
         end_date_10 = datetime.strptime(today, "%Y%m%d")
         start_date_10 = end_date_10 - timedelta(days=3)
         start_dt_10 = start_date_10.strftime("%Y%m%d")
 
-        for firm_code, firm_name in securities_firms[:2]:  # 처음 2개만 테스트
+        for firm_code, firm_name in securities_firms[:2]:
             self.test_scoring_api(
                 test_name=f"Case 10-{securities_firms.index((firm_code, firm_name)) + 1}: 증권사별 종목매매동향 - {firm_name}",
                 api_id="ka10078",
                 body={
-                    "mmcm_cd": firm_code,     # 필수: 회원사코드
+                    "mmcm_cd": firm_code,
                     "stk_cd": self.test_stock,
-                    "strt_dt": start_dt_10,   # 필수: 시작일자
-                    "end_dt": today           # 필수: 종료일자
+                    "strt_dt": start_dt_10,
+                    "end_dt": today
                 },
                 path="mrkcond"
             )
 
-        # ===== 테스트 케이스 11: 일봉차트조회 (ka10081) ✅ VERIFIED =====
         print("\n" + "=" * 80)
         print("✅ 테스트 케이스 11: 일봉차트조회 (ka10081) - 검증 완료!")
         print("=" * 80)
@@ -471,9 +446,9 @@ class ComprehensiveDataTester:
             body={
                 "stk_cd": self.test_stock,
                 "base_dt": today,
-                "upd_stkpc_tp": "1"  # 수정주가 반영
+                "upd_stkpc_tp": "1"
             },
-            path="chart"  # ⚠️ 중요: chart 경로 사용!
+            path="chart"
         )
 
         self.test_scoring_api(
@@ -481,13 +456,12 @@ class ComprehensiveDataTester:
             api_id="ka10081",
             body={
                 "stk_cd": self.test_stock,
-                "base_dt": start_dt_10,  # 3일 전
+                "base_dt": start_dt_10,
                 "upd_stkpc_tp": "1"
             },
             path="chart"
         )
 
-        # ===== 테스트 케이스 12: 체결강도추이 (ka10047) ✅ VERIFIED =====
         print("\n" + "=" * 80)
         print("✅ 테스트 케이스 12: 체결강도추이 (ka10047) - 검증 완료!")
         print("=" * 80)
@@ -510,7 +484,6 @@ class ComprehensiveDataTester:
             path="mrkcond"
         )
 
-        # ===== 테스트 케이스 13: 프로그램매매추이 (ka90013) ✅ VERIFIED =====
         print("\n" + "=" * 80)
         print("✅ 테스트 케이스 13: 프로그램매매추이 (ka90013) - 검증 완료!")
         print("=" * 80)
@@ -520,7 +493,7 @@ class ComprehensiveDataTester:
             api_id="ka90013",
             body={
                 "stk_cd": self.test_stock,
-                "amt_qty_tp": "1",  # 1: 금액
+                "amt_qty_tp": "1",
                 "date": ""
             },
             path="mrkcond"
@@ -531,7 +504,7 @@ class ComprehensiveDataTester:
             api_id="ka90013",
             body={
                 "stk_cd": self.test_stock,
-                "amt_qty_tp": "2",  # 2: 수량
+                "amt_qty_tp": "2",
                 "date": ""
             },
             path="mrkcond"
@@ -554,9 +527,6 @@ class ComprehensiveDataTester:
         print(f"   성공: {successful}개 / 실패: {len(self.test_results['scoring_apis']) - successful}개")
         print("=" * 80)
 
-    # ================================================================
-    # Part 2: WebSocket 연결 조건 테스트
-    # ================================================================
 
     async def test_websocket_connection(
         self,
@@ -564,7 +534,6 @@ class ComprehensiveDataTester:
         subscribe_request: dict,
         duration: int = 5
     ) -> dict:
-        """
         WebSocket 연결 테스트
 
         Args:
@@ -574,7 +543,6 @@ class ComprehensiveDataTester:
 
         Returns:
             테스트 결과
-        """
         print(f"\n🧪 테스트: {test_name}")
         print(f"   URL: {self.ws_url}")
         print(f"   구독 요청: {json.dumps(subscribe_request, ensure_ascii=False)}")
@@ -591,8 +559,6 @@ class ComprehensiveDataTester:
         }
 
         try:
-            # WebSocket 연결 - Python 3.13+ 호환
-            # additional_headers 또는 직접 URL에 토큰 전달
             async with websockets.connect(
                 self.ws_url,
                 additional_headers={
@@ -604,11 +570,9 @@ class ComprehensiveDataTester:
                 result['connected'] = True
                 print(f"   ✅ WebSocket 연결 성공")
 
-                # 구독 요청 전송
                 await websocket.send(json.dumps(subscribe_request))
                 print(f"   📤 구독 요청 전송")
 
-                # 응답 대기
                 start_time = time.time()
                 while time.time() - start_time < duration:
                     try:
@@ -617,16 +581,13 @@ class ComprehensiveDataTester:
 
                         result['messages_received'] += 1
 
-                        # 처음 3개 메시지만 샘플로 저장
                         if len(result['sample_messages']) < 3:
                             result['sample_messages'].append(data)
 
-                        # 구독 응답 확인
                         if data.get('trnm') == 'REG' and data.get('return_code') == 0:
                             result['subscription_success'] = True
                             print(f"   ✅ 구독 성공: {data.get('return_msg', '')}")
 
-                        # 실시간 데이터 수신 확인
                         if data.get('trnm') == 'REAL':
                             print(f"   📨 실시간 데이터 수신 (총 {result['messages_received']}개)")
                             if result['messages_received'] <= 3:
@@ -662,7 +623,6 @@ class ComprehensiveDataTester:
         print("   3. grp_no, refresh 파라미터 조합 테스트")
         print("\n🎯 다양한 WebSocket 연결 조건을 테스트합니다...\n")
 
-        # ===== 테스트 케이스 1: 기본 구독 (주문체결) =====
         await self.test_websocket_connection(
             test_name="WS Case 1-1: 주문체결 구독 (type=00, refresh=1)",
             subscribe_request={
@@ -691,7 +651,6 @@ class ComprehensiveDataTester:
             duration=5
         )
 
-        # ===== 테스트 케이스 2: 주식체결 구독 (0B) =====
         await self.test_websocket_connection(
             test_name="WS Case 2-1: 주식체결 구독 (삼성전자)",
             subscribe_request={
@@ -720,7 +679,6 @@ class ComprehensiveDataTester:
             duration=5
         )
 
-        # ===== 테스트 케이스 3: 주식호가잔량 구독 (0D) =====
         await self.test_websocket_connection(
             test_name="WS Case 3-1: 주식호가잔량 구독 (삼성전자)",
             subscribe_request={
@@ -735,7 +693,6 @@ class ComprehensiveDataTester:
             duration=10
         )
 
-        # ===== 테스트 케이스 4: 복수 항목 구독 =====
         await self.test_websocket_connection(
             test_name="WS Case 4-1: 복수 항목 구독 (0B + 0D)",
             subscribe_request={
@@ -757,14 +714,13 @@ class ComprehensiveDataTester:
                 "grp_no": "1",
                 "refresh": "1",
                 "data": [{
-                    "item": [self.test_stock, "000660"],  # 삼성전자, SK하이닉스
+                    "item": [self.test_stock, "000660"],
                     "type": ["0B"]
                 }]
             },
             duration=10
         )
 
-        # ===== 테스트 케이스 5: 잔고 구독 (04) =====
         await self.test_websocket_connection(
             test_name="WS Case 5-1: 잔고 구독",
             subscribe_request={
@@ -779,7 +735,6 @@ class ComprehensiveDataTester:
             duration=5
         )
 
-        # ===== 테스트 케이스 6: 주식기세 구독 (0A) =====
         await self.test_websocket_connection(
             test_name="WS Case 6-1: 주식기세 구독 (삼성전자)",
             subscribe_request={
@@ -794,7 +749,6 @@ class ComprehensiveDataTester:
             duration=10
         )
 
-        # ===== 테스트 케이스 7: 주식우선호가 구독 (0C) =====
         await self.test_websocket_connection(
             test_name="WS Case 7-1: 주식우선호가 구독 (삼성전자)",
             subscribe_request={
@@ -809,7 +763,6 @@ class ComprehensiveDataTester:
             duration=10
         )
 
-        # ===== 테스트 케이스 8: 다양한 grp_no 테스트 =====
         await self.test_websocket_connection(
             test_name="WS Case 8-1: grp_no=99 테스트",
             subscribe_request={
@@ -838,7 +791,6 @@ class ComprehensiveDataTester:
             duration=5
         )
 
-        # ===== 테스트 케이스 9: data 배열 복수 항목 =====
         await self.test_websocket_connection(
             test_name="WS Case 9-1: data 배열 복수 항목",
             subscribe_request={
@@ -869,9 +821,6 @@ class ComprehensiveDataTester:
         print(f"   구독 성공: {subscribed}개")
         print("=" * 80)
 
-    # ================================================================
-    # 결과 저장 및 분석
-    # ================================================================
 
     def save_results(self):
         """테스트 결과 저장"""
@@ -887,7 +836,6 @@ class ComprehensiveDataTester:
         """테스트 결과 요약 출력"""
         self.print_section("테스트 결과 요약")
 
-        # 스코어링 API 성공 케이스
         print("\n📊 스코어링 API - 성공한 케이스:")
         scoring_success = [r for r in self.test_results['scoring_apis'] if r.get('success', False) and r.get('has_data', False)]
 
@@ -899,10 +847,8 @@ class ComprehensiveDataTester:
         else:
             print("  ❌ 성공한 케이스 없음")
 
-        # 스코어링 API 추천 조합
         print("\n\n🎯 스코어링을 위한 추천 API 조합:")
         if scoring_success:
-            # API별로 그룹화
             api_groups = {}
             for result in scoring_success:
                 api_id = result['api_id']
@@ -916,7 +862,6 @@ class ComprehensiveDataTester:
                     print(f"     - {result['test_name']}")
                     print(f"       Body: {json.dumps(result['body'], ensure_ascii=False)}")
 
-        # WebSocket 성공 케이스
         print("\n\n📡 WebSocket - 성공한 케이스:")
         ws_success = [r for r in self.test_results['websocket_tests'] if r.get('success', False)]
 
@@ -928,7 +873,6 @@ class ComprehensiveDataTester:
         else:
             print("  ❌ 성공한 케이스 없음")
 
-        # WebSocket 부분 성공 케이스
         ws_partial = [r for r in self.test_results['websocket_tests']
                      if not r.get('success', False) and (r.get('connected', False) or r.get('subscription_success', False))]
 
@@ -956,13 +900,10 @@ async def main():
     tester = ComprehensiveDataTester()
 
     try:
-        # Part 1: 스코어링 API 테스트
         tester.run_scoring_tests()
 
-        # Part 2: WebSocket 테스트
         await tester.run_websocket_tests()
 
-        # 결과 저장 및 요약
         tester.save_results()
         tester.print_summary()
 

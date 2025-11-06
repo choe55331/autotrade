@@ -1,7 +1,5 @@
-"""
 AutoTrade Pro - 통합 리스크 관리 조율 시스템
 모든 리스크 관리 모듈을 통합 조율
-"""
 from typing import Dict, List, Tuple, Optional, Any
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -71,17 +69,14 @@ class RiskOrchestrator:
     def __init__(self, settings: Optional[Dict] = None):
         self.settings = settings or {}
 
-        # 리스크 매니저들 초기화
         self.static_risk_manager = None
         self.dynamic_risk_manager = None
         self.trailing_stop_manager = None
         self.risk_analytics = None
 
-        # 리스크 이력
         self.risk_history: List[RiskAssessment] = []
         self.max_history_size = 1000
 
-        # 설정
         self.enable_static_checks = self.settings.get('enable_static_checks', True)
         self.enable_dynamic_mode = self.settings.get('enable_dynamic_mode', True)
         self.enable_trailing_stop = self.settings.get('enable_trailing_stop', True)
@@ -92,13 +87,11 @@ class RiskOrchestrator:
     def initialize_managers(self):
         """리스크 매니저들 초기화"""
         try:
-            # 정적 리스크 매니저
             if self.enable_static_checks:
                 from .risk_manager import RiskManager
                 self.static_risk_manager = RiskManager(self.settings.get('static_risk', {}))
                 logger.info("정적 리스크 매니저 초기화 완료")
 
-            # 동적 리스크 매니저
             if self.enable_dynamic_mode:
                 try:
                     from .dynamic_risk_manager import DynamicRiskManager
@@ -107,7 +100,6 @@ class RiskOrchestrator:
                 except ImportError:
                     logger.warning("동적 리스크 매니저를 불러올 수 없습니다")
 
-            # 트레일링 스톱 매니저
             if self.enable_trailing_stop:
                 try:
                     from .trailing_stop_manager import TrailingStopManager
@@ -118,7 +110,6 @@ class RiskOrchestrator:
                 except ImportError:
                     logger.warning("트레일링 스톱 매니저를 불러올 수 없습니다")
 
-            # 고급 리스크 분석
             if self.enable_analytics:
                 try:
                     from .advanced_risk_analytics import AdvancedRiskAnalytics
@@ -132,14 +123,13 @@ class RiskOrchestrator:
 
     def assess_trading_risk(
         self,
-        action: str,  # "BUY" or "SELL"
+        action: str,
         stock_code: str,
         quantity: int,
         price: float,
         account_info: Optional[Dict] = None,
         position_info: Optional[Dict] = None
     ) -> RiskAssessment:
-        """
         매매 리스크 종합 평가
 
         Args:
@@ -152,42 +142,34 @@ class RiskOrchestrator:
 
         Returns:
             종합 리스크 평가
-        """
         checks: List[RiskCheck] = []
         recommendations: List[str] = []
 
-        # 1. 정적 리스크 체크
         if self.static_risk_manager:
             static_checks = self._check_static_risks(
                 action, stock_code, quantity, price, account_info, position_info
             )
             checks.extend(static_checks)
 
-        # 2. 동적 리스크 모드 체크
         if self.dynamic_risk_manager:
             dynamic_checks = self._check_dynamic_risks(
                 action, stock_code, quantity, price
             )
             checks.extend(dynamic_checks)
 
-        # 3. 트레일링 스톱 체크
         if self.trailing_stop_manager and action == "SELL" and position_info:
             trailing_checks = self._check_trailing_stop(stock_code, price, position_info)
             checks.extend(trailing_checks)
 
-        # 4. 고급 리스크 분석
         if self.risk_analytics and account_info:
             analytics_checks = self._check_analytics(account_info, position_info)
             checks.extend(analytics_checks)
 
-        # 종합 평가
         overall_risk_level = self._calculate_overall_risk(checks)
         can_trade = self._determine_tradability(checks, overall_risk_level)
 
-        # 권장사항 생성
         recommendations = self._generate_recommendations(checks, overall_risk_level)
 
-        # 평가 결과 생성
         assessment = RiskAssessment(
             overall_risk_level=overall_risk_level,
             can_trade=can_trade,
@@ -195,7 +177,6 @@ class RiskOrchestrator:
             recommendations=recommendations
         )
 
-        # 이력 저장
         self._save_assessment(assessment)
 
         return assessment
@@ -209,13 +190,11 @@ class RiskOrchestrator:
         account_info: Optional[Dict],
         position_info: Optional[Dict]
     ) -> List[RiskCheck]:
-        """정적 리스크 체크"""
         checks = []
 
         if not self.static_risk_manager or not account_info:
             return checks
 
-        # 포지션 크기 검증
         total_assets = account_info.get('total_assets', 0)
         position_value = quantity * price
 
@@ -233,7 +212,6 @@ class RiskOrchestrator:
         except Exception as e:
             logger.error(f"포지션 크기 검증 실패: {e}")
 
-        # 일일 손실 한도 체크
         daily_loss = account_info.get('daily_loss', 0)
         max_daily_loss = total_assets * self.settings.get('max_daily_loss_pct', 0.03)
 
@@ -254,20 +232,16 @@ class RiskOrchestrator:
         quantity: int,
         price: float
     ) -> List[RiskCheck]:
-        """동적 리스크 모드 체크"""
         checks = []
 
         if not self.dynamic_risk_manager:
             return checks
 
-        # 현재 리스크 모드 확인
         try:
             current_mode = getattr(self.dynamic_risk_manager, 'current_mode', None)
             if current_mode:
-                # 모드별 제약 확인
                 risk_level = RiskLevel.LOW
 
-                # 보수적 모드일 때 추가 제약
                 if str(current_mode) == "CONSERVATIVE":
                     risk_level = RiskLevel.MEDIUM
                     checks.append(RiskCheck(
@@ -288,14 +262,12 @@ class RiskOrchestrator:
         current_price: float,
         position_info: Dict
     ) -> List[RiskCheck]:
-        """트레일링 스톱 체크"""
         checks = []
 
         if not self.trailing_stop_manager:
             return checks
 
         try:
-            # 트레일링 스톱 업데이트 및 체크
             should_exit, reason = self.trailing_stop_manager.update(stock_code, current_price)
 
             checks.append(RiskCheck(
@@ -315,14 +287,11 @@ class RiskOrchestrator:
         account_info: Dict,
         position_info: Optional[Dict]
     ) -> List[RiskCheck]:
-        """고급 리스크 분석"""
         checks = []
 
         if not self.risk_analytics:
             return checks
 
-        # VaR, CVaR 등 고급 지표 체크
-        # (실제 구현은 advanced_risk_analytics.py에 따라 달라짐)
 
         return checks
 
@@ -331,7 +300,6 @@ class RiskOrchestrator:
         if not checks:
             return RiskLevel.SAFE
 
-        # 가장 높은 리스크 레벨 반환
         risk_levels = [check.risk_level for check in checks]
 
         if RiskLevel.CRITICAL in risk_levels:
@@ -350,15 +318,11 @@ class RiskOrchestrator:
         checks: List[RiskCheck],
         overall_risk: RiskLevel
     ) -> bool:
-        """거래 가능 여부 판단"""
-        # CRITICAL 리스크가 하나라도 있으면 거래 불가
         if overall_risk == RiskLevel.CRITICAL:
             return False
 
-        # 실패한 체크가 있는지 확인
         failed_checks = [check for check in checks if not check.passed]
 
-        # HIGH 리스크 체크가 2개 이상 실패하면 거래 불가
         high_risk_failures = [
             check for check in failed_checks
             if check.risk_level in [RiskLevel.HIGH, RiskLevel.CRITICAL]
@@ -374,10 +338,8 @@ class RiskOrchestrator:
         checks: List[RiskCheck],
         overall_risk: RiskLevel
     ) -> List[str]:
-        """권장사항 생성"""
         recommendations = []
 
-        # 실패한 체크 기반 권장사항
         failed_checks = [check for check in checks if not check.passed]
 
         for check in failed_checks:
@@ -388,7 +350,6 @@ class RiskOrchestrator:
             elif "트레일링 스톱" in check.check_name:
                 recommendations.append("즉시 청산을 고려하세요")
 
-        # 전반적인 리스크 레벨 기반 권장사항
         if overall_risk == RiskLevel.CRITICAL:
             recommendations.append("⚠️ 긴급: 모든 거래를 중단하고 포지션을 정리하세요")
         elif overall_risk == RiskLevel.HIGH:
@@ -402,7 +363,6 @@ class RiskOrchestrator:
         """평가 결과 저장"""
         self.risk_history.append(assessment)
 
-        # 이력 크기 제한
         if len(self.risk_history) > self.max_history_size:
             self.risk_history = self.risk_history[-self.max_history_size:]
 
@@ -427,7 +387,6 @@ class RiskOrchestrator:
         }
 
 
-# 싱글톤 패턴
 _risk_orchestrator_instance: Optional[RiskOrchestrator] = None
 
 

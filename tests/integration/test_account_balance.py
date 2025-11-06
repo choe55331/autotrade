@@ -1,11 +1,7 @@
-"""
 계좌잔액 계산 테스트
-"""
 import sys
 import os
 
-# Cross-platform path resolution
-# tests/integration/test_account_balance.py -> tests/integration -> tests -> autotrade (project root)
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, project_root)
 
@@ -25,11 +21,9 @@ def test_account_balance():
     print("계좌잔액 계산 테스트")
     print("=" * 80)
 
-    # 1. API 초기화
     client = KiwoomRESTClient()
     account_api = AccountAPI(client)
 
-    # 2. 예수금 조회
     deposit = account_api.get_deposit()
     print(f"\n[예수금 조회]")
     if deposit:
@@ -41,12 +35,10 @@ def test_account_balance():
         print("  ❌ 예수금 조회 실패")
         return False
 
-    # 3. 보유 종목 조회 (KRX+NXT 통합)
     holdings = account_api.get_holdings(market_type="KRX+NXT")
     print(f"\n[보유 종목 조회 (KRX+NXT)]")
     print(f"  종목 수: {len(holdings) if holdings else 0}개")
 
-    # v5.5.0: 장외 시간 대응 - eval_amt이 0이면 직접 계산
     stock_value = 0
     if holdings:
         for h in holdings:
@@ -56,7 +48,6 @@ def test_account_balance():
             cur_prc = int(str(h.get('cur_prc', 0)).replace(',', ''))
             eval_amt = int(str(h.get('eval_amt', 0)).replace(',', ''))
 
-            # eval_amt이 0이면 수동 계산 (장외 시간)
             if eval_amt == 0 and cur_prc > 0:
                 eval_amt = qty * cur_prc
                 print(f"  - {code} {name}: {qty}주 @ {cur_prc:,}원 = {eval_amt:,}원 (장외 시간 계산)")
@@ -66,7 +57,6 @@ def test_account_balance():
             stock_value += eval_amt
         print(f"  주식 평가금액 합계: {stock_value:,}원")
 
-    # 4. 총 자산 계산
     total_assets = stock_value + cash
 
     print(f"\n[총 자산 계산]")
@@ -74,7 +64,6 @@ def test_account_balance():
     print(f"  잔존 현금: {cash:,}원")
     print(f"  총 자산: {total_assets:,}원")
 
-    # 5. 검증
     print(f"\n[검증]")
     if stock_value + cash == total_assets:
         print("  ✅ 계산 정확도: OK (주식 현재가치 + 잔존 현금 = 총 자산)")

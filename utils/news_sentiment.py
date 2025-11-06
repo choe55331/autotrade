@@ -1,7 +1,5 @@
-"""
 News Sentiment Analysis Module v6.0
 실시간 뉴스 크롤링 및 AI 감정 분석
-"""
 
 import asyncio
 from typing import List, Dict, Any, Optional
@@ -35,22 +33,18 @@ class NewsAggregator:
 
         news_list = []
 
-        # Naver Finance 뉴스
         naver_news = await self._fetch_naver_news(stock_code, limit)
         news_list.extend(naver_news)
 
-        # Daum Finance 뉴스
         daum_news = await self._fetch_daum_news(stock_code, limit)
         news_list.extend(daum_news)
 
-        # 중복 제거 (제목 기준)
         unique_news = {}
         for news in news_list:
             title = news['title']
             if title not in unique_news:
                 unique_news[title] = news
 
-        # 최신순 정렬
         sorted_news = sorted(
             unique_news.values(),
             key=lambda x: x['published'],
@@ -94,11 +88,10 @@ class NewsAggregator:
         """Daum Finance 뉴스 크롤링"""
 
         try:
-            # Daum은 종목 코드 형식이 다를 수 있음 (A005930)
             if not stock_code.startswith('A'):
                 stock_code = 'A' + stock_code
 
-            url = f"https://finance.daum.net/quotes/{stock_code}#news"
+            url = f"https://finance.daum.net/quotes/{stock_code}
 
             response = await asyncio.to_thread(requests.get, url, timeout=10)
             soup = BeautifulSoup(response.content, 'html.parser')
@@ -138,7 +131,6 @@ class SentimentAnalyzer:
         """
         self.ai_analyzer = ai_analyzer
 
-        # 감정 키워드 사전 (간단한 규칙 기반)
         self.positive_keywords = [
             '상승', '급등', '호재', '투자', '확대', '성장', '증가',
             '개선', '긍정', '매수', '강세', '실적', '호조', '수주'
@@ -154,7 +146,6 @@ class SentimentAnalyzer:
         news_list: List[Dict[str, Any]],
         use_ai: bool = True
     ) -> Dict[str, Any]:
-        """
         뉴스 감정 분석
 
         Args:
@@ -163,7 +154,6 @@ class SentimentAnalyzer:
 
         Returns:
             감정 분석 결과
-        """
 
         if not news_list:
             return {
@@ -175,16 +165,14 @@ class SentimentAnalyzer:
             }
 
         if use_ai and self.ai_analyzer:
-            # AI 기반 감정 분석
             return await self._ai_sentiment_analysis(news_list)
         else:
-            # 규칙 기반 감정 분석
             return self._rule_based_sentiment_analysis(news_list)
 
     async def _ai_sentiment_analysis(self, news_list: List[Dict[str, Any]]) -> Dict[str, Any]:
         """AI 기반 감정 분석"""
 
-        titles = [news['title'] for news in news_list[:10]]  # 최대 10개
+        titles = [news['title'] for news in news_list[:10]]
 
         prompt = f"""
 다음 뉴스 제목들을 분석하여 전체적인 감정(sentiment)을 평가하세요:
@@ -204,17 +192,14 @@ class SentimentAnalyzer:
 ```
 
 JSON만 출력하세요.
-"""
 
         try:
-            # AI Provider가 있으면 사용
             if hasattr(self.ai_analyzer, 'providers') and self.ai_analyzer.providers:
                 provider_name = self.ai_analyzer.default_provider
                 provider = self.ai_analyzer.providers[provider_name]
 
                 response_text = await provider.analyze(prompt)
 
-                # JSON 파싱
                 json_start = response_text.find('{')
                 json_end = response_text.rfind('}') + 1
 
@@ -223,7 +208,6 @@ JSON만 출력하세요.
                     result = json.loads(json_str)
                     return result
 
-            # AI 없으면 규칙 기반으로 폴백
             return self._rule_based_sentiment_analysis(news_list)
 
         except Exception as e:
@@ -242,13 +226,10 @@ JSON만 출력하세요.
         for news in news_list:
             title = news['title']
 
-            # 긍정 키워드 카운트
             positive_score = sum(1 for keyword in self.positive_keywords if keyword in title)
 
-            # 부정 키워드 카운트
             negative_score = sum(1 for keyword in self.negative_keywords if keyword in title)
 
-            # 분류
             if positive_score > negative_score:
                 positive_count += 1
             elif negative_score > positive_score:
@@ -256,7 +237,6 @@ JSON만 출력하세요.
             else:
                 neutral_count += 1
 
-            # 키워드 추출
             for keyword in self.positive_keywords + self.negative_keywords:
                 if keyword in title:
                     keywords[keyword] = keywords.get(keyword, 0) + 1
@@ -267,11 +247,9 @@ JSON만 출력하세요.
         neutral_pct = (neutral_count / total) * 100 if total > 0 else 0
         negative_pct = (negative_count / total) * 100 if total > 0 else 0
 
-        # 상위 키워드
         top_keywords = sorted(keywords.items(), key=lambda x: x[1], reverse=True)[:5]
         top_keywords = [kw[0] for kw in top_keywords]
 
-        # 요약
         if positive_pct > 60:
             summary = "매우 긍정적인 뉴스 흐름"
         elif positive_pct > 40:
@@ -305,8 +283,8 @@ class NewsMonitor:
         """
         self.aggregator = NewsAggregator()
         self.analyzer = SentimentAnalyzer(ai_analyzer)
-        self.cache = {}  # 종목별 뉴스 캐시
-        self.cache_ttl = 300  # 5분 캐시
+        self.cache = {}
+        self.cache_ttl = 300
 
     async def get_stock_news_with_sentiment(
         self,
@@ -315,7 +293,6 @@ class NewsMonitor:
         use_ai: bool = True,
         use_cache: bool = True
     ) -> Dict[str, Any]:
-        """
         종목 뉴스 + 감정 분석
 
         Args:
@@ -326,18 +303,14 @@ class NewsMonitor:
 
         Returns:
             뉴스 + 감정 분석 결과
-        """
 
-        # 캐시 확인
         if use_cache and stock_code in self.cache:
             cached_data, cached_time = self.cache[stock_code]
             if (datetime.now() - cached_time).seconds < self.cache_ttl:
                 return cached_data
 
-        # 뉴스 수집
         news_list = await self.aggregator.fetch_stock_news(stock_code, limit)
 
-        # 감정 분석
         sentiment = await self.analyzer.analyze_news_sentiment(news_list, use_ai)
 
         result = {
@@ -347,14 +320,12 @@ class NewsMonitor:
             'timestamp': datetime.now().isoformat()
         }
 
-        # 캐시 저장
         if use_cache:
             self.cache[stock_code] = (result, datetime.now())
 
         return result
 
 
-# 싱글톤 인스턴스
 _news_monitor_instance = None
 
 

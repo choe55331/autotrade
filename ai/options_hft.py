@@ -1,10 +1,8 @@
-"""
 Options Pricing and High-Frequency Trading
 Advanced derivatives and ultra-fast trading systems
 
 Author: AutoTrade Pro
 Version: 4.2
-"""
 
 from dataclasses import dataclass
 from typing import List, Dict, Any, Optional, Tuple
@@ -19,9 +17,6 @@ except ImportError:
     SCIPY_AVAILABLE = False
 
 
-# ============================================================================
-# 1. Options Pricing System
-# ============================================================================
 
 @dataclass
 class OptionContract:
@@ -29,18 +24,18 @@ class OptionContract:
     underlying: str
     strike_price: float
     expiry_date: str
-    option_type: str  # 'call' or 'put'
+    option_type: str
     premium: float = 0.0
 
 
 @dataclass
 class OptionGreeks:
     """Option Greeks"""
-    delta: float  # Price sensitivity
-    gamma: float  # Delta sensitivity
-    theta: float  # Time decay
-    vega: float  # Volatility sensitivity
-    rho: float  # Interest rate sensitivity
+    delta: float
+    gamma: float
+    theta: float
+    vega: float
+    rho: float
 
 
 class BlackScholesModel:
@@ -60,11 +55,10 @@ class BlackScholesModel:
         self,
         spot_price: float,
         strike_price: float,
-        time_to_expiry: float,  # in years
+        time_to_expiry: float,
         volatility: float,
         option_type: str = 'call'
     ) -> float:
-        """
         Calculate option price using Black-Scholes
 
         Args:
@@ -76,9 +70,7 @@ class BlackScholesModel:
 
         Returns:
             Option price
-        """
         if not SCIPY_AVAILABLE:
-            # Simple approximation
             intrinsic = max(0, spot_price - strike_price) if option_type == 'call' \
                 else max(0, strike_price - spot_price)
             time_value = volatility * np.sqrt(time_to_expiry) * spot_price / 4
@@ -93,7 +85,7 @@ class BlackScholesModel:
         if option_type == 'call':
             price = (spot_price * norm.cdf(d1) -
                     strike_price * np.exp(-self.risk_free_rate * time_to_expiry) * norm.cdf(d2))
-        else:  # put
+        else:
             price = (strike_price * np.exp(-self.risk_free_rate * time_to_expiry) * norm.cdf(-d2) -
                     spot_price * norm.cdf(-d1))
 
@@ -107,14 +99,11 @@ class BlackScholesModel:
         volatility: float,
         option_type: str = 'call'
     ) -> OptionGreeks:
-        """
         Calculate option Greeks
 
         Returns:
             All Greeks
-        """
         if not SCIPY_AVAILABLE:
-            # Simplified Greeks
             return OptionGreeks(
                 delta=0.5 if option_type == 'call' else -0.5,
                 gamma=0.1,
@@ -129,16 +118,13 @@ class BlackScholesModel:
 
         d2 = d1 - volatility * np.sqrt(time_to_expiry)
 
-        # Delta
         if option_type == 'call':
             delta = norm.cdf(d1)
         else:
             delta = norm.cdf(d1) - 1
 
-        # Gamma (same for call and put)
         gamma = norm.pdf(d1) / (spot_price * volatility * np.sqrt(time_to_expiry))
 
-        # Theta
         if option_type == 'call':
             theta = ((-spot_price * norm.pdf(d1) * volatility / (2 * np.sqrt(time_to_expiry))) -
                     self.risk_free_rate * strike_price * np.exp(-self.risk_free_rate * time_to_expiry) * norm.cdf(d2)) / 365
@@ -146,10 +132,8 @@ class BlackScholesModel:
             theta = ((-spot_price * norm.pdf(d1) * volatility / (2 * np.sqrt(time_to_expiry))) +
                     self.risk_free_rate * strike_price * np.exp(-self.risk_free_rate * time_to_expiry) * norm.cdf(-d2)) / 365
 
-        # Vega (same for call and put)
         vega = spot_price * norm.pdf(d1) * np.sqrt(time_to_expiry) / 100
 
-        # Rho
         if option_type == 'call':
             rho = strike_price * time_to_expiry * np.exp(-self.risk_free_rate * time_to_expiry) * norm.cdf(d2) / 100
         else:
@@ -171,7 +155,6 @@ class BlackScholesModel:
         time_to_expiry: float,
         option_type: str = 'call'
     ) -> float:
-        """
         Calculate implied volatility using Newton-Raphson
 
         Args:
@@ -183,27 +166,23 @@ class BlackScholesModel:
 
         Returns:
             Implied volatility
-        """
-        # Initial guess
         volatility = 0.3
 
-        for _ in range(100):  # Max iterations
+        for _ in range(100):
             price = self.price_option(spot_price, strike_price, time_to_expiry, volatility, option_type)
             diff = option_price - price
 
             if abs(diff) < 0.001:
                 return volatility
 
-            # Vega for Newton-Raphson
             greeks = self.calculate_greeks(spot_price, strike_price, time_to_expiry, volatility, option_type)
-            vega = greeks.vega * 100  # Convert back from % terms
+            vega = greeks.vega * 100
 
             if vega == 0:
                 break
 
             volatility += diff / vega
 
-            # Keep volatility positive and reasonable
             volatility = max(0.001, min(3.0, volatility))
 
         return float(volatility)
@@ -231,13 +210,10 @@ class OptionsStrategyAnalyzer:
         volatility: float,
         shares: int = 100
     ) -> Dict[str, Any]:
-        """
         Analyze covered call strategy
 
         Returns:
             Strategy analysis
-        """
-        # Own stock + sell call
         call_premium = self.bs_model.price_option(
             spot_price, strike_price, time_to_expiry, volatility, 'call'
         )
@@ -262,19 +238,16 @@ class OptionsStrategyAnalyzer:
         volatility: float,
         shares: int = 100
     ) -> Dict[str, Any]:
-        """
         Analyze protective put strategy
 
         Returns:
             Strategy analysis
-        """
-        # Own stock + buy put
         put_premium = self.bs_model.price_option(
             spot_price, strike_price, time_to_expiry, volatility, 'put'
         )
 
         max_loss = (spot_price - strike_price + put_premium) * shares
-        max_profit = float('inf')  # Unlimited upside
+        max_profit = float('inf')
 
         return {
             'strategy': 'protective_put',
@@ -292,12 +265,10 @@ class OptionsStrategyAnalyzer:
         time_to_expiry: float,
         volatility: float
     ) -> Dict[str, Any]:
-        """
         Analyze straddle strategy (buy call + put at same strike)
 
         Returns:
             Strategy analysis
-        """
         call_premium = self.bs_model.price_option(
             spot_price, strike_price, time_to_expiry, volatility, 'call'
         )
@@ -319,28 +290,25 @@ class OptionsStrategyAnalyzer:
         }
 
 
-# ============================================================================
-# 2. High-Frequency Trading System
-# ============================================================================
 
 @dataclass
 class HFTOrder:
     """High-frequency trading order"""
     order_id: int
     stock_code: str
-    action: str  # 'buy' or 'sell'
+    action: str
     quantity: int
     price: float
-    timestamp: float  # microseconds
-    latency_us: float = 0.0  # Execution latency
+    timestamp: float
+    latency_us: float = 0.0
 
 
 @dataclass
 class HFTSignal:
     """HFT trading signal"""
-    signal_type: str  # 'arbitrage', 'momentum', 'mean_reversion'
+    signal_type: str
     action: str
-    urgency: str  # 'immediate', 'high', 'medium'
+    urgency: str
     expected_profit: float
     confidence: float
     timestamp: float
@@ -368,7 +336,6 @@ class HighFrequencyTrader:
         ask_prices: List[float],
         exchanges: List[str]
     ) -> Optional[HFTSignal]:
-        """
         Detect arbitrage opportunities across exchanges
 
         Args:
@@ -378,19 +345,17 @@ class HighFrequencyTrader:
 
         Returns:
             Arbitrage signal if found
-        """
         max_bid_idx = np.argmax(bid_prices)
         min_ask_idx = np.argmin(ask_prices)
 
         max_bid = bid_prices[max_bid_idx]
         min_ask = ask_prices[min_ask_idx]
 
-        # Arbitrage exists if we can buy low and sell high
         if max_bid > min_ask:
             profit = max_bid - min_ask
             profit_pct = profit / min_ask * 100
 
-            if profit_pct > 0.05:  # 0.05% threshold
+            if profit_pct > 0.05:
                 return HFTSignal(
                     signal_type='arbitrage',
                     action='arbitrage',
@@ -409,7 +374,6 @@ class HighFrequencyTrader:
         inventory: int,
         target_inventory: int = 0
     ) -> Tuple[float, float]:
-        """
         Market making strategy with inventory management
 
         Args:
@@ -420,10 +384,8 @@ class HighFrequencyTrader:
 
         Returns:
             (bid_price, ask_price)
-        """
         half_spread = spread / 2
 
-        # Adjust quotes based on inventory
         inventory_skew = (inventory - target_inventory) * 0.001
 
         bid_price = mid_price - half_spread - inventory_skew
@@ -436,7 +398,6 @@ class HighFrequencyTrader:
         price_changes: np.ndarray,
         window: int = 100
     ) -> Optional[HFTSignal]:
-        """
         Ultra-short-term momentum signal
 
         Args:
@@ -445,15 +406,13 @@ class HighFrequencyTrader:
 
         Returns:
             Momentum signal if strong enough
-        """
         if len(price_changes) < window:
             return None
 
         recent = price_changes[-window:]
         momentum = np.sum(recent) / window
 
-        # Need strong momentum for HFT
-        if momentum > 0.0001:  # 0.01% positive momentum
+        if momentum > 0.0001:
             return HFTSignal(
                 signal_type='momentum',
                 action='buy',
@@ -479,7 +438,6 @@ class HighFrequencyTrader:
         order: HFTOrder,
         simulate: bool = True
     ) -> Dict[str, Any]:
-        """
         Execute HFT order
 
         Args:
@@ -488,18 +446,15 @@ class HighFrequencyTrader:
 
         Returns:
             Execution result
-        """
         start_time = time.time()
 
         if simulate:
-            # Simulate latency (10-100 microseconds)
             latency_us = np.random.uniform(10, 100)
-            time.sleep(latency_us / 1_000_000)  # Convert to seconds
+            time.sleep(latency_us / 1_000_000)
 
             fill_price = order.price * (1 + np.random.uniform(-0.0001, 0.0001))
             status = 'filled'
         else:
-            # Real execution would go here
             fill_price = order.price
             status = 'pending'
             latency_us = 0
@@ -508,7 +463,7 @@ class HighFrequencyTrader:
         execution_time_us = (end_time - start_time) * 1_000_000
 
         self.execution_times.append(execution_time_us)
-        self.avg_latency_us = np.mean(self.execution_times[-1000:])  # Last 1000
+        self.avg_latency_us = np.mean(self.execution_times[-1000:])
 
         return {
             'order_id': order.order_id,
@@ -539,7 +494,6 @@ class HighFrequencyTrader:
         }
 
 
-# Singleton instances
 _bs_model = None
 _options_analyzer = None
 _hft_trader = None
@@ -569,12 +523,11 @@ def get_hft_trader() -> HighFrequencyTrader:
 if __name__ == '__main__':
     print("⚡ Options & HFT Systems Test")
 
-    # Test Black-Scholes
     bs = get_bs_model()
     call_price = bs.price_option(
         spot_price=100,
         strike_price=105,
-        time_to_expiry=0.25,  # 3 months
+        time_to_expiry=0.25,
         volatility=0.25,
         option_type='call'
     )
@@ -585,13 +538,11 @@ if __name__ == '__main__':
     print(f"Gamma: {greeks.gamma:.3f}")
     print(f"Theta: {greeks.theta:.3f}")
 
-    # Test options strategy
     analyzer = get_options_analyzer()
     straddle = analyzer.straddle(100, 100, 0.25, 0.25)
     print(f"\nStraddle Cost: ${straddle['total_cost']:.2f}")
     print(f"Breakeven Range: ${straddle['breakeven_down']:.2f} - ${straddle['breakeven_up']:.2f}")
 
-    # Test HFT
     hft = get_hft_trader()
     order = HFTOrder(
         order_id=1,

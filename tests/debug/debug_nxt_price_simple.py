@@ -1,7 +1,5 @@
-"""
 NXT 현재가 조회 디버그 - 단순 직접 테스트
 목적: API 응답을 직접 확인하고 어떤 방법이 작동하는지 찾기
-"""
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
@@ -10,7 +8,6 @@ import json
 from datetime import datetime
 from core.rest_client import KiwoomRESTClient
 
-# 색상
 GREEN = '\033[92m'
 RED = '\033[91m'
 YELLOW = '\033[93m'
@@ -42,7 +39,6 @@ def test_api_call(client, api_id: str, body: dict, description: str):
     print(f"{'='*80}")
 
     try:
-        # API 호출
         if api_id == "ka10003":
             path = "stkinfo"
         elif api_id == "ka10004":
@@ -54,7 +50,6 @@ def test_api_call(client, api_id: str, body: dict, description: str):
 
         response = client.request(api_id=api_id, body=body, path=path)
 
-        # 결과 확인
         if not response:
             print(f"{RED}❌ 응답 없음{RESET}")
             return None
@@ -68,10 +63,8 @@ def test_api_call(client, api_id: str, body: dict, description: str):
         if return_code == 0:
             print(f"{GREEN}✅ 성공{RESET}")
 
-            # 전체 응답 출력
             print_json(response, "전체 응답")
 
-            # 현재가 추출 시도
             price = extract_price(response, api_id)
             if price:
                 print(f"\n{GREEN}💰 현재가 추출 성공: {price:,}원{RESET}")
@@ -95,7 +88,6 @@ def extract_price(response: dict, api_id: str):
     """응답에서 현재가 추출"""
     try:
         if api_id == "ka10003":
-            # 체결정보
             cntr_infr = response.get('cntr_infr', [])
             if cntr_infr and len(cntr_infr) > 0:
                 cur_prc_str = cntr_infr[0].get('cur_prc', '0')
@@ -104,14 +96,12 @@ def extract_price(response: dict, api_id: str):
                     return price
 
         elif api_id == "ka10004":
-            # 호가
             cur_prc_str = response.get('cur_prc', '0')
             if cur_prc_str and cur_prc_str != '0':
                 price = abs(int(cur_prc_str.replace('+', '').replace('-', '')))
                 if price > 0:
                     return price
 
-            # 매도1/매수1 호가
             sel_fpr_bid = response.get('sel_fpr_bid', '0').replace('+', '').replace('-', '')
             buy_fpr_bid = response.get('buy_fpr_bid', '0').replace('+', '').replace('-', '')
 
@@ -126,7 +116,6 @@ def extract_price(response: dict, api_id: str):
                 return buy_price
 
         elif api_id == "ka30002":
-            # 차트
             chart_data = response.get('cntr_day_list', [])
             if chart_data and len(chart_data) > 0:
                 latest = chart_data[-1]
@@ -144,11 +133,10 @@ def extract_price(response: dict, api_id: str):
 def main():
     """메인 테스트"""
     print(f"\n{'#'*80}")
-    print(f"#  NXT 현재가 조회 디버그 테스트")
-    print(f"#  {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"
+    print(f"
     print(f"{'#'*80}")
 
-    # 클라이언트 초기화 (TradingBotV2를 통해)
     print(f"\n{BLUE}클라이언트 초기화 중...{RESET}")
     try:
         from main import TradingBotV2
@@ -170,13 +158,11 @@ def main():
             print(f"{RED}❌ 클라이언트 직접 초기화도 실패: {e2}{RESET}")
             return
 
-    # 테스트할 종목 (대표 NXT 종목)
-    test_stock = "249420"  # 일동제약
+    test_stock = "249420"
     test_name = "일동제약"
 
     print(f"\n{BLUE}테스트 종목: {test_stock} ({test_name}){RESET}")
 
-    # 테스트 1: ka10003 - 기본 코드
     test_api_call(
         client,
         "ka10003",
@@ -184,7 +170,6 @@ def main():
         f"ka10003 체결정보 - 기본 코드 ({test_stock})"
     )
 
-    # 테스트 2: ka10003 - _NX 코드
     test_api_call(
         client,
         "ka10003",
@@ -192,7 +177,6 @@ def main():
         f"ka10003 체결정보 - _NX 코드 ({test_stock}_NX)"
     )
 
-    # 테스트 3: ka10004 - 기본 코드
     test_api_call(
         client,
         "ka10004",
@@ -200,7 +184,6 @@ def main():
         f"ka10004 호가 - 기본 코드 ({test_stock})"
     )
 
-    # 테스트 4: ka10004 - _NX 코드
     test_api_call(
         client,
         "ka10004",
@@ -208,7 +191,6 @@ def main():
         f"ka10004 호가 - _NX 코드 ({test_stock}_NX)"
     )
 
-    # 테스트 5: ka30002 일봉 - 기본 코드
     today = datetime.now().strftime("%Y%m%d")
     test_api_call(
         client,
@@ -222,7 +204,6 @@ def main():
         f"ka30002 차트(일봉) - 기본 코드 ({test_stock})"
     )
 
-    # 테스트 6: ka30002 일봉 - _NX 코드
     test_api_call(
         client,
         "ka30002",
@@ -235,7 +216,6 @@ def main():
         f"ka30002 차트(일봉) - _NX 코드 ({test_stock}_NX)"
     )
 
-    # 테스트 7: ka30002 분봉 - 기본 코드
     test_api_call(
         client,
         "ka30002",
@@ -249,7 +229,6 @@ def main():
         f"ka30002 차트(1분봉) - 기본 코드 ({test_stock})"
     )
 
-    # 테스트 8: ka30002 분봉 - _NX 코드
     test_api_call(
         client,
         "ka30002",

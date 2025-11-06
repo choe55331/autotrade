@@ -1,7 +1,5 @@
-"""
 Advanced Portfolio Optimization - v5.13
 Modern Portfolio Theory, Efficient Frontier, Black-Litterman Model
-"""
 from dataclasses import dataclass
 from typing import Dict, List, Tuple, Optional, Any
 from datetime import datetime, timedelta
@@ -14,20 +12,20 @@ logger = logging.getLogger(__name__)
 
 class OptimizationObjective(Enum):
     """최적화 목표"""
-    MAX_SHARPE = "max_sharpe"  # 샤프 비율 최대화
-    MIN_VOLATILITY = "min_volatility"  # 변동성 최소화
-    MAX_RETURN = "max_return"  # 수익률 최대화
-    RISK_PARITY = "risk_parity"  # 리스크 패리티
-    BLACK_LITTERMAN = "black_litterman"  # Black-Litterman
+    MAX_SHARPE = "max_sharpe"
+    MIN_VOLATILITY = "min_volatility"
+    MAX_RETURN = "max_return"
+    RISK_PARITY = "risk_parity"
+    BLACK_LITTERMAN = "black_litterman"
 
 
 @dataclass
 class OptimizationResult:
     """최적화 결과"""
-    weights: Dict[str, float]  # 종목별 비중
-    expected_return: float  # 예상 수익률
-    expected_volatility: float  # 예상 변동성
-    sharpe_ratio: float  # 샤프 비율
+    weights: Dict[str, float]
+    expected_return: float
+    expected_volatility: float
+    sharpe_ratio: float
     objective: OptimizationObjective
     constraints_satisfied: bool
     optimization_time_seconds: float
@@ -70,7 +68,6 @@ class PortfolioOptimizer:
                  constraints: Optional[Dict[str, Any]] = None,
                  target_return: Optional[float] = None,
                  target_volatility: Optional[float] = None) -> OptimizationResult:
-        """
         포트폴리오 최적화
 
         Args:
@@ -78,36 +75,32 @@ class PortfolioOptimizer:
             objective: 최적화 목표
             constraints: 제약 조건
                 {
-                    'max_weight': 0.3,  # 종목당 최대 비중
-                    'min_weight': 0.05,  # 종목당 최소 비중
-                    'sector_limits': {'tech': 0.4},  # 섹터별 한도
-                    'allow_short': False  # 공매도 허용 여부
+                    'max_weight': 0.3,
+                    'min_weight': 0.05,
+                    'sector_limits': {'tech': 0.4},
+                    'allow_short': False
                 }
             target_return: 목표 수익률 (연간)
             target_volatility: 목표 변동성 (연간)
 
         Returns:
             OptimizationResult
-        """
         logger.info(f"Optimizing portfolio: {len(price_histories)} stocks, "
                    f"objective={objective.value}")
 
         start_time = datetime.now()
 
-        # Calculate returns matrix
         returns_matrix = self._calculate_returns_matrix(price_histories)
 
         if returns_matrix is None or len(returns_matrix) == 0:
             logger.error("Failed to calculate returns matrix")
             return self._empty_result(objective)
 
-        # Calculate covariance matrix and expected returns
         cov_matrix = self._calculate_covariance_matrix(returns_matrix)
         expected_returns = self._calculate_expected_returns(returns_matrix)
 
         stock_codes = list(price_histories.keys())
 
-        # Apply constraints
         if constraints is None:
             constraints = {}
 
@@ -115,7 +108,6 @@ class PortfolioOptimizer:
         min_weight = constraints.get('min_weight', 0.0)
         allow_short = constraints.get('allow_short', False)
 
-        # Optimize based on objective
         if objective == OptimizationObjective.MAX_SHARPE:
             weights = self._maximize_sharpe_ratio(
                 expected_returns, cov_matrix, stock_codes,
@@ -135,7 +127,6 @@ class PortfolioOptimizer:
                 cov_matrix, stock_codes
             )
         elif objective == OptimizationObjective.BLACK_LITTERMAN:
-            # Simplified Black-Litterman (would need market caps and views)
             weights = self._maximize_sharpe_ratio(
                 expected_returns, cov_matrix, stock_codes,
                 max_weight, min_weight, allow_short
@@ -143,7 +134,6 @@ class PortfolioOptimizer:
         else:
             weights = self._equal_weight(stock_codes)
 
-        # Calculate portfolio metrics
         weights_array = np.array([weights[code] for code in stock_codes])
         portfolio_return = np.dot(weights_array, expected_returns)
         portfolio_variance = np.dot(weights_array, np.dot(cov_matrix, weights_array))
@@ -151,7 +141,6 @@ class PortfolioOptimizer:
 
         sharpe = (portfolio_return - self.risk_free_rate) / (portfolio_volatility + 1e-10)
 
-        # Check constraints
         constraints_satisfied = self._check_constraints(
             weights, constraints
         )
@@ -184,7 +173,6 @@ class PortfolioOptimizer:
                                      price_histories: Dict[str, List[Dict[str, Any]]],
                                      num_points: int = 50,
                                      constraints: Optional[Dict[str, Any]] = None) -> List[EfficientFrontierPoint]:
-        """
         효율적 투자선 계산
 
         Args:
@@ -194,7 +182,6 @@ class PortfolioOptimizer:
 
         Returns:
             List[EfficientFrontierPoint]
-        """
         logger.info(f"Calculating efficient frontier with {num_points} points")
 
         returns_matrix = self._calculate_returns_matrix(price_histories)
@@ -208,7 +195,6 @@ class PortfolioOptimizer:
         if constraints is None:
             constraints = {}
 
-        # Find min and max return portfolios
         min_vol_weights = self._minimize_volatility(
             cov_matrix, stock_codes,
             constraints.get('max_weight', 1.0),
@@ -223,13 +209,11 @@ class PortfolioOptimizer:
 
         max_return = np.max(expected_returns)
 
-        # Generate target returns
         target_returns = np.linspace(min_vol_return, max_return, num_points)
 
         frontier_points = []
 
         for target_return in target_returns:
-            # Optimize for minimum volatility given target return
             weights = self._minimize_volatility_with_target_return(
                 expected_returns, cov_matrix, stock_codes,
                 target_return, constraints
@@ -261,7 +245,6 @@ class PortfolioOptimizer:
                                  portfolio_value: float,
                                  min_trade_amount: float = 100000,
                                  rebalance_threshold: float = 0.05) -> Dict[str, Dict[str, Any]]:
-        """
         리밸런싱 추천
 
         Args:
@@ -273,7 +256,6 @@ class PortfolioOptimizer:
 
         Returns:
             Dict[stock_code, {'action': 'buy'/'sell', 'amount': float, 'weight_diff': float}]
-        """
         recommendations = {}
 
         all_stocks = set(current_weights.keys()) | set(optimal_weights.keys())
@@ -284,13 +266,11 @@ class PortfolioOptimizer:
 
             weight_diff = optimal_weight - current_weight
 
-            # Check if rebalancing needed
             if abs(weight_diff) < rebalance_threshold:
                 continue
 
             trade_amount = abs(weight_diff) * portfolio_value
 
-            # Check minimum trade amount
             if trade_amount < min_trade_amount:
                 continue
 
@@ -308,25 +288,19 @@ class PortfolioOptimizer:
 
         return recommendations
 
-    # ===== OPTIMIZATION METHODS =====
 
     def _maximize_sharpe_ratio(self, expected_returns: np.ndarray,
                                cov_matrix: np.ndarray, stock_codes: List[str],
                                max_weight: float, min_weight: float,
                                allow_short: bool) -> Dict[str, float]:
-        """샤프 비율 최대화"""
         num_stocks = len(stock_codes)
 
-        # Use gradient descent-like optimization
-        # Start with equal weights
         weights = np.ones(num_stocks) / num_stocks
 
-        # Normalize with constraints
         if not allow_short:
             weights = np.clip(weights, min_weight, max_weight)
             weights = weights / np.sum(weights)
 
-        # Simple iterative optimization
         learning_rate = 0.01
         num_iterations = 1000
 
@@ -334,7 +308,6 @@ class PortfolioOptimizer:
         best_weights = weights.copy()
 
         for iteration in range(num_iterations):
-            # Calculate current Sharpe ratio
             portfolio_return = np.dot(weights, expected_returns)
             portfolio_variance = np.dot(weights, np.dot(cov_matrix, weights))
             portfolio_volatility = np.sqrt(portfolio_variance)
@@ -345,8 +318,6 @@ class PortfolioOptimizer:
                 best_sharpe = sharpe
                 best_weights = weights.copy()
 
-            # Gradient approximation
-            # Increase weight where marginal Sharpe improvement is positive
             for i in range(num_stocks):
                 test_weights = weights.copy()
                 test_weights[i] += 0.001
@@ -361,11 +332,9 @@ class PortfolioOptimizer:
 
                 weights[i] += learning_rate * gradient
 
-            # Apply constraints
             if not allow_short:
                 weights = np.clip(weights, min_weight, max_weight)
 
-            # Normalize
             weights = weights / np.sum(weights)
 
         return {stock_codes[i]: float(best_weights[i]) for i in range(num_stocks)}
@@ -373,16 +342,13 @@ class PortfolioOptimizer:
     def _minimize_volatility(self, cov_matrix: np.ndarray, stock_codes: List[str],
                             max_weight: float, min_weight: float,
                             allow_short: bool) -> Dict[str, float]:
-        """변동성 최소화"""
         num_stocks = len(stock_codes)
 
-        # Inverse volatility weighting
         variances = np.diag(cov_matrix)
         inv_vol = 1 / np.sqrt(variances + 1e-10)
 
         weights = inv_vol / np.sum(inv_vol)
 
-        # Apply constraints
         if not allow_short:
             weights = np.clip(weights, min_weight, max_weight)
             weights = weights / np.sum(weights)
@@ -392,16 +358,13 @@ class PortfolioOptimizer:
     def _maximize_return(self, expected_returns: np.ndarray, cov_matrix: np.ndarray,
                         stock_codes: List[str], max_weight: float, min_weight: float,
                         allow_short: bool, target_volatility: Optional[float]) -> Dict[str, float]:
-        """수익률 최대화 (변동성 제약 하에서)"""
         num_stocks = len(stock_codes)
 
         if target_volatility is None:
-            # Without volatility constraint, put all weight on highest return stock
             max_return_idx = np.argmax(expected_returns)
             weights = np.zeros(num_stocks)
             weights[max_return_idx] = 1.0
         else:
-            # With volatility constraint, use Sharpe optimization
             weights = self._maximize_sharpe_ratio(
                 expected_returns, cov_matrix, stock_codes,
                 max_weight, min_weight, allow_short
@@ -414,17 +377,13 @@ class PortfolioOptimizer:
         """리스크 패리티"""
         num_stocks = len(stock_codes)
 
-        # Start with equal weights
         weights = np.ones(num_stocks) / num_stocks
 
-        # Iterative risk parity
         for iteration in range(100):
-            # Calculate risk contribution
             portfolio_vol = np.sqrt(np.dot(weights, np.dot(cov_matrix, weights)))
             marginal_risk = np.dot(cov_matrix, weights) / (portfolio_vol + 1e-10)
             risk_contribution = weights * marginal_risk
 
-            # Adjust weights to equalize risk contribution
             target_risk = portfolio_vol / num_stocks
             adjustment = target_risk / (risk_contribution + 1e-10)
 
@@ -439,18 +398,14 @@ class PortfolioOptimizer:
                                                 stock_codes: List[str],
                                                 target_return: float,
                                                 constraints: Dict[str, Any]) -> Dict[str, float]:
-        """목표 수익률 제약 하에서 변동성 최소화"""
         num_stocks = len(stock_codes)
 
-        # Simple quadratic programming approximation
-        # Start with minimum volatility portfolio
         weights = np.ones(num_stocks) / num_stocks
 
         max_weight = constraints.get('max_weight', 1.0)
         min_weight = constraints.get('min_weight', 0.0)
         allow_short = constraints.get('allow_short', False)
 
-        # Iterative adjustment to meet target return
         learning_rate = 0.01
         for iteration in range(500):
             current_return = np.dot(weights, expected_returns)
@@ -459,18 +414,14 @@ class PortfolioOptimizer:
             if abs(return_diff) < 0.0001:
                 break
 
-            # Adjust weights toward higher/lower return stocks
             if return_diff > 0:
-                # Need higher return - increase weight on high return stocks
                 adjustment = expected_returns / np.sum(expected_returns)
             else:
-                # Need lower return - increase weight on low return stocks
                 adjustment = (1 / (expected_returns + 1e-10))
                 adjustment = adjustment / np.sum(adjustment)
 
             weights = weights + learning_rate * return_diff * adjustment
 
-            # Apply constraints
             if not allow_short:
                 weights = np.clip(weights, min_weight, max_weight)
 
@@ -483,7 +434,6 @@ class PortfolioOptimizer:
         weight = 1.0 / len(stock_codes)
         return {code: weight for code in stock_codes}
 
-    # ===== HELPER METHODS =====
 
     def _calculate_returns_matrix(self, price_histories: Dict[str, List[Dict[str, Any]]]) -> Optional[np.ndarray]:
         """수익률 매트릭스 계산"""
@@ -501,30 +451,27 @@ class PortfolioOptimizer:
         if not returns_dict:
             return None
 
-        # Find minimum length
         min_length = min(len(ret) for ret in returns_dict.values())
 
-        # Build matrix
         stock_codes = list(returns_dict.keys())
         returns_matrix = np.array([
             returns_dict[code][:min_length] for code in stock_codes
         ])
 
-        return returns_matrix.T  # (time, stocks)
+        return returns_matrix.T
 
     def _calculate_covariance_matrix(self, returns_matrix: np.ndarray) -> np.ndarray:
         """공분산 매트릭스 계산 (연간화)"""
         cov_matrix = np.cov(returns_matrix.T)
-        return cov_matrix * 252  # Annualize
+        return cov_matrix * 252
 
     def _calculate_expected_returns(self, returns_matrix: np.ndarray) -> np.ndarray:
         """기대 수익률 계산 (연간화)"""
         mean_returns = np.mean(returns_matrix, axis=0)
-        return mean_returns * 252  # Annualize
+        return mean_returns * 252
 
     def _check_constraints(self, weights: Dict[str, float],
                           constraints: Dict[str, Any]) -> bool:
-        """제약 조건 확인"""
         max_weight = constraints.get('max_weight', 1.0)
         min_weight = constraints.get('min_weight', 0.0)
         allow_short = constraints.get('allow_short', False)
@@ -536,7 +483,6 @@ class PortfolioOptimizer:
             if not allow_short and weight < 0:
                 return False
 
-        # Check sum to 1
         if abs(sum(weights.values()) - 1.0) > 0.01:
             return False
 
@@ -561,7 +507,6 @@ class PortfolioOptimizer:
         )
 
 
-# Global singleton
 _portfolio_optimizer: Optional[PortfolioOptimizer] = None
 
 

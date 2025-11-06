@@ -1,7 +1,5 @@
-"""
 core/websocket_client.py
 WebSocket 클라이언트 (기존 websocket 모듈과 통합)
-"""
 import json
 import logging
 import threading
@@ -10,7 +8,6 @@ from typing import Optional, Callable, Dict, Any
 
 logger = logging.getLogger(__name__)
 
-# websocket 라이브러리의 로거 억제 (정상 종료 메시지 등)
 logging.getLogger('websocket').setLevel(logging.WARNING)
 
 
@@ -45,13 +42,11 @@ class WebSocketClient:
         self.max_reconnects = 10
         self.reconnect_count = 0
         
-        # 콜백
         self.on_message_callback: Optional[Callable] = None
         self.on_error_callback: Optional[Callable] = None
         self.on_open_callback: Optional[Callable] = None
         self.on_close_callback: Optional[Callable] = None
         
-        # 스레드
         self.ws_thread: Optional[threading.Thread] = None
         
         logger.info("WebSocket 클라이언트 초기화 완료")
@@ -70,7 +65,6 @@ class WebSocketClient:
                 header=[f"authorization: Bearer {self.token}"]
             )
             
-            # 별도 스레드에서 실행
             self.ws_thread = threading.Thread(
                 target=self.ws.run_forever,
                 daemon=True
@@ -143,7 +137,6 @@ class WebSocketClient:
         on_open: Optional[Callable] = None,
         on_close: Optional[Callable] = None
     ):
-        """
         콜백 함수 등록
         
         Args:
@@ -151,7 +144,6 @@ class WebSocketClient:
             on_error: 에러 콜백
             on_open: 연결 성공 콜백
             on_close: 연결 종료 콜백
-        """
         if on_message:
             self.on_message_callback = on_message
         if on_error:
@@ -190,7 +182,6 @@ class WebSocketClient:
     
     def _on_error(self, ws, error):
         """에러 핸들러"""
-        # "Bye" 메시지는 정상 종료이므로 로그 억제
         error_str = str(error)
         if 'Bye' not in error_str:
             logger.error(f"WebSocket 오류: {error}")
@@ -213,13 +204,11 @@ class WebSocketClient:
         """
         self.is_connected = False
 
-        # 매개변수가 None인 경우 처리
         if close_status_code is None and close_msg is None:
             logger.info("WebSocket 연결 종료")
-            close_status_code = 1000  # 정상 종료로 간주
+            close_status_code = 1000
             close_msg = "Normal closure"
 
-        # "Bye" 메시지는 서버의 정상 종료 신호
         close_msg_str = str(close_msg) if close_msg else ""
         if 'Bye' in close_msg_str or close_status_code == 1000:
             logger.info(f"WebSocket 서버 정상 종료 (코드: {close_status_code}, 메시지: {close_msg})")
@@ -232,14 +221,12 @@ class WebSocketClient:
             except Exception as e:
                 logger.error(f"on_close 콜백 실행 중 오류: {e}")
 
-        # 재연결 시도 (정상 종료 포함, should_reconnect가 True인 경우)
         if self.should_reconnect and self.reconnect_count < self.max_reconnects:
             self.reconnect_count += 1
             delay = self.reconnect_delay
 
-            # "Bye" 메시지로 정상 종료된 경우 조금 더 긴 대기 시간 사용
             if 'Bye' in close_msg_str or close_status_code == 1000:
-                delay = max(delay, 10)  # 최소 10초 대기
+                delay = max(delay, 10)
                 logger.info(f"서버 정상 종료 후 재연결 대기: {delay}초")
 
             logger.info(f"🔄 재연결 시도 {self.reconnect_count}/{self.max_reconnects} ({delay}초 후)")

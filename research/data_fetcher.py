@@ -1,7 +1,5 @@
-"""
 research/data_fetcher.py
 데이터 수집 모듈
-"""
 import logging
 from typing import Dict, Any, Optional, List
 from datetime import datetime, time
@@ -19,11 +17,9 @@ def is_nxt_hours() -> bool:
     """
     now = datetime.now().time()
 
-    # 오전: 08:00-09:00
     morning_start = time(8, 0)
     morning_end = time(9, 0)
 
-    # 오후: 15:30-20:00
     afternoon_start = time(15, 30)
     afternoon_end = time(20, 0)
 
@@ -59,7 +55,6 @@ class DataFetcher:
         self.client = client
         logger.info("DataFetcher 초기화 완료")
     
-    # ==================== 계좌 정보 조회 ====================
     
     def get_balance(self, account_number: str = None) -> Optional[Dict[str, Any]]:
         """
@@ -90,8 +85,8 @@ class DataFetcher:
             }
         """
         body = {
-            "qry_tp": "1",           # 합산
-            "dmst_stex_tp": "KRX"    # 한국거래소
+            "qry_tp": "1",
+            "dmst_stex_tp": "KRX"
         }
 
         response = self.client.request(
@@ -102,7 +97,7 @@ class DataFetcher:
 
         if response and response.get('return_code') == 0:
             logger.info("잔고 조회 성공")
-            return response  # Response is data directly, no 'output' wrapper
+            return response
         else:
             logger.error(f"잔고 조회 실패: {response.get('return_msg')}")
             return None
@@ -121,7 +116,7 @@ class DataFetcher:
                 'pymn_alow_amt': '1000000'   # 출금 가능 금액
             }
         """
-        body = {"qry_tp": "2"}  # 일반조회
+        body = {"qry_tp": "2"}
 
         response = self.client.request(
             api_id="kt00001",
@@ -132,7 +127,7 @@ class DataFetcher:
         if response and response.get('return_code') == 0:
             ord_alow_amt = int(response.get('ord_alow_amt', 0))
             logger.info(f"예수금 조회 성공: 주문가능금액 {ord_alow_amt:,}원")
-            return response  # Response is data directly, no 'output' wrapper
+            return response
         else:
             logger.error(f"예수금 조회 실패: {response.get('return_msg')}")
             return None
@@ -157,10 +152,9 @@ class DataFetcher:
 
         for item in output_list:
             stock_code = item.get('stk_cd', '')
-            # ✅ v5.16: _NX 접미사 유지 (NXT 현재가 조회를 위해 필요)
 
             holding = {
-                'stock_code': stock_code,  # _NX 접미사 유지!
+                'stock_code': stock_code,
                 'stock_name': item.get('stk_nm', ''),
                 'quantity': int(item.get('rmnd_qty', 0)),
                 'purchase_price': float(item.get('pur_pric', 0)),
@@ -174,7 +168,6 @@ class DataFetcher:
         logger.info(f"보유 종목 {len(holdings)}개 조회 완료")
         return holdings
     
-    # ==================== 시세 조회 ====================
     
     def get_current_price(self, stock_code: str) -> Optional[Dict[str, Any]]:
         """
@@ -199,14 +192,11 @@ class DataFetcher:
                 'time': '153045'
             }
         """
-        # 기본 코드 추출 (이미 _NX가 있으면 유지)
         base_code = stock_code.replace('_NX', '')
 
-        # NXT 시간대 확인 및 코드 결정
         in_nxt = is_nxt_hours()
         query_code = f"{base_code}_NX" if in_nxt else base_code
 
-        # ka10003 API 사용 (체결정보)
         body = {"stk_cd": query_code}
 
         response = self.client.request(
@@ -222,10 +212,8 @@ class DataFetcher:
                 logger.warning(f"{query_code} 체결 정보 없음 (거래 없음)")
                 return None
 
-            # 최신 체결 정보 사용
             cntr_info = cntr_list[0]
 
-            # 가격 파싱 (+/- 기호 제거)
             cur_prc_str = cntr_info.get('cur_prc', '0')
             current_price = abs(int(cur_prc_str.replace('+', '').replace('-', '')))
 
@@ -294,7 +282,6 @@ class DataFetcher:
         start_date: str = None,
         end_date: str = None
     ) -> List[Dict[str, Any]]:
-        """
         일봉 데이터 조회 (검증된 API 사용: ka10081)
 
         Args:
@@ -315,21 +302,19 @@ class DataFetcher:
                 },
                 ...
             ]
-        """
         if not end_date:
             end_date = datetime.now().strftime('%Y%m%d')
 
         logger.info(f"📞 Calling ka10081 API for {stock_code} (base_dt: {end_date})")
 
         try:
-            # Use verified API: ka10081 (주식일봉차트조회요청)
             response = self.client.call_verified_api(
                 api_id="ka10081",
                 variant_idx=1,
                 body_override={
                     "stk_cd": stock_code,
-                    "base_dt": end_date,  # 조회 기준일
-                    "upd_stkpc_tp": "1"    # 수정주가 반영
+                    "base_dt": end_date,
+                    "upd_stkpc_tp": "1"
                 }
             )
 
@@ -343,19 +328,15 @@ class DataFetcher:
                 logger.info(f"📦 Response keys: {list(response.keys())}")
 
                 if return_code == 0:
-                    # API returns data in 'stk_dt_pole_chart_qry' key (not 'output')
                     daily_data = response.get('stk_dt_pole_chart_qry', [])
                     logger.info(f"✅ {stock_code} 일봉 데이터 {len(daily_data)}개 조회 완료")
 
-                    # Log sample data if available
                     if daily_data and len(daily_data) > 0:
                         logger.info(f"📊 Sample data (first item): {daily_data[0]}")
                     else:
                         logger.warning(f"⚠️ stk_dt_pole_chart_qry exists but is empty or None: {daily_data}")
                         logger.warning(f"⚠️ Full response: {response}")
 
-                    # Convert to standard format
-                    # API uses: dt, open_pric, high_pric, low_pric, cur_prc (close), trde_qty (volume)
                     standardized_data = []
                     for item in daily_data:
                         try:
@@ -364,8 +345,8 @@ class DataFetcher:
                                 'open': int(item.get('open_pric', 0)),
                                 'high': int(item.get('high_pric', 0)),
                                 'low': int(item.get('low_pric', 0)),
-                                'close': int(item.get('cur_prc', 0)),  # cur_prc = current/closing price
-                                'volume': int(item.get('trde_qty', 0))  # trde_qty = trade quantity
+                                'close': int(item.get('cur_prc', 0)),
+                                'volume': int(item.get('trde_qty', 0))
                             })
                         except (ValueError, TypeError) as e:
                             logger.warning(f"⚠️ Error parsing data item: {e}, item={item}")
@@ -391,7 +372,6 @@ class DataFetcher:
         stock_code: str,
         minute_type: str = '1'
     ) -> List[Dict[str, Any]]:
-        """
         분봉 데이터 조회 (과거 데이터 포함, 검증된 API 사용: ka10080)
 
         Args:
@@ -400,22 +380,19 @@ class DataFetcher:
 
         Returns:
             분봉 데이터 리스트
-        """
-        # Get current date as base_dt
         base_dt = datetime.now().strftime('%Y%m%d')
 
         logger.info(f"📞 Calling ka10080 API for {stock_code} (minute_type: {minute_type}, base_dt: {base_dt})")
 
         try:
-            # Use verified API: ka10080 (주식 분봉 차트)
             response = self.client.call_verified_api(
                 api_id="ka10080",
                 variant_idx=1,
                 body_override={
                     "stk_cd": stock_code,
-                    "base_dt": base_dt,        # 조회 기준일
-                    "chart_tp": minute_type,   # 분봉 타입 (1, 3, 5, 10, 30, 60)
-                    "upd_stkpc_tp": "1"        # 수정주가 반영
+                    "base_dt": base_dt,
+                    "chart_tp": minute_type,
+                    "upd_stkpc_tp": "1"
                 }
             )
 
@@ -429,19 +406,15 @@ class DataFetcher:
                 logger.info(f"📦 Response keys: {list(response.keys())}")
 
                 if return_code == 0:
-                    # API returns data in 'stk_dt_pole_chart_qry' key (same as daily chart)
                     minute_data = response.get('stk_dt_pole_chart_qry', [])
                     logger.info(f"✅ {stock_code} {minute_type}분봉 데이터 {len(minute_data)}개 조회 완료")
 
-                    # Log sample data if available
                     if minute_data and len(minute_data) > 0:
                         logger.info(f"📊 Sample data (first item): {minute_data[0]}")
                     else:
                         logger.warning(f"⚠️ stk_dt_pole_chart_qry exists but is empty or None: {minute_data}")
                         logger.warning(f"⚠️ Full response: {response}")
 
-                    # Convert to standard format
-                    # API uses: dt (date), time, open_pric, high_pric, low_pric, cur_prc (close), trde_qty (volume)
                     converted_data = []
                     for item in minute_data:
                         try:
@@ -451,8 +424,8 @@ class DataFetcher:
                                 'open': int(item.get('open_pric', 0)),
                                 'high': int(item.get('high_pric', 0)),
                                 'low': int(item.get('low_pric', 0)),
-                                'close': int(item.get('cur_pric', 0)),  # cur_pric = current/closing price
-                                'volume': int(item.get('trde_qty', 0))  # trde_qty = trade quantity
+                                'close': int(item.get('cur_pric', 0)),
+                                'volume': int(item.get('trde_qty', 0))
                             })
                         except (ValueError, TypeError) as e:
                             logger.warning(f"⚠️ Error parsing data item: {e}, item={item}")
@@ -473,7 +446,6 @@ class DataFetcher:
             traceback.print_exc()
             return []
     
-    # ==================== 종목 검색/순위 ====================
     
     def search_stock(self, keyword: str) -> List[Dict[str, Any]]:
         """
@@ -516,7 +488,6 @@ class DataFetcher:
         market: str = 'ALL',
         limit: int = 20
     ) -> List[Dict[str, Any]]:
-        """
         거래량 순위 조회
 
         Args:
@@ -525,7 +496,6 @@ class DataFetcher:
 
         Returns:
             거래량 순위 리스트
-        """
         try:
             from api.market import MarketAPI
             market_api = MarketAPI(self.client)
@@ -542,7 +512,6 @@ class DataFetcher:
         sort: str = 'rise',
         limit: int = 20
     ) -> List[Dict[str, Any]]:
-        """
         등락률 순위 조회
 
         Args:
@@ -552,7 +521,6 @@ class DataFetcher:
 
         Returns:
             등락률 순위 리스트
-        """
         try:
             from api.market import MarketAPI
             market_api = MarketAPI(self.client)
@@ -568,7 +536,6 @@ class DataFetcher:
         market: str = 'ALL',
         limit: int = 20
     ) -> List[Dict[str, Any]]:
-        """
         거래대금 순위 조회
 
         Args:
@@ -577,11 +544,9 @@ class DataFetcher:
 
         Returns:
             거래대금 순위 리스트
-        """
         try:
             from api.market import MarketAPI
             market_api = MarketAPI(self.client)
-            # 거래대금은 거래량 API에서 sort 타입을 변경하여 조회
             body = {
                 "market": market,
                 "limit": limit,
@@ -604,14 +569,12 @@ class DataFetcher:
             logger.error(f"거래대금 순위 조회 실패: {e}")
             return []
     
-    # ==================== 투자자별 매매 동향 ====================
 
     def get_investor_trading(
         self,
         stock_code: str,
         date: str = None
     ) -> Optional[Dict[str, Any]]:
-        """
         투자자별 매매 동향 조회 (외국인, 기관)
 
         Args:
@@ -621,13 +584,11 @@ class DataFetcher:
         Returns:
             투자자별 매매 동향
             {
-                'foreign_net': 10000,      # 외국인 순매수
-                'institution_net': 5000,   # 기관 순매수
-                'individual_net': -15000,  # 개인 순매수
-                'foreign_hold_rate': 52.5  # 외국인 보유 비율
+                'foreign_net': 10000,
+                'institution_net': 5000,
+                'individual_net': -15000,
+                'foreign_hold_rate': 52.5
             }
-        """
-        # 날짜 자동 계산
         if not date:
             date = get_last_trading_date()
 
@@ -650,7 +611,6 @@ class DataFetcher:
             logger.error(f"투자자별 매매 동향 조회 실패: {response.get('return_msg')}")
             return None
 
-    # v5.9: 외국인/기관 매매 순위 조회
     def get_foreign_buying_rank(
         self,
         market: str = 'KOSPI',
@@ -658,7 +618,6 @@ class DataFetcher:
         date: str = None,
         limit: int = 20
     ) -> List[Dict[str, Any]]:
-        """
         외국인 순매수 상위 종목 조회 (v5.9 NEW)
 
         Args:
@@ -673,12 +632,11 @@ class DataFetcher:
                 {
                     'code': '005930',
                     'name': '삼성전자',
-                    'net_amount': 100000,  # 백만원
-                    'net_qty': 50000       # 천주
+                    'net_amount': 100000,
+                    'net_qty': 50000
                 },
                 ...
             ]
-        """
         try:
             from api.market import MarketAPI
             market_api = MarketAPI(self.client)
@@ -702,7 +660,6 @@ class DataFetcher:
         date: str = None,
         limit: int = 20
     ) -> List[Dict[str, Any]]:
-        """
         외국인 순매도 상위 종목 조회 (v5.9 NEW)
 
         Args:
@@ -713,7 +670,6 @@ class DataFetcher:
 
         Returns:
             외국인 순매도 상위 종목 리스트
-        """
         try:
             from api.market import MarketAPI
             market_api = MarketAPI(self.client)
@@ -737,7 +693,6 @@ class DataFetcher:
         date: str = None,
         limit: int = 20
     ) -> List[Dict[str, Any]]:
-        """
         기관 순매수 상위 종목 조회 (v5.9 NEW)
 
         Args:
@@ -748,7 +703,6 @@ class DataFetcher:
 
         Returns:
             기관 순매수 상위 종목 리스트
-        """
         try:
             from api.market import MarketAPI
             market_api = MarketAPI(self.client)
@@ -772,7 +726,6 @@ class DataFetcher:
         date: str = None,
         limit: int = 20
     ) -> List[Dict[str, Any]]:
-        """
         기관 순매도 상위 종목 조회 (v5.9 NEW)
 
         Args:
@@ -783,7 +736,6 @@ class DataFetcher:
 
         Returns:
             기관 순매도 상위 종목 리스트
-        """
         try:
             from api.market import MarketAPI
             market_api = MarketAPI(self.client)
@@ -800,7 +752,6 @@ class DataFetcher:
             logger.error(f"기관 순매도 순위 조회 실패: {e}")
             return []
     
-    # ==================== 종목 상세 정보 ====================
     
     def get_stock_info(self, stock_code: str) -> Optional[Dict[str, Any]]:
         """
@@ -841,7 +792,6 @@ class DataFetcher:
             logger.error(f"종목 정보 조회 실패: {response.get('return_msg')}")
             return None
     
-    # ==================== 유틸리티 ====================
     
     def _get_market_code(self, market: str) -> str:
         """

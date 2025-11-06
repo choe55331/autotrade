@@ -1,9 +1,7 @@
-"""
 utils/position_calculator.py
 포지션 사이즈 계산 유틸리티
 
 다양한 포지션 사이징 전략을 제공
-"""
 import logging
 from typing import Optional
 
@@ -17,7 +15,6 @@ def calculate_position_size_by_ratio(
     commission_rate: float = 0.00015,
     min_quantity: int = 1
 ) -> int:
-    """
     자본 비율 기반 포지션 사이즈 계산
 
     Args:
@@ -29,7 +26,6 @@ def calculate_position_size_by_ratio(
 
     Returns:
         매수 수량
-    """
     if capital <= 0 or price <= 0 or ratio <= 0:
         logger.warning(f"Invalid parameters: capital={capital}, price={price}, ratio={ratio}")
         return 0
@@ -38,13 +34,10 @@ def calculate_position_size_by_ratio(
         logger.warning(f"Ratio {ratio} exceeds 1.0, capping at 1.0")
         ratio = 1.0
 
-    # 투자 금액
     invest_amount = capital * ratio
 
-    # 수수료를 고려한 매수 가능 수량
     quantity = int(invest_amount / (price * (1 + commission_rate)))
 
-    # 최소 수량 보장
     quantity = max(min_quantity, quantity)
 
     logger.debug(
@@ -61,7 +54,6 @@ def calculate_position_size_fixed_amount(
     commission_rate: float = 0.00015,
     min_quantity: int = 1
 ) -> int:
-    """
     고정 금액 기반 포지션 사이즈 계산
 
     Args:
@@ -72,15 +64,12 @@ def calculate_position_size_fixed_amount(
 
     Returns:
         매수 수량
-    """
     if invest_amount <= 0 or price <= 0:
         logger.warning(f"Invalid parameters: amount={invest_amount}, price={price}")
         return 0
 
-    # 수수료를 고려한 매수 가능 수량
     quantity = int(invest_amount / (price * (1 + commission_rate)))
 
-    # 최소 수량 보장
     quantity = max(min_quantity, quantity)
 
     logger.debug(
@@ -97,7 +86,6 @@ def calculate_position_size_by_risk(
     risk_ratio: float = 0.02,
     min_quantity: int = 1
 ) -> int:
-    """
     위험 기반 포지션 사이즈 계산 (Risk-Based Position Sizing)
 
     Args:
@@ -109,7 +97,6 @@ def calculate_position_size_by_risk(
 
     Returns:
         매수 수량
-    """
     if capital <= 0 or price <= 0 or stop_loss_price <= 0:
         logger.warning(f"Invalid parameters: capital={capital}, price={price}, stop_loss={stop_loss_price}")
         return 0
@@ -118,16 +105,12 @@ def calculate_position_size_by_risk(
         logger.warning(f"Stop loss price ({stop_loss_price}) must be lower than current price ({price})")
         return 0
 
-    # 주당 위험 금액
     risk_per_share = price - stop_loss_price
 
-    # 총 허용 위험 금액
     total_risk = capital * risk_ratio
 
-    # 수량 계산
     quantity = int(total_risk / risk_per_share)
 
-    # 최소 수량 보장
     quantity = max(min_quantity, quantity)
 
     logger.debug(
@@ -148,7 +131,6 @@ def calculate_position_size_kelly_criterion(
     commission_rate: float = 0.00015,
     min_quantity: int = 1
 ) -> int:
-    """
     켈리 기준 포지션 사이즈 계산 (Kelly Criterion)
 
     Args:
@@ -163,7 +145,6 @@ def calculate_position_size_kelly_criterion(
 
     Returns:
         매수 수량
-    """
     if capital <= 0 or price <= 0:
         logger.warning(f"Invalid parameters: capital={capital}, price={price}")
         return 0
@@ -176,34 +157,26 @@ def calculate_position_size_kelly_criterion(
         logger.warning("Average loss cannot be zero")
         return 0
 
-    # 켈리 공식: f = (p * b - q) / b
-    # p = 승률, q = 1 - p, b = 평균수익 / 평균손실
     p = win_rate
     q = 1 - win_rate
     b = avg_win / avg_loss
 
     kelly_percentage = (p * b - q) / b
 
-    # 켈리 조정 (Full Kelly는 위험하므로 보통 Half Kelly 사용)
     adjusted_kelly = kelly_percentage * kelly_fraction
 
-    # 음수면 0으로 (베팅 안함)
     if adjusted_kelly <= 0:
         logger.warning(f"Kelly criterion suggests no position (kelly={kelly_percentage:.2%})")
         return 0
 
-    # 1.0 초과면 1.0으로 제한
     if adjusted_kelly > 1.0:
         logger.warning(f"Kelly criterion {adjusted_kelly:.2%} exceeds 100%, capping at 100%")
         adjusted_kelly = 1.0
 
-    # 투자 금액 계산
     invest_amount = capital * adjusted_kelly
 
-    # 수량 계산
     quantity = int(invest_amount / (price * (1 + commission_rate)))
 
-    # 최소 수량 보장
     quantity = max(min_quantity, quantity)
 
     logger.debug(
@@ -222,7 +195,6 @@ def calculate_position_size_volatility_based(
     commission_rate: float = 0.00015,
     min_quantity: int = 1
 ) -> int:
-    """
     변동성 기반 포지션 사이즈 계산
 
     Args:
@@ -235,25 +207,20 @@ def calculate_position_size_volatility_based(
 
     Returns:
         매수 수량
-    """
     if capital <= 0 or price <= 0 or volatility <= 0:
         logger.warning(f"Invalid parameters: capital={capital}, price={price}, volatility={volatility}")
         return 0
 
-    # 총 허용 위험 금액
     total_risk = capital * target_risk
 
-    # 주당 예상 변동 금액 (가격 × 변동성)
     risk_per_share = price * volatility
 
     if risk_per_share == 0:
         logger.warning("Risk per share is zero")
         return 0
 
-    # 수량 계산
     quantity = int(total_risk / risk_per_share)
 
-    # 최소 수량 보장
     quantity = max(min_quantity, quantity)
 
     logger.debug(
@@ -271,7 +238,6 @@ def calculate_max_position_size(
     commission_rate: float = 0.00015,
     min_quantity: int = 1
 ) -> int:
-    """
     최대 포지션 사이즈 계산 (단일 종목 최대 투자 비율 제한)
 
     Args:
@@ -283,7 +249,6 @@ def calculate_max_position_size(
 
     Returns:
         최대 매수 수량
-    """
     return calculate_position_size_by_ratio(
         capital=capital,
         price=price,
@@ -299,7 +264,6 @@ def validate_position_size(
     capital: float,
     max_position_ratio: float = 0.30
 ) -> bool:
-    """
     포지션 사이즈 유효성 검증
 
     Args:
@@ -310,7 +274,6 @@ def validate_position_size(
 
     Returns:
         유효 여부
-    """
     if quantity <= 0:
         logger.warning(f"Invalid quantity: {quantity}")
         return False
@@ -323,10 +286,8 @@ def validate_position_size(
         logger.warning(f"Invalid capital: {capital}")
         return False
 
-    # 총 투자 금액
     total_investment = quantity * price
 
-    # 비율 계산
     position_ratio = total_investment / capital
 
     if position_ratio > max_position_ratio:

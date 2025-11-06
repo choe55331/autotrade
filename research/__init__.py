@@ -1,14 +1,10 @@
-"""
 research 패키지
 데이터 조회 및 분석 모듈
-"""
 from .data_fetcher import DataFetcher
 from .analyzer import Analyzer
 from .screener import Screener
-# v4.0 Advanced Features
 from .quant_screener import QuantScreener, StockFactors
 
-# 기존 코드 호환성을 위한 Research 클래스
 class Research:
     """
     Research 통합 클래스 (기존 코드 호환용)
@@ -20,7 +16,6 @@ class Research:
         self.analyzer = Analyzer(client)
         self.screener = Screener(client)
     
-    # DataFetcher 메서드 위임
     def get_balance(self, account_number=None):
         return self.fetcher.get_balance(account_number)
     
@@ -57,7 +52,6 @@ class Research:
     def get_stock_info(self, stock_code):
         return self.fetcher.get_stock_info(stock_code)
     
-    # Analyzer 메서드 위임
     def get_stock_data_for_analysis(self, stock_code):
         return self.analyzer.get_stock_data_for_analysis(stock_code)
     
@@ -70,7 +64,6 @@ class Research:
     def is_market_open(self):
         return self.analyzer.is_market_open()
     
-    # Screener 메서드 위임
     def screen_stocks(self, **filters):
         return self.screener.screen_combined(**filters)
 
@@ -80,7 +73,6 @@ __all__ = [
     'DataFetcher',
     'Analyzer',
     'Screener',
-    # v4.0 Advanced Features
     'QuantScreener',
     'StockFactors',
 ]
