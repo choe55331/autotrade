@@ -85,13 +85,18 @@ def test_nxt_closing_price():
             else:
                 print(f"  {RED}None{RESET}")
 
-            if response and 'output' in response:
-                output = response['output']
-                cur_prc = output.get('cur_prc', 'N/A')
-                stex_tp = output.get('stex_tp', 'N/A')
+            if response and 'cntr_infr' in response and len(response['cntr_infr']) > 0:
+                # 첫 번째 체결 정보 사용
+                cntr_info = response['cntr_infr'][0]
+                cur_prc = cntr_info.get('cur_prc', 'N/A')
+                stex_tp = cntr_info.get('stex_tp', 'N/A')
+                tm = cntr_info.get('tm', 'N/A')
+                pred_pre = cntr_info.get('pred_pre', 'N/A')
 
                 print(f"  현재가: {cur_prc}")
                 print(f"  거래소: {stex_tp}")
+                print(f"  시간: {tm}")
+                print(f"  전일대비: {pred_pre}")
 
                 if cur_prc != 'N/A' and cur_prc != '0':
                     print(f"  {GREEN}✅ 조회 성공{RESET}")
@@ -99,7 +104,7 @@ def test_nxt_closing_price():
                 else:
                     print(f"  {RED}❌ 가격 없음{RESET}")
             else:
-                print(f"  {RED}❌ 응답 데이터 없음 (output 필드 없음){RESET}")
+                print(f"  {RED}❌ 응답 데이터 없음 (cntr_infr 필드 없거나 비어있음){RESET}")
         except Exception as e:
             print(f"  {RED}❌ 오류: {e}{RESET}")
             import traceback
@@ -122,13 +127,18 @@ def test_nxt_closing_price():
             else:
                 print(f"  {RED}None{RESET}")
 
-            if response and 'output' in response:
-                output = response['output']
-                cur_prc = output.get('cur_prc', 'N/A')
-                stex_tp = output.get('stex_tp', 'N/A')
+            if response and 'cntr_infr' in response and len(response['cntr_infr']) > 0:
+                # 첫 번째 체결 정보 사용
+                cntr_info = response['cntr_infr'][0]
+                cur_prc = cntr_info.get('cur_prc', 'N/A')
+                stex_tp = cntr_info.get('stex_tp', 'N/A')
+                tm = cntr_info.get('tm', 'N/A')
+                pred_pre = cntr_info.get('pred_pre', 'N/A')
 
                 print(f"  현재가: {cur_prc}")
                 print(f"  거래소: {stex_tp}")
+                print(f"  시간: {tm}")
+                print(f"  전일대비: {pred_pre}")
 
                 if cur_prc != 'N/A' and cur_prc != '0':
                     print(f"  {GREEN}✅ 조회 성공{RESET}")
@@ -136,7 +146,7 @@ def test_nxt_closing_price():
                 else:
                     print(f"  {RED}❌ 가격 없음{RESET}")
             else:
-                print(f"  {RED}❌ 응답 데이터 없음 (output 필드 없음){RESET}")
+                print(f"  {RED}❌ 응답 데이터 없음 (cntr_infr 필드 없거나 비어있음){RESET}")
         except Exception as e:
             print(f"  {RED}❌ 오류: {e}{RESET}")
             import traceback
@@ -156,11 +166,11 @@ def test_nxt_closing_price():
 
     print(f"\n{GREEN}✅ 기본 코드로 조회 성공 ({len(results['base_code_success'])}개):{RESET}")
     for code, name, price, stex_tp in results['base_code_success']:
-        print(f"  • {name:20} ({code:6}) | {price:>10} | {stex_tp}")
+        print(f"  • {name:20} ({code:6}) | {price:>12} | 거래소: {stex_tp}")
 
     print(f"\n{GREEN}✅ _NX 접미사로 조회 성공 ({len(results['nx_suffix_success'])}개):{RESET}")
     for code, name, price, stex_tp in results['nx_suffix_success']:
-        print(f"  • {name:20} ({code:6}_NX) | {price:>10} | {stex_tp}")
+        print(f"  • {name:20} ({code:6}_NX) | {price:>12} | 거래소: {stex_tp}")
 
     if results['both_failed']:
         print(f"\n{RED}❌ 둘 다 실패 ({len(results['both_failed'])}개):{RESET}")
@@ -173,8 +183,15 @@ def test_nxt_closing_price():
     print(f"{MAGENTA}{'='*100}{RESET}")
 
     if len(results['nx_suffix_success']) > 0:
-        print(f"\n{GREEN}✅ _NX 접미사로 NXT 종가 조회 가능!{RESET}")
-        print(f"{GREEN}   REST API ka10003에서 stk_cd=<code>_NX 형식 사용{RESET}")
+        print(f"\n{GREEN}🎉 SUCCESS! _NX 접미사로 NXT 종가 조회 가능!{RESET}")
+        print(f"\n{CYAN}사용법:{RESET}")
+        print(f"  • API: ka10003 (체결정보)")
+        print(f"  • 파라미터: stk_cd = '<code>_NX'")
+        print(f"  • 응답 필드: cntr_infr[0].cur_prc")
+        print(f"  • 거래소 구분: cntr_infr[0].stex_tp = 'NXT'")
+        print(f"\n{YELLOW}주의사항:{RESET}")
+        print(f"  • NXT 거래가 없던 종목은 cntr_infr = [] (빈 배열)")
+        print(f"  • 기본 코드는 KRX 종가, _NX는 NXT 종가 반환")
     elif len(results['base_code_success']) > 0:
         print(f"\n{YELLOW}⚠️  기본 코드로만 조회 가능{RESET}")
         print(f"{YELLOW}   _NX 접미사는 REST API에서 작동하지 않음{RESET}")
