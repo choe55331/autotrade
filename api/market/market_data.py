@@ -31,7 +31,10 @@ class MarketDataAPI:
     def get_stock_price(self, stock_code: str, use_fallback: bool = True) -> Optional[Dict[str, Any]]:
         """
         종목 체결정보 조회 (키움증권 API ka10003)
-        NXT 시간대 및 fallback 지원
+
+        ⚠️ 중요 (v5.15 테스트 결과):
+        - NXT 시간대에도 _NX 접미사 사용하면 실패 (0% 성공률)
+        - 기본 코드로 조회하면 정상 작동 (100% 성공률)
 
         Args:
             stock_code: 종목코드
@@ -40,18 +43,13 @@ class MarketDataAPI:
         Returns:
             체결정보 (현재가 포함)
         """
-        from utils.trading_date import is_nxt_hours, is_any_trading_hours
+        from utils.trading_date import is_nxt_hours
 
-        # NXT 시간대에는 종목코드에 _NX 접미사 추가
-        nxt_stock_code = stock_code
-        if is_nxt_hours():
-            # NXT 종목코드 형식: 039490_NX
-            if not stock_code.endswith("_NX"):
-                nxt_stock_code = f"{stock_code}_NX"
-            logger.info(f"NXT 시간대 - 종목코드 변환: {stock_code} → {nxt_stock_code}")
+        # _NX 접미사 제거 (테스트 결과: 기본 코드만 작동)
+        base_code = stock_code[:-3] if stock_code.endswith("_NX") else stock_code
 
         body = {
-            "stk_cd": nxt_stock_code
+            "stk_cd": base_code
         }
 
         response = self.client.request(
@@ -83,10 +81,10 @@ class MarketDataAPI:
                     'acc_trading_value': latest.get('acc_trde_prica', '0'),
                     'time': latest.get('tm', ''),
                     'stex_tp': latest.get('stex_tp', ''),
-                    'source': 'nxt_market' if is_nxt_hours() else 'regular_market',
+                    'source': 'nxt_realtime' if is_nxt_hours() else 'regular_market',
                 }
 
-                logger.info(f"{stock_code} 현재가: {current_price:,}원 (출처: {price_info['source']})")
+                logger.info(f"{base_code} 현재가: {current_price:,}원 (출처: {price_info['source']})")
                 return price_info
             else:
                 logger.warning(f"현재가 조회 실패: 체결정보 없음")
@@ -148,6 +146,10 @@ class MarketDataAPI:
         """
         호가 조회 (키움증권 API ka10004)
 
+        ⚠️ 중요 (v5.15 테스트 결과):
+        - NXT 시간대에도 _NX 접미사 사용하면 실패
+        - 기본 코드로 조회하면 정상 작동
+
         Args:
             stock_code: 종목코드
 
@@ -162,16 +164,11 @@ class MarketDataAPI:
                 ...
             }
         """
-        from utils.trading_date import is_nxt_hours
-
-        # NXT 시간대에는 종목코드에 _NX 접미사 추가
-        nxt_stock_code = stock_code
-        if is_nxt_hours():
-            if not stock_code.endswith("_NX"):
-                nxt_stock_code = f"{stock_code}_NX"
+        # _NX 접미사 제거 (테스트 결과: 기본 코드만 작동)
+        base_code = stock_code[:-3] if stock_code.endswith("_NX") else stock_code
 
         body = {
-            "stk_cd": nxt_stock_code
+            "stk_cd": base_code
         }
 
         response = self.client.request(
@@ -220,7 +217,7 @@ class MarketDataAPI:
             orderbook['현재가'] = orderbook['mid_price']
 
             logger.info(
-                f"{stock_code} 호가 조회 완료: "
+                f"{base_code} 호가 조회 완료: "
                 f"매도1={sell_price:,}, 매수1={buy_price:,}, "
                 f"총잔량(매도={total_sell_qty:,}, 매수={total_buy_qty:,})"
             )

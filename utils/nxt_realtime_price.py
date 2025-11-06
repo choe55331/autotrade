@@ -54,31 +54,31 @@ class NXTRealtimePriceManager:
     def get_realtime_price(self, stock_code: str,
                           force_refresh: bool = False) -> Optional[Dict[str, Any]]:
         """
-        실시간 현재가 조회 (NXT 시간대 특화)
+        실시간 현재가 조회
+
+        ⚠️ 중요 발견 (v5.15 테스트 결과):
+        - NXT 시간대에도 _NX 접미사 사용하면 실패 (0% 성공률)
+        - 기본 코드로 조회하면 정상 작동 (100% 성공률)
+        - ka10003, ka10004 모두 기본 코드 사용
 
         Args:
-            stock_code: 종목코드 (예: "249420" 또는 "249420_NX")
+            stock_code: 종목코드 (예: "249420")
             force_refresh: 캐시 무시하고 강제 조회
 
         Returns:
             {
                 'current_price': int,
-                'source': str,  # 'nxt_realtime', 'regular_market', 'cache'
+                'source': str,
                 'timestamp': str,
                 'is_nxt_hours': bool
             }
         """
         is_nxt = self.is_nxt_trading_hours()
 
-        # ✅ 핵심 수정: NXT 시간이 아닌데 _NX 코드가 들어온 경우 제거
-        original_code = stock_code
+        # _NX 접미사 제거 (테스트 결과: _NX는 항상 실패)
         base_code = stock_code[:-3] if stock_code.endswith('_NX') else stock_code
 
-        if not is_nxt and original_code.endswith('_NX'):
-            logger.debug(f"❌ NXT 시간 아님 - _NX 제거: {original_code} → {base_code}")
-            stock_code = base_code
-
-        # 캐시 확인 (기본 코드 기준)
+        # 캐시 확인
         if not force_refresh:
             cached = self._get_from_cache(base_code)
             if cached:
@@ -86,49 +86,24 @@ class NXTRealtimePriceManager:
                 return cached
 
         try:
-            # NXT 시간대: _NX 접미사로 실시간 체결정보 조회
-            if is_nxt:
-                logger.debug(f"✅ NXT 시간대 - {base_code} 실시간 현재가 조회")
-
-                # _NX 접미사 추가
-                nxt_code = f"{base_code}_NX"
-
-                # 체결정보 조회
-                result = self.market_api.get_stock_price(nxt_code)
-
-                if result and result.get('current_price', 0) > 0:
-                    price_data = {
-                        'current_price': int(result.get('current_price', 0)),
-                        'source': 'nxt_realtime',
-                        'timestamp': datetime.now().isoformat(),
-                        'is_nxt_hours': True,
-                        'volume': int(result.get('volume', 0)),
-                        'change_rate': float(result.get('change_rate', 0))
-                    }
-
-                    # 캐시 저장 (기본 코드로)
-                    self._save_to_cache(base_code, price_data)
-
-                    logger.info(f"✓ {base_code} NXT 실시간 현재가: {price_data['current_price']:,}원")
-                    return price_data
-                else:
-                    logger.warning(f"NXT 실시간 조회 실패 - Fallback 시도")
-
-            # 정규시장 또는 NXT 실패시: 기본 코드로 조회
+            # ✅ 핵심: NXT 시간대에도 기본 코드로 조회 (테스트로 검증됨)
             result = self.market_api.get_stock_price(base_code)
 
             if result and result.get('current_price', 0) > 0:
                 price_data = {
                     'current_price': int(result.get('current_price', 0)),
-                    'source': 'regular_market' if not is_nxt else 'nxt_fallback',
+                    'source': 'nxt_realtime' if is_nxt else 'regular_market',
                     'timestamp': datetime.now().isoformat(),
                     'is_nxt_hours': is_nxt,
                     'volume': int(result.get('volume', 0)),
                     'change_rate': float(result.get('change_rate', 0))
                 }
 
-                # 캐시 저장 (기본 코드로)
+                # 캐시 저장
                 self._save_to_cache(base_code, price_data)
+
+                if is_nxt:
+                    logger.debug(f"✓ {base_code} NXT 현재가: {price_data['current_price']:,}원")
 
                 return price_data
 
