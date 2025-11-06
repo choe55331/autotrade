@@ -1145,20 +1145,23 @@ class TradingBotV2:
                     if self.virtual_trader:
                         try:
                             # v5.7.5: Deep Scan 데이터 포함한 전체 필드 전달
+                            volume = getattr(candidate, 'volume', 0)
+                            avg_volume = getattr(candidate, 'avg_volume', None)
+
                             stock_data = {
                                 # 기본 정보
                                 'stock_code': candidate.code,
                                 'stock_name': candidate.name,
                                 'current_price': candidate.price,
                                 'change_rate': candidate.rate,
-                                'volume': getattr(candidate, 'volume', 0),
+                                'volume': volume,
 
                                 # Deep Scan 데이터 (가상매매 전략들이 필요로 하는 필드)
                                 'institutional_net_buy': getattr(candidate, 'institutional_net_buy', 0),
                                 'foreign_net_buy': getattr(candidate, 'foreign_net_buy', 0),
                                 'bid_ask_ratio': getattr(candidate, 'bid_ask_ratio', 0),
                                 'institutional_trend': getattr(candidate, 'institutional_trend', None),
-                                'avg_volume': getattr(candidate, 'avg_volume', None),
+                                'avg_volume': avg_volume,
                                 'volatility': getattr(candidate, 'volatility', None),
                                 'top_broker_buy_count': getattr(candidate, 'top_broker_buy_count', 0),
                                 'top_broker_net_buy': getattr(candidate, 'top_broker_net_buy', 0),
@@ -1169,15 +1172,31 @@ class TradingBotV2:
                                 'rsi': getattr(candidate, 'rsi', None),
                                 'macd': getattr(candidate, 'macd', None),
                                 'bollinger_bands': getattr(candidate, 'bollinger_bands', None),
+
+                                # 전략들이 기대하는 추가 필드
+                                'price_change_percent': candidate.rate,  # change_rate의 별칭
+                                'volume_ratio': (volume / avg_volume) if avg_volume and avg_volume > 0 else 1.0,
+                                'sector': getattr(candidate, 'sector', 'Unknown'),
+                                'per': getattr(candidate, 'per', None),
+                                'pbr': getattr(candidate, 'pbr', None),
+                                'dividend_yield': getattr(candidate, 'dividend_yield', None),
                             }
+
+                            # Market data 생성 (전략들이 필요로 하는 시장 정보)
+                            market_data = {
+                                'fear_greed_index': 50,  # 기본값 (중립)
+                                'economic_cycle': 'expansion',  # 기본값
+                                'market_trend': 'neutral',  # 기본값
+                            }
+
                             ai_analysis_data = {
                                 'signal': ai_signal,
                                 'split_strategy': split_strategy,
                                 'reasons': ai_analysis.get('reasons', []),
                                 'score': scoring_result.total_score,
                             }
-                            self.virtual_trader.process_buy_signal(stock_data, ai_analysis_data)
-                            print(f"   📝 가상 매매: 10가지 전략으로 매수 시그널 처리 완료 (전체 데이터 전달)")
+                            self.virtual_trader.process_buy_signal(stock_data, ai_analysis_data, market_data)
+                            print(f"   📝 가상 매매: 12가지 전략으로 매수 시그널 처리 완료 (전체 데이터 전달)")
                         except Exception as e:
                             logger.warning(f"가상 매매 매수 처리 실패: {e}")
 

@@ -56,12 +56,15 @@ class LoguruLogger:
         # 기존 핸들러 제거
         logger.remove()
 
+        # 기본 포맷 정의
+        default_format = '{time:YYYY-MM-DD HH:mm:ss} | {level: <8} | {name}:{function}:{line} - {message}'
+
         # 콘솔 핸들러 (컬러 출력) - WARNING 이상만 출력 (cmd 창 스팸 방지)
         if log_config.get('console_output', True):
             console_level = log_config.get('console_level', 'WARNING')  # 기본값: WARNING
             logger.add(
                 sys.stdout,
-                format=log_config.get('format'),
+                format=log_config.get('format') or default_format,
                 level=console_level,  # 콘솔은 WARNING 이상만
                 colorize=log_config.get('colored_output', True),
                 backtrace=True,
@@ -77,7 +80,7 @@ class LoguruLogger:
 
         logger.add(
             log_path,
-            format=log_config.get('format'),
+            format=log_config.get('format') or default_format,
             level=log_config.get('level', 'INFO'),
             rotation=log_config.get('rotation', '00:00'),  # 매일 자정
             retention=log_config.get('backup_count', 30),  # 30일 보관
@@ -91,7 +94,7 @@ class LoguruLogger:
         error_log_path = log_path.parent / 'error.log'
         logger.add(
             error_log_path,
-            format=log_config.get('format'),
+            format=log_config.get('format') or default_format,
             level='ERROR',
             rotation='10 MB',
             retention=60,  # 60일 보관
