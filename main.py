@@ -628,7 +628,7 @@ class TradingBotV2:
                 time.sleep(sleep_seconds)
 
             print(f"\n{'='*60}")
-            print(f"🔄 사이클
+            print(f"🔄 사이클 {cycle_count} 시작")
             print(f"{'='*60}")
 
             try:
