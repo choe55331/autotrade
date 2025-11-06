@@ -50,6 +50,7 @@ class TradeExecutor:
         candidate,
         scoring_result
     ) -> bool:
+        """
         매수 실행
 
         Args:
@@ -58,7 +59,7 @@ class TradeExecutor:
 
         Returns:
             성공 여부
-
+        """
         try:
             if self.market_status.get('can_cancel_only'):
                 logger.warning(f"⚠️  {self.market_status['market_type']}: 신규 매수 주문 불가")
@@ -146,11 +147,12 @@ class TradeExecutor:
         profit_loss_rate: float,
         reason: str
     ) -> bool:
+        """
         매도 실행
 
         Returns:
             성공 여부
-
+        """
         try:
             if self.market_status.get('can_cancel_only'):
                 logger.warning(f"⚠️  {self.market_status['market_type']}: 신규 매도 주문 불가")

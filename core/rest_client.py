@@ -300,16 +300,18 @@ class KiwoomRESTClient:
         path: str,
         http_method: str = "POST"
     ) -> Optional[Dict[str, Any]]:
+        """
         API 요청 실행 (자동 토큰 관리)
-        
+
         Args:
             api_id: API ID
             body: 요청 본문
             path: API 경로
             http_method: HTTP 메서드
-        
+
         Returns:
             API 응답 딕셔너리
+        """
         if not self._is_token_valid():
             if not self._get_token():
                 logger.error(f"API 호출 실패 ({api_id}): 토큰 갱신 불가")
@@ -328,17 +330,19 @@ class KiwoomRESTClient:
         http_method: str,
         retry_on_auth: bool = True
     ) -> Optional[Dict[str, Any]]:
+        """
         실제 API 요청 실행
-        
+
         Args:
             api_id: API ID
             body: 요청 본문
             path: API 경로
             http_method: HTTP 메서드
             retry_on_auth: 401 에러 시 재시도 여부
-        
+
         Returns:
             API 응답 딕셔너리
+        """
         self._handle_rate_limit()
         
         headers = {
@@ -467,6 +471,7 @@ class KiwoomRESTClient:
         variant_idx: int = 1,
         body_override: Optional[Dict[str, Any]] = None
     ) -> Optional[Dict[str, Any]]:
+        """
         검증된 API 호출 (93.5% 성공률 보장)
 
         _immutable/api_specs/successful_apis.json의 검증된 파라미터 사용
@@ -482,6 +487,7 @@ class KiwoomRESTClient:
         Example:
             >>> client.call_verified_api('kt00005', variant_idx=1)
             {'return_code': 0, 'stk_cntr_remn': [...]}
+        """
         try:
             from config.api_loader import get_api_loader
 
