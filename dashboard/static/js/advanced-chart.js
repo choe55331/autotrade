@@ -180,14 +180,16 @@ class AdvancedTradingChart {
                 </div>
             </div>
 
-            <!-- Chart Panels -->
-            <div style="position: relative;">
-                <canvas id="drawing-canvas" style="position: absolute; top: 0; left: 0; z-index: 10; pointer-events: auto;"></canvas>
-                <div id="main-chart-container" class="chart-panel-enhanced" style="height: 380px; position: relative;"></div>
+            <!-- Chart Panels (v6.1: Flexible Layout) -->
+            <div id="chart-panels-wrapper" style="display: flex; flex-direction: column; height: calc(100vh - 300px); min-height: 600px;">
+                <div style="position: relative; flex: 1 1 auto; min-height: 300px;">
+                    <canvas id="drawing-canvas" style="position: absolute; top: 0; left: 0; z-index: 10; pointer-events: auto;"></canvas>
+                    <div id="main-chart-container" class="chart-panel-enhanced" style="height: 100%; position: relative;"></div>
+                </div>
+                <div id="rsi-chart-container" class="chart-panel-enhanced indicator-panel" style="flex: 0 0 100px; margin-top: 5px; min-height: 80px;"></div>
+                <div id="macd-chart-container" class="chart-panel-enhanced indicator-panel" style="flex: 0 0 120px; margin-top: 5px; min-height: 90px;"></div>
+                <div id="volume-chart-container" class="chart-panel-enhanced indicator-panel" style="flex: 0 0 90px; margin-top: 5px; min-height: 70px;"></div>
             </div>
-            <div id="rsi-chart-container" class="chart-panel-enhanced indicator-panel" style="height: 100px; margin-top: 5px;"></div>
-            <div id="macd-chart-container" class="chart-panel-enhanced indicator-panel" style="height: 120px; margin-top: 5px;"></div>
-            <div id="volume-chart-container" class="chart-panel-enhanced indicator-panel" style="height: 90px; margin-top: 5px;"></div>
         `;
     }
 
@@ -990,22 +992,35 @@ class AdvancedTradingChart {
         const macdContainer = document.getElementById('macd-chart-container');
         const volumeContainer = document.getElementById('volume-chart-container');
 
+        // v6.1: Dynamic height support for flexible layout
         if (this.mainChart && mainContainer) {
-            this.mainChart.applyOptions({ width: mainContainer.clientWidth });
+            this.mainChart.applyOptions({
+                width: mainContainer.clientWidth,
+                height: mainContainer.clientHeight
+            });
         }
-        if (this.rsiChart && rsiContainer) {
-            this.rsiChart.applyOptions({ width: rsiContainer.clientWidth });
+        if (this.rsiChart && rsiContainer && this.panelsVisible.rsi) {
+            this.rsiChart.applyOptions({
+                width: rsiContainer.clientWidth,
+                height: rsiContainer.clientHeight
+            });
         }
-        if (this.macdChart && macdContainer) {
-            this.macdChart.applyOptions({ width: macdContainer.clientWidth });
+        if (this.macdChart && macdContainer && this.panelsVisible.macd) {
+            this.macdChart.applyOptions({
+                width: macdContainer.clientWidth,
+                height: macdContainer.clientHeight
+            });
         }
-        if (this.volumeChart && volumeContainer) {
-            this.volumeChart.applyOptions({ width: volumeContainer.clientWidth });
+        if (this.volumeChart && volumeContainer && this.panelsVisible.volume) {
+            this.volumeChart.applyOptions({
+                width: volumeContainer.clientWidth,
+                height: volumeContainer.clientHeight
+            });
         }
 
         if (this.canvas && mainContainer) {
             this.canvas.width = mainContainer.clientWidth;
-            this.canvas.height = mainContainer.offsetHeight;
+            this.canvas.height = mainContainer.clientHeight;
             this.redrawCanvas();
         }
     }

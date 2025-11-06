@@ -4923,25 +4923,98 @@
             document.getElementById('last-activity-text').textContent = text;
         }
 
-        // Demo: Simulate progress updates (for testing)
-        function simulateProgress() {
-            let i = 0;
-            const interval = setInterval(() => {
-                i += 10;
-                if (i <= 100) {
-                    updateAIProgress(i, 100, 'AI 분석 중...');
-                    updateScanProgress(i, 100);
+        // v6.1: Real-time Progress Data Fetching
+        let progressIntervalId = null;
+
+        async function fetchRealTimeProgress() {
+            try {
+                // Fetch scan progress
+                const scanResponse = await fetch('/api/scan-progress');
+                const scanData = await scanResponse.json();
+
+                // Update scan progress
+                const approved = scanData.approved ? scanData.approved.length : 0;
+                const rejected = scanData.rejected ? scanData.rejected.length : 0;
+                const total = scanData.total_candidates || 0;
+                const reviewed = approved + rejected;
+
+                if (total > 0) {
+                    updateScanProgress(reviewed, total);
+                    updateAIProgress(approved, total, `${approved}개 승인`);
                 } else {
-                    clearInterval(interval);
-                    updateLastActivity('스캔 완료 - ' + new Date().toLocaleTimeString('ko-KR'));
+                    updateScanProgress(0, 0);
+                    updateAIProgress(0, 0, '대기중');
                 }
-            }, 300);
+
+                // Update current strategy
+                if (scanData.current_strategy) {
+                    updateLastActivity(`${scanData.current_strategy} 전략 스캔 중 - ${new Date().toLocaleTimeString('ko-KR')}`);
+                }
+
+                // Update reviewing stock
+                if (scanData.reviewing) {
+                    updateLastActivity(`${scanData.reviewing} 분석 중 - ${new Date().toLocaleTimeString('ko-KR')}`);
+                }
+
+                // Fetch latest activity
+                const activityResponse = await fetch('/api/activities');
+                const activities = await activityResponse.json();
+
+                if (activities && activities.length > 0) {
+                    const latestActivity = activities[0];
+                    if (latestActivity.message) {
+                        updateLastActivity(`${latestActivity.message} - ${latestActivity.time}`);
+                    }
+                }
+
+                // Check for buy signals and send notifications
+                if (approved > 0 && scanData.approved) {
+                    const latestApproved = scanData.approved[scanData.approved.length - 1];
+                    if (latestApproved && !latestApproved.notified) {
+                        addNotification(
+                            'buy',
+                            `AI 매수 신호: ${latestApproved.stock_name || latestApproved.stock_code}`,
+                            `스코어: ${latestApproved.score || 'N/A'} | ${latestApproved.ai_reason || ''}`,
+                            'high'
+                        );
+                        // Mark as notified to avoid duplicate notifications
+                        latestApproved.notified = true;
+                    }
+                }
+
+            } catch (error) {
+                console.error('Failed to fetch real-time progress:', error);
+            }
         }
 
-        // Add demo notification on load
-        setTimeout(() => {
-            addNotification('info', 'v6.1 업데이트', '실시간 진행 상황 표시 & 알림 센터가 추가되었습니다!', 'high');
-        }, 2000);
+        // Start real-time progress updates
+        function startProgressUpdates() {
+            if (progressIntervalId) {
+                clearInterval(progressIntervalId);
+            }
+            // Update every 3 seconds
+            progressIntervalId = setInterval(fetchRealTimeProgress, 3000);
+            // Initial fetch
+            fetchRealTimeProgress();
+        }
+
+        // Stop progress updates
+        function stopProgressUpdates() {
+            if (progressIntervalId) {
+                clearInterval(progressIntervalId);
+                progressIntervalId = null;
+            }
+        }
+
+        // Start progress updates on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            startProgressUpdates();
+
+            // Add demo notification
+            setTimeout(() => {
+                addNotification('info', 'v6.1 업데이트', '실시간 진행 상황 표시 & 알림 센터가 추가되었습니다!', 'high');
+            }, 2000);
+        });
 
     </script>
 
