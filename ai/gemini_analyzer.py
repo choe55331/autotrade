@@ -1,11 +1,13 @@
-"""
-ai/gemini_analyzer.py
-Google Gemini AI 분석기
-"""
 import logging
 import time
 from typing import Dict, Any, Optional
 from .base_analyzer import BaseAnalyzer
+
+try:
+    from .prompts.stock_analysis import create_enhanced_prompt
+    USE_ENHANCED_PROMPT = True
+except ImportError:
+    USE_ENHANCED_PROMPT = False
 
 logger = logging.getLogger(__name__)
 

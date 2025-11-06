@@ -67,13 +67,26 @@ def get_market_commentary():
                 market_summary_parts.append(f"📊 포트폴리오가 {profit_loss_pct:+.1f}% 변동 중입니다. 안정적인 상태입니다.")
 
         current_hour = datetime.now().hour
+        is_market_closed = current_hour >= 15 or current_hour < 9
 
         if 9 <= current_hour < 10:
             market_summary_parts.append("🔔 장 시작 시간입니다. 시가 변동성에 주의하세요.")
         elif 14 <= current_hour < 15:
             market_summary_parts.append("⏰ 장 마감이 가까워집니다. 포지션 정리를 검토하세요.")
-        elif current_hour >= 15 or current_hour < 9:
-            market_summary_parts.append("🌙 시간외 거래 시간입니다. 다음 장을 준비하세요.")
+        elif is_market_closed:
+            if portfolio_info and len(portfolio_info) > 0:
+                avg_pl = sum(p.get('profit_loss_percent', 0) for p in portfolio_info) / len(portfolio_info)
+                if avg_pl > 3:
+                    market_summary_parts.append(f"✨ 장 종료. 오늘 평균 {avg_pl:.1f}% 수익을 기록했습니다. 좋은 하루였습니다!")
+                elif avg_pl > 1:
+                    market_summary_parts.append(f"📈 장 종료. 오늘 평균 {avg_pl:.1f}% 상승으로 마감했습니다.")
+                elif avg_pl < -3:
+                    market_summary_parts.append(f"📉 장 종료. 오늘 평균 {avg_pl:.1f}% 하락했습니다. 내일 반등 기회를 노려보세요.")
+                else:
+                    market_summary_parts.append(f"📊 장 종료. 오늘 평균 {avg_pl:+.1f}% 변동으로 마감했습니다.")
+
+            commentary['key_issues'].append("💡 내일 주요 체크사항: 해외 증시 동향, 환율 변동, 국내외 뉴스")
+            commentary['strategy_recommendation'] = "내일 장 전략을 수립하세요. 오늘의 거래를 복기하고 개선점을 찾아보세요."
         else:
             market_summary_parts.append("📊 정규 장 거래 시간입니다.")
 

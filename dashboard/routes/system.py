@@ -310,12 +310,18 @@ def get_candidates():
         for cand in approved:
             try:
                 # v5.3.2: 안전한 필드 접근
+                ai_score = cand.get('ai_score', 0)
+                if ai_score > 10:
+                    ai_score = ai_score / 10.0
+                if ai_score > 100:
+                    ai_score = min(100, ai_score)
+
                 candidates.append({
                     'code': cand.get('stock_code', ''),
                     'name': cand.get('stock_name', ''),
                     'price': cand.get('current_price', 0),
                     'change_rate': cand.get('change_rate', 0),
-                    'ai_score': cand.get('score', 0),
+                    'ai_score': round(ai_score * 10, 1),
                     'signal': 'BUY',
                     'split_strategy': cand.get('split_strategy', ''),
                     'reason': cand.get('ai_reason', ''),
