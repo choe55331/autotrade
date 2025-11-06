@@ -277,7 +277,9 @@ class StockScanner:
 - 보유 종목: {summary['position_count']}개
 - 총 자산: {summary['total_assets']:,}원
 - 수익률: {summary['total_profit_loss_rate']:+.2f}%
+        """
         except:
+        """
             return "No positions"
 
     def get_scan_progress(self) -> Dict[str, Any]:

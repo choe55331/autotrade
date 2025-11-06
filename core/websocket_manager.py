@@ -1,7 +1,6 @@
 """
 core/websocket_manager.py
 WebSocket 실시간 시세 매니저
-"""
 
 성공 패턴:
 1. WebSocket 연결
@@ -9,6 +8,7 @@ WebSocket 실시간 시세 매니저
 3. 로그인 응답 확인
 4. 구독 요청 전송 (REG)
 5. 실시간 데이터 수신 (REAL)
+"""
 
 import asyncio
 import websockets
@@ -148,6 +148,7 @@ class WebSocketManager:
         grp_no: str = "1",
         refresh: str = "1"
     ) -> bool:
+        """
         실시간 시세 구독
 
         Args:
@@ -166,6 +167,7 @@ class WebSocketManager:
             0B: 주식체결
             0C: 주식우선호가
             0D: 주식호가잔량
+        """
         if not self.is_connected or not self.is_logged_in:
             print("❌ WebSocket 미연결 또는 미로그인")
             logger.error("❌ WebSocket 미연결 또는 미로그인")

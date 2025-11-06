@@ -98,6 +98,7 @@ def get_trading_params_summary() -> str:
     AI 분석: {'활성' if AI_CONFIG['AI_ANALYSIS_ENABLED'] else '비활성'}
     - 최소 점수: {AI_CONFIG['AI_MIN_ANALYSIS_SCORE']:.1f}점
     - 신뢰도: {AI_CONFIG['AI_CONFIDENCE_THRESHOLD']}
+    """
 
 __all__ = [
     'TRADING_PARAMS',
