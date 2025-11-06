@@ -128,3 +128,26 @@ tqdm>=4.66.0  # 진행률 표시
 # Deep Learning (LSTM 예측)
 # tensorflow>=2.15.0
 # torch>=2.1.0
+
+# ====================================
+# v6.0 Performance & Security
+# ====================================
+
+# Web scraping (뉴스 크롤링)
+beautifulsoup4>=4.12.0
+lxml>=5.1.0
+
+# Performance optimization (선택적)
+numba>=0.58.0  # JIT compilation - 성능 100배 향상
+
+# System monitoring
+psutil>=5.9.0
+
+# Testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+
+# AI Providers (선택적)
+# anthropic>=0.8.0  # Claude AI
+# openai>=1.6.0  # GPT-4
