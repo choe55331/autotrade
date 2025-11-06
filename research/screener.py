@@ -132,27 +132,203 @@ class Screener:
     ) -> List[Dict[str, Any]]:
         """
         거래대금 기준 스크리닝
-        
+
         Args:
             min_value: 최소 거래대금 (원)
             market: 시장구분
             limit: 조회 건수
-        
+
         Returns:
             필터링된 종목 리스트
         """
         # 거래대금 순위 조회
         trading_rank = self.fetcher.get_trading_value_rank(market, limit)
-        
+
         # 최소 거래대금 필터
         filtered = [
             stock for stock in trading_rank
             if int(stock.get('trading_value', 0)) >= min_value
         ]
-        
+
         logger.info(f"거래대금 스크리닝 완료: {len(filtered)}개 종목 (최소 {min_value:,}원)")
         return filtered
-    
+
+    # v5.9: 투자자별 매매 기준 스크리닝
+    def screen_by_foreign_buying(
+        self,
+        market: str = 'KOSPI',
+        min_net_amount: int = 0,
+        limit: int = 50
+    ) -> List[Dict[str, Any]]:
+        """
+        외국인 순매수 종목 스크리닝 (v5.9 NEW)
+
+        Args:
+            market: 시장구분 ('KOSPI', 'KOSDAQ')
+            min_net_amount: 최소 순매수 금액 (백만원)
+            limit: 조회 건수
+
+        Returns:
+            외국인 순매수 종목 리스트
+        """
+        # 외국인 순매수 순위 조회
+        foreign_rank = self.fetcher.get_foreign_buying_rank(market, limit=limit)
+
+        # 최소 순매수 금액 필터
+        filtered = [
+            stock for stock in foreign_rank
+            if int(stock.get('net_amount', 0)) >= min_net_amount
+        ]
+
+        logger.info(f"외국인 순매수 스크리닝 완료: {len(filtered)}개 종목 (최소 {min_net_amount:,}백만원)")
+        return filtered
+
+    def screen_by_institution_buying(
+        self,
+        market: str = 'KOSPI',
+        min_net_amount: int = 0,
+        limit: int = 50
+    ) -> List[Dict[str, Any]]:
+        """
+        기관 순매수 종목 스크리닝 (v5.9 NEW)
+
+        Args:
+            market: 시장구분 ('KOSPI', 'KOSDAQ')
+            min_net_amount: 최소 순매수 금액 (백만원)
+            limit: 조회 건수
+
+        Returns:
+            기관 순매수 종목 리스트
+        """
+        # 기관 순매수 순위 조회
+        inst_rank = self.fetcher.get_institution_buying_rank(market, limit=limit)
+
+        # 최소 순매수 금액 필터
+        filtered = [
+            stock for stock in inst_rank
+            if int(stock.get('net_amount', 0)) >= min_net_amount
+        ]
+
+        logger.info(f"기관 순매수 스크리닝 완료: {len(filtered)}개 종목 (최소 {min_net_amount:,}백만원)")
+        return filtered
+
+    def screen_by_smart_money(
+        self,
+        market: str = 'KOSPI',
+        min_foreign_amount: int = 0,
+        min_inst_amount: int = 0,
+        limit: int = 50
+    ) -> List[Dict[str, Any]]:
+        """
+        스마트머니 (외국인+기관 동시 순매수) 종목 스크리닝 (v5.9 NEW)
+
+        외국인과 기관이 동시에 순매수하는 종목을 찾습니다.
+        일반적으로 이런 종목은 상승 가능성이 높습니다.
+
+        Args:
+            market: 시장구분 ('KOSPI', 'KOSDAQ')
+            min_foreign_amount: 최소 외국인 순매수 금액 (백만원)
+            min_inst_amount: 최소 기관 순매수 금액 (백만원)
+            limit: 조회 건수
+
+        Returns:
+            스마트머니 종목 리스트
+        """
+        # 외국인 & 기관 순매수 순위 조회
+        foreign_rank = self.fetcher.get_foreign_buying_rank(market, limit=limit)
+        inst_rank = self.fetcher.get_institution_buying_rank(market, limit=limit)
+
+        # 종목코드로 매핑
+        foreign_map = {s['code']: s for s in foreign_rank}
+        inst_map = {s['code']: s for s in inst_rank}
+
+        # 교집합 찾기 (둘 다 순매수)
+        smart_money = []
+        for code in set(foreign_map.keys()) & set(inst_map.keys()):
+            foreign_data = foreign_map[code]
+            inst_data = inst_map[code]
+
+            foreign_amt = int(foreign_data.get('net_amount', 0))
+            inst_amt = int(inst_data.get('net_amount', 0))
+
+            # 최소 금액 조건 체크
+            if foreign_amt >= min_foreign_amount and inst_amt >= min_inst_amount:
+                smart_money.append({
+                    'code': code,
+                    'name': foreign_data.get('name', ''),
+                    'foreign_net_amount': foreign_amt,
+                    'institution_net_amount': inst_amt,
+                    'total_net_amount': foreign_amt + inst_amt,
+                    'foreign_net_qty': foreign_data.get('net_qty', 0),
+                    'institution_net_qty': inst_data.get('net_qty', 0),
+                })
+
+        # 총 순매수 금액으로 정렬
+        smart_money.sort(key=lambda x: x['total_net_amount'], reverse=True)
+
+        logger.info(f"스마트머니 스크리닝 완료: {len(smart_money)}개 종목 (외국인+기관 동시 순매수)")
+        return smart_money
+
+    def screen_by_foreign_selling(
+        self,
+        market: str = 'KOSPI',
+        min_net_amount: int = 0,
+        limit: int = 50
+    ) -> List[Dict[str, Any]]:
+        """
+        외국인 순매도 종목 스크리닝 (v5.9 NEW)
+
+        역발상 투자나 저점 매수 타이밍을 찾는데 활용
+
+        Args:
+            market: 시장구분 ('KOSPI', 'KOSDAQ')
+            min_net_amount: 최소 순매도 금액 (백만원)
+            limit: 조회 건수
+
+        Returns:
+            외국인 순매도 종목 리스트
+        """
+        # 외국인 순매도 순위 조회
+        foreign_rank = self.fetcher.get_foreign_selling_rank(market, limit=limit)
+
+        # 최소 순매도 금액 필터
+        filtered = [
+            stock for stock in foreign_rank
+            if int(stock.get('net_amount', 0)) >= min_net_amount
+        ]
+
+        logger.info(f"외국인 순매도 스크리닝 완료: {len(filtered)}개 종목 (최소 {min_net_amount:,}백만원)")
+        return filtered
+
+    def screen_by_institution_selling(
+        self,
+        market: str = 'KOSPI',
+        min_net_amount: int = 0,
+        limit: int = 50
+    ) -> List[Dict[str, Any]]:
+        """
+        기관 순매도 종목 스크리닝 (v5.9 NEW)
+
+        Args:
+            market: 시장구분 ('KOSPI', 'KOSDAQ')
+            min_net_amount: 최소 순매도 금액 (백만원)
+            limit: 조회 건수
+
+        Returns:
+            기관 순매도 종목 리스트
+        """
+        # 기관 순매도 순위 조회
+        inst_rank = self.fetcher.get_institution_selling_rank(market, limit=limit)
+
+        # 최소 순매도 금액 필터
+        filtered = [
+            stock for stock in inst_rank
+            if int(stock.get('net_amount', 0)) >= min_net_amount
+        ]
+
+        logger.info(f"기관 순매도 스크리닝 완료: {len(filtered)}개 종목 (최소 {min_net_amount:,}백만원)")
+        return filtered
+
     # ==================== 복합 조건 스크리닝 ====================
 
     def screen_stocks(

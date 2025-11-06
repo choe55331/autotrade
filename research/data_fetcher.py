@@ -549,7 +549,7 @@ class DataFetcher:
             return []
     
     # ==================== 투자자별 매매 동향 ====================
-    
+
     def get_investor_trading(
         self,
         stock_code: str,
@@ -593,6 +593,156 @@ class DataFetcher:
         else:
             logger.error(f"투자자별 매매 동향 조회 실패: {response.get('return_msg')}")
             return None
+
+    # v5.9: 외국인/기관 매매 순위 조회
+    def get_foreign_buying_rank(
+        self,
+        market: str = 'KOSPI',
+        amount_or_qty: str = 'amount',
+        date: str = None,
+        limit: int = 20
+    ) -> List[Dict[str, Any]]:
+        """
+        외국인 순매수 상위 종목 조회 (v5.9 NEW)
+
+        Args:
+            market: 시장구분 ('KOSPI', 'KOSDAQ')
+            amount_or_qty: 조회구분 ('amount': 금액, 'qty': 수량)
+            date: 조회일 (YYYYMMDD, None이면 최근 거래일)
+            limit: 조회 건수
+
+        Returns:
+            외국인 순매수 상위 종목 리스트
+            [
+                {
+                    'code': '005930',
+                    'name': '삼성전자',
+                    'net_amount': 100000,  # 백만원
+                    'net_qty': 50000       # 천주
+                },
+                ...
+            ]
+        """
+        try:
+            from api.market import MarketAPI
+            market_api = MarketAPI(self.client)
+            rank_list = market_api.get_foreign_institution_trading_rank(
+                market=market,
+                amount_or_qty=amount_or_qty,
+                date=date,
+                limit=limit,
+                investor_type='foreign_buy'
+            )
+            logger.info(f"외국인 순매수 순위 {len(rank_list)}개 조회 완료")
+            return rank_list
+        except Exception as e:
+            logger.error(f"외국인 순매수 순위 조회 실패: {e}")
+            return []
+
+    def get_foreign_selling_rank(
+        self,
+        market: str = 'KOSPI',
+        amount_or_qty: str = 'amount',
+        date: str = None,
+        limit: int = 20
+    ) -> List[Dict[str, Any]]:
+        """
+        외국인 순매도 상위 종목 조회 (v5.9 NEW)
+
+        Args:
+            market: 시장구분 ('KOSPI', 'KOSDAQ')
+            amount_or_qty: 조회구분 ('amount': 금액, 'qty': 수량)
+            date: 조회일 (YYYYMMDD, None이면 최근 거래일)
+            limit: 조회 건수
+
+        Returns:
+            외국인 순매도 상위 종목 리스트
+        """
+        try:
+            from api.market import MarketAPI
+            market_api = MarketAPI(self.client)
+            rank_list = market_api.get_foreign_institution_trading_rank(
+                market=market,
+                amount_or_qty=amount_or_qty,
+                date=date,
+                limit=limit,
+                investor_type='foreign_sell'
+            )
+            logger.info(f"외국인 순매도 순위 {len(rank_list)}개 조회 완료")
+            return rank_list
+        except Exception as e:
+            logger.error(f"외국인 순매도 순위 조회 실패: {e}")
+            return []
+
+    def get_institution_buying_rank(
+        self,
+        market: str = 'KOSPI',
+        amount_or_qty: str = 'amount',
+        date: str = None,
+        limit: int = 20
+    ) -> List[Dict[str, Any]]:
+        """
+        기관 순매수 상위 종목 조회 (v5.9 NEW)
+
+        Args:
+            market: 시장구분 ('KOSPI', 'KOSDAQ')
+            amount_or_qty: 조회구분 ('amount': 금액, 'qty': 수량)
+            date: 조회일 (YYYYMMDD, None이면 최근 거래일)
+            limit: 조회 건수
+
+        Returns:
+            기관 순매수 상위 종목 리스트
+        """
+        try:
+            from api.market import MarketAPI
+            market_api = MarketAPI(self.client)
+            rank_list = market_api.get_foreign_institution_trading_rank(
+                market=market,
+                amount_or_qty=amount_or_qty,
+                date=date,
+                limit=limit,
+                investor_type='institution_buy'
+            )
+            logger.info(f"기관 순매수 순위 {len(rank_list)}개 조회 완료")
+            return rank_list
+        except Exception as e:
+            logger.error(f"기관 순매수 순위 조회 실패: {e}")
+            return []
+
+    def get_institution_selling_rank(
+        self,
+        market: str = 'KOSPI',
+        amount_or_qty: str = 'amount',
+        date: str = None,
+        limit: int = 20
+    ) -> List[Dict[str, Any]]:
+        """
+        기관 순매도 상위 종목 조회 (v5.9 NEW)
+
+        Args:
+            market: 시장구분 ('KOSPI', 'KOSDAQ')
+            amount_or_qty: 조회구분 ('amount': 금액, 'qty': 수량)
+            date: 조회일 (YYYYMMDD, None이면 최근 거래일)
+            limit: 조회 건수
+
+        Returns:
+            기관 순매도 상위 종목 리스트
+        """
+        try:
+            from api.market import MarketAPI
+            market_api = MarketAPI(self.client)
+            rank_list = market_api.get_foreign_institution_trading_rank(
+                market=market,
+                amount_or_qty=amount_or_qty,
+                date=date,
+                limit=limit,
+                investor_type='institution_sell'
+            )
+            logger.info(f"기관 순매도 순위 {len(rank_list)}개 조회 완료")
+            return rank_list
+        except Exception as e:
+            logger.error(f"기관 순매도 순위 조회 실패: {e}")
+            return []
     
     # ==================== 종목 상세 정보 ====================
     
