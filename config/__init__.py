@@ -1,11 +1,9 @@
-"""
 config 패키지
 설정 관리 모듈
 
 v4.2 Changes:
 - New unified config system with Pydantic (schemas.py + manager.py)
 - Backward compatible with all existing config systems
-"""
 from .settings import (
     LOG_CONFIG,
     FILE_PATHS,
@@ -46,10 +44,8 @@ from .api_loader import (
     is_api_tested,
     APICategory,
 )
-# v4.0 Advanced Features
 from .unified_settings import UnifiedSettingsManager, get_unified_settings
 
-# v4.1 Parameter Standards
 from .parameter_standards import (
     StandardParameters,
     ParameterConverter,
@@ -57,7 +53,6 @@ from .parameter_standards import (
     LEGACY_PARAMETER_MAPPING
 )
 
-# v4.2: Unified Config System (Pydantic-based, type-safe)
 try:
     from .manager import (
         ConfigManager,
@@ -78,7 +73,6 @@ try:
         MainCycleConfig,
     )
 except ImportError:
-    # Fallback if pydantic not installed
     ConfigManager = None
     get_config = None
     get_setting = None
@@ -94,7 +88,6 @@ except ImportError:
     NotificationConfig = None
     MainCycleConfig = None
 
-# 하위 호환성을 위한 변수
 LOG_FILE_PATH = LOG_CONFIG['LOG_FILE_PATH']
 LOG_LEVEL = LOG_CONFIG['LOG_LEVEL']
 LOG_FILE_MAX_BYTES = LOG_CONFIG['LOG_FILE_MAX_BYTES']
@@ -107,10 +100,8 @@ WEBSOCKET_STATUS_FILE = FILE_PATHS['WEBSOCKET_STATUS_FILE']
 API_RATE_LIMIT_SECONDS = API_RATE_LIMIT['REST_CALL_INTERVAL']
 MAIN_CYCLE_SLEEP_SECONDS = MAIN_CYCLE_CONFIG['SLEEP_SECONDS']
 
-# 기본 제어 상태
 DEFAULT_CONTROL_STATE = get_default_control_state()
 
-# 매매 파라미터
 MAX_OPEN_POSITIONS = POSITION_CONFIG['MAX_OPEN_POSITIONS']
 RISK_PER_TRADE_RATIO = POSITION_CONFIG['RISK_PER_TRADE_RATIO']
 TAKE_PROFIT_RATIO = PROFIT_LOSS_CONFIG['TAKE_PROFIT_RATIO']
@@ -131,15 +122,12 @@ def validate_config():
     """전체 설정 검증"""
     errors = []
     
-    # 환경 검증
     env_errors = validate_environment()
     errors.extend(env_errors)
     
-    # 자격증명 검증
     is_valid, cred_errors = credentials.validate()
     errors.extend(cred_errors)
     
-    # 매매 파라미터 검증
     is_valid, param_errors = validate_trading_params()
     errors.extend(param_errors)
     
@@ -150,7 +138,6 @@ def validate_config():
     return True
 
 __all__ = [
-    # Settings
     'LOG_CONFIG',
     'FILE_PATHS',
     'API_RATE_LIMIT',
@@ -158,7 +145,6 @@ __all__ = [
     'get_default_control_state',
     'validate_environment',
 
-    # Credentials
     'Credentials',
     'get_credentials',
     'credentials',
@@ -171,7 +157,6 @@ __all__ = [
     'GEMINI_MODEL_NAME',
     'GEMINI_ENABLE_CROSS_CHECK',
 
-    # Trading Params
     'TRADING_PARAMS',
     'POSITION_CONFIG',
     'PROFIT_LOSS_CONFIG',
@@ -180,7 +165,6 @@ __all__ = [
     'validate_trading_params',
     'get_trading_params_summary',
 
-    # API Loader
     'APILoader',
     'get_api_loader',
     'load_successful_apis',
@@ -190,17 +174,14 @@ __all__ = [
     'is_api_tested',
     'APICategory',
 
-    # v4.0 Advanced Features
     'UnifiedSettingsManager',
     'get_unified_settings',
 
-    # v4.1 Parameter Standards
     'StandardParameters',
     'ParameterConverter',
     'migrate_parameters',
     'LEGACY_PARAMETER_MAPPING',
 
-    # v4.2: Unified Config System (recommended for new code)
     'ConfigManager',
     'get_config',
     'get_setting',
@@ -216,7 +197,6 @@ __all__ = [
     'NotificationConfig',
     'MainCycleConfig',
 
-    # Legacy compatibility
     'LOG_FILE_PATH',
     'LOG_LEVEL',
     'LOG_FILE_MAX_BYTES',

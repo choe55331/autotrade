@@ -1,4 +1,3 @@
-"""
 config/credentials.py
 API 키 및 민감정보 관리
 
@@ -6,20 +5,17 @@ API 키 및 민감정보 관리
 1. _immutable/credentials/secrets.json (최우선)
 2. 환경변수 (.env)
 3. 기본값
-"""
 import os
 import json
 from pathlib import Path
 from typing import Dict, Optional, Any
 
-# 환경변수 로드 (dotenv 선택적)
 try:
     from dotenv import load_dotenv
     load_dotenv()
 except ImportError:
-    pass  # dotenv 없이도 작동
+    pass
 
-# 경로 설정
 PROJECT_ROOT = Path(__file__).parent.parent
 SECRETS_FILE = PROJECT_ROOT / '_immutable' / 'credentials' / 'secrets.json'
 
@@ -28,7 +24,6 @@ class Credentials:
     """API 자격증명 관리 클래스"""
 
     def __init__(self):
-        # secrets.json 로드 (필수)
         secrets = self._load_secrets()
 
         if not secrets:
@@ -45,29 +40,24 @@ class Credentials:
                 f"{'='*80}\n"
             )
 
-        # Kiwoom API 설정 (secrets.json 필수)
         kiwoom = secrets.get('kiwoom_rest', {})
         self.KIWOOM_REST_BASE_URL = kiwoom.get('base_url')
         self.KIWOOM_REST_APPKEY = kiwoom.get('appkey')
         self.KIWOOM_REST_SECRETKEY = kiwoom.get('secretkey')
         self.ACCOUNT_NUMBER = kiwoom.get('account_number')
 
-        # Websocket 설정
         kiwoom_ws = secrets.get('kiwoom_websocket', {})
         self.KIWOOM_WEBSOCKET_URL = kiwoom_ws.get('url')
 
-        # Gemini API 설정
         gemini = secrets.get('gemini', {})
         self.GEMINI_API_KEY = gemini.get('api_key')
         self.GEMINI_MODEL_NAME = gemini.get('model_name')
         self.GEMINI_ENABLE_CROSS_CHECK = gemini.get('enable_cross_check', False)
 
-        # Telegram 설정
         telegram = secrets.get('telegram', {})
         self.TELEGRAM_BOT_TOKEN = telegram.get('bot_token', '')
         self.TELEGRAM_CHAT_ID = telegram.get('chat_id', '')
 
-        # 계좌번호 파싱
         self._parse_account_number()
 
     def _load_secrets(self) -> Dict:
@@ -101,7 +91,6 @@ class Credentials:
         """
         errors = []
         
-        # 필수 키 검증
         required_keys = {
             'KIWOOM_REST_APPKEY': self.KIWOOM_REST_APPKEY,
             'KIWOOM_REST_SECRETKEY': self.KIWOOM_REST_SECRETKEY,
@@ -112,13 +101,11 @@ class Credentials:
             if not value or len(value) < 10:
                 errors.append(f"{key}가 설정되지 않았거나 유효하지 않습니다")
         
-        # 계좌번호 형식 검증
         if self.ACCOUNT_NUMBER and '-' not in self.ACCOUNT_NUMBER:
             errors.append(
                 f"ACCOUNT_NUMBER는 '계좌번호-접미사' 형식이어야 합니다: '{self.ACCOUNT_NUMBER}'"
             )
         
-        # Gemini API 키 검증 (선택사항이지만 권장)
         if not self.GEMINI_API_KEY:
             errors.append("GEMINI_API_KEY가 설정되지 않았습니다 (AI 분석 사용 불가)")
         
@@ -151,7 +138,6 @@ class Credentials:
             'chat_id': self.TELEGRAM_CHAT_ID,
         }
 
-# 싱글톤 인스턴스
 _credentials_instance: Optional[Credentials] = None
 
 def get_credentials() -> Credentials:
@@ -161,7 +147,6 @@ def get_credentials() -> Credentials:
         _credentials_instance = Credentials()
     return _credentials_instance
 
-# 하위 호환성을 위한 변수 (기존 코드와의 호환)
 credentials = get_credentials()
 KIWOOM_REST_BASE_URL = credentials.KIWOOM_REST_BASE_URL
 KIWOOM_REST_APPKEY = credentials.KIWOOM_REST_APPKEY

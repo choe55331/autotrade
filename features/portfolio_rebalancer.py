@@ -1,4 +1,3 @@
-"""
 AutoTrade Pro v4.0 - 자동 리밸런싱 시스템
 주기적/조건부 포트폴리오 리밸런싱
 
@@ -6,7 +5,6 @@ AutoTrade Pro v4.0 - 자동 리밸런싱 시스템
 - 시간 기반 리밸런싱 (월별, 분기별)
 - 임계값 기반 리밸런싱 (비중 이탈 시)
 - 리스크 패리티 방식 지원
-"""
 import logging
 from typing import Dict, Any, List, Optional, Tuple
 from datetime import datetime, timedelta
@@ -21,9 +19,9 @@ logger = logging.getLogger(__name__)
 class PortfolioTarget:
     """목표 포트폴리오"""
     stock_code: str
-    target_weight: float  # 목표 비중 (0.0 ~ 1.0)
-    current_weight: float  # 현재 비중
-    deviation: float  # 이탈 정도
+    target_weight: float
+    current_weight: float
+    deviation: float
 
 
 class PortfolioRebalancer:
@@ -50,7 +48,6 @@ class PortfolioRebalancer:
         self.threshold_pct = self.settings.get('threshold_pct', 0.05)
         self.use_risk_parity = self.settings.get('use_risk_parity', False)
 
-        # 상태
         self.last_rebalance_date: Optional[datetime] = None
         self.target_weights: Dict[str, float] = {}
 
@@ -74,7 +71,6 @@ class PortfolioRebalancer:
         self,
         returns_data: Dict[str, List[float]]
     ) -> Dict[str, float]:
-        """
         리스크 패리티 비중 계산
 
         Args:
@@ -82,22 +78,19 @@ class PortfolioRebalancer:
 
         Returns:
             최적 비중
-        """
         stock_codes = list(returns_data.keys())
         n_stocks = len(stock_codes)
 
         if n_stocks == 0:
             return {}
 
-        # 변동성 계산
         volatilities = {}
         for code, returns in returns_data.items():
             if len(returns) > 0:
                 volatilities[code] = np.std(returns)
             else:
-                volatilities[code] = 0.01  # 기본값
+                volatilities[code] = 0.01
 
-        # 역변동성 비중
         inv_vols = {code: 1.0 / vol for code, vol in volatilities.items()}
         total_inv_vol = sum(inv_vols.values())
 
@@ -113,7 +106,6 @@ class PortfolioRebalancer:
         self,
         current_weights: Dict[str, float]
     ) -> Tuple[bool, str]:
-        """
         리밸런싱 필요 여부 확인
 
         Args:
@@ -121,14 +113,12 @@ class PortfolioRebalancer:
 
         Returns:
             (should_rebalance, reason)
-        """
         if not self.enabled:
             return False, "리밸런싱 비활성화"
 
         if not self.target_weights:
             return False, "목표 비중 미설정"
 
-        # 시간 기반
         if self.method == 'time_based':
             if self.last_rebalance_date is None:
                 return True, "최초 리밸런싱"
@@ -137,7 +127,6 @@ class PortfolioRebalancer:
             if days_since >= self.frequency_days:
                 return True, f"주기 도래 ({days_since}일 경과)"
 
-        # 임계값 기반
         elif self.method == 'threshold_based':
             max_deviation = 0.0
 
@@ -158,7 +147,6 @@ class PortfolioRebalancer:
         current_portfolio: Dict[str, Dict[str, Any]],
         total_assets: float
     ) -> List[Dict[str, Any]]:
-        """
         리밸런싱 주문 계산
 
         Args:
@@ -174,29 +162,24 @@ class PortfolioRebalancer:
 
         Returns:
             주문 리스트
-        """
         orders = []
 
-        # 현재 비중 계산
         current_weights = {}
         for code, info in current_portfolio.items():
             current_weights[code] = info['value'] / total_assets if total_assets > 0 else 0
 
-        # 목표 비중과 비교
         for code, target_weight in self.target_weights.items():
             target_value = total_assets * target_weight
             current_value = current_portfolio.get(code, {}).get('value', 0)
             diff_value = target_value - current_value
 
-            if abs(diff_value) < 10000:  # 1만원 미만은 무시
+            if abs(diff_value) < 10000:
                 continue
 
-            # 현재가 가져오기 (TODO: 실제 API 연동)
             current_price = current_portfolio.get(code, {}).get('price', 0)
             if current_price == 0:
                 continue
 
-            # 수량 계산
             quantity = int(abs(diff_value) / current_price)
 
             if quantity > 0:
@@ -217,7 +200,6 @@ class PortfolioRebalancer:
         orders: List[Dict[str, Any]],
         dry_run: bool = True
     ) -> bool:
-        """
         리밸런싱 실행
 
         Args:
@@ -226,14 +208,12 @@ class PortfolioRebalancer:
 
         Returns:
             성공 여부
-        """
         if dry_run:
             logger.info("DRY RUN: 리밸런싱 시뮬레이션")
             for order in orders:
                 logger.info(f"  {order['action'].upper()} {order['stock_code']} x{order['quantity']}")
             return True
 
-        # TODO: 실제 주문 API 연동
         logger.info("실제 리밸런싱 실행 (TODO)")
 
         self.last_rebalance_date = datetime.now()
@@ -250,21 +230,18 @@ class PortfolioRebalancer:
 
 
 if __name__ == "__main__":
-    # 테스트
     rebalancer = PortfolioRebalancer({
         'enabled': True,
         'method': 'threshold_based',
         'threshold_pct': 0.05
     })
 
-    # 목표 비중 설정
     rebalancer.set_target_weights({
-        '005930': 0.40,  # 삼성전자 40%
-        '000660': 0.30,  # SK하이닉스 30%
-        '035720': 0.30   # 카카오 30%
+        '005930': 0.40,
+        '000660': 0.30,
+        '035720': 0.30
     })
 
-    # 현재 포트폴리오
     current_portfolio = {
         '005930': {'quantity': 10, 'price': 70000, 'value': 700000},
         '000660': {'quantity': 5, 'price': 120000, 'value': 600000},
@@ -273,7 +250,6 @@ if __name__ == "__main__":
 
     total_assets = sum(p['value'] for p in current_portfolio.values())
 
-    # 리밸런싱 필요 여부 확인
     current_weights = {
         code: info['value'] / total_assets
         for code, info in current_portfolio.items()

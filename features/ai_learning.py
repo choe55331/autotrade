@@ -1,4 +1,3 @@
-"""
 AI Learning System
 Advanced machine learning for trading strategy optimization
 
@@ -8,7 +7,6 @@ Features:
 - Automatic parameter tuning
 - Market regime detection
 - Performance prediction
-"""
 import json
 import numpy as np
 import pandas as pd
@@ -38,7 +36,7 @@ class TradingPattern:
 @dataclass
 class MarketRegime:
     """Detected market regime"""
-    regime_type: str  # 'bull', 'bear', 'sideways', 'volatile'
+    regime_type: str
     start_date: str
     confidence: float
     characteristics: Dict[str, Any]
@@ -48,12 +46,12 @@ class MarketRegime:
 class LearningInsight:
     """AI learning insight"""
     timestamp: str
-    insight_type: str  # 'pattern', 'regime', 'parameter', 'strategy'
+    insight_type: str
     title: str
     description: str
     confidence: float
     action_recommended: str
-    impact: str  # 'high', 'medium', 'low'
+    impact: str
 
 
 class AILearningEngine:
@@ -127,7 +125,6 @@ class AILearningEngine:
         try:
             df = pd.DataFrame(trades)
 
-            # 1. Win rate analysis
             if 'profit' in df.columns:
                 win_rate = (df['profit'] > 0).mean()
                 avg_win = df[df['profit'] > 0]['profit'].mean() if any(df['profit'] > 0) else 0
@@ -154,11 +151,10 @@ class AILearningEngine:
                         impact='medium'
                     ))
 
-            # 2. Holding period analysis
             if 'holding_period' in df.columns:
                 avg_holding = df['holding_period'].mean()
 
-                if avg_holding < 2:  # Less than 2 days
+                if avg_holding < 2:
                     insights.append(LearningInsight(
                         timestamp=datetime.now().isoformat(),
                         insight_type='pattern',
@@ -169,10 +165,7 @@ class AILearningEngine:
                         impact='medium'
                     ))
 
-            # 3. Time-of-day analysis
             if 'entry_time' in df.columns:
-                # Analyze which time of day has best performance
-                # (Simplified for now)
                 insights.append(LearningInsight(
                     timestamp=datetime.now().isoformat(),
                     insight_type='pattern',
@@ -183,7 +176,6 @@ class AILearningEngine:
                     impact='low'
                 ))
 
-            # 4. Sector performance
             if 'sector' in df.columns and 'profit' in df.columns:
                 sector_performance = df.groupby('sector')['profit'].agg(['mean', 'count'])
                 best_sector = sector_performance['mean'].idxmax()
@@ -224,29 +216,23 @@ class AILearningEngine:
             if len(market_data) < 20:
                 return recognized_patterns
 
-            # Pattern 1: RSI Reversal
             rsi_reversal_pattern = self._detect_rsi_reversal_pattern(market_data)
             if rsi_reversal_pattern:
                 recognized_patterns.append(rsi_reversal_pattern)
 
-            # Pattern 2: Volume Breakout
             volume_breakout_pattern = self._detect_volume_breakout_pattern(market_data)
             if volume_breakout_pattern:
                 recognized_patterns.append(volume_breakout_pattern)
 
-            # Pattern 3: Momentum Continuation
             momentum_pattern = self._detect_momentum_continuation(market_data)
             if momentum_pattern:
                 recognized_patterns.append(momentum_pattern)
 
-            # Add to patterns list
             for pattern in recognized_patterns:
-                # Check if pattern already exists
                 existing = [p for p in self.patterns if p.id == pattern.id]
                 if not existing:
                     self.patterns.append(pattern)
                 else:
-                    # Update existing pattern
                     idx = self.patterns.index(existing[0])
                     self.patterns[idx] = pattern
 
@@ -266,10 +252,9 @@ class AILearningEngine:
             if len(rsis) < 10 or len(returns) < 10:
                 return None
 
-            # Find oversold → recovery patterns
             oversold_recoveries = []
             for i in range(1, len(rsis) - 1):
-                if rsis[i] < 30 and rsis[i+1] > rsis[i]:  # Oversold and recovering
+                if rsis[i] < 30 and rsis[i+1] > rsis[i]:
                     if i < len(returns):
                         oversold_recoveries.append(returns[i])
 
@@ -277,7 +262,7 @@ class AILearningEngine:
                 success_rate = sum(1 for r in oversold_recoveries if r > 0) / len(oversold_recoveries)
                 avg_return = np.mean(oversold_recoveries)
 
-                if success_rate > 0.55:  # At least 55% success
+                if success_rate > 0.55:
                     return TradingPattern(
                         id='rsi_reversal',
                         name='RSI 과매도 반등',
@@ -305,10 +290,9 @@ class AILearningEngine:
 
             avg_volume = np.mean(volumes)
 
-            # Find volume surges
             breakouts = []
             for i in range(len(volumes) - 1):
-                if volumes[i] > avg_volume * 1.8:  # 1.8x average
+                if volumes[i] > avg_volume * 1.8:
                     if i < len(returns):
                         breakouts.append(returns[i])
 
@@ -342,11 +326,10 @@ class AILearningEngine:
             if len(prices) < 10 or len(returns) < 10:
                 return None
 
-            # Calculate momentum (simple: 5-day price change)
             momentum_entries = []
             for i in range(5, len(prices) - 1):
                 momentum = (prices[i] - prices[i-5]) / prices[i-5]
-                if momentum > 0.05:  # 5% gain in 5 days
+                if momentum > 0.05:
                     if i < len(returns):
                         momentum_entries.append(returns[i])
 
@@ -382,8 +365,6 @@ class AILearningEngine:
             Detected market regime
         """
         try:
-            # Simple regime detection based on indicators
-            # (In production, would use more sophisticated methods)
 
             volatility = market_data.get('volatility', 0.15)
             trend = market_data.get('trend', 0)
@@ -413,9 +394,8 @@ class AILearningEngine:
                 }
             )
 
-            # Add to regimes list
             self.regimes.append(regime)
-            if len(self.regimes) > 30:  # Keep last 30
+            if len(self.regimes) > 30:
                 self.regimes = self.regimes[-30:]
 
             logger.info(f"Detected market regime: {regime_type} (confidence: {confidence:.0%})")
@@ -436,7 +416,6 @@ class AILearningEngine:
         strategy_id: str,
         performance_history: List[Dict[str, Any]]
     ) -> Dict[str, Any]:
-        """
         Optimize strategy parameters using historical performance
 
         Args:
@@ -445,7 +424,6 @@ class AILearningEngine:
 
         Returns:
             Optimized parameters
-        """
         try:
             if len(performance_history) < 5:
                 logger.warning("Not enough data for optimization")
@@ -453,13 +431,10 @@ class AILearningEngine:
 
             df = pd.DataFrame(performance_history)
 
-            # Optimize stop loss
             if 'stop_loss' in df.columns and 'profit' in df.columns:
-                # Find stop loss that maximizes profit
                 stop_loss_groups = df.groupby('stop_loss')['profit'].mean()
                 best_stop_loss = stop_loss_groups.idxmax()
 
-                # Optimize take profit
                 if 'take_profit' in df.columns:
                     take_profit_groups = df.groupby('take_profit')['profit'].mean()
                     best_take_profit = take_profit_groups.idxmax()
@@ -484,7 +459,6 @@ class AILearningEngine:
         strategy_id: str,
         market_conditions: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """
         Predict how a strategy will perform in current market conditions
 
         Args:
@@ -493,14 +467,10 @@ class AILearningEngine:
 
         Returns:
             Performance prediction
-        """
         try:
-            # Find similar historical conditions
-            # (Simplified - in production would use ML models)
 
             market_regime = market_conditions.get('regime', 'unknown')
 
-            # Historical performance by regime
             regime_performance = {
                 'bull': {'expected_return': 4.2, 'win_rate': 0.68, 'confidence': 0.75},
                 'bear': {'expected_return': -1.5, 'win_rate': 0.45, 'confidence': 0.70},
@@ -536,15 +506,12 @@ class AILearningEngine:
         }
 
 
-# Example usage
 if __name__ == '__main__':
-    # Test learning engine
     engine = AILearningEngine()
 
     print("\n🧠 AI Learning Engine Test")
     print("=" * 60)
 
-    # Test pattern recognition
     mock_data = [
         {'rsi': 28, 'return': 0.03, 'volume': 1000000, 'price': 100},
         {'rsi': 32, 'return': 0.02, 'volume': 1200000, 'price': 102},
@@ -556,12 +523,10 @@ if __name__ == '__main__':
     for pattern in patterns:
         print(f"  - {pattern.name}: 승률 {pattern.success_rate:.1%}")
 
-    # Test regime detection
     market_data = {'volatility': 0.15, 'trend': 0.03, 'volume_trend': 1.2}
     regime = engine.detect_market_regime(market_data)
     print(f"\n시장 국면: {regime.regime_type} (신뢰도: {regime.confidence:.0%})")
 
-    # Get summary
     summary = engine.get_learning_summary()
     print(f"\n학습 요약:")
     print(f"  패턴: {summary['patterns_recognized']}개")

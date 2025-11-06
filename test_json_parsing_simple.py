@@ -1,7 +1,5 @@
-"""
 JSON 파싱 문제 디버깅 스크립트
 API 키 없이 다양한 응답 형식을 테스트
-"""
 
 import json
 import re
@@ -19,12 +17,10 @@ def parse_strategy_1_original(response_text: str) -> Tuple[bool, Optional[Dict],
         cleaned_text = response_text.strip()
         json_str = None
 
-        # Strategy 1: Extract from ```json code block
         json_match = re.search(r'```json\s*\n(.*?)\n```', cleaned_text, re.DOTALL)
         if json_match:
             json_str = json_match.group(1)
 
-        # Strategy 2: Extract from ``` code block (without json)
         if not json_str:
             json_match = re.search(r'```\s*\n(.*?)\n```', cleaned_text, re.DOTALL)
             if json_match:
@@ -32,7 +28,6 @@ def parse_strategy_1_original(response_text: str) -> Tuple[bool, Optional[Dict],
                 if potential_json.startswith('{'):
                     json_str = potential_json
 
-        # Strategy 3: Find largest {...} block
         if not json_str:
             pattern = r'\{(?:[^{}]|(?:\{[^{}]*\}))*\}'
             json_blocks = re.findall(pattern, cleaned_text, re.DOTALL)
@@ -45,15 +40,12 @@ def parse_strategy_1_original(response_text: str) -> Tuple[bool, Optional[Dict],
             elif json_blocks:
                 json_str = max(json_blocks, key=len)
 
-        # Strategy 4: Try parsing entire response as JSON
         if not json_str:
             if cleaned_text.startswith('{'):
                 json_str = cleaned_text
 
-        # Try parsing JSON
         if json_str:
             json_str = json_str.strip()
-            # Remove trailing commas
             json_str = re.sub(r',\s*}', '}', json_str)
             json_str = re.sub(r',\s*]', ']', json_str)
 
@@ -63,7 +55,6 @@ def parse_strategy_1_original(response_text: str) -> Tuple[bool, Optional[Dict],
             return False, None, "No JSON found in response"
 
     except json.JSONDecodeError as e:
-        # 이 부분이 문제! e.msg가 '\n "signal"' 같은 이상한 값이 나올 수 있음
         return False, None, f"JSON parse error: {str(e)}"
     except Exception as e:
         return False, None, f"Error: {str(e)}"
@@ -76,11 +67,9 @@ def parse_strategy_2_robust(response_text: str) -> Tuple[bool, Optional[Dict], s
     try:
         cleaned = response_text.strip()
 
-        # 1. 코드 블록 제거
         cleaned = re.sub(r'```json\s*', '', cleaned)
         cleaned = re.sub(r'```\s*', '', cleaned)
 
-        # 2. { 와 } 찾기
         first_brace = cleaned.find('{')
         last_brace = cleaned.rfind('}')
 
@@ -89,21 +78,16 @@ def parse_strategy_2_robust(response_text: str) -> Tuple[bool, Optional[Dict], s
 
         json_str = cleaned[first_brace:last_brace+1]
 
-        # 3. 일반적인 JSON 오류 수정
-        # 후행 쉼표 제거
         json_str = re.sub(r',(\s*[}\]])', r'\1', json_str)
 
-        # 4. 파싱
         data = json.loads(json_str)
 
-        # 5. 필수 필드 확인
         if 'signal' not in data:
             return False, None, "Missing 'signal' field in JSON"
 
         return True, data, "Robust parsing successful"
 
     except json.JSONDecodeError as e:
-        # 에러 메시지를 더 자세히
         error_context = response_text[max(0, e.pos-50):min(len(response_text), e.pos+50)]
         return False, None, f"JSON error at pos {e.pos}: {e.msg}\nContext: ...{error_context}..."
     except Exception as e:
@@ -117,12 +101,10 @@ def parse_strategy_3_lenient(response_text: str) -> Tuple[bool, Optional[Dict], 
     try:
         cleaned = response_text.strip()
 
-        # JSON 영역 찾기
         first_brace = cleaned.find('{')
         if first_brace == -1:
             return False, None, "No opening brace found"
 
-        # 여러 개의 } 시도
         possible_jsons = []
         pos = first_brace
         while True:
@@ -131,7 +113,6 @@ def parse_strategy_3_lenient(response_text: str) -> Tuple[bool, Optional[Dict], 
                 break
 
             candidate = cleaned[first_brace:next_brace+1]
-            # 후행 쉼표 제거 후 파싱 시도
             candidate = re.sub(r',(\s*[}\]])', r'\1', candidate)
 
             try:
@@ -144,7 +125,6 @@ def parse_strategy_3_lenient(response_text: str) -> Tuple[bool, Optional[Dict], 
             pos = next_brace
 
         if possible_jsons:
-            # 가장 긴 유효한 JSON 선택
             longest = max(possible_jsons, key=lambda x: x[0])
             return True, longest[1], f"Lenient parsing successful (found {len(possible_jsons)} candidates)"
 
@@ -154,9 +134,7 @@ def parse_strategy_3_lenient(response_text: str) -> Tuple[bool, Optional[Dict], 
         return False, None, f"Lenient parsing error: {str(e)}"
 
 
-# 테스트 케이스들
 TEST_CASES = [
-    # Case 1: 정상적인 JSON
     {
         'name': 'Normal JSON',
         'response': '''```json
@@ -169,7 +147,6 @@ TEST_CASES = [
         'expected_signal': 'buy'
     },
 
-    # Case 2: 코드 블록 없음
     {
         'name': 'JSON without code block',
         'response': '''{
@@ -179,7 +156,6 @@ TEST_CASES = [
         'expected_signal': 'hold'
     },
 
-    # Case 3: 앞뒤에 텍스트 있음
     {
         'name': 'JSON with surrounding text',
         'response': '''Here is my analysis:
@@ -194,7 +170,6 @@ This is based on technical indicators.''',
         'expected_signal': 'sell'
     },
 
-    # Case 4: 후행 쉼표 있음 (JSON 오류)
     {
         'name': 'JSON with trailing comma',
         'response': '''{
@@ -204,7 +179,6 @@ This is based on technical indicators.''',
         'expected_signal': 'buy'
     },
 
-    # Case 5: 줄바꿈 문제
     {
         'name': 'JSON with newline issues',
         'response': '''
@@ -215,7 +189,6 @@ This is based on technical indicators.''',
         'expected_signal': 'buy'
     },
 
-    # Case 6: 중첩된 객체
     {
         'name': 'Nested JSON',
         'response': '''{
@@ -229,7 +202,6 @@ This is based on technical indicators.''',
         'expected_signal': 'buy'
     },
 
-    # Case 7: 문제가 있는 케이스 - 따옴표 문제
     {
         'name': 'Problematic quote issues',
         'response': '''{
@@ -240,7 +212,6 @@ This is based on technical indicators.''',
         'expected_signal': 'buy'
     },
 
-    # Case 8: 실제 에러 케이스 재현 - signal 필드 앞에 \n 있음
     {
         'name': 'Real error case with newline before signal',
         'response': '''{
@@ -250,14 +221,12 @@ This is based on technical indicators.''',
         'expected_signal': 'buy'
     },
 
-    # Case 9: 잘못된 형식 - signal만 있음
     {
         'name': 'Minimal JSON',
         'response': '''{"signal": "hold"}''',
         'expected_signal': 'hold'
     },
 
-    # Case 10: 매우 복잡한 JSON (실제 응답과 유사)
     {
         'name': 'Complex realistic JSON',
         'response': '''```json
@@ -299,7 +268,7 @@ def run_tests():
 
     for i, test_case in enumerate(TEST_CASES, 1):
         print(f"\n{'='*80}")
-        print(f"테스트 케이스 #{i}: {test_case['name']}")
+        print(f"테스트 케이스
         print(f"{'='*80}")
         print(f"응답 샘플:\n{test_case['response'][:100]}...")
         print(f"예상 신호: {test_case['expected_signal']}")
@@ -315,7 +284,6 @@ def run_tests():
                 print(f"  ❌ {strategy_name:12} - FAILED: {msg}")
                 results[strategy_name]['fail'] += 1
 
-    # 결과 요약
     print(f"\n\n{'='*80}")
     print("📊 결과 요약")
     print(f"{'='*80}")
@@ -327,11 +295,9 @@ def run_tests():
         print(f"  성공: {counts['success']}/{total} ({success_rate:.1f}%)")
         print(f"  실패: {counts['fail']}/{total}")
 
-    # 최고 전략
     best_strategy = max(results.items(), key=lambda x: x[1]['success'])
     print(f"\n🏆 최고 전략: {best_strategy[0]} (성공률: {best_strategy[1]['success']}/{len(TEST_CASES)})")
 
-    # 추천
     print(f"\n💡 추천사항:")
     if best_strategy[1]['success'] == len(TEST_CASES):
         print(f"  {best_strategy[0]} 전략이 모든 테스트를 통과했습니다!")
@@ -348,7 +314,6 @@ if __name__ == '__main__':
     print("🔍 에러 케이스 상세 분석")
     print(f"{'='*80}")
 
-    # 사용자가 보고한 에러 케이스 재현
     error_response = '''{
  "signal": "buy"
 }'''

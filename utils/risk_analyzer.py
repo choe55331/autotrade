@@ -1,7 +1,5 @@
-"""
 Comprehensive Risk Analysis System - v5.12
 VaR, CVaR, Stress Testing, Portfolio Risk Metrics
-"""
 from dataclasses import dataclass
 from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime, timedelta
@@ -18,56 +16,46 @@ class RiskMetrics:
     stock_code: str
     stock_name: str
 
-    # Volatility Metrics
-    historical_volatility: float  # Annualized
-    parkinson_volatility: float  # High-Low based
-    garman_klass_volatility: float  # OHLC based
+    historical_volatility: float
+    parkinson_volatility: float
+    garman_klass_volatility: float
 
-    # Value at Risk
-    var_95: float  # 95% VaR (daily)
-    var_99: float  # 99% VaR (daily)
-    cvar_95: float  # Conditional VaR (Expected Shortfall)
-    cvar_99: float  # 99% CVaR
+    var_95: float
+    var_99: float
+    cvar_95: float
+    cvar_99: float
 
-    # Drawdown Metrics
     current_drawdown: float
     max_drawdown: float
     max_drawdown_duration_days: int
     recovery_period_days: int
 
-    # Beta and Correlation
-    beta: float  # vs market index
+    beta: float
     correlation_with_market: float
-    systematic_risk: float  # Beta * market volatility
-    idiosyncratic_risk: float  # Total risk - systematic risk
+    systematic_risk: float
+    idiosyncratic_risk: float
 
-    # Tail Risk
-    skewness: float  # Return distribution skewness
-    kurtosis: float  # Return distribution kurtosis (excess)
-    tail_ratio: float  # Ratio of positive to negative tail
+    skewness: float
+    kurtosis: float
+    tail_ratio: float
 
-    # Liquidity Risk
     avg_daily_volume: float
     volume_volatility: float
-    bid_ask_spread_proxy: float  # High-Low range as proxy
+    bid_ask_spread_proxy: float
 
-    # Position Risk
-    position_size_risk: float  # % of portfolio
+    position_size_risk: float
     leverage_risk: float
     concentration_risk: float
 
-    # Risk-Adjusted Returns
     sharpe_ratio: float
     sortino_ratio: float
-    calmar_ratio: float  # Return / Max Drawdown
+    calmar_ratio: float
     omega_ratio: float
 
-    # Stress Test Results
     stress_test_scenarios: Dict[str, float]
 
-    # Overall Risk Score
-    risk_score: float  # 0-100 (higher = riskier)
-    risk_grade: str  # "LOW", "MEDIUM", "HIGH", "EXTREME"
+    risk_score: float
+    risk_grade: str
 
     calculated_at: str
 
@@ -77,39 +65,31 @@ class PortfolioRiskMetrics:
     """포트폴리오 리스크 메트릭"""
     portfolio_value: float
 
-    # Portfolio VaR
     portfolio_var_95: float
     portfolio_var_99: float
     portfolio_cvar_95: float
-    diversification_ratio: float  # Portfolio risk / sum of individual risks
+    diversification_ratio: float
 
-    # Correlation Matrix
     correlation_matrix: Dict[str, Dict[str, float]]
 
-    # Concentration Risk
-    herfindahl_index: float  # Sum of squared weights
-    effective_stocks: float  # 1 / Herfindahl
+    herfindahl_index: float
+    effective_stocks: float
     max_position_weight: float
-    top_5_concentration: float  # Weight of top 5 positions
+    top_5_concentration: float
 
-    # Factor Exposures
     market_beta: float
     sector_exposure: Dict[str, float]
 
-    # Portfolio Drawdown
     current_drawdown: float
     max_drawdown: float
 
-    # Risk-Adjusted Returns
     sharpe_ratio: float
     sortino_ratio: float
 
-    # Stress Test Results
     stress_test_results: Dict[str, float]
 
-    # Overall Assessment
     risk_score: float
-    risk_capacity_utilization: float  # % of max acceptable risk
+    risk_capacity_utilization: float
     recommendations: List[str]
 
     calculated_at: str
@@ -133,7 +113,6 @@ class RiskAnalyzer:
                           market_index_history: Optional[List[Dict[str, Any]]] = None,
                           position_size: float = 0.0,
                           portfolio_value: float = 0.0) -> RiskMetrics:
-        """
         종목 리스크 분석
 
         Args:
@@ -146,38 +125,31 @@ class RiskAnalyzer:
 
         Returns:
             RiskMetrics
-        """
         logger.info(f"Analyzing risk for {stock_name} ({stock_code})")
 
         if len(price_history) < 20:
             logger.warning(f"Insufficient data for risk analysis: {len(price_history)}")
             return self._empty_risk_metrics(stock_code, stock_name)
 
-        # Extract data
         closes = np.array([p['close'] for p in price_history])
         opens = np.array([p.get('open', p['close']) for p in price_history])
         highs = np.array([p.get('high', p['close']) for p in price_history])
         lows = np.array([p.get('low', p['close']) for p in price_history])
         volumes = np.array([p.get('volume', 0) for p in price_history])
 
-        # Calculate returns
         returns = np.diff(closes) / closes[:-1]
 
-        # === VOLATILITY METRICS ===
         historical_vol = self._historical_volatility(returns)
         parkinson_vol = self._parkinson_volatility(highs, lows)
         gk_vol = self._garman_klass_volatility(opens, highs, lows, closes)
 
-        # === VALUE AT RISK ===
         var_95 = self._value_at_risk(returns, confidence=0.95)
         var_99 = self._value_at_risk(returns, confidence=0.99)
         cvar_95 = self._conditional_var(returns, confidence=0.95)
         cvar_99 = self._conditional_var(returns, confidence=0.99)
 
-        # === DRAWDOWN METRICS ===
         dd_metrics = self._calculate_drawdown_metrics(closes)
 
-        # === BETA AND CORRELATION ===
         if market_index_history and len(market_index_history) >= len(price_history):
             market_closes = np.array([m['close'] for m in market_index_history[:len(price_history)]])
             market_returns = np.diff(market_closes) / market_closes[:-1]
@@ -194,32 +166,26 @@ class RiskAnalyzer:
             systematic_risk = historical_vol * 0.7
             idiosyncratic_risk = historical_vol * 0.3
 
-        # === TAIL RISK ===
         skewness = self._calculate_skewness(returns)
         kurtosis = self._calculate_kurtosis(returns)
         tail_ratio = self._calculate_tail_ratio(returns)
 
-        # === LIQUIDITY RISK ===
         avg_volume = np.mean(volumes)
         volume_vol = np.std(volumes) / (avg_volume + 1)
         bid_ask_proxy = np.mean((highs - lows) / closes)
 
-        # === POSITION RISK ===
         position_size_risk = position_size / portfolio_value if portfolio_value > 0 else 0
-        leverage_risk = 0.0  # Placeholder
-        concentration_risk = position_size_risk  # Simplified
+        leverage_risk = 0.0
+        concentration_risk = position_size_risk
 
-        # === RISK-ADJUSTED RETURNS ===
-        avg_return = np.mean(returns) * 252  # Annualized
+        avg_return = np.mean(returns) * 252
         sharpe = self._sharpe_ratio(returns, self.risk_free_rate)
         sortino = self._sortino_ratio(returns, self.risk_free_rate)
         calmar = avg_return / (dd_metrics['max_drawdown'] + 0.01)
         omega = self._omega_ratio(returns, self.risk_free_rate)
 
-        # === STRESS TESTS ===
         stress_scenarios = self._run_stress_tests(closes[-1], historical_vol)
 
-        # === OVERALL RISK SCORE ===
         risk_score = self._calculate_risk_score({
             'volatility': historical_vol,
             'max_drawdown': dd_metrics['max_drawdown'],
@@ -285,7 +251,6 @@ class RiskAnalyzer:
                                portfolio_value: float,
                                price_histories: Dict[str, List[Dict[str, Any]]],
                                correlation_matrix: Optional[Dict[str, Dict[str, float]]] = None) -> PortfolioRiskMetrics:
-        """
         포트폴리오 리스크 분석
 
         Args:
@@ -296,17 +261,14 @@ class RiskAnalyzer:
 
         Returns:
             PortfolioRiskMetrics
-        """
         logger.info(f"Analyzing portfolio risk: {len(positions)} positions, "
                    f"value={portfolio_value:,.0f}")
 
         if not positions:
             return self._empty_portfolio_metrics(portfolio_value)
 
-        # Calculate weights
         weights = {p['stock_code']: p['value'] / portfolio_value for p in positions}
 
-        # Calculate individual returns and volatilities
         stock_returns = {}
         stock_vols = {}
 
@@ -320,11 +282,9 @@ class RiskAnalyzer:
             stock_returns[stock_code] = returns
             stock_vols[stock_code] = np.std(returns) * np.sqrt(252)
 
-        # Build correlation matrix if not provided
         if correlation_matrix is None:
             correlation_matrix = self._build_correlation_matrix(stock_returns)
 
-        # === PORTFOLIO VAR ===
         portfolio_var_95, portfolio_var_99 = self._calculate_portfolio_var(
             weights, stock_vols, stock_returns, correlation_matrix
         )
@@ -332,12 +292,10 @@ class RiskAnalyzer:
             weights, stock_returns, confidence=0.95
         )
 
-        # === DIVERSIFICATION RATIO ===
         diversification_ratio = self._calculate_diversification_ratio(
             weights, stock_vols, correlation_matrix
         )
 
-        # === CONCENTRATION RISK ===
         herfindahl = sum(w**2 for w in weights.values())
         effective_stocks = 1 / herfindahl if herfindahl > 0 else 0
         max_weight = max(weights.values()) if weights else 0
@@ -345,12 +303,9 @@ class RiskAnalyzer:
         sorted_weights = sorted(weights.values(), reverse=True)
         top_5_concentration = sum(sorted_weights[:5]) if len(sorted_weights) >= 5 else sum(sorted_weights)
 
-        # === FACTOR EXPOSURES ===
-        market_beta = np.mean([1.0] * len(positions))  # Placeholder
-        sector_exposure = {}  # Placeholder
+        market_beta = np.mean([1.0] * len(positions))
+        sector_exposure = {}
 
-        # === PORTFOLIO DRAWDOWN ===
-        # Calculate portfolio equity curve
         portfolio_returns = self._calculate_portfolio_returns(weights, stock_returns)
 
         if len(portfolio_returns) > 0:
@@ -362,7 +317,6 @@ class RiskAnalyzer:
             current_dd = 0.0
             max_dd = 0.0
 
-        # === RISK-ADJUSTED RETURNS ===
         if len(portfolio_returns) > 0:
             sharpe = self._sharpe_ratio(portfolio_returns, self.risk_free_rate)
             sortino = self._sortino_ratio(portfolio_returns, self.risk_free_rate)
@@ -370,12 +324,10 @@ class RiskAnalyzer:
             sharpe = 0.0
             sortino = 0.0
 
-        # === STRESS TESTS ===
         stress_results = self._run_portfolio_stress_tests(
             weights, stock_vols, portfolio_value
         )
 
-        # === OVERALL RISK ASSESSMENT ===
         risk_score = self._calculate_portfolio_risk_score({
             'concentration': herfindahl,
             'max_drawdown': max_dd,
@@ -383,10 +335,9 @@ class RiskAnalyzer:
             'diversification': 1 - diversification_ratio
         })
 
-        risk_capacity = 100.0  # Max acceptable risk
+        risk_capacity = 100.0
         risk_utilization = (risk_score / risk_capacity) * 100
 
-        # === RECOMMENDATIONS ===
         recommendations = self._generate_risk_recommendations({
             'concentration': herfindahl,
             'max_weight': max_weight,
@@ -424,7 +375,6 @@ class RiskAnalyzer:
 
         return metrics
 
-    # ===== VOLATILITY CALCULATIONS =====
 
     def _historical_volatility(self, returns: np.ndarray) -> float:
         """Historical volatility (annualized)"""
@@ -437,13 +387,11 @@ class RiskAnalyzer:
 
     def _garman_klass_volatility(self, opens: np.ndarray, highs: np.ndarray,
                                  lows: np.ndarray, closes: np.ndarray) -> float:
-        """Garman-Klass volatility (OHLC based)"""
         hl = np.log(highs / lows)
         co = np.log(closes / opens)
         gk = 0.5 * hl**2 - (2*np.log(2) - 1) * co**2
         return np.sqrt(np.mean(gk)) * np.sqrt(252)
 
-    # ===== VAR CALCULATIONS =====
 
     def _value_at_risk(self, returns: np.ndarray, confidence: float = 0.95) -> float:
         """Value at Risk (historical method)"""
@@ -458,9 +406,6 @@ class RiskAnalyzer:
                                  volatilities: Dict[str, float],
                                  returns: Dict[str, np.ndarray],
                                  correlation_matrix: Dict[str, Dict[str, float]]) -> Tuple[float, float]:
-        """Portfolio VaR calculation"""
-        # Simplified calculation
-        # In production: use covariance matrix properly
 
         portfolio_vol = 0.0
         for stock1, w1 in weights.items():
@@ -471,20 +416,16 @@ class RiskAnalyzer:
 
         portfolio_vol = np.sqrt(max(0, portfolio_vol))
 
-        # Convert to daily
         daily_vol = portfolio_vol / np.sqrt(252)
 
-        # VaR at 95% and 99%
-        var_95 = -1.65 * daily_vol  # Z-score for 95%
-        var_99 = -2.33 * daily_vol  # Z-score for 99%
+        var_95 = -1.65 * daily_vol
+        var_99 = -2.33 * daily_vol
 
         return var_95, var_99
 
     def _calculate_portfolio_cvar(self, weights: Dict[str, float],
                                   returns: Dict[str, np.ndarray],
                                   confidence: float = 0.95) -> float:
-        """Portfolio CVaR"""
-        # Calculate portfolio returns
         portfolio_returns = self._calculate_portfolio_returns(weights, returns)
 
         if len(portfolio_returns) == 0:
@@ -492,7 +433,6 @@ class RiskAnalyzer:
 
         return self._conditional_var(portfolio_returns, confidence)
 
-    # ===== DRAWDOWN CALCULATIONS =====
 
     def _calculate_drawdown_metrics(self, equity_curve: np.ndarray) -> Dict[str, Any]:
         """Drawdown metrics"""
@@ -502,7 +442,6 @@ class RiskAnalyzer:
         current_dd = drawdown[-1]
         max_dd = np.min(drawdown)
 
-        # Max drawdown duration
         in_drawdown = drawdown < 0
         dd_periods = []
         current_period = 0
@@ -517,7 +456,6 @@ class RiskAnalyzer:
 
         max_dd_duration = max(dd_periods) if dd_periods else 0
 
-        # Recovery period (from last peak to current)
         last_peak_idx = np.argmax(running_max == equity_curve[-1])
         recovery_period = len(equity_curve) - last_peak_idx - 1
 
@@ -528,11 +466,9 @@ class RiskAnalyzer:
             'recovery_period': recovery_period
         }
 
-    # ===== BETA AND CORRELATION =====
 
     def _calculate_beta(self, stock_returns: np.ndarray,
                        market_returns: np.ndarray) -> float:
-        """Calculate beta"""
         if len(stock_returns) != len(market_returns):
             min_len = min(len(stock_returns), len(market_returns))
             stock_returns = stock_returns[:min_len]
@@ -562,7 +498,6 @@ class RiskAnalyzer:
 
         return corr_matrix
 
-    # ===== TAIL RISK =====
 
     def _calculate_skewness(self, returns: np.ndarray) -> float:
         """Return distribution skewness"""
@@ -586,11 +521,10 @@ class RiskAnalyzer:
         negative_tail = abs(np.percentile(returns, 5))
         return positive_tail / (negative_tail + 1e-10)
 
-    # ===== RISK-ADJUSTED RETURNS =====
 
     def _sharpe_ratio(self, returns: np.ndarray, risk_free_rate: float) -> float:
         """Sharpe ratio"""
-        excess_returns = returns - (risk_free_rate / 252)  # Daily risk-free rate
+        excess_returns = returns - (risk_free_rate / 252)
         return np.mean(excess_returns) / (np.std(returns) + 1e-10) * np.sqrt(252)
 
     def _sortino_ratio(self, returns: np.ndarray, risk_free_rate: float) -> float:
@@ -606,13 +540,11 @@ class RiskAnalyzer:
 
     def _omega_ratio(self, returns: np.ndarray, risk_free_rate: float,
                     threshold: float = 0.0) -> float:
-        """Omega ratio"""
         excess = returns - threshold
         gains = np.sum(excess[excess > 0])
         losses = -np.sum(excess[excess < 0])
         return gains / (losses + 1e-10)
 
-    # ===== STRESS TESTS =====
 
     def _run_stress_tests(self, current_price: float, volatility: float) -> Dict[str, float]:
         """Run stress test scenarios"""
@@ -631,35 +563,27 @@ class RiskAnalyzer:
     def _run_portfolio_stress_tests(self, weights: Dict[str, float],
                                     volatilities: Dict[str, float],
                                     portfolio_value: float) -> Dict[str, float]:
-        """Run portfolio stress tests"""
         scenarios = {}
 
-        # Market crash scenarios
         for crash_pct in [0.10, 0.20, 0.30]:
             loss = portfolio_value * crash_pct
             scenarios[f'market_crash_{int(crash_pct*100)}%'] = -loss
 
-        # Volatility spike
         avg_vol = np.mean(list(volatilities.values())) if volatilities else 0.3
         scenarios['volatility_spike_2x'] = -portfolio_value * (avg_vol * 2) / np.sqrt(252)
         scenarios['volatility_spike_3x'] = -portfolio_value * (avg_vol * 3) / np.sqrt(252)
 
-        # Concentration risk (largest position fails)
         max_weight = max(weights.values()) if weights else 0
         scenarios['largest_position_fails'] = -portfolio_value * max_weight
 
         return scenarios
 
-    # ===== DIVERSIFICATION =====
 
     def _calculate_diversification_ratio(self, weights: Dict[str, float],
                                         volatilities: Dict[str, float],
                                         correlation_matrix: Dict[str, Dict[str, float]]) -> float:
-        """Diversification ratio"""
-        # Weighted average of individual volatilities
         weighted_vol = sum(w * volatilities.get(stock, 0) for stock, w in weights.items())
 
-        # Portfolio volatility
         portfolio_vol_sq = 0.0
         for stock1, w1 in weights.items():
             for stock2, w2 in weights.items():
@@ -673,8 +597,6 @@ class RiskAnalyzer:
 
     def _calculate_portfolio_returns(self, weights: Dict[str, float],
                                     stock_returns: Dict[str, np.ndarray]) -> np.ndarray:
-        """Calculate portfolio returns time series"""
-        # Find minimum length
         min_len = min(len(ret) for ret in stock_returns.values()) if stock_returns else 0
 
         if min_len == 0:
@@ -688,29 +610,23 @@ class RiskAnalyzer:
 
         return portfolio_returns
 
-    # ===== RISK SCORING =====
 
     def _calculate_risk_score(self, metrics: Dict[str, float]) -> float:
         """Calculate overall risk score (0-100)"""
         score = 0.0
 
-        # Volatility (0-30 points)
         vol = metrics.get('volatility', 0.3)
         score += min(30, vol * 100)
 
-        # Max drawdown (0-25 points)
         dd = abs(metrics.get('max_drawdown', 0.0))
         score += min(25, dd * 100)
 
-        # VaR (0-20 points)
         var = abs(metrics.get('var_95', 0.0))
         score += min(20, var * 200)
 
-        # CVaR (0-15 points)
         cvar = abs(metrics.get('cvar_95', 0.0))
         score += min(15, cvar * 150)
 
-        # Tail risk - kurtosis (0-10 points)
         kurt = abs(metrics.get('kurtosis', 0.0))
         score += min(10, kurt * 2)
 
@@ -720,19 +636,15 @@ class RiskAnalyzer:
         """Calculate portfolio risk score"""
         score = 0.0
 
-        # Concentration (0-30 points)
         herfindahl = metrics.get('concentration', 0.0)
         score += min(30, herfindahl * 150)
 
-        # Max drawdown (0-30 points)
         dd = abs(metrics.get('max_drawdown', 0.0))
         score += min(30, dd * 100)
 
-        # VaR (0-25 points)
         var = abs(metrics.get('var_95', 0.0))
         score += min(25, var * 250)
 
-        # Lack of diversification (0-15 points)
         div_penalty = metrics.get('diversification', 0.0)
         score += min(15, div_penalty * 100)
 
@@ -742,7 +654,6 @@ class RiskAnalyzer:
         """Generate risk recommendations"""
         recommendations = []
 
-        # Concentration
         if metrics.get('max_weight', 0) > 0.3:
             recommendations.append("⚠️ 포지션 집중도 높음 - 분산 투자 권장")
 
@@ -750,20 +661,17 @@ class RiskAnalyzer:
         if herfindahl > 0.25:
             recommendations.append("⚠️ 포트폴리오 집중도 높음 - 종목 수 확대 필요")
 
-        # Diversification
         if metrics.get('diversification_ratio', 1.0) < 0.7:
             recommendations.append("✅ 우수한 분산 효과")
         elif metrics.get('diversification_ratio', 1.0) > 0.9:
             recommendations.append("⚠️ 분산 효과 미흡 - 상관관계 낮은 종목 추가")
 
-        # Risk level
         risk_score = metrics.get('risk_score', 0)
         if risk_score > 70:
             recommendations.append("🚨 높은 리스크 - 포지션 축소 검토")
         elif risk_score < 30:
             recommendations.append("✅ 낮은 리스크 - 안정적 포트폴리오")
 
-        # Drawdown
         max_dd = abs(metrics.get('max_drawdown', 0.0))
         if max_dd > 0.20:
             recommendations.append("⚠️ 큰 낙폭 경험 - 손절 전략 강화 필요")
@@ -773,7 +681,6 @@ class RiskAnalyzer:
 
         return recommendations
 
-    # ===== EMPTY METRICS =====
 
     def _empty_risk_metrics(self, stock_code: str, stock_name: str) -> RiskMetrics:
         """Empty risk metrics"""
@@ -841,7 +748,6 @@ class RiskAnalyzer:
         )
 
 
-# Global singleton
 _risk_analyzer: Optional[RiskAnalyzer] = None
 
 

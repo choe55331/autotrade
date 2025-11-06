@@ -1,7 +1,5 @@
-"""
 AutoTrade Pro - Rate-Limited Logger
 고빈도 로깅으로 인한 성능 저하 방지
-"""
 import time
 import logging
 from typing import Dict, Optional
@@ -25,20 +23,16 @@ class RateLimitedLogger:
         rate_limit_seconds: float = 1.0,
         count_skipped: bool = True
     ):
-        """
         Args:
             logger: 원본 로거
             rate_limit_seconds: Rate limit 시간 (초)
             count_skipped: 스킵된 로그 카운팅 여부
-        """
         self.logger = logger
         self.rate_limit = rate_limit_seconds
         self.count_skipped = count_skipped
 
-        # 마지막 로그 시간 추적
         self.last_log_time: Dict[str, float] = {}
 
-        # 스킵 카운터
         self.skip_counter: Dict[str, int] = defaultdict(int)
 
     def _should_log(self, key: str) -> bool:
@@ -86,7 +80,6 @@ class RateLimitedLogger:
 
     def error(self, key: str, message: str, *args, **kwargs):
         """Rate-limited error 로그 (rate limit 더 짧게)"""
-        # 에러는 더 자주 로깅 (rate_limit / 10)
         now = time.time()
         last_time = self.last_log_time.get(f"error_{key}", 0)
 
@@ -156,7 +149,6 @@ class LogThrottler:
         """로그 가능 여부 확인"""
         now = time.time()
 
-        # 만료된 타임스탬프 제거
         self.log_timestamps = [
             ts for ts in self.log_timestamps
             if now - ts < self.period
@@ -208,7 +200,6 @@ class AggregatedLogger:
         """로그 메시지 추가 (즉시 로깅하지 않음)"""
         self.message_buffer[key].append((time.time(), message))
 
-        # 버퍼가 가득 차거나 시간이 지나면 flush
         if len(self.message_buffer[key]) >= self.aggregate_count:
             self.flush(key)
         elif time.time() - self.last_flush_time.get(key, 0) >= self.flush_interval:
@@ -240,12 +231,10 @@ class AggregatedLogger:
         self.flush()
 
 
-# 편의 함수
 def get_rate_limited_logger(
     logger_name: str = __name__,
     rate_limit_seconds: float = 1.0
 ) -> RateLimitedLogger:
-    """Rate-limited logger 생성"""
     base_logger = logging.getLogger(logger_name)
     return RateLimitedLogger(base_logger, rate_limit_seconds)
 
@@ -255,7 +244,6 @@ def get_log_throttler(
     max_logs_per_period: int = 10,
     period_seconds: float = 1.0
 ) -> LogThrottler:
-    """Log throttler 생성"""
     base_logger = logging.getLogger(logger_name)
     return LogThrottler(base_logger, max_logs_per_period, period_seconds)
 
@@ -265,6 +253,5 @@ def get_aggregated_logger(
     aggregate_count: int = 100,
     flush_interval_seconds: float = 10.0
 ) -> AggregatedLogger:
-    """Aggregated logger 생성"""
     base_logger = logging.getLogger(logger_name)
     return AggregatedLogger(base_logger, aggregate_count, flush_interval_seconds)

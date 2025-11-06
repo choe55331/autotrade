@@ -1,7 +1,5 @@
-"""
 Batch API Client v6.0
 API 배치 호출로 성능 90% 향상
-"""
 
 import asyncio
 import aiohttp
@@ -37,7 +35,6 @@ class BatchAPIClient:
         max_retries: int = 3,
         rate_limit_per_second: int = 100
     ):
-        """
         초기화
 
         Args:
@@ -46,18 +43,15 @@ class BatchAPIClient:
             batch_size: 배치 크기
             max_retries: 최대 재시도 횟수
             rate_limit_per_second: 초당 요청 제한
-        """
         self.base_client = base_client
         self.max_workers = max_workers
         self.batch_size = batch_size
         self.max_retries = max_retries
         self.rate_limit = rate_limit_per_second
 
-        # Rate limiter
         self.last_request_time = 0
         self.request_interval = 1.0 / rate_limit_per_second
 
-        # ThreadPoolExecutor
         self.executor = ThreadPoolExecutor(max_workers=max_workers)
 
     async def get_multiple_stock_prices(
@@ -65,7 +59,6 @@ class BatchAPIClient:
         stock_codes: List[str],
         progress_callback: Optional[Callable[[int, int], None]] = None
     ) -> Dict[str, Dict[str, Any]]:
-        """
         여러 종목 가격 조회 (배치)
 
         Args:
@@ -74,13 +67,11 @@ class BatchAPIClient:
 
         Returns:
             {stock_code: price_data}
-        """
 
         results = {}
         total = len(stock_codes)
         processed = 0
 
-        # 배치로 분할
         batches = [
             stock_codes[i:i + self.batch_size]
             for i in range(0, len(stock_codes), self.batch_size)
@@ -89,7 +80,6 @@ class BatchAPIClient:
         logger.info(f"배치 API 호출 시작: {total}개 종목, {len(batches)}개 배치")
         start_time = time.time()
 
-        # 배치별 병렬 처리
         for batch_idx, batch in enumerate(batches):
             batch_results = await self._process_batch(batch, self._fetch_price)
 
@@ -98,7 +88,6 @@ class BatchAPIClient:
                     results[stock_code] = result
                 processed += 1
 
-                # 진행률 콜백
                 if progress_callback:
                     progress_callback(processed, total)
 
@@ -115,7 +104,6 @@ class BatchAPIClient:
         items: List[Any],
         fetch_func: Callable
     ) -> List[Optional[Dict[str, Any]]]:
-        """
         배치 처리 (병렬)
 
         Args:
@@ -124,13 +112,10 @@ class BatchAPIClient:
 
         Returns:
             결과 리스트
-        """
 
-        # asyncio.gather로 병렬 실행
         tasks = [self._fetch_with_retry(item, fetch_func) for item in items]
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
-        # 예외 처리
         processed_results = []
         for result in results:
             if isinstance(result, Exception):
@@ -147,7 +132,6 @@ class BatchAPIClient:
         fetch_func: Callable,
         retry_count: int = 0
     ) -> Optional[Dict[str, Any]]:
-        """
         재시도 로직이 포함된 조회
 
         Args:
@@ -157,19 +141,15 @@ class BatchAPIClient:
 
         Returns:
             조회 결과 또는 None
-        """
 
         try:
-            # Rate limiting
             await self._wait_for_rate_limit()
 
-            # 조회 실행 (비동기)
             result = await asyncio.to_thread(fetch_func, item)
             return result
 
         except Exception as e:
             if retry_count < self.max_retries:
-                # Exponential backoff
                 wait_time = 2 ** retry_count
                 logger.warning(f"조회 실패 (재시도 {retry_count + 1}/{self.max_retries}): {e}, {wait_time}초 대기")
                 await asyncio.sleep(wait_time)
@@ -200,7 +180,6 @@ class BatchAPIClient:
             가격 데이터
         """
         try:
-            # 기존 MarketAPI 사용
             from api import MarketAPI
             market_api = MarketAPI(self.base_client)
 
@@ -217,7 +196,6 @@ class BatchAPIClient:
         include_chart: bool = False,
         include_investor: bool = False
     ) -> Dict[str, Dict[str, Any]]:
-        """
         여러 종목 상세 정보 조회 (배치)
 
         Args:
@@ -227,11 +205,9 @@ class BatchAPIClient:
 
         Returns:
             {stock_code: detail_data}
-        """
 
         results = {}
 
-        # 기본 가격 조회 (배치)
         prices = await self.get_multiple_stock_prices(stock_codes)
 
         for stock_code, price_data in prices.items():
@@ -239,7 +215,6 @@ class BatchAPIClient:
                 'price': price_data
             }
 
-            # 추가 데이터 조회 (필요 시)
             if include_chart:
                 chart_data = await self._fetch_chart_data(stock_code)
                 detail['chart'] = chart_data
@@ -258,7 +233,6 @@ class BatchAPIClient:
             from api import MarketAPI
             market_api = MarketAPI(self.base_client)
 
-            # 일봉 데이터 조회
             chart_data = await asyncio.to_thread(
                 market_api.get_daily_chart,
                 stock_code,
@@ -276,7 +250,6 @@ class BatchAPIClient:
             from api import MarketAPI
             market_api = MarketAPI(self.base_client)
 
-            # 투자자별 매매동향 조회
             investor_data = await asyncio.to_thread(
                 market_api.get_investor_trading,
                 stock_code
@@ -292,7 +265,6 @@ class BatchAPIClient:
         self.executor.shutdown(wait=True)
 
 
-# 싱글톤 인스턴스
 _batch_client_instance = None
 
 

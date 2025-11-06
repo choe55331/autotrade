@@ -1,8 +1,5 @@
-#!/usr/bin/env python3
-"""
 API 응답 구조 디버깅 스크립트
 ka90009와 ka10065의 실제 응답을 확인합니다.
-"""
 
 import sys
 import json
@@ -17,10 +14,9 @@ from core.rest_client import KiwoomRESTClient
 def get_last_trading_date():
     """간단한 거래일 계산 (주말 제외)"""
     today = datetime.now()
-    # 토요일(5), 일요일(6)이면 금요일로
-    if today.weekday() == 5:  # 토요일
+    if today.weekday() == 5:
         today = today - timedelta(days=1)
-    elif today.weekday() == 6:  # 일요일
+    elif today.weekday() == 6:
         today = today - timedelta(days=2)
     return today.strftime("%Y%m%d")
 
@@ -34,7 +30,6 @@ def debug_ka90009():
     client = KiwoomRESTClient()
     last_trading_date = get_last_trading_date()
 
-    # 테스트할 variant들
     variants = [
         {
             "name": "현재 구현 (qry_dt_tp=1, date=last_trading_date)",
@@ -78,7 +73,6 @@ def debug_ka90009():
             print(f"return_code: {response.get('return_code')}")
             print(f"return_msg: {response.get('return_msg')}")
 
-            # 데이터 키 찾기
             metadata_keys = {'return_code', 'return_msg', 'api-id', 'cont-yn', 'next-key'}
             data_keys = [k for k in response.keys() if k not in metadata_keys]
 
@@ -113,7 +107,6 @@ def debug_ka10065():
 
     client = KiwoomRESTClient()
 
-    # 테스트할 variant들
     variants = [
         {
             "name": "현재 구현 (KOSPI, 외국인)",
@@ -152,7 +145,6 @@ def debug_ka10065():
             print(f"return_code: {response.get('return_code')}")
             print(f"return_msg: {response.get('return_msg')}")
 
-            # 데이터 키 찾기
             metadata_keys = {'return_code', 'return_msg', 'api-id', 'cont-yn', 'next-key'}
             data_keys = [k for k in response.keys() if k not in metadata_keys]
 
@@ -183,10 +175,8 @@ def main():
     print("\nAPI 응답 구조 디버깅 시작\n")
 
     try:
-        # 1. ka90009 디버깅
         debug_ka90009()
 
-        # 2. ka10065 디버깅
         debug_ka10065()
 
         print("=" * 80)

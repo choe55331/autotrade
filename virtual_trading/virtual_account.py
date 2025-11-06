@@ -1,7 +1,5 @@
-"""
 virtual_trading/virtual_account.py
 가상 계좌 관리
-"""
 from typing import Dict, List, Optional
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -19,7 +17,6 @@ class VirtualPosition:
     entry_time: datetime
     strategy_name: str = ""
 
-    # 성과 추적
     current_price: int = 0
     unrealized_pnl: int = 0
     unrealized_pnl_rate: float = 0.0
@@ -68,10 +65,8 @@ class VirtualAccount:
         self.cash = initial_cash
         self.positions: Dict[str, VirtualPosition] = {}
 
-        # 거래 기록
         self.trade_history: List[Dict] = []
 
-        # 성과 추적
         self.total_trades = 0
         self.winning_trades = 0
         self.losing_trades = 0
@@ -79,7 +74,6 @@ class VirtualAccount:
         self.max_cash = initial_cash
         self.min_cash = initial_cash
 
-        # 시작 시간
         self.created_at = datetime.now()
 
     def get_total_value(self) -> int:
@@ -113,23 +107,18 @@ class VirtualAccount:
 
     def buy(self, stock_code: str, stock_name: str, price: int, quantity: int,
             strategy_name: str = "") -> bool:
-        """
         가상 매수
 
         Returns:
             성공 여부
-        """
         required_cash = price * quantity
 
         if not self.can_buy(price, quantity):
             return False
 
-        # 현금 차감
         self.cash -= required_cash
 
-        # 포지션 추가/업데이트
         if stock_code in self.positions:
-            # 기존 포지션 있음 - 평균가 계산
             existing = self.positions[stock_code]
             total_quantity = existing.quantity + quantity
             total_cost = (existing.entry_price * existing.quantity) + (price * quantity)
@@ -138,7 +127,6 @@ class VirtualAccount:
             existing.quantity = total_quantity
             existing.entry_price = avg_price
         else:
-            # 신규 포지션
             self.positions[stock_code] = VirtualPosition(
                 stock_code=stock_code,
                 stock_name=stock_name,
@@ -148,7 +136,6 @@ class VirtualAccount:
                 strategy_name=strategy_name,
             )
 
-        # 거래 기록
         self.trade_history.append({
             'type': 'buy',
             'stock_code': stock_code,
@@ -160,7 +147,6 @@ class VirtualAccount:
             'timestamp': datetime.now().isoformat(),
         })
 
-        # 최소/최대 현금 업데이트
         if self.cash < self.min_cash:
             self.min_cash = self.cash
 
@@ -168,7 +154,6 @@ class VirtualAccount:
 
     def sell(self, stock_code: str, price: int, quantity: int = None,
              reason: str = "") -> Optional[int]:
-        """
         가상 매도
 
         Args:
@@ -176,37 +161,30 @@ class VirtualAccount:
 
         Returns:
             실현 손익 (매도 실패 시 None)
-        """
         if stock_code not in self.positions:
             return None
 
         position = self.positions[stock_code]
 
-        # 수량 결정
         if quantity is None or quantity >= position.quantity:
             quantity = position.quantity
             is_full_sale = True
         else:
             is_full_sale = False
 
-        # 매도 금액
         sale_amount = price * quantity
 
-        # 실현 손익 계산
         cost = position.entry_price * quantity
         realized_pnl = sale_amount - cost
         realized_pnl_rate = ((price - position.entry_price) / position.entry_price) * 100
 
-        # 현금 증가
         self.cash += sale_amount
 
-        # 포지션 업데이트
         if is_full_sale:
             del self.positions[stock_code]
         else:
             position.quantity -= quantity
 
-        # 거래 통계 업데이트
         self.total_trades += 1
         self.total_pnl += realized_pnl
 
@@ -215,7 +193,6 @@ class VirtualAccount:
         else:
             self.losing_trades += 1
 
-        # 거래 기록
         self.trade_history.append({
             'type': 'sell',
             'stock_code': stock_code,
@@ -229,7 +206,6 @@ class VirtualAccount:
             'timestamp': datetime.now().isoformat(),
         })
 
-        # 최대 현금 업데이트
         if self.cash > self.max_cash:
             self.max_cash = self.cash
 
@@ -278,7 +254,7 @@ class VirtualAccount:
         state = {
             'account': self.get_summary(),
             'positions': [pos.to_dict() for pos in self.positions.values()],
-            'trade_history': self.trade_history[-100:],  # 최근 100건
+            'trade_history': self.trade_history[-100:],
         }
 
         Path(filepath).parent.mkdir(parents=True, exist_ok=True)
@@ -293,7 +269,6 @@ class VirtualAccount:
         with open(filepath, 'r', encoding='utf-8') as f:
             state = json.load(f)
 
-        # 계좌 정보 복원
         account = state['account']
         self.cash = account['current_cash']
         self.total_trades = account['total_trades']
@@ -303,7 +278,6 @@ class VirtualAccount:
         self.max_cash = account['max_cash']
         self.min_cash = account['min_cash']
 
-        # 포지션 복원
         self.positions = {}
         for pos_dict in state['positions']:
             pos = VirtualPosition(
@@ -319,7 +293,6 @@ class VirtualAccount:
             pos.unrealized_pnl_rate = pos_dict.get('unrealized_pnl_rate', 0.0)
             self.positions[pos.stock_code] = pos
 
-        # 거래 기록 복원
         self.trade_history = state.get('trade_history', [])
 
 

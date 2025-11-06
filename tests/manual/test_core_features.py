@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-"""
 핵심 기능 독립 테스트 스크립트
 
 테스트 항목:
@@ -10,7 +8,6 @@
 필요 파일:
 - _immutable/credentials/secrets.json
 - _immutable/api_specs/successful_apis.json
-"""
 
 import json
 import sys
@@ -19,7 +16,6 @@ from pathlib import Path
 from datetime import datetime
 
 
-# 색상 코드
 GREEN = '\033[92m'
 YELLOW = '\033[93m'
 RED = '\033[91m'
@@ -55,9 +51,6 @@ def print_info(text):
     print(f"{BLUE}ℹ️  {text}{RESET}")
 
 
-# ============================================================================
-# 설정 파일 로드
-# ============================================================================
 
 def load_secrets():
     """secrets.json 로드"""
@@ -96,16 +89,12 @@ def load_api_specs():
         return None
 
 
-# ============================================================================
-# TEST 1: WebSocket 연결 테스트
-# ============================================================================
 
 def test_websocket_connection(secrets):
     """WebSocket 연결 테스트"""
     print_header("TEST 1: WebSocket 연결 테스트")
 
     try:
-        # WebSocket 설정 확인
         ws_config = secrets.get('kiwoom_websocket', {})
         ws_url = ws_config.get('url')
 
@@ -116,7 +105,6 @@ def test_websocket_connection(secrets):
 
         print_info(f"WebSocket URL: {ws_url}")
 
-        # websocket-client 라이브러리 확인
         try:
             import websocket
             print_success("websocket-client 라이브러리 설치 확인")
@@ -125,7 +113,6 @@ def test_websocket_connection(secrets):
             print_info("설치 명령: pip install websocket-client")
             return False
 
-        # 토큰 확인 (실제 연결에 필요)
         kiwoom_rest = secrets.get('kiwoom_rest', {})
         appkey = kiwoom_rest.get('appkey', '')
 
@@ -133,9 +120,8 @@ def test_websocket_connection(secrets):
             print_warning("키움 API 키가 설정되지 않았습니다")
             print_info("실제 연결을 위해서는 secrets.json에 appkey를 입력하세요")
             print_info("현재는 설정만 확인했습니다")
-            return True  # 설정은 OK
+            return True
 
-        # 실제 WebSocket 연결 테스트 (간단히)
         print_info("WebSocket 연결 테스트 중... (5초)")
 
         connection_test = {'success': False, 'error': None}
@@ -151,7 +137,6 @@ def test_websocket_connection(secrets):
         def on_close(ws, close_code, close_msg):
             pass
 
-        # 토큰 없이 연결 시도 (접속만 테스트)
         ws = websocket.WebSocketApp(
             ws_url,
             on_open=on_open,
@@ -163,7 +148,6 @@ def test_websocket_connection(secrets):
         ws_thread = threading.Thread(target=lambda: ws.run_forever(), daemon=True)
         ws_thread.start()
 
-        # 5초 대기
         time.sleep(5)
         ws.close()
 
@@ -173,7 +157,7 @@ def test_websocket_connection(secrets):
         elif connection_test['error']:
             print_warning(f"WebSocket 연결 시도: {connection_test['error']}")
             print_info("인증 토큰이 필요할 수 있습니다 (정상)")
-            return True  # 연결 시도는 성공 (인증은 별개)
+            return True
         else:
             print_warning("WebSocket 응답 없음 (타임아웃)")
             print_info("URL은 정상이지만 서버가 응답하지 않을 수 있습니다")
@@ -186,16 +170,12 @@ def test_websocket_connection(secrets):
         return False
 
 
-# ============================================================================
-# TEST 2: Gemini AI 연결 테스트
-# ============================================================================
 
 def test_gemini_connection(secrets):
     """Gemini AI 연결 테스트"""
     print_header("TEST 2: Gemini AI 연결 테스트")
 
     try:
-        # Gemini 설정 확인
         gemini_config = secrets.get('gemini', {})
         api_key = gemini_config.get('api_key', '')
         model_name = gemini_config.get('model_name', 'gemini-2.5-flash')
@@ -209,7 +189,6 @@ def test_gemini_connection(secrets):
         print_info(f"Gemini API 키: {api_key[:20]}..." if len(api_key) > 20 else api_key)
         print_info(f"모델: {model_name}")
 
-        # google-generativeai 라이브러리 확인
         try:
             import google.generativeai as genai
             print_success("google-generativeai 라이브러리 설치 확인")
@@ -218,7 +197,6 @@ def test_gemini_connection(secrets):
             print_info("설치 명령: pip install google-generativeai")
             return False
 
-        # API 초기화
         try:
             genai.configure(api_key=api_key)
             model = genai.GenerativeModel(model_name)
@@ -227,7 +205,6 @@ def test_gemini_connection(secrets):
             print_error(f"Gemini API 초기화 실패: {e}")
             return False
 
-        # 간단한 테스트 요청
         print_info("테스트 프롬프트 전송 중...")
         try:
             response = model.generate_content("Say 'OK' if you can read this.")
@@ -249,16 +226,12 @@ def test_gemini_connection(secrets):
         return False
 
 
-# ============================================================================
-# TEST 3: 일봉 조회 테스트 (ka10081)
-# ============================================================================
 
 def test_daily_price_api(secrets, api_specs):
     """일봉 조회 API 테스트"""
     print_header("TEST 3: 일봉 조회 테스트 (ka10081)")
 
     try:
-        # API 스펙 확인
         apis = api_specs.get('apis', {})
         ka10081 = apis.get('ka10081')
 
@@ -270,7 +243,6 @@ def test_daily_price_api(secrets, api_specs):
         print_info(f"카테고리: {ka10081.get('category')}")
         print_info(f"총 variants: {ka10081.get('total_variants')}")
 
-        # 첫 번째 variant 사용
         calls = ka10081.get('calls', [])
         if not calls:
             print_error("API 호출 정보가 없습니다")
@@ -283,7 +255,6 @@ def test_daily_price_api(secrets, api_specs):
         print_info(f"Path: {path}")
         print_info(f"Sample Body: {json.dumps(body, ensure_ascii=False)}")
 
-        # Kiwoom API 설정 확인
         kiwoom_rest = secrets.get('kiwoom_rest', {})
         base_url = kiwoom_rest.get('base_url', 'https://api.kiwoom.com')
         appkey = kiwoom_rest.get('appkey', '')
@@ -293,21 +264,19 @@ def test_daily_price_api(secrets, api_specs):
             print_warning("키움 API 키가 설정되지 않았습니다")
             print_info("실제 API 호출을 위해서는 secrets.json에 appkey, secretkey를 입력하세요")
             print_info("현재는 API 스펙만 확인했습니다")
-            return True  # 스펙 확인은 성공
+            return True
 
         print_info(f"Base URL: {base_url}")
         print_info("API 키 설정 확인 완료")
 
-        # 실제 API 호출 테스트
         print_info("실제 API 호출 테스트 중...")
 
         import requests
 
-        # 1. 토큰 발급
         print_info("1단계: 토큰 발급 중...")
         token_url = f"{base_url}/oauth2/token"
         token_payload = {
-            "grant_type": "client_credentials",  # 필수!
+            "grant_type": "client_credentials",
             "appkey": appkey,
             "secretkey": secretkey
         }
@@ -337,10 +306,8 @@ def test_daily_price_api(secrets, api_specs):
             print_error(f"토큰 발급 중 오류: {e}")
             return False
 
-        # 2. 일봉 조회 API 호출
         print_info("2단계: 일봉 데이터 조회 중...")
 
-        # 오늘 날짜로 테스트
         today = datetime.now().strftime('%Y%m%d')
 
         api_url = f"{base_url}/api/dostk/{path}"
@@ -350,7 +317,7 @@ def test_daily_price_api(secrets, api_specs):
             "api-id": "ka10081"
         }
         api_body = {
-            "stk_cd": "005930",  # 삼성전자
+            "stk_cd": "005930",
             "base_dt": today,
             "upd_stkpc_tp": "1"
         }
@@ -408,9 +375,6 @@ def test_daily_price_api(secrets, api_specs):
         return False
 
 
-# ============================================================================
-# 메인 실행
-# ============================================================================
 
 def main():
     """메인 함수"""
@@ -418,7 +382,6 @@ def main():
 
     print_info("작업 디렉토리: " + str(Path.cwd()))
 
-    # 설정 파일 로드
     print_header("설정 파일 로드")
     secrets = load_secrets()
     api_specs = load_api_specs()
@@ -431,19 +394,14 @@ def main():
         print_error("successful_apis.json을 로드할 수 없습니다. 테스트를 중단합니다.")
         sys.exit(1)
 
-    # 테스트 실행
     results = {}
 
-    # Test 1: WebSocket
     results['websocket'] = test_websocket_connection(secrets)
 
-    # Test 2: Gemini AI
     results['gemini'] = test_gemini_connection(secrets)
 
-    # Test 3: 일봉 조회
     results['daily_price'] = test_daily_price_api(secrets, api_specs)
 
-    # 결과 요약
     print_header("📊 테스트 결과 요약")
 
     total = len(results)

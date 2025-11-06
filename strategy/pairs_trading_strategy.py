@@ -1,4 +1,3 @@
-"""
 AutoTrade Pro v4.0 - 페어 트레이딩 전략
 상관관계가 높은 두 종목의 스프레드 회귀를 이용한 통계적 차익거래
 
@@ -6,7 +5,6 @@ AutoTrade Pro v4.0 - 페어 트레이딩 전략
 - 두 종목의 가격 스프레드 계산
 - 스프레드가 평균에서 크게 이탈하면 매매
 - 스프레드 회귀 시 포지션 청산
-"""
 import logging
 from typing import Dict, Any, Optional, Tuple, List
 from datetime import datetime
@@ -28,7 +26,7 @@ class PairState:
     spread_std: float
     current_spread: float
     z_score: float
-    position: Optional[str]  # 'LONG_A_SHORT_B', 'LONG_B_SHORT_A', None
+    position: Optional[str]
     entry_spread: Optional[float]
     entry_time: Optional[datetime]
 
@@ -57,13 +55,10 @@ class PairsTradingStrategy:
         self.exit_threshold = self.settings.get('exit_threshold', 0.5)
         self.stop_loss_threshold = self.settings.get('stop_loss_threshold', 3.0)
 
-        # 페어별 스프레드 히스토리
         self.spread_history: Dict[str, deque] = {}
 
-        # 페어 상태
         self.pair_states: Dict[str, PairState] = {}
 
-        # 페어 초기화
         for pair in self.pairs:
             pair_name = f"{pair[0]}-{pair[1]}"
             self.spread_history[pair_name] = deque(maxlen=self.lookback_period)
@@ -89,7 +84,6 @@ class PairsTradingStrategy:
         price_a: float,
         price_b: float
     ):
-        """
         스프레드 업데이트
 
         Args:
@@ -97,27 +91,22 @@ class PairsTradingStrategy:
             stock_b: 종목B 코드
             price_a: 종목A 가격
             price_b: 종목B 가격
-        """
         pair_name = f"{stock_a}-{stock_b}"
 
         if pair_name not in self.spread_history:
             logger.warning(f"[{pair_name}] 등록되지 않은 페어")
             return
 
-        # 로그 스프레드 계산 (가격 비율의 로그)
         spread = np.log(price_a / price_b) if price_b > 0 else 0.0
 
-        # 히스토리 업데이트
         self.spread_history[pair_name].append(spread)
 
-        # 통계 계산 (충분한 데이터가 있을 때만)
         if len(self.spread_history[pair_name]) >= 20:
             spreads = list(self.spread_history[pair_name])
             spread_mean = np.mean(spreads)
             spread_std = np.std(spreads)
             z_score = (spread - spread_mean) / spread_std if spread_std > 0 else 0.0
 
-            # 상태 업데이트
             state = self.pair_states[pair_name]
             state.spread_mean = spread_mean
             state.spread_std = spread_std
@@ -145,17 +134,13 @@ class PairsTradingStrategy:
 
         state = self.pair_states[pair_name]
 
-        # 이미 포지션이 있으면 진입 안함
         if state.position is not None:
             return False, None
 
-        # 충분한 데이터가 없으면 진입 안함
         if len(self.spread_history[pair_name]) < self.lookback_period:
             return False, None
 
-        # Z-Score가 임계값을 초과하면 진입
         if state.z_score > self.entry_threshold:
-            # 스프레드가 높음 -> A 매도, B 매수
             logger.info(
                 f"[{pair_name}] 페어 매매 신호: LONG B, SHORT A "
                 f"(Z-Score={state.z_score:.2f})"
@@ -163,7 +148,6 @@ class PairsTradingStrategy:
             return True, "LONG_B_SHORT_A"
 
         elif state.z_score < -self.entry_threshold:
-            # 스프레드가 낮음 -> A 매수, B 매도
             logger.info(
                 f"[{pair_name}] 페어 매매 신호: LONG A, SHORT B "
                 f"(Z-Score={state.z_score:.2f})"
@@ -208,18 +192,15 @@ class PairsTradingStrategy:
 
         state = self.pair_states[pair_name]
 
-        # 포지션이 없으면 청산할 것 없음
         if state.position is None:
             return False, None
 
-        # 손절 체크
         if abs(state.z_score) > self.stop_loss_threshold:
             logger.warning(
                 f"[{pair_name}] 손절 신호! Z-Score={state.z_score:.2f}"
             )
             return True, "STOP_LOSS"
 
-        # 회귀 체크 (Z-Score가 0 근처로 돌아옴)
         if abs(state.z_score) < self.exit_threshold:
             logger.info(
                 f"[{pair_name}] 스프레드 회귀 청산! Z-Score={state.z_score:.2f}"
@@ -238,7 +219,6 @@ class PairsTradingStrategy:
         if state.position is None:
             return
 
-        # 손익 계산 (스프레드 변화)
         spread_change = state.current_spread - state.entry_spread
 
         logger.info(
@@ -246,7 +226,6 @@ class PairsTradingStrategy:
             f"포지션={state.position}, 스프레드 변화={spread_change:.4f}"
         )
 
-        # 상태 초기화
         state.position = None
         state.entry_spread = None
         state.entry_time = None
@@ -260,15 +239,12 @@ class PairsTradingStrategy:
         return self.pair_states.copy()
 
 
-# 테스트
 if __name__ == "__main__":
-    # 삼성전자 - SK하이닉스 페어
     strategy = PairsTradingStrategy({
         'pairs': [['005930', '000660']],
         'entry_threshold': 2.0
     })
 
-    # 가격 데이터 시뮬레이션
     for i in range(100):
         price_a = 70000 + np.random.normal(0, 1000)
         price_b = 120000 + np.random.normal(0, 2000)

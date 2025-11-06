@@ -1,4 +1,3 @@
-"""
 ML Price Predictor
 Advanced machine learning models for price prediction
 
@@ -9,7 +8,6 @@ Features:
 - Model performance tracking
 - Online learning (continuous model updates)
 - Confidence intervals
-"""
 import json
 import numpy as np
 import pandas as pd
@@ -20,7 +18,6 @@ from pathlib import Path
 import logging
 import pickle
 
-# ML imports
 try:
     from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
     from sklearn.preprocessing import StandardScaler
@@ -43,9 +40,9 @@ class PricePrediction:
     predicted_price_1h: float
     predicted_price_1d: float
     predicted_price_5d: float
-    confidence: float  # 0-1
-    direction: str  # 'up', 'down', 'neutral'
-    expected_return: float  # Percentage
+    confidence: float
+    direction: str
+    expected_return: float
     prediction_interval_low: float
     prediction_interval_high: float
     model_used: str
@@ -56,10 +53,10 @@ class PricePrediction:
 class ModelPerformance:
     """Model performance metrics"""
     model_name: str
-    mae: float  # Mean Absolute Error
-    rmse: float  # Root Mean Squared Error
-    mape: float  # Mean Absolute Percentage Error
-    accuracy: float  # Directional accuracy
+    mae: float
+    rmse: float
+    mape: float
+    accuracy: float
     predictions_made: int
     last_updated: str
 
@@ -93,7 +90,6 @@ class MLPricePredictor:
             logger.warning("ML libraries not available")
             return
 
-        # Random Forest
         self.models['random_forest'] = RandomForestRegressor(
             n_estimators=100,
             max_depth=10,
@@ -103,7 +99,6 @@ class MLPricePredictor:
         )
         self.scalers['random_forest'] = StandardScaler()
 
-        # XGBoost
         self.models['xgboost'] = xgb.XGBRegressor(
             n_estimators=100,
             max_depth=6,
@@ -113,7 +108,6 @@ class MLPricePredictor:
         )
         self.scalers['xgboost'] = StandardScaler()
 
-        # Gradient Boosting
         self.models['gradient_boosting'] = GradientBoostingRegressor(
             n_estimators=100,
             max_depth=5,
@@ -169,7 +163,6 @@ class MLPricePredictor:
         """
         df = data.copy()
 
-        # Price features
         if 'price' in df.columns:
             df['price_change'] = df['price'].pct_change()
             df['price_ma5'] = df['price'].rolling(5).mean()
@@ -178,40 +171,33 @@ class MLPricePredictor:
             df['price_std5'] = df['price'].rolling(5).std()
             df['price_std10'] = df['price'].rolling(10).std()
 
-            # Bollinger Bands
             df['bb_upper'] = df['price_ma20'] + (df['price'].rolling(20).std() * 2)
             df['bb_lower'] = df['price_ma20'] - (df['price'].rolling(20).std() * 2)
             df['bb_position'] = (df['price'] - df['bb_lower']) / (df['bb_upper'] - df['bb_lower'])
 
-        # Volume features
         if 'volume' in df.columns:
             df['volume_change'] = df['volume'].pct_change()
             df['volume_ma5'] = df['volume'].rolling(5).mean()
             df['volume_ma10'] = df['volume'].rolling(10).mean()
             df['volume_ratio'] = df['volume'] / df['volume_ma5']
 
-        # Momentum indicators
         if 'price' in df.columns:
-            # RSI
             delta = df['price'].diff()
             gain = (delta.where(delta > 0, 0)).rolling(14).mean()
             loss = (-delta.where(delta < 0, 0)).rolling(14).mean()
             rs = gain / loss
             df['rsi'] = 100 - (100 / (1 + rs))
 
-            # MACD
             ema12 = df['price'].ewm(span=12).mean()
             ema26 = df['price'].ewm(span=26).mean()
             df['macd'] = ema12 - ema26
             df['macd_signal'] = df['macd'].ewm(span=9).mean()
             df['macd_hist'] = df['macd'] - df['macd_signal']
 
-        # Time features
         if 'timestamp' in df.columns:
             df['hour'] = pd.to_datetime(df['timestamp']).dt.hour
             df['day_of_week'] = pd.to_datetime(df['timestamp']).dt.dayofweek
 
-        # Drop NaN values
         df = df.fillna(method='bfill').fillna(0)
 
         return df
@@ -229,46 +215,37 @@ class MLPricePredictor:
             return
 
         try:
-            # Engineer features
             df = self._engineer_features(historical_data)
 
-            # Select feature columns
             feature_cols = [col for col in df.columns
                           if col not in ['timestamp', target_col, 'stock_code', 'stock_name']]
 
             X = df[feature_cols].values
             y = df[target_col].values
 
-            # Split data
             X_train, X_test, y_train, y_test = train_test_split(
                 X, y, test_size=0.2, random_state=42
             )
 
-            # Train each model
             for model_name in ['random_forest', 'xgboost', 'gradient_boosting']:
                 logger.info(f"Training {model_name}...")
 
-                # Scale features
                 scaler = self.scalers[model_name]
                 X_train_scaled = scaler.fit_transform(X_train)
                 X_test_scaled = scaler.transform(X_test)
 
-                # Train model
                 model = self.models[model_name]
                 model.fit(X_train_scaled, y_train)
 
-                # Evaluate
                 y_pred = model.predict(X_test_scaled)
                 mae = np.mean(np.abs(y_test - y_pred))
                 rmse = np.sqrt(np.mean((y_test - y_pred) ** 2))
                 mape = np.mean(np.abs((y_test - y_pred) / y_test)) * 100
 
-                # Directional accuracy
                 direction_correct = np.sum(
                     ((y_pred > X_test[:, 0]) == (y_test > X_test[:, 0]))
                 ) / len(y_test)
 
-                # Store performance
                 self.performance[model_name] = ModelPerformance(
                     model_name=model_name,
                     mae=mae,
@@ -282,7 +259,6 @@ class MLPricePredictor:
                 logger.info(f"{model_name} - MAE: {mae:.2f}, RMSE: {rmse:.2f}, "
                           f"MAPE: {mape:.2f}%, Accuracy: {direction_correct:.2%}")
 
-            # Save models
             self._save_models()
 
             logger.info("Model training complete")
@@ -296,7 +272,6 @@ class MLPricePredictor:
         stock_name: str,
         current_data: Dict[str, Any]
     ) -> PricePrediction:
-        """
         Predict future price using ensemble of models
 
         Args:
@@ -306,18 +281,14 @@ class MLPricePredictor:
 
         Returns:
             PricePrediction with ensemble prediction
-        """
         try:
             current_price = current_data.get('price', 0)
 
             if not SKLEARN_AVAILABLE or not self.models:
-                # Fallback: simple prediction
                 return self._fallback_prediction(stock_code, stock_name, current_data)
 
-            # Prepare features
             features = self._prepare_features(current_data)
 
-            # Get predictions from each model
             predictions = {}
             confidences = {}
 
@@ -328,21 +299,17 @@ class MLPricePredictor:
                 scaler = self.scalers[model_name]
                 model = self.models[model_name]
 
-                # Scale features
                 features_scaled = scaler.transform([features])
 
-                # Predict
                 pred = model.predict(features_scaled)[0]
                 predictions[model_name] = pred
 
-                # Confidence from model performance
                 perf = self.performance.get(model_name)
                 if perf:
                     confidences[model_name] = perf.accuracy
                 else:
                     confidences[model_name] = 0.5
 
-            # Ensemble prediction (weighted average)
             total_confidence = sum(confidences.values())
             if total_confidence > 0:
                 ensemble_pred = sum(
@@ -352,12 +319,10 @@ class MLPricePredictor:
             else:
                 ensemble_pred = np.mean(list(predictions.values()))
 
-            # Calculate prediction intervals (simplified)
             std_pred = np.std(list(predictions.values()))
             pred_low = ensemble_pred - (1.96 * std_pred)
             pred_high = ensemble_pred + (1.96 * std_pred)
 
-            # Determine direction and confidence
             expected_return = ((ensemble_pred - current_price) / current_price) * 100
 
             if expected_return > 1:
@@ -370,14 +335,13 @@ class MLPricePredictor:
                 direction = 'neutral'
                 confidence = 0.3
 
-            # Create prediction
             prediction = PricePrediction(
                 stock_code=stock_code,
                 stock_name=stock_name,
                 current_price=current_price,
-                predicted_price_1h=ensemble_pred * 0.98,  # Conservative 1h
+                predicted_price_1h=ensemble_pred * 0.98,
                 predicted_price_1d=ensemble_pred,
-                predicted_price_5d=ensemble_pred * 1.02,  # Optimistic 5d
+                predicted_price_5d=ensemble_pred * 1.02,
                 confidence=confidence,
                 direction=direction,
                 expected_return=expected_return,
@@ -397,7 +361,6 @@ class MLPricePredictor:
         """Prepare features from current data"""
         features = []
 
-        # Price features
         price = data.get('price', 0)
         features.extend([
             price,
@@ -410,7 +373,6 @@ class MLPricePredictor:
             data.get('bb_position', 0.5),
         ])
 
-        # Volume features
         features.extend([
             data.get('volume', 0),
             data.get('volume_change', 0),
@@ -418,7 +380,6 @@ class MLPricePredictor:
             data.get('volume_ratio', 1.0),
         ])
 
-        # Technical indicators
         features.extend([
             data.get('rsi', 50),
             data.get('macd', 0),
@@ -426,7 +387,6 @@ class MLPricePredictor:
             data.get('macd_hist', 0),
         ])
 
-        # Time features
         features.extend([
             datetime.now().hour,
             datetime.now().weekday(),
@@ -440,12 +400,10 @@ class MLPricePredictor:
         stock_name: str,
         data: Dict[str, Any]
     ) -> PricePrediction:
-        """Fallback prediction when ML not available"""
         current_price = data.get('price', 0)
         rsi = data.get('rsi', 50)
         volume_ratio = data.get('volume_ratio', 1.0)
 
-        # Simple heuristic
         if rsi < 30 and volume_ratio > 1.5:
             predicted = current_price * 1.03
             direction = 'up'
@@ -486,7 +444,6 @@ class MLPricePredictor:
         }
 
 
-# Global instance
 _ml_predictor: Optional[MLPricePredictor] = None
 
 
@@ -498,14 +455,12 @@ def get_ml_predictor() -> MLPricePredictor:
     return _ml_predictor
 
 
-# Example usage
 if __name__ == '__main__':
     predictor = MLPricePredictor()
 
     print("\n🤖 ML Price Predictor Test")
     print("=" * 60)
 
-    # Test prediction
     current_data = {
         'price': 73500,
         'rsi': 55,

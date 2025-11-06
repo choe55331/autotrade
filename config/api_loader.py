@@ -1,15 +1,12 @@
-"""
 config/api_loader.py
 검증된 API 사양 로더
 
 _immutable/api_specs/ 폴더의 검증된 API 목록을 로드하고 제공합니다.
-"""
 import json
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 from functools import lru_cache
 
-# 경로 설정
 PROJECT_ROOT = Path(__file__).parent.parent
 API_SPECS_DIR = PROJECT_ROOT / '_immutable' / 'api_specs'
 SUCCESSFUL_APIS_FILE = API_SPECS_DIR / 'successful_apis.json'
@@ -27,7 +24,6 @@ class APILoader:
     def _load_apis(self):
         """API 사양 파일 로드"""
         try:
-            # successful_apis.json 로드
             if SUCCESSFUL_APIS_FILE.exists():
                 with open(SUCCESSFUL_APIS_FILE, 'r', encoding='utf-8') as f:
                     self._successful_apis = json.load(f)
@@ -37,7 +33,6 @@ class APILoader:
                     "먼저 API 테스트를 실행하여 성공한 API 목록을 생성하세요."
                 )
 
-            # apis_by_category.json 로드
             if APIS_BY_CATEGORY_FILE.exists():
                 with open(APIS_BY_CATEGORY_FILE, 'r', encoding='utf-8') as f:
                     self._apis_by_category = json.load(f)
@@ -85,7 +80,6 @@ class APILoader:
             if call.get('variant_idx') == variant_idx:
                 return call
 
-        # variant_idx가 없으면 첫 번째 호출 반환
         return calls[0] if calls else None
 
     def get_metadata(self) -> Dict[str, Any]:
@@ -136,7 +130,6 @@ class APILoader:
         return self.get_apis_by_category('search')
 
 
-# 싱글톤 인스턴스
 _api_loader_instance: Optional[APILoader] = None
 
 
@@ -149,7 +142,6 @@ def get_api_loader() -> APILoader:
     return _api_loader_instance
 
 
-# 편의 함수들
 def load_successful_apis() -> Dict[str, Any]:
     """성공한 모든 API 로드"""
     return get_api_loader().get_all_apis()
@@ -175,7 +167,6 @@ def is_api_tested(api_id: str) -> bool:
     return get_api_loader().is_api_available(api_id)
 
 
-# 카테고리 상수
 class APICategory:
     """API 카테고리 상수"""
     ACCOUNT = 'account'

@@ -1,7 +1,5 @@
-"""
 NXT 실시간 가격 변동 확인
 목적: 시간차를 두고 여러 번 조회해서 실시간 변동 확인
-"""
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
@@ -47,7 +45,6 @@ def main():
     bot = TradingBotV2()
     client = bot.client
 
-    # 테스트 종목
     code, name = "249420", "일동제약"
 
     print(f"{CYAN}종목: {code} ({name}){RESET}")
@@ -56,7 +53,6 @@ def main():
 
     prices = []
 
-    # 10초 간격으로 5번 조회
     for i in range(5):
         now = datetime.now().strftime('%H:%M:%S')
         price = get_price(client, code)
@@ -64,7 +60,6 @@ def main():
         if price:
             prices.append(price)
 
-            # 변동 체크
             if len(prices) > 1:
                 diff = price - prices[-2]
                 if diff != 0:
@@ -77,10 +72,9 @@ def main():
         else:
             print(f"[{now}] {RED}조회 실패{RESET}")
 
-        if i < 4:  # 마지막은 대기 안 함
+        if i < 4:
             time.sleep(10)
 
-    # 결과 요약
     print(f"\n{BLUE}{'='*80}{RESET}")
     print(f"{BLUE}결과 요약{RESET}")
     print(f"{BLUE}{'='*80}{RESET}\n")

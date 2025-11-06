@@ -1,4 +1,3 @@
-"""
 AI Routes - Backward Compatibility Wrapper
 
 ⚠️ DEPRECATED: This file is a backward compatibility wrapper.
@@ -23,15 +22,12 @@ For new code, use:
     set_bot_instance(bot)
 
 This wrapper maintains backward compatibility with existing code.
-"""
 
-# Import from modular structure
 from dashboard.routes.ai import (
     ai_bp,
     register_ai_routes,
     set_bot_instance,
     get_bot_instance,
-    # Sub-blueprints (for advanced usage)
     ai_mode_bp,
     advanced_ai_bp,
     deep_learning_bp,
@@ -40,14 +36,12 @@ from dashboard.routes.ai import (
     market_commentary_bp,
 )
 
-# For backward compatibility, export the same interface
 __all__ = [
     'ai_bp',
     'set_bot_instance',
     'register_ai_routes',
 ]
 
-# Migration notice
 import warnings
 warnings.warn(
     "dashboard.routes.ai is now modularized. "

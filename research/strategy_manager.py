@@ -1,7 +1,5 @@
-"""
 research/strategy_manager.py
 스캔 전략 순환 관리자
-"""
 from typing import List, Dict, Any
 from datetime import datetime
 
@@ -40,7 +38,6 @@ class StrategyManager:
         self.ai_analyzer = ai_analyzer
         self.config = config or {}
 
-        # 3가지 전략 초기화
         self.strategies: List[ScanStrategy] = [
             VolumeBasedStrategy(market_api, screener, config.get('volume_strategy', {})),
             PriceChangeStrategy(market_api, screener, config.get('price_change_strategy', {})),
@@ -77,10 +74,8 @@ class StrategyManager:
         """
         strategy = self.get_current_strategy()
 
-        # 전략 실행
         candidates = strategy.scan()
 
-        # 다음 전략으로 이동
         self.next_strategy()
 
         return candidates

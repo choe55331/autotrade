@@ -1,7 +1,5 @@
-"""
 실시간 호가창 (Order Book)
 5단계 매수/매도 호가 표시 및 분석
-"""
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 import time
@@ -10,9 +8,9 @@ import time
 @dataclass
 class OrderBookLevel:
     """호가 레벨"""
-    price: int  # 호가 가격
-    volume: int  # 잔량
-    percent: float  # 전체 잔량 대비 비율
+    price: int
+    volume: int
+    percent: float
 
 
 @dataclass
@@ -22,20 +20,17 @@ class OrderBook:
     stock_name: str
     current_price: int
 
-    # 매도 호가 (5단계)
-    ask_levels: List[OrderBookLevel]  # 매도1~5호가
+    ask_levels: List[OrderBookLevel]
 
-    # 매수 호가 (5단계)
-    bid_levels: List[OrderBookLevel]  # 매수1~5호가
+    bid_levels: List[OrderBookLevel]
 
-    # 분석 지표
-    total_ask_volume: int  # 총 매도 잔량
-    total_bid_volume: int  # 총 매수 잔량
-    spread: int  # 호가 스프레드
-    spread_percent: float  # 스프레드 비율
-    bid_ask_ratio: float  # 매수/매도 비율
+    total_ask_volume: int
+    total_bid_volume: int
+    spread: int
+    spread_percent: float
+    bid_ask_ratio: float
 
-    timestamp: float  # 업데이트 시각
+    timestamp: float
 
     @property
     def is_bullish(self) -> bool:
@@ -68,7 +63,7 @@ class OrderBookService:
         """
         self.market_api = market_api
         self._cache: Dict[str, OrderBook] = {}
-        self._cache_ttl = 1  # 1초 캐시
+        self._cache_ttl = 1
 
     def get_order_book(self, stock_code: str, stock_name: str = "") -> Optional[OrderBook]:
         """
@@ -81,7 +76,6 @@ class OrderBookService:
         Returns:
             OrderBook 또는 None
         """
-        # 캐시 확인
         now = time.time()
         if stock_code in self._cache:
             cached = self._cache[stock_code]
@@ -89,16 +83,13 @@ class OrderBookService:
                 return cached
 
         try:
-            # API에서 호가 데이터 가져오기
             orderbook_data = self.market_api.get_order_book(stock_code)
 
             if not orderbook_data:
                 return None
 
-            # 현재가
             current_price = int(orderbook_data.get('stck_prpr', 0))
 
-            # 매도 호가 파싱 (5단계)
             ask_levels = []
             total_ask_volume = 0
 
@@ -110,10 +101,9 @@ class OrderBookService:
                 ask_levels.append(OrderBookLevel(
                     price=price,
                     volume=volume,
-                    percent=0  # 나중에 계산
+                    percent=0
                 ))
 
-            # 매수 호가 파싱 (5단계)
             bid_levels = []
             total_bid_volume = 0
 
@@ -125,10 +115,9 @@ class OrderBookService:
                 bid_levels.append(OrderBookLevel(
                     price=price,
                     volume=volume,
-                    percent=0  # 나중에 계산
+                    percent=0
                 ))
 
-            # 비율 계산
             for level in ask_levels:
                 if total_ask_volume > 0:
                     level.percent = (level.volume / total_ask_volume) * 100
@@ -137,16 +126,13 @@ class OrderBookService:
                 if total_bid_volume > 0:
                     level.percent = (level.volume / total_bid_volume) * 100
 
-            # 스프레드 계산
             best_ask = ask_levels[0].price if ask_levels else 0
             best_bid = bid_levels[0].price if bid_levels else 0
             spread = best_ask - best_bid
             spread_percent = (spread / best_bid * 100) if best_bid > 0 else 0
 
-            # 매수/매도 비율
             bid_ask_ratio = (total_bid_volume / total_ask_volume) if total_ask_volume > 0 else 0
 
-            # OrderBook 생성
             order_book = OrderBook(
                 stock_code=stock_code,
                 stock_name=stock_name,
@@ -161,7 +147,6 @@ class OrderBookService:
                 timestamp=now
             )
 
-            # 캐시에 저장
             self._cache[stock_code] = order_book
 
             return order_book
@@ -185,7 +170,6 @@ class OrderBookService:
                 'message': '호가 데이터를 가져올 수 없습니다'
             }
 
-        # 분석 결과
         analysis = {
             'success': True,
             'pressure_type': order_book.pressure_type,

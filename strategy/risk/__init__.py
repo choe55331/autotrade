@@ -1,12 +1,9 @@
-"""
 strategy/risk/__init__.py
 통합 위험 관리 시스템
 
 기존 5개 risk 파일을 통합하는 인터페이스 제공
-"""
 import warnings
 
-# 기존 모듈들을 통합 인터페이스로 re-export
 try:
     from ..risk_manager import RiskManager
 except ImportError:
@@ -40,7 +37,6 @@ except ImportError:
     StockRisk = None
     PortfolioRisk = None
 
-# Deprecation warning
 warnings.warn(
     "위험 관리 시스템이 통합되었습니다. "
     "strategy.risk를 통해 모든 risk 관련 클래스에 접근하세요.",

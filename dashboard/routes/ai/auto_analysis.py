@@ -1,20 +1,14 @@
-"""
 Auto-Analysis Routes
 Handles background AI analysis including position monitoring, portfolio optimization,
 performance tracking, stock recommendations, and market trend analysis
-"""
 from flask import Blueprint, jsonify, request
 from datetime import datetime, timedelta
 import random
 from .common import get_bot_instance
 
-# Create blueprint
 auto_analysis_bp = Blueprint('auto_analysis', __name__)
 
 
-# ============================================================================
-# Auto-Analysis - Background AI Analysis
-# ============================================================================
 
 @auto_analysis_bp.route('/api/ai/position-monitor')
 def get_position_monitor():
@@ -45,14 +39,12 @@ def get_position_monitor():
                 from strategy.scoring_system import ScoringSystem
                 scoring_system = ScoringSystem(bot_instance.market_api)
 
-                # Get holdings
                 holdings = bot_instance.account_api.get_holdings()
 
                 for holding in holdings:
                     stock_code = holding.get('stk_cd', '').replace('A', '')
                     stock_name = holding.get('stk_nm', '')
 
-                    # Current position info
                     quantity = int(holding.get('rmnd_qty', 0))
                     buy_price = int(holding.get('pchs_avg_pric', 0))
                     current_price = int(holding.get('cur_prc', 0))
@@ -60,13 +52,11 @@ def get_position_monitor():
                     if quantity == 0 or buy_price == 0:
                         continue
 
-                    # Calculate profit/loss
                     position_value = current_price * quantity
                     buy_value = buy_price * quantity
                     profit = position_value - buy_value
                     profit_pct = (profit / buy_value * 100) if buy_value > 0 else 0
 
-                    # Get current price data
                     try:
                         price_info = bot_instance.market_api.get_current_price(stock_code)
                         if price_info:
@@ -75,13 +65,12 @@ def get_position_monitor():
                     except:
                         change_rate = 0
 
-                    # Re-score with AI
                     stock_data = {
                         'stock_code': stock_code,
                         'name': stock_name,
                         'current_price': current_price,
                         'change_rate': change_rate,
-                        'volume': 0  # Will be fetched if needed
+                        'volume': 0
                     }
 
                     try:
@@ -92,39 +81,35 @@ def get_position_monitor():
                         ai_score = 0
                         ai_grade = 'F'
 
-                    # Determine trading signal
                     signal = 'HOLD'
                     signal_reason = '현재 보유 유지'
-                    signal_color = '#9ca3af'
+                    signal_color = '
 
-                    # SELL signals
-                    if profit_pct < -5:  # 5% 이상 손실
+                    if profit_pct < -5:
                         signal = 'SELL'
                         signal_reason = f'손실 {abs(profit_pct):.1f}% - 손절 검토'
-                        signal_color = '#ef4444'
+                        signal_color = '
                         alerts.append({
                             'stock': stock_name,
                             'type': 'loss',
                             'message': f'{stock_name}: {profit_pct:.1f}% 손실 - 손절 검토 필요'
                         })
-                    elif ai_grade in ['D', 'F']:  # AI 점수 낮음
+                    elif ai_grade in ['D', 'F']:
                         signal = 'SELL'
                         signal_reason = f'AI 등급 {ai_grade} - 매도 고려'
-                        signal_color = '#ef4444'
-                    elif profit_pct > 15:  # 15% 이상 수익
+                        signal_color = '
+                    elif profit_pct > 15:
                         signal = 'TAKE_PROFIT'
                         signal_reason = f'수익 {profit_pct:.1f}% - 익절 고려'
-                        signal_color = '#10b981'
+                        signal_color = '
                     elif ai_grade in ['S', 'A'] and profit_pct > 0:
                         signal = 'HOLD'
                         signal_reason = f'AI 등급 {ai_grade} - 보유 추천'
-                        signal_color = '#10b981'
+                        signal_color = '
 
-                    # Stop loss / Take profit lines
-                    stop_loss_price = int(buy_price * 0.95)  # -5%
-                    take_profit_price = int(buy_price * 1.15)  # +15%
+                    stop_loss_price = int(buy_price * 0.95)
+                    take_profit_price = int(buy_price * 1.15)
 
-                    # Add to positions
                     positions.append({
                         'code': stock_code,
                         'name': stock_name,
@@ -144,7 +129,6 @@ def get_position_monitor():
                         'change_rate': change_rate
                     })
 
-                    # Update summary
                     summary['total_value'] += position_value
                     summary['total_profit'] += profit
                     summary['holding_count'] += 1
@@ -153,12 +137,10 @@ def get_position_monitor():
                     elif profit < 0:
                         summary['losing_count'] += 1
 
-                # Calculate total profit percentage
                 total_buy_value = sum(p['buy_price'] * p['quantity'] for p in positions)
                 if total_buy_value > 0:
                     summary['total_profit_pct'] = round(summary['total_profit'] / total_buy_value * 100, 2)
 
-                # Sort by profit percentage (worst first for alerts)
                 positions.sort(key=lambda x: x['profit_pct'])
 
             except Exception as e:
@@ -207,7 +189,6 @@ def get_portfolio_optimization():
             'concentration_warning': False,
             'rebalance_needed': False,
             'suggestions': [],
-            # v5.8: Enhanced metrics
             'sharpe_ratio': 0,
             'value_at_risk': 0,
             'max_drawdown': 0,
@@ -221,12 +202,10 @@ def get_portfolio_optimization():
                 holdings = bot_instance.account_api.get_holdings()
 
                 if holdings and len(holdings) > 0:
-                    # Calculate weights and portfolio metrics
                     total_value = sum(int(h.get('eval_amt', 0)) for h in holdings)
                     if total_value == 0:
                         total_value = sum(int(h.get('rmnd_qty', 0)) * int(h.get('cur_prc', 0)) for h in holdings)
 
-                    # Calculate portfolio return and volatility
                     total_profit = 0
                     total_invested = 0
                     stock_returns = []
@@ -248,7 +227,6 @@ def get_portfolio_optimization():
                             'value': value
                         })
 
-                        # Calculate individual stock metrics
                         if buy_price > 0 and quantity > 0:
                             invested = buy_price * quantity
                             profit = (current_price - buy_price) * quantity
@@ -260,10 +238,8 @@ def get_portfolio_optimization():
 
                     weights.sort(key=lambda x: x['weight'], reverse=True)
 
-                    # v5.8: Calculate advanced metrics
                     portfolio_return = (total_profit / total_invested * 100) if total_invested > 0 else 0
 
-                    # Sharpe Ratio (simplified: assume risk-free rate = 2%)
                     risk_free_rate = 2.0
                     if len(stock_returns) > 1:
                         import statistics
@@ -271,38 +247,29 @@ def get_portfolio_optimization():
                         sharpe_ratio = (portfolio_return - risk_free_rate) / volatility if volatility > 0 else 0
                         optimization['sharpe_ratio'] = round(sharpe_ratio, 2)
 
-                    # Value at Risk (95% confidence, parametric method)
-                    # VaR = Portfolio Value * 1.65 * Daily Volatility
                     if len(stock_returns) > 1:
                         import statistics
                         daily_volatility = statistics.stdev(stock_returns) / 100
                         var_95 = total_value * 1.65 * daily_volatility
                         optimization['value_at_risk'] = int(var_95)
                     else:
-                        # Simple estimate: 5% of portfolio
                         optimization['value_at_risk'] = int(total_value * 0.05)
 
-                    # Portfolio Beta (simplified estimate based on volatility vs market avg)
-                    # Market avg volatility ~20%, if portfolio vol > 20%, beta > 1
                     if len(stock_returns) > 1:
                         import statistics
                         portfolio_vol = statistics.stdev(stock_returns)
-                        market_vol = 20.0  # Assumed market volatility
+                        market_vol = 20.0
                         beta = portfolio_vol / market_vol if market_vol > 0 else 1.0
                         optimization['portfolio_beta'] = round(beta, 2)
 
-                    # Efficiency Score (0-100)
-                    # Based on: diversification, sharpe ratio, concentration
-                    efficiency_score = 50  # Base score
+                    efficiency_score = 50
 
-                    # Diversification bonus (max +20)
                     num_stocks = len(holdings)
                     if num_stocks >= 5 and num_stocks <= 8:
                         efficiency_score += 20
                     elif num_stocks >= 3:
                         efficiency_score += 10
 
-                    # Sharpe ratio bonus (max +20)
                     if optimization['sharpe_ratio'] > 2.0:
                         efficiency_score += 20
                     elif optimization['sharpe_ratio'] > 1.0:
@@ -310,14 +277,12 @@ def get_portfolio_optimization():
                     elif optimization['sharpe_ratio'] > 0.5:
                         efficiency_score += 10
 
-                    # Concentration penalty (max -20)
                     max_weight = weights[0]['weight'] if weights else 0
                     if max_weight > 40:
                         efficiency_score -= 20
                     elif max_weight > 30:
                         efficiency_score -= 10
 
-                    # Return bonus (max +10)
                     if portfolio_return > 10:
                         efficiency_score += 10
                     elif portfolio_return > 5:
@@ -325,7 +290,6 @@ def get_portfolio_optimization():
 
                     optimization['efficiency_score'] = max(0, min(100, efficiency_score))
 
-                    # Add efficiency-based suggestions
                     if optimization['efficiency_score'] >= 80:
                         optimization['suggestions'].insert(0, {
                             'type': 'success',
@@ -341,7 +305,6 @@ def get_portfolio_optimization():
                             'action': '리밸런싱 권장'
                         })
 
-                    # Check concentration
                     max_weight = weights[0]['weight'] if weights else 0
                     top3_weight = sum(w['weight'] for w in weights[:3]) if len(weights) >= 3 else 0
 
@@ -364,7 +327,6 @@ def get_portfolio_optimization():
                             'action': '신규 종목 추가 고려'
                         })
 
-                    # Check diversification
                     if len(holdings) < 3:
                         optimization['suggestions'].append({
                             'type': 'warning',
@@ -380,7 +342,6 @@ def get_portfolio_optimization():
                             'action': '2-3개 종목 추가 고려'
                         })
 
-                    # Check top 3 concentration
                     if top3_weight > 70:
                         optimization['suggestions'].append({
                             'type': 'warning',
@@ -389,7 +350,6 @@ def get_portfolio_optimization():
                             'action': '나머지 종목 비중 확대'
                         })
 
-                    # Rebalancing suggestion
                     if max_weight > 35 or (len(holdings) >= 3 and top3_weight > 65):
                         optimization['rebalance_needed'] = True
                         optimization['suggestions'].append({
@@ -399,8 +359,7 @@ def get_portfolio_optimization():
                             'action': '과비중 종목 일부 매도 후 저비중 종목 매수'
                         })
 
-                    # Add weights to response
-                    optimization['weights'] = weights[:5]  # Top 5
+                    optimization['weights'] = weights[:5]
                     optimization['total_stocks'] = len(holdings)
                     optimization['max_weight'] = round(max_weight, 2)
                     optimization['top3_weight'] = round(top3_weight, 2)
@@ -451,7 +410,6 @@ def get_performance_tracker():
         bot_instance = get_bot_instance()
         if bot_instance and hasattr(bot_instance, 'account_api'):
             try:
-                # Get current holdings for performance
                 holdings = bot_instance.account_api.get_holdings()
 
                 stocks_performance = []
@@ -480,16 +438,13 @@ def get_performance_tracker():
                     total_buy_value += buy_value
 
                 if stocks_performance:
-                    # Best and worst
                     stocks_performance.sort(key=lambda x: x['profit_pct'], reverse=True)
                     performance['best_stock'] = stocks_performance[0]
                     performance['worst_stock'] = stocks_performance[-1]
 
-                    # Today's performance (approximate)
                     performance['today']['profit'] = total_profit
                     performance['today']['profit_pct'] = round((total_profit / total_buy_value * 100) if total_buy_value > 0 else 0, 2)
 
-                    # Statistics
                     winners = [s for s in stocks_performance if s['profit_pct'] > 0]
                     losers = [s for s in stocks_performance if s['profit_pct'] < 0]
 
@@ -529,31 +484,25 @@ def get_stock_recommendations():
         bot_instance = get_bot_instance()
         if bot_instance and hasattr(bot_instance, 'market_api') and hasattr(bot_instance, 'account_api'):
             try:
-                # Get current holdings to avoid recommending already-held stocks
                 holdings = bot_instance.account_api.get_holdings()
                 held_codes = [h.get('stk_cd', '').replace('A', '') for h in holdings]
 
-                # Get market leaders by PRICE CHANGE RATE (상승률) instead of volume
                 gainers = bot_instance.market_api.get_price_change_rank(market='ALL', sort='rise', limit=30)
 
                 for stock in gainers:
                     stock_code = stock.get('code', '')
                     stock_name = stock.get('name', '')
 
-                    # Skip if already held or invalid
                     if not stock_code or stock_code in held_codes:
                         continue
 
-                    # Get volume and price
                     volume = int(stock.get('volume', 0))
                     current_price = int(stock.get('price', 0))
                     change_rate = float(stock.get('change_rate', 0))
 
-                    # Filter: Only stocks with significant volume and positive change
                     if volume < 100_000 or change_rate <= 0 or current_price == 0:
                         continue
 
-                    # Build basic stock data
                     stock_data = {
                         'stock_code': stock_code,
                         'name': stock_name,
@@ -562,10 +511,8 @@ def get_stock_recommendations():
                         'volume': volume
                     }
 
-                    # Simple scoring based on available data
                     score = 0
 
-                    # Price momentum (0-60)
                     if change_rate >= 10:
                         score += 60
                     elif change_rate >= 7:
@@ -577,7 +524,6 @@ def get_stock_recommendations():
                     elif change_rate >= 1:
                         score += 15
 
-                    # Volume score (0-60)
                     if volume >= 5_000_000:
                         score += 48
                     elif volume >= 2_000_000:
@@ -587,14 +533,11 @@ def get_stock_recommendations():
                     elif volume >= 500_000:
                         score += 12
 
-                    # Baseline score for being in top gainers
                     score += 50
 
-                    # Calculate percentage
                     max_score = 440
                     percentage = (score / max_score) * 100
 
-                    # Determine grade
                     if percentage >= 90:
                         grade = 'S'
                     elif percentage >= 80:
@@ -608,16 +551,12 @@ def get_stock_recommendations():
                     else:
                         grade = 'F'
 
-                    # Only recommend if score is decent
-                    if score >= 120:  # Lower threshold
+                    if score >= 120:
                         reason = f'상승률 {change_rate:.1f}% + 거래량 {volume:,}주'
 
-                        # v5.8: Enhanced AI Analysis
-                        # Calculate target price (simple momentum-based)
-                        target_price = int(current_price * (1 + (change_rate / 100) * 0.3))  # 30% of current momentum
+                        target_price = int(current_price * (1 + (change_rate / 100) * 0.3))
                         expected_return = ((target_price - current_price) / current_price * 100)
 
-                        # Risk assessment
                         if change_rate > 15:
                             risk_level = 'High'
                             risk_reason = '급등 종목 - 고위험 고수익'
@@ -631,7 +570,6 @@ def get_stock_recommendations():
                             risk_level = 'Low-Medium'
                             risk_reason = '완만한 상승 - 낮은 리스크'
 
-                        # Entry timing
                         if change_rate > 20:
                             timing = '조정 대기'
                             timing_reason = '과열 구간 - 조정 후 진입 권장'
@@ -642,7 +580,6 @@ def get_stock_recommendations():
                             timing = '즉시 진입'
                             timing_reason = '현재가 진입 적기'
 
-                        # AI Buy reasons
                         ai_reasons = []
                         if change_rate >= 10:
                             ai_reasons.append(f'✓ 강한 모멘텀 ({change_rate:.1f}% 상승)')
@@ -661,7 +598,6 @@ def get_stock_recommendations():
                             'grade': grade,
                             'reason': reason,
                             'volume': volume,
-                            # v5.8: Enhanced fields
                             'target_price': target_price,
                             'expected_return': round(expected_return, 1),
                             'risk_level': risk_level,
@@ -672,7 +608,6 @@ def get_stock_recommendations():
                             'ai_recommendation': f'{timing}: {", ".join(ai_reasons[:2])}'
                         })
 
-                    # Stop after 5 recommendations
                     if len(recommendations) >= 5:
                         break
 
@@ -681,12 +616,11 @@ def get_stock_recommendations():
                 import traceback
                 traceback.print_exc()
 
-        # Sort by score
         recommendations.sort(key=lambda x: x['score'], reverse=True)
 
         return jsonify({
             'success': True,
-            'recommendations': recommendations[:5],  # Top 5
+            'recommendations': recommendations[:5],
             'timestamp': datetime.now().isoformat()
         })
 
@@ -717,7 +651,7 @@ def execute_auto_stop_loss():
 
         data = request.get_json()
         enable = data.get('enable', False)
-        threshold = data.get('threshold', -5)  # Default -5%
+        threshold = data.get('threshold', -5)
 
         if not enable:
             return jsonify({
@@ -741,10 +675,8 @@ def execute_auto_stop_loss():
 
             profit_pct = ((current_price - buy_price) / buy_price * 100)
 
-            # Execute stop loss if below threshold
             if profit_pct <= threshold:
                 try:
-                    # Place sell order
                     order_result = bot_instance.trading_api.sell_market_order(
                         stock_code=stock_code,
                         quantity=quantity
@@ -798,8 +730,8 @@ def execute_auto_take_profit():
 
         data = request.get_json()
         enable = data.get('enable', False)
-        threshold = data.get('threshold', 15)  # Default +15%
-        sell_ratio = data.get('sell_ratio', 0.5)  # Default 50%
+        threshold = data.get('threshold', 15)
+        sell_ratio = data.get('sell_ratio', 0.5)
 
         if not enable:
             return jsonify({
@@ -823,13 +755,11 @@ def execute_auto_take_profit():
 
             profit_pct = ((current_price - buy_price) / buy_price * 100)
 
-            # Execute take profit if above threshold
             if profit_pct >= threshold:
                 sell_quantity = int(quantity * sell_ratio)
 
                 if sell_quantity > 0:
                     try:
-                        # Place sell order
                         order_result = bot_instance.trading_api.sell_market_order(
                             stock_code=stock_code,
                             quantity=sell_quantity
@@ -895,7 +825,6 @@ def get_ai_alerts():
 
                     profit_pct = ((current_price - buy_price) / buy_price * 100)
 
-                    # 손절 알림 (-5% 이상 손실)
                     if profit_pct <= -5:
                         alerts.append({
                             'type': 'stop_loss',
@@ -903,10 +832,9 @@ def get_ai_alerts():
                             'stock': stock_name,
                             'message': f'{stock_name} {profit_pct:.1f}% 손실 - 즉시 손절 검토',
                             'action': '매도',
-                            'color': '#ef4444'
+                            'color': '
                         })
 
-                    # 익절 알림 (+15% 이상 수익)
                     elif profit_pct >= 15:
                         alerts.append({
                             'type': 'take_profit',
@@ -914,10 +842,9 @@ def get_ai_alerts():
                             'stock': stock_name,
                             'message': f'{stock_name} {profit_pct:.1f}% 수익 - 익절 고려',
                             'action': '일부 매도',
-                            'color': '#10b981'
+                            'color': '
                         })
 
-                    # 경고 알림 (-3% 손실)
                     elif profit_pct <= -3:
                         alerts.append({
                             'type': 'warning',
@@ -925,13 +852,12 @@ def get_ai_alerts():
                             'stock': stock_name,
                             'message': f'{stock_name} {profit_pct:.1f}% 손실 - 주의 관찰',
                             'action': '모니터링',
-                            'color': '#f59e0b'
+                            'color': '
                         })
 
             except Exception as e:
                 print(f"Alerts error: {e}")
 
-        # Sort by severity
         severity_order = {'critical': 0, 'warning': 1, 'info': 2}
         alerts.sort(key=lambda x: severity_order.get(x['severity'], 99))
 
@@ -958,9 +884,8 @@ def get_market_trend():
             'strength': 5,
             'indicators': [],
             'recommendation': '시장 관망 권장',
-            # v5.8: Enhanced fields
-            'market_sentiment': 'Neutral',  # Fear / Neutral / Greed
-            'fear_greed_index': 50,  # 0-100
+            'market_sentiment': 'Neutral',
+            'fear_greed_index': 50,
             'sector_analysis': [],
             'top_gainers_sectors': [],
             'top_losers_sectors': [],
@@ -973,7 +898,6 @@ def get_market_trend():
         bot_instance = get_bot_instance()
         if bot_instance and hasattr(bot_instance, 'market_api'):
             try:
-                # Get market data
                 volume_leaders = bot_instance.market_api.get_volume_rank(limit=100)
                 price_gainers = bot_instance.market_api.get_price_change_rank(market='ALL', sort='rise', limit=30)
                 price_losers = bot_instance.market_api.get_price_change_rank(market='ALL', sort='fall', limit=30)
@@ -981,14 +905,12 @@ def get_market_trend():
                 print(f"[Market Trend] volume_leaders: {len(volume_leaders) if volume_leaders else 0}, gainers: {len(price_gainers) if price_gainers else 0}, losers: {len(price_losers) if price_losers else 0}")
 
                 if volume_leaders and len(volume_leaders) > 0:
-                    # Count gainers vs losers
                     gainers = sum(1 for s in volume_leaders if float(s.get('prdy_ctrt', 0)) > 0)
                     losers = sum(1 for s in volume_leaders if float(s.get('prdy_ctrt', 0)) < 0)
                     unchanged = len(volume_leaders) - gainers - losers
 
                     gainer_ratio = gainers / len(volume_leaders) if volume_leaders else 0.5
 
-                    # Calculate trading value
                     total_trading_value = 0
                     for s in volume_leaders[:30]:
                         volume = int(s.get('acml_vol', 0))
@@ -997,7 +919,6 @@ def get_market_trend():
 
                     trend_data['trading_value'] = total_trading_value
 
-                    # Trend determination
                     if gainer_ratio > 0.6:
                         trend_data['trend'] = 'Bullish'
                         trend_data['strength'] = min(10, 7 + int((gainer_ratio - 0.6) * 10))
@@ -1017,17 +938,13 @@ def get_market_trend():
                         trend_data['market_sentiment'] = 'Neutral'
                         trend_data['fear_greed_index'] = int(40 + gainer_ratio * 40)
 
-                    # Indicators
                     trend_data['indicators'].append(f'• 상승종목 {gainers}개 vs 하락종목 {losers}개 (보합 {unchanged})')
 
-                    # Average volume
                     avg_volume = sum(int(s.get('acml_vol', 0)) for s in volume_leaders) / len(volume_leaders)
                     trend_data['indicators'].append(f'• 평균 거래량: {avg_volume/1_000_000:.1f}M주')
 
-                    # Trading value
                     trend_data['indicators'].append(f'• 주요 종목 거래대금: {total_trading_value/1_000_000_000:.1f}억원')
 
-                    # Fear & Greed analysis
                     if trend_data['fear_greed_index'] > 70:
                         trend_data['indicators'].append(f'• 시장 심리: 탐욕 단계 ({trend_data["fear_greed_index"]}) - 과열 주의')
                     elif trend_data['fear_greed_index'] < 30:
@@ -1035,11 +952,8 @@ def get_market_trend():
                     else:
                         trend_data['indicators'].append(f'• 시장 심리: 중립 ({trend_data["fear_greed_index"]}) - 균형 상태')
 
-                    # Sector analysis (simplified)
-                    # Group by industry/sector if available
                     sector_count = {}
                     for stock in price_gainers[:20]:
-                        # Since we don't have sector data, use name patterns
                         name = stock.get('name', '')
                         if '전자' in name or '반도체' in name:
                             sector_count['IT/반도체'] = sector_count.get('IT/반도체', 0) + 1
@@ -1057,7 +971,6 @@ def get_market_trend():
                         trend_data['top_gainers_sectors'] = [f'{s[0]} ({s[1]}개)' for s in top_sectors]
                         trend_data['indicators'].append(f'• 강세 섹터: {", ".join(trend_data["top_gainers_sectors"])}')
 
-                    # Market cap trend (large cap vs small cap)
                     large_cap_gainers = sum(1 for s in price_gainers if int(s.get('price', 0)) > 50000)
                     small_cap_gainers = len(price_gainers) - large_cap_gainers
 
@@ -1105,17 +1018,14 @@ def get_ai_auto_analysis():
 
         bot_instance = get_bot_instance()
         if bot_instance and hasattr(bot_instance, 'account_api'):
-            # Portfolio Analysis - v5.7.5 더 실용적인 버전
             try:
                 holdings = bot_instance.account_api.get_holdings()
 
                 if holdings and len(holdings) > 0:
-                    # 실제 데이터 기반 분석
                     total_value = sum(int(h.get('eval_amt', 0)) for h in holdings)
                     if total_value == 0:
                         total_value = sum(int(h.get('rmnd_qty', 0)) * int(h.get('cur_prc', 0)) for h in holdings)
 
-                    # Calculate portfolio metrics
                     total_profit = 0
                     total_buy_value = 0
 
@@ -1129,7 +1039,6 @@ def get_ai_auto_analysis():
                             total_profit += profit
                             total_buy_value += buy_price * quantity
 
-                    # Calculate score (0-10)
                     profit_pct = (total_profit / total_buy_value * 100) if total_buy_value > 0 else 0
 
                     if profit_pct >= 15:
@@ -1154,7 +1063,6 @@ def get_ai_auto_analysis():
                         score = 3.0
                         health = '위험'
 
-                    # Generate recommendations
                     recommendations = []
                     if profit_pct < -5:
                         recommendations.append('손실 종목 점검 필요')
@@ -1188,20 +1096,17 @@ def get_ai_auto_analysis():
                     'recommendations': ['데이터 확인 필요']
                 }
 
-            # Sentiment Analysis (전체 시장 감성) - v5.7.5 실용적 버전 (가격 모멘텀 기반)
             try:
                 holdings = bot_instance.account_api.get_holdings()
 
                 if holdings and len(holdings) > 0:
-                    # 가격 변동률 기반 감성 분석 (실제 데이터 사용)
                     sentiment_scores = []
                     analyzed_stocks = []
 
-                    for h in holdings[:5]:  # 상위 5종목
+                    for h in holdings[:5]:
                         stock_name = h.get('stk_nm', '')
                         stock_code = h.get('stk_cd', '').replace('A', '')
 
-                        # 매입가 대비 현재가로 감성 추정
                         quantity = int(h.get('rmnd_qty', 0))
                         buy_price = int(h.get('pchs_avg_pric', 0))
                         current_price = int(h.get('cur_prc', 0))
@@ -1209,7 +1114,6 @@ def get_ai_auto_analysis():
                         if quantity > 0 and buy_price > 0:
                             profit_pct = ((current_price - buy_price) / buy_price * 100)
 
-                            # 수익률을 0~1 감성 점수로 변환
                             if profit_pct >= 10:
                                 score = 0.8
                             elif profit_pct >= 5:
@@ -1226,10 +1130,8 @@ def get_ai_auto_analysis():
 
                     if sentiment_scores:
                         avg_score = sum(sentiment_scores) / len(sentiment_scores)
-                        # 0~1 범위를 0~10 범위로 변환
                         overall_sentiment = avg_score * 10
 
-                        # sentiment 상태 결정
                         if avg_score >= 0.6:
                             sentiment_status = '긍정적'
                         elif avg_score <= 0.4:
@@ -1260,7 +1162,6 @@ def get_ai_auto_analysis():
                             'details': None
                         }
                 else:
-                    # 보유 종목 없을 때
                     result['sentiment'] = {
                         'overall_sentiment': 5.0,
                         'sentiment': '중립',
@@ -1284,17 +1185,14 @@ def get_ai_auto_analysis():
                     'error': str(e)
                 }
 
-            # Risk Analysis (리스크 분석) - v5.7.5 VaR, CVaR, Sharpe 추가
             try:
                 holdings = bot_instance.account_api.get_holdings()
 
                 if holdings and len(holdings) > 0:
-                    # Convert holdings to position format
                     positions = []
                     total_value = sum(int(h.get('eval_amt', 0)) for h in holdings)
 
                     if total_value == 0:
-                        # 평가금액이 0이면 현재가 기준으로 계산
                         for h in holdings:
                             qty = int(h.get('rmnd_qty', 0))
                             price = int(h.get('cur_prc', 0))
@@ -1316,7 +1214,6 @@ def get_ai_auto_analysis():
                             'sector': '기타'
                         })
 
-                    # 리스크 레벨 계산
                     max_weight = max([p['weight'] for p in positions]) if positions else 0
 
                     if max_weight > 50:
@@ -1332,13 +1229,11 @@ def get_ai_auto_analysis():
                         risk_score = 3
                         volatility = 12.0
 
-                    # VaR (Value at Risk) 계산 - 95% 신뢰수준
-                    var = int(total_value * volatility / 100 * 1.65)  # 1.65 = 95% z-score
-                    cvar = int(var * 1.3)  # CVaR는 VaR의 약 1.3배
+                    var = int(total_value * volatility / 100 * 1.65)
+                    cvar = int(var * 1.3)
 
-                    # Sharpe Ratio 추정 (단순화)
-                    expected_return = 0.08  # 8% 가정
-                    risk_free_rate = 0.03  # 3% 무위험 수익률
+                    expected_return = 0.08
+                    risk_free_rate = 0.03
                     sharpe_ratio = (expected_return - risk_free_rate) / (volatility / 100)
 
                     result['risk'] = {
@@ -1347,17 +1242,15 @@ def get_ai_auto_analysis():
                         'max_weight': max_weight,
                         'diversification': len(positions),
                         'total_value': total_value,
-                        'positions': positions[:5],  # 상위 5개만
+                        'positions': positions[:5],
                         'recommendation': f'{len(positions)}개 종목 보유 중, 최대 비중 {max_weight:.1f}%',
-                        # 추가된 리스크 지표
                         'var': var,
                         'cvar': cvar,
                         'volatility': volatility,
                         'sharpe_ratio': round(sharpe_ratio, 2),
-                        'max_loss_pct': round(volatility * 0.6, 1)  # 최대 손실 추정
+                        'max_loss_pct': round(volatility * 0.6, 1)
                     }
                 else:
-                    # 보유 종목 없을 때도 데이터 반환
                     result['risk'] = {
                         'risk_level': '없음',
                         'risk_score': 0,
@@ -1376,7 +1269,6 @@ def get_ai_auto_analysis():
                 print(f"Risk analysis error: {e}")
                 import traceback
                 traceback.print_exc()
-                # 오류 발생 시에도 데이터 반환
                 result['risk'] = {
                     'risk_level': '분석 오류',
                     'risk_score': 0,
@@ -1392,16 +1284,13 @@ def get_ai_auto_analysis():
                     'max_loss_pct': 0
                 }
 
-            # Multi-Agent Consensus (다중 AI 합의 분석) - v5.7.5 개선 버전
             try:
-                # Consensus analysis: 포트폴리오와 리스크 결과 종합
                 if result['portfolio'] and result['risk']:
                     portfolio_health = result['portfolio'].get('health', '보통')
                     risk_level = result['risk'].get('risk_level', '보통')
                     portfolio_score = result['portfolio'].get('score', 5)
                     risk_score = result['risk'].get('risk_score', 5)
 
-                    # 건강도와 리스크 기반 최종 액션 결정
                     if portfolio_score >= 7 and risk_level in ['낮음', '중간']:
                         final_action = 'BUY'
                         consensus_level = 0.85

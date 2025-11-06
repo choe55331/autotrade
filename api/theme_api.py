@@ -1,7 +1,5 @@
-"""
 api/theme_api.py
 테마 API
-"""
 import logging
 from typing import Dict, Any, List, Optional
 
@@ -35,7 +33,6 @@ class ThemeAPI:
         flu_pl_amt_tp: str = '1',
         stex_tp: str = '1'
     ) -> List[Dict[str, Any]]:
-        """
         테마 그룹별 정보 조회 (ka90001)
         
         Args:
@@ -48,7 +45,6 @@ class ThemeAPI:
         
         Returns:
             테마 그룹 리스트
-        """
         try:
             headers = {
                 'api-id': 'ka90001'
@@ -82,7 +78,6 @@ class ThemeAPI:
         date_tp: str = '10',
         stex_tp: str = '1'
     ) -> Dict[str, Any]:
-        """
         테마 구성종목 조회 (ka90002)
         
         Args:
@@ -92,7 +87,6 @@ class ThemeAPI:
         
         Returns:
             테마 구성종목 정보
-        """
         try:
             headers = {
                 'api-id': 'ka90002'
@@ -127,7 +121,6 @@ class ThemeAPI:
         date_tp: str = '10',
         sort_by: str = 'profit'
     ) -> List[Dict[str, Any]]:
-        """
         상위 테마 조회
         
         Args:
@@ -137,7 +130,6 @@ class ThemeAPI:
         
         Returns:
             상위 테마 리스트
-        """
         flu_pl_amt_tp = '1' if sort_by == 'profit' else '3'
         
         themes = self.get_theme_groups(

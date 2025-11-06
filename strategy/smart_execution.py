@@ -1,7 +1,5 @@
-"""
 Smart Order Execution Algorithms - v5.13
 TWAP, VWAP, Iceberg, POV, Implementation Shortfall
-"""
 from dataclasses import dataclass
 from typing import List, Optional, Dict, Any, Callable
 from datetime import datetime, timedelta
@@ -15,12 +13,12 @@ logger = logging.getLogger(__name__)
 
 class ExecutionAlgorithm(Enum):
     """실행 알고리즘 타입"""
-    TWAP = "twap"  # Time-Weighted Average Price
-    VWAP = "vwap"  # Volume-Weighted Average Price
-    ICEBERG = "iceberg"  # Iceberg Order
-    POV = "pov"  # Percentage of Volume
+    TWAP = "twap"
+    VWAP = "vwap"
+    ICEBERG = "iceberg"
+    POV = "pov"
     IMPLEMENTATION_SHORTFALL = "implementation_shortfall"
-    ADAPTIVE = "adaptive"  # Adaptive algorithm
+    ADAPTIVE = "adaptive"
 
 
 @dataclass
@@ -31,7 +29,7 @@ class OrderSlice:
     quantity: int
     target_price: Optional[float]
     scheduled_time: datetime
-    urgency: float  # 0-1 (1 = most urgent)
+    urgency: float
     metadata: Dict[str, Any]
 
 
@@ -46,8 +44,8 @@ class ExecutionResult:
     slices_total: int
     average_price: float
     total_cost: float
-    slippage: float  # vs target price
-    slippage_bps: float  # basis points
+    slippage: float
+    slippage_bps: float
     execution_time_seconds: float
     algorithm_used: ExecutionAlgorithm
     success: bool
@@ -92,13 +90,12 @@ class SmartOrderExecutor:
                      stock_code: str,
                      stock_name: str,
                      quantity: int,
-                     side: str,  # 'buy' or 'sell'
+                     side: str,
                      algorithm: ExecutionAlgorithm,
                      duration_minutes: int,
                      current_price: float,
                      market_data: Optional[List[MarketData]] = None,
                      params: Optional[Dict[str, Any]] = None) -> ExecutionResult:
-        """
         주문 실행
 
         Args:
@@ -115,7 +112,6 @@ class SmartOrderExecutor:
 
         Returns:
             ExecutionResult
-        """
         logger.info(f"Executing order: {order_id}, {stock_name}, "
                    f"{quantity} shares, {algorithm.value}, {duration_minutes}min")
 
@@ -124,7 +120,6 @@ class SmartOrderExecutor:
         if params is None:
             params = {}
 
-        # Generate order slices
         if algorithm == ExecutionAlgorithm.TWAP:
             slices = self._generate_twap_slices(
                 order_id, stock_code, quantity, duration_minutes, current_price
@@ -149,7 +144,7 @@ class SmartOrderExecutor:
                 order_id, stock_code, quantity, duration_minutes,
                 current_price, params.get('urgency', 0.5)
             )
-        else:  # ADAPTIVE
+        else:
             slices = self._generate_adaptive_slices(
                 order_id, stock_code, quantity, duration_minutes,
                 current_price, market_data
@@ -174,16 +169,13 @@ class SmartOrderExecutor:
                 metadata={}
             )
 
-        # Store active order
         self.active_orders[order_id] = slices
 
-        # Simulate execution
         result = self._simulate_execution(
             order_id, stock_code, quantity, slices,
             current_price, side, algorithm
         )
 
-        # Store in history
         self.execution_history.append(result)
 
         execution_time = (datetime.now() - start_time).total_seconds()
@@ -225,16 +217,13 @@ class SmartOrderExecutor:
             'total_cost': sum(r.total_cost for r in self.execution_history)
         }
 
-    # ===== ALGORITHM IMPLEMENTATIONS =====
 
     def _generate_twap_slices(self, order_id: str, stock_code: str,
                               quantity: int, duration_minutes: int,
                               current_price: float) -> List[OrderSlice]:
-        """
         TWAP (Time-Weighted Average Price)
         균등하게 시간에 분산하여 주문
-        """
-        num_slices = min(duration_minutes, 20)  # Max 20 slices
+        num_slices = min(duration_minutes, 20)
         slice_quantity = quantity // num_slices
         remainder = quantity % num_slices
 
@@ -250,9 +239,9 @@ class SmartOrderExecutor:
                 slice_id=f"{order_id}_twap_{i}",
                 stock_code=stock_code,
                 quantity=qty,
-                target_price=None,  # Market order
+                target_price=None,
                 scheduled_time=slice_time,
-                urgency=0.5,  # Neutral urgency
+                urgency=0.5,
                 metadata={'algorithm': 'twap', 'slice_index': i}
             )
             slices.append(slice)
@@ -264,20 +253,16 @@ class SmartOrderExecutor:
                              quantity: int, duration_minutes: int,
                               current_price: float,
                               market_data: Optional[List[MarketData]]) -> List[OrderSlice]:
-        """
         VWAP (Volume-Weighted Average Price)
         거래량 패턴에 따라 주문 분산
-        """
         num_slices = min(duration_minutes, 20)
 
-        # If no market data, fall back to TWAP
         if not market_data or len(market_data) < 10:
             logger.warning("Insufficient market data for VWAP, using TWAP")
             return self._generate_twap_slices(
                 order_id, stock_code, quantity, duration_minutes, current_price
             )
 
-        # Calculate volume profile
         volumes = [md.volume for md in market_data[-num_slices:]]
         total_volume = sum(volumes)
 
@@ -286,7 +271,6 @@ class SmartOrderExecutor:
                 order_id, stock_code, quantity, duration_minutes, current_price
             )
 
-        # Distribute quantity based on volume
         slices = []
         now = datetime.now()
         allocated = 0
@@ -296,7 +280,7 @@ class SmartOrderExecutor:
             slice_quantity = int(quantity * vol_weight)
 
             if i == num_slices - 1:
-                slice_quantity = quantity - allocated  # Last slice gets remainder
+                slice_quantity = quantity - allocated
 
             allocated += slice_quantity
 
@@ -319,10 +303,8 @@ class SmartOrderExecutor:
     def _generate_iceberg_slices(self, order_id: str, stock_code: str,
                                 quantity: int, current_price: float,
                                 visible_quantity: int) -> List[OrderSlice]:
-        """
         Iceberg Order
         큰 주문을 작은 조각으로 나누어 일부만 노출
-        """
         num_slices = max(1, quantity // visible_quantity)
         slices = []
         now = datetime.now()
@@ -332,7 +314,6 @@ class SmartOrderExecutor:
             slice_qty = min(visible_quantity, remaining)
             remaining -= slice_qty
 
-            # Space out slices slightly
             slice_time = now + timedelta(seconds=i * 5)
 
             slice = OrderSlice(
@@ -341,7 +322,7 @@ class SmartOrderExecutor:
                 quantity=slice_qty,
                 target_price=None,
                 scheduled_time=slice_time,
-                urgency=0.7,  # Higher urgency
+                urgency=0.7,
                 metadata={
                     'algorithm': 'iceberg',
                     'visible': True,
@@ -357,14 +338,11 @@ class SmartOrderExecutor:
                             quantity: int, duration_minutes: int,
                             current_price: float,
                             participation_rate: float) -> List[OrderSlice]:
-        """
         POV (Percentage of Volume)
         시장 거래량의 일정 비율로 주문
-        """
         num_slices = min(duration_minutes, 20)
 
-        # Assume average market volume
-        assumed_market_volume_per_minute = 100000  # Mock value
+        assumed_market_volume_per_minute = 100000
         market_volume_per_slice = assumed_market_volume_per_minute * (duration_minutes / num_slices)
 
         slices = []
@@ -372,12 +350,11 @@ class SmartOrderExecutor:
         allocated = 0
 
         for i in range(num_slices):
-            # Calculate slice size based on participation rate
             slice_qty = int(market_volume_per_slice * participation_rate)
             slice_qty = min(slice_qty, quantity - allocated)
 
             if i == num_slices - 1:
-                slice_qty = quantity - allocated  # Last slice
+                slice_qty = quantity - allocated
 
             allocated += slice_qty
 
@@ -406,33 +383,27 @@ class SmartOrderExecutor:
     def _generate_is_slices(self, order_id: str, stock_code: str,
                            quantity: int, duration_minutes: int,
                            current_price: float, urgency: float) -> List[OrderSlice]:
-        """
         Implementation Shortfall
         시장 충격을 최소화하면서 빠르게 실행
-        """
-        # Higher urgency = fewer, larger slices
-        # Lower urgency = more, smaller slices
 
         if urgency > 0.8:
-            num_slices = 5  # Very urgent
+            num_slices = 5
         elif urgency > 0.6:
             num_slices = 10
         elif urgency > 0.4:
             num_slices = 15
         else:
-            num_slices = 20  # Patient
+            num_slices = 20
 
-        # Front-load for urgent orders
         slices = []
         now = datetime.now()
         allocated = 0
 
         for i in range(num_slices):
-            # Weight factor: front-load if urgent
             if urgency > 0.5:
-                weight = 1.5 - (i / num_slices)  # Decreasing
+                weight = 1.5 - (i / num_slices)
             else:
-                weight = 0.5 + (i / num_slices)  # Increasing (patient)
+                weight = 0.5 + (i / num_slices)
 
             slice_qty = int((quantity / num_slices) * weight)
             slice_qty = min(slice_qty, quantity - allocated)
@@ -465,44 +436,37 @@ class SmartOrderExecutor:
                                  quantity: int, duration_minutes: int,
                                  current_price: float,
                                  market_data: Optional[List[MarketData]]) -> List[OrderSlice]:
-        """
         Adaptive Algorithm
         시장 상황에 따라 동적으로 조정
-        """
-        # Analyze market conditions
         if market_data and len(market_data) >= 10:
             recent_data = market_data[-10:]
 
-            # Check volatility
             prices = [md.price for md in recent_data]
             volatility = np.std(prices) / np.mean(prices)
 
-            # Check volume
             volumes = [md.volume for md in recent_data]
             avg_volume = np.mean(volumes)
             recent_volume = volumes[-1] if volumes else 0
             volume_spike = recent_volume / avg_volume if avg_volume > 0 else 1.0
 
-            # Choose strategy based on conditions
-            if volatility > 0.02:  # High volatility
+            if volatility > 0.02:
                 logger.info("High volatility detected, using TWAP")
                 return self._generate_twap_slices(
                     order_id, stock_code, quantity, duration_minutes, current_price
                 )
-            elif volume_spike > 1.5:  # Volume spike
+            elif volume_spike > 1.5:
                 logger.info("Volume spike detected, using POV")
                 return self._generate_pov_slices(
                     order_id, stock_code, quantity, duration_minutes,
                     current_price, 0.15
                 )
-            else:  # Normal conditions
+            else:
                 logger.info("Normal conditions, using VWAP")
                 return self._generate_vwap_slices(
                     order_id, stock_code, quantity, duration_minutes,
                     current_price, market_data
                 )
         else:
-            # No market data, use TWAP
             return self._generate_twap_slices(
                 order_id, stock_code, quantity, duration_minutes, current_price
             )
@@ -511,34 +475,27 @@ class SmartOrderExecutor:
                           total_quantity: int, slices: List[OrderSlice],
                           benchmark_price: float, side: str,
                           algorithm: ExecutionAlgorithm) -> ExecutionResult:
-        """
         주문 실행 시뮬레이션
 
         In production, this would interface with actual trading API
-        """
         executed_quantity = 0
         total_cost = 0.0
         executed_slices = 0
 
         for slice_obj in slices:
-            # Simulate price impact and market movements
             price_impact = self._calculate_price_impact(
                 slice_obj.quantity, total_quantity, side
             )
 
-            # Random market movement
             market_movement = np.random.normal(0, benchmark_price * 0.001)
 
-            # Execution price
             execution_price = benchmark_price + price_impact + market_movement
 
-            # Execute slice
             slice_cost = execution_price * slice_obj.quantity
             total_cost += slice_cost
             executed_quantity += slice_obj.quantity
             executed_slices += 1
 
-        # Calculate metrics
         avg_price = total_cost / executed_quantity if executed_quantity > 0 else benchmark_price
         slippage = avg_price - benchmark_price
         slippage_bps = (slippage / benchmark_price) * 10000 if benchmark_price > 0 else 0
@@ -554,7 +511,7 @@ class SmartOrderExecutor:
             total_cost=total_cost,
             slippage=slippage,
             slippage_bps=slippage_bps,
-            execution_time_seconds=0.0,  # Will be set by caller
+            execution_time_seconds=0.0,
             algorithm_used=algorithm,
             success=True,
             error_message=None,
@@ -568,26 +525,20 @@ class SmartOrderExecutor:
 
     def _calculate_price_impact(self, slice_quantity: int,
                                total_quantity: int, side: str) -> float:
-        """
         가격 충격 계산
 
         Simplified model: impact proportional to sqrt(quantity)
-        """
-        # Square root model
-        impact_factor = np.sqrt(slice_quantity / 10000)  # Normalize
+        impact_factor = np.sqrt(slice_quantity / 10000)
 
-        # Market impact coefficient (adjust based on liquidity)
-        market_impact_coeff = 0.001  # 0.1%
+        market_impact_coeff = 0.001
 
-        # Direction
         direction = 1 if side == 'buy' else -1
 
-        impact = direction * impact_factor * market_impact_coeff * 70000  # Assume price around 70k
+        impact = direction * impact_factor * market_impact_coeff * 70000
 
         return impact
 
 
-# Global singleton
 _smart_executor: Optional[SmartOrderExecutor] = None
 
 

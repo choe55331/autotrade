@@ -1,7 +1,5 @@
-"""
 AutoTrade Pro - 통합 신호 체크 유틸리티
 모든 전략에서 공통으로 사용하는 신호 체크 로직
-"""
 from enum import Enum
 from typing import Tuple, Optional, Dict, Any
 import logging
@@ -29,7 +27,6 @@ class SignalChecker:
         stock_code: str = "",
         log_level: str = "warning"
     ) -> Tuple[bool, str]:
-        """
         손절 신호 체크
 
         Args:
@@ -40,7 +37,6 @@ class SignalChecker:
 
         Returns:
             (신호 발생 여부, 사유)
-        """
         if current_price <= stop_loss_price:
             message = f"[{stock_code}] 손절 신호: {current_price:,} <= {stop_loss_price:,}"
 
@@ -60,7 +56,6 @@ class SignalChecker:
         stock_code: str = "",
         log_level: str = "info"
     ) -> Tuple[bool, str]:
-        """
         익절 신호 체크
 
         Args:
@@ -71,7 +66,6 @@ class SignalChecker:
 
         Returns:
             (신호 발생 여부, 사유)
-        """
         if current_price >= take_profit_price:
             message = f"[{stock_code}] 익절 신호: {current_price:,} >= {take_profit_price:,}"
 
@@ -91,7 +85,6 @@ class SignalChecker:
         stop_loss_rate: float,
         stock_code: str = ""
     ) -> Tuple[bool, str]:
-        """
         손실률 기반 손절 신호 체크
 
         Args:
@@ -102,7 +95,6 @@ class SignalChecker:
 
         Returns:
             (신호 발생 여부, 사유)
-        """
         if purchase_price <= 0:
             return False, ""
 
@@ -122,7 +114,6 @@ class SignalChecker:
         take_profit_rate: float,
         stock_code: str = ""
     ) -> Tuple[bool, str]:
-        """
         수익률 기반 익절 신호 체크
 
         Args:
@@ -133,7 +124,6 @@ class SignalChecker:
 
         Returns:
             (신호 발생 여부, 사유)
-        """
         if purchase_price <= 0:
             return False, ""
 
@@ -153,7 +143,6 @@ class SignalChecker:
         direction: str = "above",
         stock_code: str = ""
     ) -> Tuple[bool, str]:
-        """
         가격 임계값 체크
 
         Args:
@@ -164,7 +153,6 @@ class SignalChecker:
 
         Returns:
             (신호 발생 여부, 사유)
-        """
         if direction == "above":
             if current_price >= threshold_price:
                 logger.info(f"[{stock_code}] 가격 상향 돌파: {current_price:,} >= {threshold_price:,}")
@@ -183,7 +171,6 @@ class SignalChecker:
         multiplier: float = 1.5,
         stock_code: str = ""
     ) -> Tuple[bool, str]:
-        """
         거래량 조건 체크
 
         Args:
@@ -194,7 +181,6 @@ class SignalChecker:
 
         Returns:
             (조건 만족 여부, 사유)
-        """
         threshold_volume = avg_volume * multiplier
 
         if current_volume >= threshold_volume:
@@ -210,7 +196,6 @@ class SignalChecker:
         trailing_distance: float,
         stock_code: str = ""
     ) -> Tuple[bool, float]:
-        """
         트레일링 스톱 체크
 
         Args:
@@ -221,7 +206,6 @@ class SignalChecker:
 
         Returns:
             (손절 신호 여부, 새로운 손절가)
-        """
         trailing_stop_price = highest_price - trailing_distance
 
         if current_price <= trailing_stop_price:
@@ -236,7 +220,6 @@ class SignalChecker:
         logic: str = "AND",
         stock_code: str = ""
     ) -> Tuple[bool, str]:
-        """
         복수 조건 체크
 
         Args:
@@ -246,7 +229,6 @@ class SignalChecker:
 
         Returns:
             (전체 조건 만족 여부, 종합 사유)
-        """
         if not conditions:
             return False, "NO_CONDITIONS"
 
@@ -275,7 +257,6 @@ class SignalChecker:
         reason: str,
         metadata: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
-        """
         신호 객체 생성
 
         Args:
@@ -286,7 +267,6 @@ class SignalChecker:
 
         Returns:
             신호 딕셔너리
-        """
         from datetime import datetime
 
         signal = {
@@ -315,7 +295,6 @@ class TradingSignalValidator:
         min_price: float = 1000,
         max_price: float = 1000000
     ) -> Tuple[bool, str]:
-        """
         매수 신호 검증
 
         Args:
@@ -329,19 +308,15 @@ class TradingSignalValidator:
 
         Returns:
             (검증 통과 여부, 사유)
-        """
-        # 가격 범위 체크
         if current_price < min_price:
             return False, f"가격이 너무 낮음: {current_price:,} < {min_price:,}"
 
         if current_price > max_price:
             return False, f"가격이 너무 높음: {current_price:,} > {max_price:,}"
 
-        # 포지션 한도 체크
         if current_positions >= position_limit:
             return False, f"포지션 한도 초과: {current_positions} >= {position_limit}"
 
-        # 최소 매수 금액 체크 (1주 이상 매수 가능한지)
         if available_cash < current_price:
             return False, f"현금 부족: {available_cash:,} < {current_price:,}"
 
@@ -353,7 +328,6 @@ class TradingSignalValidator:
         has_position: bool,
         quantity: int = 0
     ) -> Tuple[bool, str]:
-        """
         매도 신호 검증
 
         Args:
@@ -363,7 +337,6 @@ class TradingSignalValidator:
 
         Returns:
             (검증 통과 여부, 사유)
-        """
         if not has_position:
             return False, "보유 포지션 없음"
 

@@ -1,4 +1,3 @@
-"""
 core/websocket_manager.py
 WebSocket 실시간 시세 매니저
 
@@ -8,7 +7,6 @@ WebSocket 실시간 시세 매니저
 3. 로그인 응답 확인
 4. 구독 요청 전송 (REG)
 5. 실시간 데이터 수신 (REAL)
-"""
 
 import asyncio
 import websockets
@@ -36,7 +34,6 @@ class WebSocketManager:
         self.access_token = access_token
         self.base_url = base_url
 
-        # WebSocket URL 결정
         if 'mockapi' in base_url:
             self.ws_url = "wss://mockapi.kiwoom.com:10000/api/dostk/websocket"
         else:
@@ -45,11 +42,10 @@ class WebSocketManager:
         self.websocket = None
         self.is_connected = False
         self.is_logged_in = False
-        self.subscriptions = {}  # {grp_no: subscription_info}
-        self.callbacks = {}  # {type: callback_function}
+        self.subscriptions = {}
+        self.callbacks = {}
 
-        # 재연결 설정
-        self.reconnect_delay = 5  # 재연결 대기 시간 (초)
+        self.reconnect_delay = 5
         self.max_reconnect_attempts = 5
         self.reconnect_attempts = 0
 
@@ -66,7 +62,6 @@ class WebSocketManager:
             print(f"🔌 WebSocket 연결 시도: {self.ws_url}")
             logger.info(f"WebSocket 연결 시도: {self.ws_url}")
 
-            # WebSocket 연결
             self.websocket = await websockets.connect(
                 self.ws_url,
                 additional_headers={
@@ -81,7 +76,6 @@ class WebSocketManager:
             print("✅ WebSocket 연결 성공")
             logger.info("✅ WebSocket 연결 성공")
 
-            # 로그인 수행
             print("🔐 로그인 시도 중...")
             login_success = await self._login()
             if not login_success:
@@ -108,7 +102,6 @@ class WebSocketManager:
             로그인 성공 여부
         """
         try:
-            # 로그인 메시지 전송
             login_request = {
                 "trnm": "LOGIN",
                 "token": self.access_token
@@ -118,7 +111,6 @@ class WebSocketManager:
             await self.websocket.send(json.dumps(login_request))
             logger.info("📤 로그인 요청 전송")
 
-            # 로그인 응답 대기 (최대 3초)
             print("⏳ 로그인 응답 대기 중...")
             login_response = await asyncio.wait_for(
                 self.websocket.recv(),
@@ -154,7 +146,6 @@ class WebSocketManager:
         grp_no: str = "1",
         refresh: str = "1"
     ) -> bool:
-        """
         실시간 시세 구독
 
         Args:
@@ -173,7 +164,6 @@ class WebSocketManager:
             0B: 주식체결
             0C: 주식우선호가
             0D: 주식호가잔량
-        """
         if not self.is_connected or not self.is_logged_in:
             print("❌ WebSocket 미연결 또는 미로그인")
             logger.error("❌ WebSocket 미연결 또는 미로그인")
@@ -194,7 +184,6 @@ class WebSocketManager:
             await self.websocket.send(json.dumps(subscribe_request))
             logger.info(f"📤 구독 요청 전송: 종목={stock_codes}, 타입={types}, grp_no={grp_no}")
 
-            # 구독 응답 대기 (최대 2초)
             print("⏳ 구독 응답 대기 중...")
             subscribe_response = await asyncio.wait_for(
                 self.websocket.recv(),
@@ -205,7 +194,6 @@ class WebSocketManager:
             print(f"📥 구독 응답: {json.dumps(subscribe_data, ensure_ascii=False)}")
 
             if subscribe_data.get('return_code') == 0:
-                # 구독 정보 저장
                 self.subscriptions[grp_no] = {
                     'stock_codes': stock_codes,
                     'types': types,
@@ -223,7 +211,6 @@ class WebSocketManager:
         except asyncio.TimeoutError:
             print("⚠️ 구독 응답 타임아웃 (구독은 성공했을 수 있음)")
             logger.warning("⚠️ 구독 응답 타임아웃 (구독은 성공했을 수 있음)")
-            # 구독 정보는 저장
             self.subscriptions[grp_no] = {
                 'stock_codes': stock_codes,
                 'types': types,
@@ -265,42 +252,35 @@ class WebSocketManager:
             message_count = 0
             while self.is_connected:
                 try:
-                    # 메시지 수신 (타임아웃 1초)
                     message = await asyncio.wait_for(
                         self.websocket.recv(),
                         timeout=1.0
                     )
 
                     message_count += 1
-                    # JSON 파싱
                     data = json.loads(message)
                     trnm = data.get('trnm', '')
 
-                    print(f"📩 메시지 #{message_count} 수신: trnm={trnm}")
+                    print(f"📩 메시지
 
-                    # REAL 데이터인 경우 콜백 호출
                     if trnm == 'REAL':
                         print(f"   📊 REAL 데이터: {json.dumps(data, ensure_ascii=False)[:200]}...")
                         await self._handle_real_data(data)
                     elif trnm == 'SYSTEM':
-                        # 시스템 메시지
                         code = data.get('code', '')
                         msg = data.get('message', '')
                         print(f"⚠️ 시스템 메시지 (코드 {code}): {msg}")
                         logger.warning(f"⚠️ 시스템 메시지 (코드 {code}): {msg}")
 
-                        # 연결 종료 메시지인 경우 재연결 시도
                         if code == 'R10004':
                             print("❌ 접속 종료됨, 재연결 시도...")
                             logger.error("❌ 접속 종료됨, 재연결 시도...")
                             await self.reconnect()
                     else:
-                        # 기타 메시지
                         print(f"   기타 메시지: {json.dumps(data, ensure_ascii=False)[:200]}...")
                         logger.debug(f"기타 메시지: {trnm}")
 
                 except asyncio.TimeoutError:
-                    # 타임아웃은 정상 (계속 수신 대기)
                     continue
                 except websockets.ConnectionClosed:
                     print("❌ WebSocket 연결 끊김")
@@ -326,16 +306,6 @@ class WebSocketManager:
             data: REAL 데이터
         """
         try:
-            # data 구조:
-            # {
-            #   "trnm": "REAL",
-            #   "data": [{
-            #       "type": "0B",
-            #       "name": "주식체결",
-            #       "item": "005930",
-            #       "values": {...}
-            #   }]
-            # }
 
             data_list = data.get('data', [])
             for item in data_list:
@@ -343,14 +313,12 @@ class WebSocketManager:
                 stock_code = item.get('item', '')
                 values = item.get('values', {})
 
-                # 타입별 콜백 호출
                 if data_type in self.callbacks:
                     try:
                         await self.callbacks[data_type](item)
                     except Exception as e:
                         logger.error(f"❌ 콜백 실행 오류 ({data_type}): {e}")
 
-                # ALL 콜백 호출
                 if 'ALL' in self.callbacks:
                     try:
                         await self.callbacks['ALL'](item)
@@ -369,16 +337,12 @@ class WebSocketManager:
         self.reconnect_attempts += 1
         logger.info(f"🔄 재연결 시도 {self.reconnect_attempts}/{self.max_reconnect_attempts}")
 
-        # 기존 연결 종료
         await self.disconnect()
 
-        # 대기
         await asyncio.sleep(self.reconnect_delay)
 
-        # 재연결
         success = await self.connect()
         if success:
-            # 기존 구독 재등록
             for grp_no, sub_info in self.subscriptions.items():
                 await self.subscribe(
                     stock_codes=sub_info['stock_codes'],
@@ -423,7 +387,6 @@ class WebSocketManager:
             await self.websocket.send(json.dumps(unsubscribe_request))
             logger.info(f"📤 구독 해지 요청 전송: grp_no={grp_no}")
 
-            # 구독 정보 삭제
             if grp_no in self.subscriptions:
                 del self.subscriptions[grp_no]
 
@@ -454,7 +417,6 @@ async def test_websocket():
 
     print("WebSocket 테스트 시작...")
 
-    # REST 클라이언트 초기화
     rest_client = KiwoomRESTClient()
     access_token = rest_client.token
     base_url = rest_client.base_url
@@ -462,40 +424,36 @@ async def test_websocket():
     print(f"액세스 토큰: {access_token[:20]}...")
     print(f"베이스 URL: {base_url}")
 
-    # WebSocketManager 초기화
     ws_manager = WebSocketManager(access_token, base_url)
 
-    # 콜백 등록
     async def on_price_data(data):
         """체결 데이터 콜백"""
         stock_code = data.get('item', '')
         values = data.get('values', {})
-        price = values.get('10', '0')  # 현재가
+        price = values.get('10', '0')
         print(f"📈 체결: {stock_code} - 현재가 {price}원")
 
     async def on_orderbook_data(data):
         """호가 데이터 콜백"""
         stock_code = data.get('item', '')
         values = data.get('values', {})
-        sell_price = values.get('27', '0')  # 매도호가
-        buy_price = values.get('28', '0')   # 매수호가
+        sell_price = values.get('27', '0')
+        buy_price = values.get('28', '0')
         print(f"📊 호가: {stock_code} - 매도 {sell_price}원 / 매수 {buy_price}원")
 
-    ws_manager.register_callback('0B', on_price_data)      # 주식체결
-    ws_manager.register_callback('0D', on_orderbook_data)  # 주식호가잔량
+    ws_manager.register_callback('0B', on_price_data)
+    ws_manager.register_callback('0D', on_orderbook_data)
 
     try:
-        # 연결
         success = await ws_manager.connect()
         if not success:
             print("❌ 연결 실패")
             return
 
-        # 구독 - 더 많은 종목으로 테스트
-        stock_codes = ["005930", "000660", "035720", "051910", "035420"]  # 삼성전자, SK하이닉스, 카카오, LG화학, NAVER
+        stock_codes = ["005930", "000660", "035720", "051910", "035420"]
         success = await ws_manager.subscribe(
             stock_codes=stock_codes,
-            types=["0B", "0D"],      # 체결 + 호가
+            types=["0B", "0D"],
             grp_no="1"
         )
         if not success:
@@ -506,7 +464,6 @@ async def test_websocket():
         print("💡 팁: 장중(09:00-15:30)에 테스트하면 실시간 데이터를 받을 수 있습니다.")
         print("     장외시간에는 체결/호가 데이터가 없어 메시지가 수신되지 않습니다.\n")
 
-        # 실시간 데이터 수신 (30초)
         print("실시간 데이터 수신 중 (30초)...")
         await asyncio.wait_for(ws_manager.receive_loop(), timeout=30.0)
 
@@ -515,7 +472,6 @@ async def test_websocket():
     except KeyboardInterrupt:
         print("\n⚠️ 사용자 중단")
     finally:
-        # 연결 종료
         await ws_manager.disconnect()
         print("WebSocket 테스트 종료")
 

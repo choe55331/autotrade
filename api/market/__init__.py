@@ -1,4 +1,3 @@
-"""
 api/market/__init__.py
 시장 정보 API 통합 모듈
 
@@ -8,7 +7,6 @@ api/market/__init__.py
 - ranking.py: 순위 정보
 - investor_data.py: 투자자 매매 데이터
 - stock_info.py: 종목/업종/테마 정보
-"""
 from .market_data import MarketDataAPI
 from .chart_data import ChartDataAPI, get_daily_chart
 from .ranking import RankingAPI
@@ -54,7 +52,6 @@ class MarketAPI:
         """
         self.client = client
 
-        # 5개 서브 API 초기화
         self.market_data = MarketDataAPI(client)
         self.chart_data = ChartDataAPI(client)
         self.ranking = RankingAPI(client)
@@ -63,9 +60,6 @@ class MarketAPI:
 
         logger.info("MarketAPI 초기화 완료 (5개 모듈 통합)")
 
-    # =========================================================================
-    # MarketDataAPI 메서드 위임 (시세/호가)
-    # =========================================================================
 
     def get_stock_price(self, stock_code: str, use_fallback: bool = True):
         """종목 체결정보 조회 (현재가)"""
@@ -83,17 +77,11 @@ class MarketAPI:
         """시장 지수 조회"""
         return self.market_data.get_market_index(market_code)
 
-    # =========================================================================
-    # ChartDataAPI 메서드 위임 (차트)
-    # =========================================================================
 
     def get_daily_chart(self, stock_code: str, period: int = 20, date: str = None):
         """일봉 차트 데이터 조회"""
         return self.chart_data.get_daily_chart(stock_code, period, date)
 
-    # =========================================================================
-    # RankingAPI 메서드 위임 (순위)
-    # =========================================================================
 
     def get_volume_rank(self, market: str = 'ALL', limit: int = 20, date: str = None):
         """전일 거래량 순위 조회"""
@@ -135,9 +123,6 @@ class MarketAPI:
         """장중 투자자별 매매 상위"""
         return self.ranking.get_investor_intraday_trading_rank(market, investor_type, limit)
 
-    # =========================================================================
-    # InvestorDataAPI 메서드 위임 (투자자 매매)
-    # =========================================================================
 
     def get_investor_trading(self, stock_code: str, date: str = None):
         """투자자별 매매 동향 조회"""
@@ -171,9 +156,6 @@ class MarketAPI:
         """프로그램매매 추이 조회"""
         return self.investor_data.get_program_trading(stock_code, days)
 
-    # =========================================================================
-    # StockInfoAPI 메서드 위임 (종목/업종/테마)
-    # =========================================================================
 
     def get_sector_list(self):
         """업종 목록 조회"""
@@ -200,7 +182,6 @@ class MarketAPI:
         return self.stock_info.search_stock(keyword)
 
 
-# Export consolidated API
 __all__ = [
     'MarketAPI',
     'MarketDataAPI',

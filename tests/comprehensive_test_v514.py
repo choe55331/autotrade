@@ -1,13 +1,10 @@
-"""
 Comprehensive Test Suite for v5.14 Enhancements
 Market Scanner, Trading Bot
-"""
 import sys
 import os
 from datetime import datetime, timedelta
 import numpy as np
 
-# Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
@@ -22,7 +19,6 @@ def test_market_scanner():
             MarketScanner, ScannerSignal, SignalStrength
         )
 
-        # Test 1: Initialize
         print("\n[Test 1] Market Scanner Initialization")
         scanner = MarketScanner(
             volume_spike_threshold=2.0,
@@ -31,7 +27,6 @@ def test_market_scanner():
         )
         print(f"✓ Initialized: volume_threshold={scanner.volume_spike_threshold}")
 
-        # Test 2: Generate Sample Data
         print("\n[Test 2] Generating Sample Market Data")
         market_data = {}
         price_histories = {}
@@ -39,7 +34,6 @@ def test_market_scanner():
         stock_codes = ['005930', '000660', '035420']
 
         for stock in stock_codes:
-            # Current data with volume spike
             volume_spike = 3.0 if stock == '005930' else 1.0
             market_data[stock] = {
                 'stock_code': stock,
@@ -52,7 +46,6 @@ def test_market_scanner():
                 'ask': 70100
             }
 
-            # Historical data
             history = []
             for i in range(30):
                 history.append({
@@ -68,7 +61,6 @@ def test_market_scanner():
 
         print(f"✓ Generated data for {len(market_data)} stocks")
 
-        # Test 3: Scan Market
         print("\n[Test 3] Scanning Market")
         signals = scanner.scan_market(market_data, price_histories)
         print(f"✓ Scan complete: {len(signals)} signals found")
@@ -77,7 +69,6 @@ def test_market_scanner():
             print(f"  - {signal.stock_name}: {signal.signal_type.value} "
                   f"(strength={signal.strength.name}, confidence={signal.confidence:.2f})")
 
-        # Test 4: Top Opportunities
         print("\n[Test 4] Top Opportunities")
         opportunities = scanner.get_top_opportunities(
             signals,
@@ -87,7 +78,6 @@ def test_market_scanner():
         )
         print(f"✓ Found {len(opportunities)} top opportunities")
 
-        # Test 5: Statistics
         print("\n[Test 5] Scanner Statistics")
         stats = scanner.get_statistics()
         print(f"✓ Statistics:")
@@ -117,7 +107,6 @@ def test_trading_bot():
             MomentumStrategy, MeanReversionStrategy, BreakoutStrategy
         )
 
-        # Test 1: Initialize
         print("\n[Test 1] Trading Bot Initialization")
         bot = AutomatedTradingBot(
             initial_capital=10000000,
@@ -129,19 +118,16 @@ def test_trading_bot():
         )
         print(f"✓ Initialized: capital={bot.initial_capital:,.0f}, mode={bot.trading_mode.value}")
 
-        # Test 2: Add Strategies
         print("\n[Test 2] Adding Strategies")
         bot.add_strategy(MomentumStrategy(lookback_period=20, threshold=0.05))
         bot.add_strategy(MeanReversionStrategy(lookback_period=20, std_threshold=2.0))
         bot.add_strategy(BreakoutStrategy(lookback_period=20, breakout_threshold=0.02))
         print(f"✓ Added {len(bot.strategies)} strategies")
 
-        # Test 3: Start Bot
         print("\n[Test 3] Starting Bot")
         bot.start()
         print(f"✓ Bot started: status={bot.status.value}")
 
-        # Test 4: Generate Market Data
         print("\n[Test 4] Generating Market Data")
         market_data = {}
         price_histories = {}
@@ -149,7 +135,6 @@ def test_trading_bot():
         stock_codes = ['005930', '000660', '035420', '051910', '005380']
 
         for i, stock in enumerate(stock_codes):
-            # Create trending data for first stock
             trend = 1000 if i == 0 else 0
 
             market_data[stock] = {
@@ -161,7 +146,6 @@ def test_trading_bot():
                 'low': 69000 + trend
             }
 
-            # Historical data with trend
             history = []
             for j in range(30):
                 day_trend = trend * (j / 30) if i == 0 else 0
@@ -178,14 +162,12 @@ def test_trading_bot():
 
         print(f"✓ Generated data for {len(market_data)} stocks")
 
-        # Test 5: Execute Trading Cycle
         print("\n[Test 5] Executing Trading Cycle")
         for cycle in range(3):
             bot.execute_cycle(market_data, price_histories)
             print(f"✓ Cycle {cycle + 1} complete: "
                   f"positions={len(bot.positions)}, cash={bot.cash:,.0f}")
 
-        # Test 6: Performance
         print("\n[Test 6] Bot Performance")
         perf = bot.get_performance()
         print(f"✓ Performance metrics:")
@@ -195,18 +177,15 @@ def test_trading_bot():
         print(f"  Total P&L: {perf.total_pnl:+,.0f}원 ({perf.total_pnl_pct:+.2f}%)")
         print(f"  Available capital: {perf.available_capital:,.0f}원")
 
-        # Test 7: Test Stop-Loss
         print("\n[Test 7] Testing Stop-Loss")
         if bot.positions:
-            # Simulate price drop
             for stock_code, position in list(bot.positions.items()):
-                market_data[stock_code]['price'] = position.entry_price * 0.92  # -8%
+                market_data[stock_code]['price'] = position.entry_price * 0.92
                 position.current_price = market_data[stock_code]['price']
 
             bot._check_exit_conditions(market_data)
             print(f"✓ Stop-loss check complete")
 
-        # Test 8: Pause and Resume
         print("\n[Test 8] Pause and Resume")
         bot.pause()
         print(f"✓ Bot paused: status={bot.status.value}")
@@ -214,7 +193,6 @@ def test_trading_bot():
         bot.resume()
         print(f"✓ Bot resumed: status={bot.status.value}")
 
-        # Test 9: Stop Bot
         print("\n[Test 9] Stopping Bot")
         bot.stop()
         print(f"✓ Bot stopped: status={bot.status.value}")
@@ -246,7 +224,6 @@ def test_integration():
 
         print("\n[Test 2] Integrated Workflow")
 
-        # Generate market data
         market_data = {}
         price_histories = {}
 
@@ -275,20 +252,16 @@ def test_integration():
 
             price_histories[stock] = history
 
-        # Scan market
         signals = scanner.scan_market(market_data, price_histories)
         print(f"✓ Market scan: {len(signals)} signals")
 
-        # Get opportunities
         opportunities = scanner.get_top_opportunities(signals, top_n=3)
         print(f"✓ Top opportunities: {len(opportunities)}")
 
-        # Start bot and execute
         bot.start()
         bot.execute_cycle(market_data, price_histories)
         print(f"✓ Bot executed: {len(bot.positions)} positions opened")
 
-        # Get performance
         perf = bot.get_performance()
         print(f"✓ Bot performance: {perf.total_trades} trades, "
               f"{perf.total_pnl:+,.0f}원 P&L")
@@ -312,16 +285,12 @@ def main():
 
     results = []
 
-    # Test 1: Market Scanner
     results.append(("Market Scanner", test_market_scanner()))
 
-    # Test 2: Trading Bot
     results.append(("Trading Bot", test_trading_bot()))
 
-    # Test 3: Integration
     results.append(("Integration Test", test_integration()))
 
-    # Summary
     print("\n" + "=" * 60)
     print("TEST SUMMARY - v5.14")
     print("=" * 60)

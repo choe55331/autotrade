@@ -1,11 +1,9 @@
-"""
 NXT 시간외 거래 매수/매도 조합 테스트
 다양한 파라미터 조합을 시도해서 정답을 찾습니다.
 
 ⚠️ 주의: 실제 주문이 체결됩니다!
 - 소액(1주)으로 테스트합니다
 - 테스트 후 즉시 정리합니다
-"""
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
@@ -28,7 +26,6 @@ class TradingCombinationTester:
         self.market_api = MarketAPI(self.client)
         self.results = []
 
-        # 테스트 종목 (삼성전자)
         self.test_stock = "005930"
         self.test_name = "삼성전자"
 
@@ -71,7 +68,6 @@ class TradingCombinationTester:
         logger.info(f"   파라미터: dmst_stex_tp={dmst_stex_tp}, trde_tp={trde_tp}, ord_uv={ord_uv}")
         logger.info(f"{'='*80}")
 
-        # 매수 주문 시도
         body_params = {
             "dmst_stex_tp": dmst_stex_tp,
             "stk_cd": self.test_stock,
@@ -103,7 +99,6 @@ class TradingCombinationTester:
             if success:
                 logger.info(f"✅ 성공! 주문번호: {result.get('ord_no')}")
 
-                # 성공한 경우 즉시 취소 (청소)
                 time.sleep(0.5)
                 self.cancel_order(result.get('ord_no'), dmst_stex_tp)
             else:
@@ -137,7 +132,7 @@ class TradingCombinationTester:
                 "dmst_stex_tp": dmst_stex_tp,
                 "orig_ord_no": order_no,
                 "stk_cd": self.test_stock,
-                "cncl_qty": "0"  # 전량 취소
+                "cncl_qty": "0"
             }
 
             result = self.client.request(
@@ -167,7 +162,6 @@ class TradingCombinationTester:
         logger.info(f"성공: {success_count}개 ✅")
         logger.info(f"실패: {total_count - success_count}개 ❌")
 
-        # 성공한 케이스들
         logger.info(f"\n{'='*80}")
         logger.info(f"✅ 성공한 조합:")
         logger.info(f"{'='*80}")
@@ -180,7 +174,6 @@ class TradingCombinationTester:
         else:
             logger.info(f"  없음")
 
-        # 실패한 케이스들
         logger.info(f"\n{'='*80}")
         logger.info(f"❌ 실패한 조합:")
         logger.info(f"{'='*80}")
@@ -190,7 +183,6 @@ class TradingCombinationTester:
             logger.info(f"     dmst_stex_tp={r['dmst_stex_tp']}, trde_tp={r['trde_tp']}, ord_uv={r['ord_uv']}")
             logger.info(f"     오류: {r['error']}")
 
-        # 결론
         logger.info(f"\n{'='*80}")
         logger.info(f"💡 결론")
         logger.info(f"{'='*80}")
@@ -214,7 +206,6 @@ def main():
     logger.info(f"⚠️  소액(1주) 테스트 후 즉시 취소합니다.")
     logger.info(f"{'='*80}\n")
 
-    # 현재 시간 확인
     now = datetime.now()
     current_hour = now.hour
     logger.info(f"⏰ 현재 시간: {now.strftime('%H:%M:%S')}")
@@ -234,10 +225,8 @@ def main():
     elif 8 <= current_hour < 9:
         logger.info(f"✅ 장시작전 시간외 거래 시간대 (08:00-09:00)")
 
-    # 테스터 초기화
     tester = TradingCombinationTester()
 
-    # 현재가 조회
     current_price = tester.get_current_price()
     if not current_price:
         logger.error(f"현재가를 조회할 수 없습니다. 테스트를 중단합니다.")
@@ -245,9 +234,7 @@ def main():
 
     logger.info(f"📊 현재가: {current_price:,}원\n")
 
-    # 테스트 케이스 정의
     test_cases = [
-        # 1. 시간외 단일가 거래 (16:00-20:00 시간대)
         {
             'name': 'NXT + 시간외단일가(62) + 빈가격',
             'dmst_stex_tp': 'NXT',
@@ -270,7 +257,6 @@ def main():
             'description': 'KRX 거래소 + 시간외 단일가'
         },
 
-        # 2. 장마감후 시간외 (15:40-16:00 시간대)
         {
             'name': 'NXT + 장마감후시간외(81) + 빈가격',
             'dmst_stex_tp': 'NXT',
@@ -286,7 +272,6 @@ def main():
             'description': 'KRX + 장마감후 시간외'
         },
 
-        # 3. 장시작전 시간외 (08:00-09:00 시간대)
         {
             'name': 'NXT + 장시작전시간외(61) + 빈가격',
             'dmst_stex_tp': 'NXT',
@@ -302,7 +287,6 @@ def main():
             'description': 'KRX + 장시작전 시간외'
         },
 
-        # 4. 정규장 거래 (09:00-15:30)
         {
             'name': 'KRX + 보통지정가(0) + 가격지정',
             'dmst_stex_tp': 'KRX',
@@ -318,7 +302,6 @@ def main():
             'description': '정규장 시장가 거래'
         },
 
-        # 5. 기타 조합들
         {
             'name': 'SOR + 시간외단일가(62) + 빈가격',
             'dmst_stex_tp': 'SOR',
@@ -335,23 +318,19 @@ def main():
         },
     ]
 
-    # 사용자 확인
     logger.info(f"📋 총 {len(test_cases)}개의 조합을 테스트합니다.")
     response = input(f"\n계속하시겠습니까? (yes/no): ").strip().lower()
     if response not in ['yes', 'y']:
         logger.info(f"테스트를 취소했습니다.")
         return
 
-    # 각 테스트 케이스 실행
     for i, test_case in enumerate(test_cases, 1):
         logger.info(f"\n[{i}/{len(test_cases)}]")
         tester.test_order(test_case)
 
-        # API 호출 간격 (0.5초)
         if i < len(test_cases):
             time.sleep(0.5)
 
-    # 결과 요약
     tester.print_summary()
 
     logger.info(f"\n{'='*80}")

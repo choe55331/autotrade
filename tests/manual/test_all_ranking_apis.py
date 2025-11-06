@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-"""
 통합 API 테스트 스크립트
 
 기능:
@@ -7,9 +5,8 @@
 2. 전체 API 응답 키 자동 탐색 (선택사항, 133개)
 
 사용법:
-    python test_all_ranking_apis.py              # 주요 API만 빠르게 테스트
-    python test_all_ranking_apis.py --full       # 전체 API 탐색 포함
-"""
+    python test_all_ranking_apis.py
+    python test_all_ranking_apis.py --full
 
 import sys
 import json
@@ -68,23 +65,18 @@ class RankingAPITester:
             if result and len(result) > 0:
                 print(f"✅ 성공! {len(result)}개 조회")
 
-                # 샘플 데이터 출력 (상위 3개)
                 if len(result) > 0:
                     print("\n샘플 데이터 (상위 3개):")
                     for i, item in enumerate(result[:3], 1):
                         name_str = item.get('name', 'N/A')
 
-                        # API별로 다른 정보 표시
                         if api_id == 'ka90009':
-                            # 외국인기관매매: 순매수 금액
                             net_amt = item.get('net_amount', 0)
                             print(f"  {i}. {name_str} - 순매수금액: {net_amt:,}백만원")
                         elif api_id == 'ka10065':
-                            # 장중투자자별매매: 순매수량
                             net_qty = item.get('net_buy_qty', 0)
                             print(f"  {i}. {name_str} - 순매수량: {net_qty:,}주")
                         else:
-                            # 기본: 현재가
                             price = item.get('price', 0)
                             print(f"  {i}. {name_str} - 현재가: {price:,}원")
 
@@ -106,70 +98,60 @@ class RankingAPITester:
         """모든 ranking API 테스트"""
         print_header("주요 Ranking API 테스트 (10개)")
 
-        # 1. 전일거래량상위
         self.test_api(
             "전일거래량상위", "ka10031",
             self.market_api.get_volume_rank,
             market='KOSPI', limit=10
         )
 
-        # 2. 전일대비등락률상위
         self.test_api(
             "전일대비등락률상위", "ka10027",
             self.market_api.get_price_change_rank,
             market='KOSDAQ', sort='rise', limit=10
         )
 
-        # 3. 거래대금상위
         self.test_api(
             "거래대금상위", "ka10032",
             self.market_api.get_trading_value_rank,
             market='KOSPI', limit=10
         )
 
-        # 4. 거래량급증
         self.test_api(
             "거래량급증", "ka10023",
             self.market_api.get_volume_surge_rank,
             market='ALL', limit=10, time_interval=5
         )
 
-        # 5. 시가대비등락률
         self.test_api(
             "시가대비등락률", "ka10028",
             self.market_api.get_intraday_change_rank,
             market='KOSDAQ', sort='rise', limit=10
         )
 
-        # 6. 외국인 기간별 매매
         self.test_api(
             "외국인5일순매수", "ka10034",
             self.market_api.get_foreign_period_trading_rank,
             market='KOSPI', period_days=5, limit=10
         )
 
-        # 7. 외국인 연속 순매매
         self.test_api(
             "외국인연속순매매", "ka10035",
             self.market_api.get_foreign_continuous_trading_rank,
             market='KOSPI', trade_type='buy', limit=10
         )
 
-        # 8. 외국인/기관 매매상위
         self.test_api(
             "외국인기관매매", "ka90009",
             self.market_api.get_foreign_institution_trading_rank,
             market='KOSPI', limit=10
         )
 
-        # 9. 신용비율 상위
         self.test_api(
             "신용비율상위", "ka10033",
             self.market_api.get_credit_ratio_rank,
             market='KOSPI', limit=10
         )
 
-        # 10. 장중 투자자별 매매
         self.test_api(
             "장중투자자별매매", "ka10065",
             self.market_api.get_investor_intraday_trading_rank,
@@ -273,7 +255,6 @@ class APIResponseKeyDiscovery:
         calls = api_info.get('calls', [])
 
         for call in calls:
-            # success, corrected, pending 상태 모두 테스트
             status = call.get('status')
             if status not in ['success', 'corrected', 'pending']:
                 continue
@@ -282,7 +263,7 @@ class APIResponseKeyDiscovery:
                 'variant_idx': call.get('variant_idx'),
                 'path': call.get('path'),
                 'body': call.get('body'),
-                'call_status': status,  # 원래 상태 기록
+                'call_status': status,
                 'success': False,
                 'has_data': False,
                 'response_keys': None
@@ -356,7 +337,6 @@ class APIResponseKeyDiscovery:
 
         self.results = by_category
 
-        # 통계 출력
         print_header("탐색 결과 통계")
         print(f"총 API: {self.stats['total_apis']}")
         print(f"테스트: {self.stats['tested_apis']}")
@@ -389,11 +369,9 @@ def main():
     parser.add_argument('--full', action='store_true', help='전체 133개 API 탐색 포함')
     args = parser.parse_args()
 
-    # 결과 파일 경로 설정
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     log_file = Path(__file__).parent / f"test_all_apis_{timestamp}.txt"
 
-    # 화면과 파일에 동시 출력
     tee = TeeOutput(log_file)
     sys.stdout = tee
 
@@ -409,7 +387,6 @@ def main():
             print("모드: 주요 Ranking API만 (10개)")
         print()
 
-        # 클라이언트 초기화
         print("초기화 중...")
         try:
             client = KiwoomRESTClient()
@@ -421,12 +398,10 @@ def main():
             print(traceback.format_exc())
             return 1
 
-        # 1. 주요 Ranking API 테스트
         tester = RankingAPITester(market_api)
         tester.run_all_tests()
         all_success = tester.print_summary()
 
-        # 2. 전체 API 탐색 (옵션)
         if args.full:
             print("\n" + "=" * 80)
             print("전체 API 탐색을 시작합니다...")

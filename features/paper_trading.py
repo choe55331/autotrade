@@ -1,4 +1,3 @@
-"""
 Paper Trading Engine
 Real-time virtual trading system for strategy testing and AI learning
 
@@ -9,7 +8,6 @@ Features:
 - 24/7 background execution
 - Performance tracking and ranking
 - AI learning data source
-"""
 import json
 import threading
 import time
@@ -43,7 +41,7 @@ class VirtualTrade:
     """Virtual trade record"""
     id: str
     strategy_name: str
-    trade_type: str  # 'buy' or 'sell'
+    trade_type: str
     stock_code: str
     stock_name: str
     quantity: int
@@ -59,7 +57,7 @@ class VirtualAccount:
     strategy_name: str
     initial_balance: float
     current_balance: float
-    total_value: float  # Balance + positions value
+    total_value: float
     positions: List[VirtualPosition]
     trades: List[VirtualTrade]
     total_trades: int
@@ -80,7 +78,7 @@ class StrategyConfig:
     description: str
     initial_balance: float
     max_positions: int
-    position_size: float  # Amount per trade
+    position_size: float
     stop_loss_pct: float
     take_profit_pct: float
     entry_conditions: Dict[str, Any]
@@ -102,7 +100,7 @@ class StrategyPerformance:
     max_drawdown: float
     current_positions: int
     last_trade_time: str
-    score: float  # Overall performance score
+    score: float
 
 
 class PaperTradingEngine:
@@ -125,17 +123,13 @@ class PaperTradingEngine:
         self.market_api = market_api
         self.ai_agent = ai_agent
 
-        # Virtual accounts (one per strategy)
         self.accounts: Dict[str, VirtualAccount] = {}
 
-        # Strategy configs
         self.strategies: Dict[str, StrategyConfig] = {}
 
-        # Background execution
         self.is_running = False
         self.execution_thread: Optional[threading.Thread] = None
 
-        # Data files
         self.data_dir = Path('data/paper_trading')
         self.accounts_file = self.data_dir / 'accounts.json'
         self.strategies_file = self.data_dir / 'strategies.json'
@@ -152,7 +146,6 @@ class PaperTradingEngine:
     def _load_state(self):
         """Load saved state from files"""
         try:
-            # Load strategies
             if self.strategies_file.exists():
                 with open(self.strategies_file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
@@ -160,12 +153,10 @@ class PaperTradingEngine:
                         self.strategies[s['name']] = StrategyConfig(**s)
                 logger.info(f"Loaded {len(self.strategies)} paper trading strategies")
 
-            # Load accounts
             if self.accounts_file.exists():
                 with open(self.accounts_file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
                     for a in data.get('accounts', []):
-                        # Reconstruct positions and trades
                         positions = [VirtualPosition(**p) for p in a.get('positions', [])]
                         trades = [VirtualTrade(**t) for t in a.get('trades', [])]
                         a['positions'] = positions
@@ -179,14 +170,12 @@ class PaperTradingEngine:
     def _save_state(self):
         """Save state to files"""
         try:
-            # Save strategies
             with open(self.strategies_file, 'w', encoding='utf-8') as f:
                 json.dump({
                     'strategies': [asdict(s) for s in self.strategies.values()],
                     'last_updated': datetime.now().isoformat()
                 }, f, ensure_ascii=False, indent=2)
 
-            # Save accounts
             with open(self.accounts_file, 'w', encoding='utf-8') as f:
                 accounts_data = []
                 for account in self.accounts.values():
@@ -210,9 +199,9 @@ class PaperTradingEngine:
             StrategyConfig(
                 name='공격적 모멘텀',
                 description='높은 모멘텀 + 강한 거래량',
-                initial_balance=10000000,  # 1000만원
+                initial_balance=10000000,
                 max_positions=3,
-                position_size=3000000,  # 300만원
+                position_size=3000000,
                 stop_loss_pct=-2.0,
                 take_profit_pct=8.0,
                 entry_conditions={
@@ -231,7 +220,7 @@ class PaperTradingEngine:
                 description='저평가 종목 장기 보유',
                 initial_balance=10000000,
                 max_positions=5,
-                position_size=2000000,  # 200만원
+                position_size=2000000,
                 stop_loss_pct=-5.0,
                 take_profit_pct=15.0,
                 entry_conditions={
@@ -249,7 +238,7 @@ class PaperTradingEngine:
                 description='중립적 다각화 전략',
                 initial_balance=10000000,
                 max_positions=7,
-                position_size=1400000,  # 140만원
+                position_size=1400000,
                 stop_loss_pct=-3.0,
                 take_profit_pct=6.0,
                 entry_conditions={
@@ -291,7 +280,6 @@ class PaperTradingEngine:
         """Add a new strategy"""
         self.strategies[strategy.name] = strategy
 
-        # Create virtual account for strategy
         account = VirtualAccount(
             strategy_name=strategy.name,
             initial_balance=strategy.initial_balance,
@@ -338,28 +326,23 @@ class PaperTradingEngine:
 
         while self.is_running:
             try:
-                # Execute one iteration for all strategies
                 self._execute_iteration()
 
-                # Save state periodically
                 self._save_state()
 
-                # Sleep for a bit (e.g., 30 seconds)
                 time.sleep(30)
 
             except Exception as e:
                 logger.error(f"Error in paper trading execution loop: {e}")
-                time.sleep(60)  # Wait longer on error
+                time.sleep(60)
 
     def _execute_iteration(self):
         """Execute one iteration of paper trading"""
-        # Get available stocks from scanner (mock for now)
         candidates = self._get_candidates()
 
         if not candidates:
             return
 
-        # Execute each strategy
         for strategy_name, strategy in self.strategies.items():
             if not strategy.is_active:
                 continue
@@ -369,16 +352,12 @@ class PaperTradingEngine:
             except Exception as e:
                 logger.error(f"Error executing strategy {strategy_name}: {e}")
 
-        # Update all positions with current prices
         self._update_positions()
 
-        # Check exit conditions
         self._check_exit_conditions()
 
     def _get_candidates(self) -> List[Dict[str, Any]]:
         """Get candidate stocks (from scanner or mock)"""
-        # TODO: Integrate with real scanner
-        # For now, return mock candidates
         mock_candidates = [
             {
                 'code': '005930',
@@ -413,37 +392,29 @@ class PaperTradingEngine:
         strategy: StrategyConfig,
         candidates: List[Dict[str, Any]]
     ):
-        """Execute a strategy with given candidates"""
         account = self.accounts[strategy_name]
 
-        # Check if can buy more
         if len(account.positions) >= strategy.max_positions:
             return
 
         if account.current_balance < strategy.position_size:
             return
 
-        # Find stocks matching entry conditions
         for candidate in candidates:
-            # Check if already holding
             if any(p.stock_code == candidate['code'] for p in account.positions):
                 continue
 
-            # Check entry conditions
             if self._check_entry_conditions(strategy, candidate):
-                # Execute virtual buy
                 self._execute_virtual_buy(strategy_name, strategy, candidate)
-                break  # One buy per iteration
+                break
 
     def _check_entry_conditions(
         self,
         strategy: StrategyConfig,
         candidate: Dict[str, Any]
     ) -> bool:
-        """Check if candidate meets entry conditions"""
         conditions = strategy.entry_conditions
 
-        # AI strategy - use AI decision
         if 'ai_confidence_min' in conditions:
             if self.ai_agent:
                 decision = self.ai_agent.make_trading_decision(
@@ -455,7 +426,6 @@ class PaperTradingEngine:
                         decision.confidence >= conditions['ai_confidence_min'])
             return False
 
-        # Regular conditions
         rsi = candidate.get('rsi', 50)
         volume_ratio = candidate.get('volume_ratio', 1.0)
         score = candidate.get('score', 0)
@@ -477,7 +447,6 @@ class PaperTradingEngine:
         strategy: StrategyConfig,
         candidate: Dict[str, Any]
     ):
-        """Execute virtual buy order"""
         account = self.accounts[strategy_name]
 
         price = candidate['current_price']
@@ -488,7 +457,6 @@ class PaperTradingEngine:
 
         total_cost = price * quantity
 
-        # Create position
         position = VirtualPosition(
             stock_code=candidate['code'],
             stock_name=candidate['name'],
@@ -501,7 +469,6 @@ class PaperTradingEngine:
             strategy_name=strategy_name
         )
 
-        # Create trade record
         trade = VirtualTrade(
             id=f"{strategy_name}_{int(datetime.now().timestamp())}",
             strategy_name=strategy_name,
@@ -515,7 +482,6 @@ class PaperTradingEngine:
             total_amount=total_cost
         )
 
-        # Update account
         account.positions.append(position)
         account.trades.append(trade)
         account.current_balance -= total_cost
@@ -528,16 +494,12 @@ class PaperTradingEngine:
         """Update all positions with current prices"""
         for account in self.accounts.values():
             for position in account.positions:
-                # Get current price (mock for now)
-                # TODO: Use real market API
-                price_change = np.random.uniform(-0.02, 0.02)  # -2% to +2%
+                price_change = np.random.uniform(-0.02, 0.02)
                 position.current_price = position.buy_price * (1 + price_change)
 
-                # Calculate P/L
                 position.profit_loss = (position.current_price - position.buy_price) * position.quantity
                 position.profit_loss_pct = ((position.current_price - position.buy_price) / position.buy_price) * 100
 
-            # Update total value
             positions_value = sum(p.current_price * p.quantity for p in account.positions)
             account.total_value = account.current_balance + positions_value
             account.total_profit = account.total_value - account.initial_balance
@@ -553,12 +515,10 @@ class PaperTradingEngine:
                 should_exit = False
                 exit_reason = ""
 
-                # Stop loss
                 if position.profit_loss_pct <= strategy.stop_loss_pct:
                     should_exit = True
                     exit_reason = f"Stop Loss ({position.profit_loss_pct:.1f}%)"
 
-                # Take profit
                 elif position.profit_loss_pct >= strategy.take_profit_pct:
                     should_exit = True
                     exit_reason = f"Take Profit ({position.profit_loss_pct:.1f}%)"
@@ -567,7 +527,6 @@ class PaperTradingEngine:
                     self._execute_virtual_sell(strategy_name, position, exit_reason)
                     positions_to_remove.append(i)
 
-            # Remove sold positions
             for i in reversed(positions_to_remove):
                 account.positions.pop(i)
 
@@ -577,12 +536,10 @@ class PaperTradingEngine:
         position: VirtualPosition,
         reason: str
     ):
-        """Execute virtual sell order"""
         account = self.accounts[strategy_name]
 
         total_proceeds = position.current_price * position.quantity
 
-        # Create trade record
         trade = VirtualTrade(
             id=f"{strategy_name}_{int(datetime.now().timestamp())}",
             strategy_name=strategy_name,
@@ -596,12 +553,10 @@ class PaperTradingEngine:
             total_amount=total_proceeds
         )
 
-        # Update account
         account.trades.append(trade)
         account.current_balance += total_proceeds
         account.last_updated = datetime.now().isoformat()
 
-        # Update win/loss stats
         if position.profit_loss > 0:
             account.winning_trades += 1
         else:
@@ -614,7 +569,6 @@ class PaperTradingEngine:
                    f"{position.quantity}주 @ {position.current_price:,.0f}원 "
                    f"({position.profit_loss_pct:+.1f}%) - {reason}")
 
-        # Feed to AI for learning if profitable strategy
         if self.ai_agent and position.profit_loss > 0:
             self.ai_agent.learn_from_trade_result({
                 'stock_code': position.stock_code,
@@ -628,7 +582,6 @@ class PaperTradingEngine:
         performances = []
 
         for strategy_name, account in self.accounts.items():
-            # Calculate performance score
             return_pct = ((account.total_value - account.initial_balance) / account.initial_balance) * 100
             score = (
                 return_pct * 0.4 +
@@ -642,7 +595,7 @@ class PaperTradingEngine:
 
             perf = StrategyPerformance(
                 strategy_name=strategy_name,
-                rank=0,  # Will be set after sorting
+                rank=0,
                 total_return=account.total_profit,
                 total_return_pct=return_pct,
                 win_rate=account.win_rate,
@@ -657,10 +610,8 @@ class PaperTradingEngine:
             )
             performances.append(perf)
 
-        # Sort by score
         performances.sort(key=lambda x: x.score, reverse=True)
 
-        # Assign ranks
         for i, perf in enumerate(performances):
             perf.rank = i + 1
 
@@ -682,7 +633,6 @@ class PaperTradingEngine:
         }
 
 
-# Global instance
 _paper_trading_engine: Optional[PaperTradingEngine] = None
 
 
@@ -694,25 +644,20 @@ def get_paper_trading_engine(market_api=None, ai_agent=None) -> PaperTradingEngi
     return _paper_trading_engine
 
 
-# Example usage
 if __name__ == '__main__':
-    # Test paper trading engine
     engine = PaperTradingEngine()
 
     print("\n📈 Paper Trading Engine Test")
     print("=" * 60)
 
-    # Start engine
     engine.start()
 
     print(f"Strategies: {len(engine.strategies)}")
     for name in engine.strategies:
         print(f"  - {name}")
 
-    # Let it run for a bit
     time.sleep(5)
 
-    # Get rankings
     rankings = engine.get_strategy_rankings()
     print(f"\n전략 순위:")
     for rank in rankings:
@@ -721,5 +666,4 @@ if __name__ == '__main__':
         print(f"     승률: {rank.win_rate:.0%}")
         print(f"     거래 수: {rank.total_trades}")
 
-    # Stop engine
     engine.stop()

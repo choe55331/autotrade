@@ -1,4 +1,3 @@
-"""
 NXT 주문 집중 테스트 (타겟팅)
 
 일반 테스트에서 모든 주문이 실패했으므로,
@@ -6,7 +5,6 @@ NXT 시간에 실제로 작동할 가능성이 높은 조합만 집중 테스트
 
 사용법:
     python test_nxt_orders_targeted.py
-"""
 
 import json
 import logging
@@ -41,7 +39,6 @@ class NXTOrderTargetedTest:
         self.hour = now.hour
         self.minute = now.minute
 
-        # 결과 저장
         self.results = {
             'timestamp': datetime.now().isoformat(),
             'is_nxt_time': self.is_nxt,
@@ -67,7 +64,6 @@ class NXTOrderTargetedTest:
         try:
             holdings = self.account_api.get_holdings()
             if holdings and len(holdings) > 0:
-                # 첫 번째 보유종목 사용
                 stock = holdings[0]
                 stock_code = str(stock.get('stk_cd', '')).strip()
                 if stock_code.startswith('A'):
@@ -80,31 +76,26 @@ class NXTOrderTargetedTest:
         except Exception as e:
             logger.warning(f"보유종목 조회 실패: {e}")
 
-        # 기본값: 삼성전자
         logger.info("✅ 테스트 종목: 삼성전자 (005930) - 기본값")
         return '005930', '삼성전자'
 
     def get_appropriate_price(self, stock_code: str) -> int:
         """적절한 주문 가격 산정"""
         try:
-            # 현재가 조회
             price_info = self.market_api.get_stock_price(stock_code)
             if price_info and price_info.get('current_price', 0) > 0:
                 current_price = price_info['current_price']
-                # 현재가보다 약간 낮은 가격 (매수 가능성 높임)
-                order_price = int(current_price * 0.98)  # 2% 낮게
+                order_price = int(current_price * 0.98)
                 logger.info(f"현재가: {current_price:,}원 → 주문가: {order_price:,}원")
                 return order_price
 
         except Exception as e:
             logger.warning(f"현재가 조회 실패: {e}")
 
-        # 기본값
         return 50000
 
     def test_order(self, dmst_stex_tp: str, trde_tp: str, desc: str,
                    stock_code: str, stock_name: str, price: int, quantity: int = 1) -> Dict[str, Any]:
-        """주문 테스트"""
 
         logger.info(f"\n{'='*60}")
         logger.info(f"🧪 테스트: {desc}")
@@ -237,11 +228,9 @@ class NXTOrderTargetedTest:
         logger.info(f"NXT 시간: {self.is_nxt}")
         logger.info(f"정규장 시간: {self.is_market}")
 
-        # 테스트 종목 및 가격 선택
         stock_code, stock_name = self.get_test_stock()
         price = self.get_appropriate_price(stock_code)
 
-        # 확인
         logger.info("\n" + "="*80)
         logger.info("⚠️  실제 주문이 발생합니다!")
         logger.info("="*80)
@@ -255,7 +244,6 @@ class NXTOrderTargetedTest:
             logger.info("테스트를 취소합니다.")
             return
 
-        # 시간대별 테스트 실행
         if period == '프리마켓':
             self.run_premarket_tests(stock_code, stock_name, price)
         elif period == '애프터마켓':
@@ -264,14 +252,11 @@ class NXTOrderTargetedTest:
             self.run_regular_market_tests(stock_code, stock_name, price)
         else:
             logger.warning("⚠️  장외 시간입니다. NXT 시간(08:00-09:00, 15:30-20:00) 또는 정규장(09:00-15:30)에 실행하세요.")
-            # 그래도 애프터마켓 조합 테스트
             logger.info("\n애프터마켓 조합으로 테스트를 시도합니다...")
             self.run_aftermarket_tests(stock_code, stock_name, price)
 
-        # 결과 요약
         self.print_summary()
 
-        # 결과 저장
         self.save_results()
 
     def print_summary(self):
@@ -292,7 +277,6 @@ class NXTOrderTargetedTest:
                 logger.info(f"      dmst_stex_tp={test['dmst_stex_tp']}, trde_tp={test['trde_tp']}")
                 logger.info(f"      주문번호: {test['ord_no']}")
 
-            # 권장 코드
             best = success_tests[0]
             logger.info("\n" + "="*80)
             logger.info("🎯 권장 코드")
@@ -315,11 +299,9 @@ def buy_stock_nxt(self, stock_code: str, quantity: int, price: int):
     )
 
     return response.get('ord_no') if response.get('return_code') == 0 else None
-            """)
         else:
             logger.warning("\n❌ 성공한 조합이 없습니다.")
 
-            # 오류 분석
             error_groups = {}
             for test in tests:
                 msg = test.get('return_msg', test.get('error', 'Unknown'))

@@ -1,4 +1,3 @@
-"""
 AI Mode - Autonomous Trading Agent
 Complete AI-driven trading system with self-learning and dynamic optimization
 
@@ -9,7 +8,6 @@ Features:
 - Automatic strategy generation
 - Risk-adaptive behavior
 - Continuous self-improvement
-"""
 import json
 import numpy as np
 import pandas as pd
@@ -36,15 +34,15 @@ class AIConfidence(Enum):
 class AIDecision:
     """Single AI decision"""
     timestamp: str
-    decision_type: str  # 'buy', 'sell', 'hold', 'parameter_adjust'
+    decision_type: str
     stock_code: Optional[str]
     stock_name: Optional[str]
     action: str
-    reasoning: List[str]  # AI's reasoning process
-    confidence: float  # 0.0 to 1.0
+    reasoning: List[str]
+    confidence: float
     parameters_used: Dict[str, Any]
     expected_outcome: str
-    risk_level: str  # 'Low', 'Medium', 'High'
+    risk_level: str
 
 
 @dataclass
@@ -69,12 +67,12 @@ class AIStrategy:
     name: str
     description: str
     created_at: str
-    performance_score: float  # 0-100
+    performance_score: float
     win_rate: float
     avg_profit: float
     risk_level: str
     parameters: Dict[str, Any]
-    conditions: List[str]  # When to apply this strategy
+    conditions: List[str]
     is_active: bool
 
 
@@ -102,12 +100,10 @@ class AIAgent:
         self.enabled = False
         self.learning_mode = True
 
-        # AI state
         self.decisions_history: List[AIDecision] = []
         self.strategies: List[AIStrategy] = []
         self.performance: AIPerformance = self._init_performance()
 
-        # Dynamic parameters (AI will adjust these)
         self.dynamic_params = {
             'max_stock_holdings': 5,
             'buy_amount_per_stock': 100000,
@@ -118,10 +114,9 @@ class AIAgent:
             'technical_indicators_weight': 0.7,
             'news_sentiment_weight': 0.3,
             'min_score_threshold': 300,
-            'position_sizing_method': 'equal',  # 'equal', 'risk_based', 'kelly'
+            'position_sizing_method': 'equal',
         }
 
-        # Learning data
         self.learning_data_file = Path('data/ai_learning.json')
         self.strategies_file = Path('data/ai_strategies.json')
         self.decisions_file = Path('data/ai_decisions.json')
@@ -153,7 +148,6 @@ class AIAgent:
     def _load_ai_state(self):
         """Load AI state from files"""
         try:
-            # Load strategies
             if self.strategies_file.exists():
                 with open(self.strategies_file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
@@ -161,12 +155,11 @@ class AIAgent:
                         self.strategies = [AIStrategy(**s) for s in data['strategies']]
                     logger.info(f"Loaded {len(self.strategies)} AI strategies")
 
-            # Load decisions history
             if self.decisions_file.exists():
                 with open(self.decisions_file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
                     if 'decisions' in data:
-                        self.decisions_history = [AIDecision(**d) for d in data['decisions'][-100:]]  # Keep last 100
+                        self.decisions_history = [AIDecision(**d) for d in data['decisions'][-100:]]
                     logger.info(f"Loaded {len(self.decisions_history)} AI decisions")
 
         except Exception as e:
@@ -175,14 +168,12 @@ class AIAgent:
     def _save_ai_state(self):
         """Save AI state to files"""
         try:
-            # Save strategies
             with open(self.strategies_file, 'w', encoding='utf-8') as f:
                 json.dump({
                     'strategies': [asdict(s) for s in self.strategies],
                     'last_updated': datetime.now().isoformat()
                 }, f, ensure_ascii=False, indent=2)
 
-            # Save decisions
             with open(self.decisions_file, 'w', encoding='utf-8') as f:
                 json.dump({
                     'decisions': [asdict(d) for d in self.decisions_history[-100:]],
@@ -197,7 +188,6 @@ class AIAgent:
         self.enabled = True
         logger.info("🤖 AI Mode ENABLED - Autonomous trading activated")
 
-        # Create initial strategies if none exist
         if len(self.strategies) == 0:
             self._generate_initial_strategies()
 
@@ -261,8 +251,8 @@ class AIAgent:
                 avg_profit=4.8,
                 risk_level='High',
                 parameters={
-                    'breakout_threshold': 0.03,  # 3% 돌파
-                    'volume_surge': 2.0,  # 거래량 2배
+                    'breakout_threshold': 0.03,
+                    'volume_surge': 2.0,
                     'trend_strength': 'strong',
                     'stop_loss': -2.5,
                     'take_profit': 7.0
@@ -306,7 +296,7 @@ class AIAgent:
         try:
             analysis = {
                 'timestamp': datetime.now().isoformat(),
-                'market_trend': 'bullish',  # Will be determined by AI
+                'market_trend': 'bullish',
                 'volatility_level': 'medium',
                 'sector_leaders': [],
                 'risk_indicators': [],
@@ -316,12 +306,9 @@ class AIAgent:
                 'recommended_action': 'active_trading'
             }
 
-            # Analyze market trend (simplified - would use real data)
             if self.bot:
-                # Get market data
                 market_status = getattr(self.bot, 'market_status', {})
 
-                # Determine trend based on available data
                 if market_status.get('is_trading_hours'):
                     analysis['market_trend'] = 'bullish'
                     analysis['recommended_action'] = 'active_trading'
@@ -329,7 +316,6 @@ class AIAgent:
                     analysis['market_trend'] = 'neutral'
                     analysis['recommended_action'] = 'monitoring'
 
-            # AI reasoning
             analysis['ai_reasoning'] = [
                 "시장 전반적인 모멘텀 분석 완료",
                 "거래량 패턴 정상 범위 내",
@@ -361,7 +347,6 @@ class AIAgent:
         if not self.strategies:
             return None
 
-        # Score each strategy based on current conditions
         strategy_scores = []
 
         for strategy in self.strategies:
@@ -370,24 +355,21 @@ class AIAgent:
 
             score = strategy.performance_score
 
-            # Adjust score based on market conditions
             market_trend = market_conditions.get('market_trend', 'neutral')
 
             if market_trend == 'bullish':
                 if 'momentum' in strategy.id or 'breakout' in strategy.id:
-                    score *= 1.2  # Favor momentum strategies in bull market
+                    score *= 1.2
             elif market_trend == 'bearish':
                 if 'value' in strategy.id or 'contrarian' in strategy.id:
-                    score *= 1.2  # Favor contrarian strategies in bear market
+                    score *= 1.2
 
-            # Consider risk level
             volatility = market_conditions.get('volatility_level', 'medium')
             if volatility == 'high' and strategy.risk_level == 'Low':
-                score *= 1.15  # Favor low-risk strategies in high volatility
+                score *= 1.15
 
             strategy_scores.append((strategy, score))
 
-        # Sort by score and return best
         if strategy_scores:
             strategy_scores.sort(key=lambda x: x[1], reverse=True)
             best_strategy = strategy_scores[0][0]
@@ -403,7 +385,6 @@ class AIAgent:
         stock_name: str,
         stock_data: Dict[str, Any]
     ) -> AIDecision:
-        """
         AI makes a trading decision for a stock
 
         Args:
@@ -413,29 +394,23 @@ class AIAgent:
 
         Returns:
             AI decision with reasoning
-        """
         try:
-            # Analyze market
             market_conditions = self.analyze_market_conditions()
 
-            # Select best strategy
             strategy = self.select_best_strategy(market_conditions)
 
             if not strategy:
                 return self._make_default_decision(stock_code, stock_name, 'hold')
 
-            # Extract data
             current_price = stock_data.get('current_price', 0)
             rsi = stock_data.get('rsi', 50)
             volume_ratio = stock_data.get('volume_ratio', 1.0)
             score = stock_data.get('total_score', 0)
 
-            # Apply strategy logic
             reasoning = []
             confidence = 0.5
             action = 'hold'
 
-            # Strategy: Momentum Growth
             if strategy.id == 'momentum_growth':
                 rsi_range = strategy.parameters.get('rsi_range', [40, 70])
 
@@ -455,7 +430,6 @@ class AIAgent:
                         "관망 권장"
                     ]
 
-            # Strategy: Value Contrarian
             elif strategy.id == 'value_contrarian':
                 rsi_range = strategy.parameters.get('rsi_range', [20, 35])
 
@@ -469,7 +443,6 @@ class AIAgent:
                         "반등 기대"
                     ]
 
-            # Strategy: Breakout Volatility
             elif strategy.id == 'breakout_volatility':
                 volume_surge = strategy.parameters.get('volume_surge', 2.0)
 
@@ -483,10 +456,9 @@ class AIAgent:
                         "추세 추종 신호"
                     ]
 
-            # Strategy: Sector Rotation
             elif strategy.id == 'sector_rotation':
                 sector = stock_data.get('sector', '기타')
-                if score > 350:  # High score indicates strong sector
+                if score > 350:
                     action = 'buy'
                     confidence = 0.68
                     reasoning = [
@@ -496,10 +468,8 @@ class AIAgent:
                         "상대적 강도 높음"
                     ]
 
-            # Calculate risk level
             risk_level = self._calculate_risk_level(confidence, strategy.risk_level)
 
-            # Create decision
             decision = AIDecision(
                 timestamp=datetime.now().isoformat(),
                 decision_type=action,
@@ -520,7 +490,6 @@ class AIAgent:
                 risk_level=risk_level
             )
 
-            # Record decision
             self.decisions_history.append(decision)
             self.performance.total_decisions += 1
             self.performance.avg_decision_confidence = (
@@ -528,7 +497,6 @@ class AIAgent:
                 / self.performance.total_decisions
             )
 
-            # Save state periodically
             if len(self.decisions_history) % 10 == 0:
                 self._save_ai_state()
 
@@ -547,7 +515,6 @@ class AIAgent:
         action: str,
         error: Optional[str] = None
     ) -> AIDecision:
-        """Make a default decision when AI fails"""
         return AIDecision(
             timestamp=datetime.now().isoformat(),
             decision_type=action,
@@ -583,31 +550,24 @@ class AIAgent:
         try:
             logger.info("🧠 AI Self-optimization starting...")
 
-            # Analyze recent decisions
             if len(self.decisions_history) < 10:
                 logger.info("Not enough data for optimization yet")
                 return
 
-            recent_decisions = self.decisions_history[-50:]  # Last 50 decisions
+            recent_decisions = self.decisions_history[-50:]
 
-            # Calculate success metrics
-            # (In real implementation, would compare decisions with actual outcomes)
 
-            # Optimize stop loss and take profit based on volatility
             avg_confidence = np.mean([d.confidence for d in recent_decisions])
 
             if avg_confidence > 0.75:
-                # High confidence - can be more aggressive
                 self.dynamic_params['stop_loss_pct'] = -2.5
                 self.dynamic_params['take_profit_pct'] = 6.0
                 logger.info("AI: Confidence high, adjusting to aggressive parameters")
             elif avg_confidence < 0.55:
-                # Low confidence - be more conservative
                 self.dynamic_params['stop_loss_pct'] = -4.0
                 self.dynamic_params['take_profit_pct'] = 4.0
                 logger.info("AI: Confidence low, adjusting to conservative parameters")
 
-            # Update performance
             self.performance.parameters_optimized += 1
             self.performance.learning_iterations += 1
             self.performance.last_learning_time = datetime.now().isoformat()
@@ -635,35 +595,31 @@ class AIAgent:
             else:
                 self.performance.failed_decisions += 1
 
-            # Update success rate
             total = self.performance.successful_decisions + self.performance.failed_decisions
             if total > 0:
                 self.performance.success_rate = self.performance.successful_decisions / total
 
-            # Find the decision that led to this trade
             stock_code = trade_result.get('stock_code')
             if stock_code:
                 matching_decisions = [d for d in self.decisions_history
                                      if d.stock_code == stock_code and d.decision_type == 'buy']
 
                 if matching_decisions:
-                    decision = matching_decisions[-1]  # Most recent
+                    decision = matching_decisions[-1]
 
-                    # Learn: If high confidence decision failed, reduce strategy score
                     if not was_successful and decision.confidence > 0.7:
                         strategy_name = decision.parameters_used.get('strategy', '')
                         for strategy in self.strategies:
                             if strategy.name == strategy_name:
-                                strategy.performance_score *= 0.95  # Reduce by 5%
+                                strategy.performance_score *= 0.95
                                 logger.info(f"AI Learning: Reduced {strategy_name} score to {strategy.performance_score:.1f}")
                                 break
 
-                    # Learn: If low confidence decision succeeded, increase strategy score
                     elif was_successful and decision.confidence < 0.6:
                         strategy_name = decision.parameters_used.get('strategy', '')
                         for strategy in self.strategies:
                             if strategy.name == strategy_name:
-                                strategy.performance_score = min(100, strategy.performance_score * 1.05)  # Increase by 5%
+                                strategy.performance_score = min(100, strategy.performance_score * 1.05)
                                 logger.info(f"AI Learning: Increased {strategy_name} score to {strategy.performance_score:.1f}")
                                 break
 
@@ -686,18 +642,16 @@ class AIAgent:
             New AI-generated strategy or None
         """
         try:
-            # Generate unique ID
             strategy_id = f"ai_gen_{len(self.strategies) + 1}_{int(datetime.now().timestamp())}"
 
-            # AI creates a new strategy based on observed patterns
             new_strategy = AIStrategy(
                 id=strategy_id,
-                name=f"AI 자동생성 전략 #{len(self.strategies) + 1}",
+                name=f"AI 자동생성 전략
                 description="AI가 시장 패턴을 분석하여 자동으로 생성한 전략",
                 created_at=datetime.now().isoformat(),
-                performance_score=50.0,  # Start at neutral
-                win_rate=0.5,  # Will be updated
-                avg_profit=0.0,  # Will be updated
+                performance_score=50.0,
+                win_rate=0.5,
+                avg_profit=0.0,
                 risk_level='Medium',
                 parameters={
                     'rsi_threshold': 45 + np.random.randint(-10, 10),
@@ -750,14 +704,13 @@ class AIAgent:
                 'total_decisions': self.performance.total_decisions,
                 'total_profit': self.performance.total_profit,
             },
-            'strategies': [asdict(s) for s in self.strategies[:5]],  # Top 5
-            'recent_decisions': [asdict(d) for d in self.decisions_history[-10:]],  # Last 10
+            'strategies': [asdict(s) for s in self.strategies[:5]],
+            'recent_decisions': [asdict(d) for d in self.decisions_history[-10:]],
             'performance': asdict(self.performance),
             'dynamic_parameters': self.dynamic_params
         }
 
 
-# Global AI agent instance
 _ai_agent: Optional[AIAgent] = None
 
 
@@ -771,21 +724,17 @@ def get_ai_agent(bot_instance=None) -> AIAgent:
     return _ai_agent
 
 
-# Example usage
 if __name__ == '__main__':
-    # Test AI agent
     agent = AIAgent()
     agent.enable_ai_mode()
 
     print("\n🤖 AI Mode Test")
     print("=" * 60)
 
-    # Test market analysis
     market_conditions = agent.analyze_market_conditions()
     print(f"\n시장 분석: {market_conditions['market_trend']}")
     print(f"AI 신뢰도: {market_conditions['ai_confidence']:.0%}")
 
-    # Test decision making
     stock_data = {
         'current_price': 73500,
         'rsi': 45,
@@ -800,7 +749,6 @@ if __name__ == '__main__':
     for reason in decision.reasoning:
         print(f"  - {reason}")
 
-    # Test optimization
     agent.optimize_parameters()
     print(f"\n최적화 완료: {agent.performance.learning_iterations}회")
 

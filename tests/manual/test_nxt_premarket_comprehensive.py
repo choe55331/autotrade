@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-"""
 NXT 프리마켓(08:00-09:00) 현재가 조회 종합 테스트
 
 오전 8시~9시 사이에 실행하여 다양한 조건에서 NXT 현재가 조회 테스트
@@ -12,7 +10,6 @@ NXT 프리마켓(08:00-09:00) 현재가 조회 종합 테스트
     2. API 파라미터 조합 (dmst_stex_tp 등)
     3. 다양한 API 사용 (ka10003, ka10004, ka10087 등)
     4. Fallback 전략
-"""
 
 import sys
 import os
@@ -25,7 +22,6 @@ from typing import Dict, Any, List, Optional
 from core.rest_client import KiwoomRESTClient
 from utils.trading_date import is_nxt_hours, is_market_hours
 
-# 로깅 설정
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s [%(levelname)s] %(message)s'
@@ -37,13 +33,12 @@ class NXTPremarketTester:
     """NXT 프리마켓 현재가 조회 종합 테스트"""
 
     def __init__(self):
-        # KiwoomRESTClient는 싱글톤 패턴이므로 직접 생성자 호출
         self.client = KiwoomRESTClient()
         self.results = []
         self.test_stocks = [
-            "005930",  # 삼성전자
-            "000660",  # SK하이닉스
-            "088340",  # 사용자가 테스트한 종목
+            "005930",
+            "000660",
+            "088340",
         ]
 
     def log_test_start(self, test_name: str, description: str):
@@ -71,9 +66,6 @@ class NXTPremarketTester:
             "timestamp": datetime.now().isoformat()
         })
 
-    # ========================================
-    # 카테고리 1: 종목코드 형식 변형
-    # ========================================
 
     def test_stock_code_basic(self, stock_code: str) -> Dict[str, Any]:
         """테스트 1: 기본 종목코드 (예: 005930)"""
@@ -150,9 +142,6 @@ class NXTPremarketTester:
             self.log_test_result("SOR 종목코드", False, None, str(e))
             return None
 
-    # ========================================
-    # 카테고리 2: dmst_stex_tp 파라미터 조합
-    # ========================================
 
     def test_dmst_stex_tp_krx(self, stock_code: str) -> Dict[str, Any]:
         """테스트 4: dmst_stex_tp=KRX"""
@@ -229,9 +218,6 @@ class NXTPremarketTester:
             self.log_test_result("dmst_stex_tp=SOR", False, None, str(e))
             return None
 
-    # ========================================
-    # 카테고리 3: 종목코드 + 파라미터 조합
-    # ========================================
 
     def test_nx_code_with_nxt_param(self, stock_code: str) -> Dict[str, Any]:
         """테스트 7: _NX 종목코드 + dmst_stex_tp=NXT"""
@@ -308,9 +294,6 @@ class NXTPremarketTester:
             self.log_test_result("_AL+dmst_stex_tp=SOR", False, None, str(e))
             return None
 
-    # ========================================
-    # 카테고리 4: 다른 API 사용
-    # ========================================
 
     def test_orderbook_api(self, stock_code: str) -> Dict[str, Any]:
         """테스트 10: 호가 API (ka10004)"""
@@ -377,9 +360,7 @@ class NXTPremarketTester:
                 path="mrkcond"
             )
             if response and response.get('return_code') == 0:
-                # ka10087 응답 구조 확인 필요
                 logger.info(f"ka10087 응답 키: {list(response.keys())}")
-                # 시간외단일가 현재가 추출 시도
                 ovt_sigpric_cur_prc = response.get('ovt_sigpric_cur_prc', '0')
                 if ovt_sigpric_cur_prc and ovt_sigpric_cur_prc != '0':
                     price = abs(int(ovt_sigpric_cur_prc.replace('+', '').replace('-', '')))
@@ -392,9 +373,6 @@ class NXTPremarketTester:
             self.log_test_result("시간외단일가 API", False, None, str(e))
             return None
 
-    # ========================================
-    # 카테고리 5: 실시간 시세 (WebSocket)
-    # ========================================
 
     def test_websocket_quote(self, stock_code: str) -> Dict[str, Any]:
         """테스트 13: WebSocket 실시간 호가 (0E - 주식시간외호가)"""
@@ -402,23 +380,19 @@ class NXTPremarketTester:
             "13. WebSocket 실시간 시간외호가",
             f"종목코드: {stock_code} (WebSocket TR=0E)"
         )
-        # WebSocket은 별도 테스트 필요
         logger.warning("WebSocket 테스트는 별도 구현 필요")
         self.log_test_result("WebSocket 시간외호가", False, None, "미구현")
         return None
 
-    # ========================================
-    # 실행 메서드
-    # ========================================
 
     def run_all_tests(self):
         """모든 테스트 실행"""
         logger.info(f"\n{'#'*80}")
-        logger.info(f"# NXT 프리마켓 현재가 조회 종합 테스트")
-        logger.info(f"# 시작 시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        logger.info(f"# NXT 시간대: {is_nxt_hours()}")
-        logger.info(f"# 정규장 시간대: {is_market_hours()}")
-        logger.info(f"# 테스트 종목: {', '.join(self.test_stocks)}")
+        logger.info(f"
+        logger.info(f"
+        logger.info(f"
+        logger.info(f"
+        logger.info(f"
         logger.info(f"{'#'*80}\n")
 
         if not is_nxt_hours():
@@ -430,45 +404,37 @@ class NXTPremarketTester:
                 logger.info("테스트 중단")
                 return
 
-        # 각 종목에 대해 모든 테스트 실행
         for stock_code in self.test_stocks:
             logger.info(f"\n{'='*80}")
             logger.info(f"종목: {stock_code}")
             logger.info(f"{'='*80}\n")
 
-            # 카테고리 1: 종목코드 형식
             self.test_stock_code_basic(stock_code)
             self.test_stock_code_nx(stock_code)
             self.test_stock_code_al(stock_code)
 
-            # 카테고리 2: dmst_stex_tp 파라미터
             self.test_dmst_stex_tp_krx(stock_code)
             self.test_dmst_stex_tp_nxt(stock_code)
             self.test_dmst_stex_tp_sor(stock_code)
 
-            # 카테고리 3: 조합
             self.test_nx_code_with_nxt_param(stock_code)
             self.test_nx_code_with_krx_param(stock_code)
             self.test_al_code_with_sor_param(stock_code)
 
-            # 카테고리 4: 다른 API
             self.test_orderbook_api(stock_code)
             self.test_orderbook_api_nx(stock_code)
             self.test_nxt_single_price_api(stock_code)
 
-            # 카테고리 5: WebSocket (참고용)
             self.test_websocket_quote(stock_code)
 
-        # 결과 요약
         self.print_summary()
 
-        # 결과 저장
         self.save_results()
 
     def print_summary(self):
         """테스트 결과 요약 출력"""
         logger.info(f"\n{'#'*80}")
-        logger.info(f"# 테스트 결과 요약")
+        logger.info(f"
         logger.info(f"{'#'*80}\n")
 
         total_tests = len(self.results)

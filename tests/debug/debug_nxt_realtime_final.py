@@ -1,7 +1,5 @@
-"""
 NXT 실시간 현재가 조회 최종 테스트
 키움 문서 기반 정확한 구현
-"""
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
@@ -11,7 +9,6 @@ import json
 from datetime import datetime
 from typing import Dict, Optional
 
-# 색상
 GREEN = '\033[92m'
 RED = '\033[91m'
 YELLOW = '\033[93m'
@@ -28,7 +25,6 @@ class NXTRealtimeTest:
         self.client = bot.client
         self.ws_manager = bot.websocket_manager
 
-        # 테스트할 NXT 종목 5개
         self.test_stocks = [
             ("052020", "에프엔에스테크"),
             ("249420", "일동제약"),
@@ -37,11 +33,9 @@ class NXTRealtimeTest:
             ("098460", "고영")
         ]
 
-        # 결과 저장
-        self.close_prices = {}  # 종가
-        self.realtime_prices = {}  # 실시간 현재가
+        self.close_prices = {}
+        self.realtime_prices = {}
 
-        # 이벤트
         self.reg_completed = asyncio.Event()
         self.data_received = asyncio.Event()
 
@@ -71,7 +65,6 @@ class NXTRealtimeTest:
             values = data.get('values', {})
 
             if stock_code and values:
-                # 필드 '10' = 현재가
                 cur_prc_str = values.get('10', '0')
                 if cur_prc_str and cur_prc_str != '0':
                     price = abs(int(str(cur_prc_str).replace('+', '').replace('-', '').replace(',', '')))
@@ -79,7 +72,6 @@ class NXTRealtimeTest:
                         self.realtime_prices[stock_code] = price
                         print(f"  {GREEN}✓ {stock_code}: {price:,}원{RESET}")
 
-                        # 모든 종목 수신 확인
                         if len(self.realtime_prices) >= len(self.test_stocks):
                             self.data_received.set()
         except Exception as e:
@@ -92,9 +84,6 @@ class NXTRealtimeTest:
         print(f"{BLUE}시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}{RESET}")
         print(f"{'='*80}\n")
 
-        # ============================================================
-        # 1단계: 종가 조회
-        # ============================================================
         print(f"{YELLOW}[1단계] 종가 조회 (REST API){RESET}")
         for code, name in self.test_stocks:
             price = self.get_close_price(code)
@@ -104,16 +93,11 @@ class NXTRealtimeTest:
             else:
                 print(f"  ✗ {code} {name}: 실패")
 
-        # ============================================================
-        # 2단계: 실시간 등록 및 수신
-        # ============================================================
         print(f"\n{YELLOW}[2단계] 실시간 등록 (WebSocket){RESET}")
 
-        # 콜백 등록 (0B = 주식체결)
         self.ws_manager.register_callback('0B', self.realtime_callback)
         print(f"{CYAN}콜백 등록 완료 (0B - 주식체결){RESET}")
 
-        # REG 패킷 전송
         stock_codes = [code for code, _ in self.test_stocks]
         reg_packet = {
             'trnm': 'REG',
@@ -128,13 +112,9 @@ class NXTRealtimeTest:
         print(f"{CYAN}실시간 등록 전송: {stock_codes}{RESET}")
         await self.ws_manager.websocket.send(json.dumps(reg_packet))
 
-        # 등록 응답 대기
         await asyncio.sleep(2)
         print(f"{GREEN}등록 완료{RESET}")
 
-        # ============================================================
-        # 3단계: 실시간 데이터 수신 대기
-        # ============================================================
         print(f"\n{YELLOW}[3단계] 실시간 데이터 수신{RESET}")
         print(f"{CYAN}데이터 수신 대기 중... (최대 20초){RESET}")
 
@@ -144,9 +124,6 @@ class NXTRealtimeTest:
         except asyncio.TimeoutError:
             print(f"\n{YELLOW}⏱️  타임아웃 ({len(self.realtime_prices)}/{len(self.test_stocks)}개 수신){RESET}")
 
-        # ============================================================
-        # 4단계: 결과 출력
-        # ============================================================
         self.print_results()
 
     def print_results(self):
@@ -155,7 +132,6 @@ class NXTRealtimeTest:
         print(f"{BLUE}[최종 결과] 종가 vs 실시간 현재가{RESET}")
         print(f"{'='*80}\n")
 
-        # 테이블 헤더
         print(f"{'코드':<10} {'종목명':<15} {'종가':<15} {'실시간':<15} {'차이':<20}")
         print(f"{'-'*80}")
 
@@ -164,17 +140,14 @@ class NXTRealtimeTest:
             close = self.close_prices.get(code)
             realtime = self.realtime_prices.get(code)
 
-            # 종가
             close_str = f"{close:,}원" if close else f"{RED}실패{RESET}"
 
-            # 실시간
             if realtime:
                 realtime_str = f"{GREEN}{realtime:,}원{RESET}"
                 success += 1
             else:
                 realtime_str = f"{RED}미수신{RESET}"
 
-            # 차이
             if close and realtime:
                 diff = realtime - close
                 pct = (diff / close * 100) if close > 0 else 0
@@ -189,7 +162,6 @@ class NXTRealtimeTest:
 
             print(f"{code:<10} {name:<15} {close_str:<24} {realtime_str:<24} {diff_str}")
 
-        # 요약
         total = len(self.test_stocks)
         print(f"\n{'='*80}")
         print(f"{BLUE}[요약]{RESET}")
@@ -218,11 +190,9 @@ async def main():
 
         print(f"{GREEN}✅ 초기화 완료{RESET}")
 
-        # 테스트 실행
         tester = NXTRealtimeTest(bot)
         await tester.run_test()
 
-        # 정리
         print(f"\n{YELLOW}정리 중...{RESET}")
 
     except KeyboardInterrupt:

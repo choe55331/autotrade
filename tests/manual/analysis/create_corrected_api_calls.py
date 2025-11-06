@@ -1,8 +1,5 @@
-#!/usr/bin/env python3
-"""
 create_corrected_api_calls.py
 실패 원인 분석을 바탕으로 파라미터를 수정한 API 호출 목록 생성
-"""
 import json
 from pathlib import Path
 from datetime import datetime, timedelta
@@ -11,7 +8,6 @@ def get_valid_dates():
     """유효한 날짜 생성 (거래일 기준)"""
     today = datetime.now()
 
-    # 어제부터 일주일 전까지
     dates = {
         'today': today.strftime('%Y%m%d'),
         'yesterday': (today - timedelta(days=1)).strftime('%Y%m%d'),
@@ -24,16 +20,16 @@ def get_valid_dates():
 def get_valid_stock_codes():
     """실제 존재하는 종목코드 목록"""
     return {
-        'samsung': '005930',      # 삼성전자
-        'sk_hynix': '000660',     # SK하이닉스
-        'naver': '035420',        # NAVER
-        'kakao': '035720',        # 카카오
-        'lg_chem': '051910',      # LG화학
-        'samsung_bio': '207940',  # 삼성바이오로직스
-        'hyundai_motor': '005380',# 현대차
-        'kia': '000270',          # 기아
-        'posco': '005490',        # POSCO홀딩스
-        'celltrion': '068270',    # 셀트리온
+        'samsung': '005930',
+        'sk_hynix': '000660',
+        'naver': '035420',
+        'kakao': '035720',
+        'lg_chem': '051910',
+        'samsung_bio': '207940',
+        'hyundai_motor': '005380',
+        'kia': '000270',
+        'posco': '005490',
+        'celltrion': '068270',
     }
 
 def fix_ka10010_params():
@@ -81,15 +77,12 @@ def fix_partial_failure_params(api_id, failed_variants):
         body = variant['body'].copy()
         fix_reason = []
 
-        # 종목코드 수정
         if 'stk_cd' in body:
             old_code = body['stk_cd']
             if old_code in ['000660', '066970', '071050']:
-                # 문제있는 종목코드를 안정적인 것으로 변경
                 body['stk_cd'] = stocks['samsung']
                 fix_reason.append(f'종목코드 {old_code} → 005930 (삼성전자)')
 
-        # 날짜 파라미터 수정 (최근 데이터 있을 확률 높은 날짜로)
         if 'strt_dt' in body:
             body['strt_dt'] = dates['week_ago']
             fix_reason.append(f'시작일자를 일주일 전으로 변경')
@@ -106,18 +99,14 @@ def fix_partial_failure_params(api_id, failed_variants):
             body['base_dt'] = dates['yesterday']
             fix_reason.append(f'기준일자를 어제로 변경')
 
-        # ELW 관련 파라미터 수정
         if 'bsis_aset_cd' in body:
             old_code = body['bsis_aset_cd']
             if old_code in ['000660', '066970']:
-                # ELW 기초자산코드를 KOSPI200으로 변경
                 body['bsis_aset_cd'] = '201'
                 fix_reason.append(f'기초자산코드 {old_code} → 201 (KOSPI200)')
 
-        # 테마 파라미터 수정
         if api_id == 'ka90001':
             if 'qry_tp' in body and body['qry_tp'] == '1':
-                # 테마명 조회는 성공한 variant 참고
                 body['qry_tp'] = '0'
                 fix_reason.append('qry_tp를 0 (전체조회)로 변경')
 
@@ -138,18 +127,15 @@ def create_corrected_api_calls():
     print("파라미터 수정 기반 API 호출 목록 생성")
     print("="*80)
 
-    # 원본 데이터 로드
     with open('all_394_api_calls.json', 'r', encoding='utf-8') as f:
         original_calls = json.load(f)
 
     with open('optimized_api_calls.json', 'r', encoding='utf-8') as f:
         optimized = json.load(f)
 
-    # 수정된 API 목록
     corrected_apis = {}
     corrections_made = 0
 
-    # 1. ka10010 수정
     print("\n[1] ka10010 (업종프로그램요청) 파라미터 수정...")
     fixed_ka10010 = fix_ka10010_params()
 
@@ -163,7 +149,6 @@ def create_corrected_api_calls():
     for variant in fixed_ka10010:
         print(f"  Var {variant['variant_idx']}: {variant['fix_reason']}")
 
-    # 2. 부분 실패 API 수정
     print("\n[2] 부분 실패 API 파라미터 수정...")
 
     partial_fail_apis = {
@@ -185,7 +170,6 @@ def create_corrected_api_calls():
         if not original_api:
             continue
 
-        # 실패한 variant 찾기
         failed_variants = [
             call for call in original_api['all_calls']
             if call['status'] != 'success'
@@ -205,15 +189,13 @@ def create_corrected_api_calls():
             }
             corrections_made += len(fixed_variants)
 
-            for variant in fixed_variants[:2]:  # 처음 2개만 표시
+            for variant in fixed_variants[:2]:
                 print(f"    Var {variant['variant_idx']}: {variant['fix_reason']}")
 
-    # 3. 검증된 API는 그대로 유지
     verified_count = len(optimized['optimized_apis'])
     verified_variants = optimized['metadata']['stats']['total_success_variants'] + \
                        optimized['metadata']['stats']['partial_success_variants']
 
-    # 결과 저장
     output = {
         'metadata': {
             'created_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
@@ -238,7 +220,6 @@ def create_corrected_api_calls():
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(output, f, ensure_ascii=False, indent=2)
 
-    # 통계 출력
     print("\n" + "="*80)
     print("📊 수정 완료 통계")
     print("="*80)

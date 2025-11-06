@@ -1,7 +1,5 @@
-"""
 utils/decorators.py
 공통 데코레이터
-"""
 import time
 import logging
 import functools
@@ -123,7 +121,6 @@ def catch_exceptions(
     default_return: Any = None,
     log_traceback: bool = True
 ):
-    """
     예외 처리 데코레이터
     
     Args:
@@ -134,7 +131,6 @@ def catch_exceptions(
         @catch_exceptions(default_return=None)
         def risky_function():
             ...
-    """
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs) -> Any:
@@ -177,12 +173,10 @@ def rate_limit(calls: int, period: float):
         def wrapper(*args, **kwargs) -> Any:
             current_time = time.time()
             
-            # 기간이 지났으면 리셋
             if current_time - last_reset[0] >= period:
                 last_reset[0] = current_time
                 call_count[0] = 0
             
-            # 호출 횟수 확인
             if call_count[0] >= calls:
                 wait_time = period - (current_time - last_reset[0])
                 logger.warning(
@@ -219,13 +213,11 @@ def validate_args(**validators):
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs) -> Any:
-            # 함수 시그니처 가져오기
             import inspect
             sig = inspect.signature(func)
             bound_args = sig.bind(*args, **kwargs)
             bound_args.apply_defaults()
             
-            # 각 인자 검증
             for arg_name, validator in validators.items():
                 if arg_name in bound_args.arguments:
                     arg_value = bound_args.arguments[arg_name]
@@ -261,21 +253,17 @@ def cache_result(ttl: float = 60.0):
         
         @functools.wraps(func)
         def wrapper(*args, **kwargs) -> Any:
-            # 캐시 키 생성
             key = str(args) + str(kwargs)
             current_time = time.time()
             
-            # 캐시 확인
             if key in cache:
                 if current_time - cache_time[key] < ttl:
                     logger.debug(f"{func.__name__} 캐시 히트")
                     return cache[key]
             
-            # 캐시 미스 - 함수 실행
             logger.debug(f"{func.__name__} 캐시 미스")
             result = func(*args, **kwargs)
             
-            # 캐시 저장
             cache[key] = result
             cache_time[key] = current_time
             

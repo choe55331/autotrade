@@ -1,4 +1,3 @@
-"""
 AutoTrade Pro - Unified Configuration Manager
 통합 설정 관리자 (v5.6+ Enhanced)
 
@@ -9,7 +8,6 @@ COMPREHENSIVE 개선:
 - Event listeners for dynamic settings
 - JSON/YAML import/export
 - Backward compatibility with all legacy systems
-"""
 from pathlib import Path
 from typing import Any, Optional, Callable, Dict, List
 from .schemas import AutoTradeConfig
@@ -77,7 +75,6 @@ class ConfigManager:
                 logger.warning(f"⚠️ 설정 로드 실패: {e}, 기본값 사용")
                 self._config = AutoTradeConfig()
         else:
-            # 설정 파일이 없으면 기본값으로 생성
             self._config = AutoTradeConfig()
             self._save_config()
             logger.info(f"✓ 기본 설정 생성: {config_path}")
@@ -115,16 +112,12 @@ class ConfigManager:
             value: 새 값
             save: 즉시 저장 여부
         """
-        # Get old value for event notification
         old_value = self.get(path)
 
-        # Set new value
         self._config.set(path, value)
 
-        # Notify listeners
         self._notify_change(path, old_value, value)
 
-        # Save if requested
         if save:
             self._save_config()
 
@@ -171,13 +164,11 @@ class ConfigManager:
         if category_obj is None:
             raise ValueError(f"Unknown category: {category}")
 
-        # Update values
         for key, value in values.items():
             if hasattr(category_obj, key):
                 old_value = getattr(category_obj, key)
                 setattr(category_obj, key, value)
 
-                # Notify listeners
                 full_path = f"{category}.{key}"
                 self._notify_change(full_path, old_value, value)
             else:
@@ -266,7 +257,6 @@ class ConfigManager:
             old_value: 이전 값
             new_value: 새 값
         """
-        # Exact match listeners
         if key_path in self._change_listeners:
             for callback in self._change_listeners[key_path]:
                 try:
@@ -274,7 +264,6 @@ class ConfigManager:
                 except Exception as e:
                     logger.error(f"❌ 리스너 실행 실패: {e}")
 
-        # Category-level listeners (e.g., 'risk_management' listens to 'risk_management.max_position_size')
         parts = key_path.split('.')
         for i in range(len(parts)):
             prefix = '.'.join(parts[:i+1])
@@ -286,9 +275,6 @@ class ConfigManager:
                         logger.error(f"❌ 리스너 실행 실패 ({prefix}): {e}")
 
 
-# ============================================================================
-# Global Functions (편의 함수)
-# ============================================================================
 
 _manager: Optional[ConfigManager] = None
 
@@ -408,15 +394,10 @@ def import_config_from_json(file_path: str) -> bool:
     return _get_manager().import_from_json(file_path)
 
 
-# ============================================================================
-# Backward Compatibility (기존 코드 호환성)
-# ============================================================================
 
-# Alias for unified_settings compatibility
 get_unified_settings = lambda: _get_manager()
 
 
-# Alias for config_manager compatibility
 def get_trading_params() -> Dict[str, Any]:
     """Legacy: 매매 파라미터 반환"""
     config = get_config()
@@ -435,7 +416,6 @@ def validate_trading_params() -> tuple:
     errors = []
     config = get_config()
 
-    # 포지션 관리 검증
     max_pos = config.risk_management.position_limit
     if not (1 <= max_pos <= 50):
         errors.append("position_limit는 1~50 사이여야 합니다")
@@ -444,7 +424,6 @@ def validate_trading_params() -> tuple:
     if not (0 < risk_ratio <= 1.0):
         errors.append("max_position_size는 0~1 사이여야 합니다")
 
-    # 손익 관리 검증
     stop_loss = config.risk_management.stop_loss_pct
     if not (0 < stop_loss <= 1.0):
         errors.append("stop_loss_pct는 0~1 사이여야 합니다")
@@ -457,10 +436,8 @@ def validate_trading_params() -> tuple:
 
 
 __all__ = [
-    # Main classes
     'ConfigManager',
 
-    # Primary functions
     'get_config',
     'get_setting',
     'set_setting',
@@ -468,15 +445,12 @@ __all__ = [
     'reload_config',
     'reset_config',
 
-    # Event listeners
     'register_config_listener',
     'unregister_config_listener',
 
-    # JSON import/export
     'export_config_to_json',
     'import_config_from_json',
 
-    # Backward compatibility
     'get_unified_settings',
     'get_trading_params',
     'validate_trading_params',

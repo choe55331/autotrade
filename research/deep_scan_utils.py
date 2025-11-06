@@ -1,9 +1,7 @@
-"""
 research/deep_scan_utils.py
 v5.7.5: Deep Scan 공통 유틸리티
 
 모든 스캔 전략에서 사용하는 Deep Scan 로직을 공통화
-"""
 import time
 from typing import List, Optional, Dict
 from datetime import datetime
@@ -13,9 +11,8 @@ from research.scanner_pipeline import StockCandidate
 
 logger = get_logger()
 
-# Deep Scan 데이터 캐시 (메모리 기반)
 _deep_scan_cache = {}
-CACHE_TTL_SECONDS = 300  # 5분
+CACHE_TTL_SECONDS = 300
 
 
 def _calculate_rsi(prices: List[float], period: int = 14) -> Optional[float]:
@@ -85,7 +82,7 @@ def _calculate_bollinger_bands(prices: List[float], period: int = 20) -> Optiona
         'upper': upper_band,
         'middle': ma,
         'lower': lower_band,
-        'position': bb_position  # 0~1 사이, 0.5가 중간
+        'position': bb_position
     }
 
 
@@ -99,7 +96,6 @@ def _get_from_cache(cache_key: str) -> Optional[Dict]:
     entry = _deep_scan_cache[cache_key]
     timestamp = entry['timestamp']
 
-    # TTL 체크
     if (datetime.now() - timestamp).total_seconds() > CACHE_TTL_SECONDS:
         del _deep_scan_cache[cache_key]
         return None
@@ -123,7 +119,6 @@ def enrich_candidates_with_deep_scan(
     max_candidates: int = 20,
     verbose: bool = True
 ) -> List[StockCandidate]:
-    """
     v5.7.5: 모든 스캔 전략에서 사용하는 Deep Scan 공통 로직
 
     후보 종목들에 대해 상세 데이터를 조회하여 enrichment:
@@ -143,7 +138,6 @@ def enrich_candidates_with_deep_scan(
 
     Returns:
         enrichment된 후보 종목 리스트
-    """
     if not candidates:
         return candidates
 
@@ -157,7 +151,6 @@ def enrich_candidates_with_deep_scan(
             if verbose:
                 print(f"   [{idx}/{len(top_candidates)}] {candidate.name} ({candidate.code})")
 
-            # 1. 기관/외국인 매매 데이터 조회 (ka10059)
             investor_data = market_api.get_investor_data(candidate.code)
             if investor_data:
                 candidate.institutional_net_buy = investor_data.get('기관_순매수', 0)
@@ -168,7 +161,6 @@ def enrich_candidates_with_deep_scan(
                 candidate.institutional_net_buy = 0
                 candidate.foreign_net_buy = 0
 
-            # 2. 호가 데이터 조회 (ka10004)
             bid_ask_data = market_api.get_bid_ask(candidate.code)
             if bid_ask_data:
                 bid_total = bid_ask_data.get('매수_총잔량', 1)
@@ -179,7 +171,6 @@ def enrich_candidates_with_deep_scan(
             else:
                 candidate.bid_ask_ratio = 0
 
-            # 3. 기관매매추이 조회 (ka10045) - 5일 트렌드
             trend_data = market_api.get_institutional_trading_trend(
                 candidate.code,
                 days=5,
@@ -193,17 +184,14 @@ def enrich_candidates_with_deep_scan(
                 if verbose:
                     print(f"      기관추이: 데이터 없음")
 
-            # 4. 일봉 데이터 조회 (ka10006) - 평균거래량 & 변동성
             daily_data = market_api.get_daily_chart(candidate.code, period=20)
             if daily_data and len(daily_data) > 1:
-                # 평균 거래량 (20일)
                 volumes = [d.get('volume', 0) for d in daily_data if d.get('volume')]
                 if volumes:
                     candidate.avg_volume = sum(volumes) / len(volumes)
                     if verbose:
                         print(f"      일봉: 평균거래량={candidate.avg_volume:,.0f}")
 
-                # 변동성 (20일 일별 등락률 표준편차)
                 rates = []
                 for d in daily_data:
                     close = d.get('close', 0)
@@ -218,20 +206,16 @@ def enrich_candidates_with_deep_scan(
                     if verbose:
                         print(f"      일봉: 변동성={candidate.volatility*100:.2f}%")
 
-                # v5.7.5: 기술적 지표 계산 (RSI, MACD, BB)
                 closes = [d.get('close', 0) for d in daily_data if d.get('close')]
                 if len(closes) >= 14:
-                    # RSI 계산
                     candidate.rsi = _calculate_rsi(closes)
                     if verbose and candidate.rsi:
                         print(f"      기술: RSI={candidate.rsi:.1f}")
 
-                    # MACD 계산
                     candidate.macd = _calculate_macd(closes)
                     if verbose and candidate.macd:
                         print(f"      기술: MACD={candidate.macd['macd']:.2f}")
 
-                    # 볼린저 밴드 계산
                     candidate.bollinger_bands = _calculate_bollinger_bands(closes)
                     if verbose and candidate.bollinger_bands:
                         bb_pos = candidate.bollinger_bands['position']
@@ -248,7 +232,6 @@ def enrich_candidates_with_deep_scan(
                 candidate.macd = None
                 candidate.bollinger_bands = None
 
-            # 5. 증권사별매매 조회 (ka10078)
             major_firms = [
                 ('001', '한국투자'),
                 ('003', '미래에셋'),
@@ -305,7 +288,6 @@ def enrich_candidates_with_deep_scan(
                 else:
                     print(f"      증권사: 순매수 없음")
 
-            # 6. 체결강도 조회 (ka10047) - 캐시 우선
             cache_key_exec = f"execution_{candidate.code}"
             cached_exec = _get_from_cache(cache_key_exec)
 
@@ -330,7 +312,6 @@ def enrich_candidates_with_deep_scan(
                     if verbose:
                         print(f"      체결강도: 데이터 없음")
 
-            # 7. 프로그램매매 조회 (ka90013) - 캐시 우선
             cache_key_prog = f"program_{candidate.code}"
             cached_prog = _get_from_cache(cache_key_prog)
 
@@ -355,13 +336,12 @@ def enrich_candidates_with_deep_scan(
                     if verbose:
                         print(f"      프로그램매매: 데이터 없음")
 
-            time.sleep(0.1)  # API 호출 간격
+            time.sleep(0.1)
 
         except Exception as e:
             logger.error(f"Deep Scan 오류 ({candidate.name}): {e}")
             if verbose:
                 print(f"      오류: {e}")
-            # 오류 시 기본값 설정
             candidate.institutional_net_buy = 0
             candidate.foreign_net_buy = 0
             candidate.bid_ask_ratio = 0

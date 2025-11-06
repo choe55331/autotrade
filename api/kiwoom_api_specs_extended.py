@@ -1,14 +1,10 @@
-"""
 api/kiwoom_api_specs_extended.py
 키움증권 REST API 확장 사양 (시세, 순위, 차트, 종목정보 등)
 
 공식 문서 기반: https://github.com/kiwoom-retail/Kiwoom-Securities
-"""
 
-# ==================== 시세 조회 API ====================
 
 MARKET_DATA_APIS = {
-    # 기본 시세
     "ka10004": {
         "name": "주식호가요청",
         "endpoint": "/api/dostk/mrkcond",
@@ -64,7 +60,6 @@ MARKET_DATA_APIS = {
         "description": "시간외 단일가 호가"
     },
 
-    # 투자자별 매매
     "ka10063": {
         "name": "장중투자자별매매요청",
         "endpoint": "/api/dostk/mrkcond",
@@ -79,7 +74,6 @@ MARKET_DATA_APIS = {
         "description": "장 마감 후 투자자별 매매"
     },
 
-    # 프로그램 매매
     "ka90005": {
         "name": "프로그램매매추이요청_시간대별",
         "endpoint": "/api/dostk/mrkcond",
@@ -123,10 +117,8 @@ MARKET_DATA_APIS = {
     },
 }
 
-# ==================== 순위 정보 API ====================
 
 RANKING_APIS = {
-    # 거래량/거래대금
     "ka10020": {
         "name": "호가잔량상위요청",
         "endpoint": "/api/dostk/rkinfo",
@@ -162,7 +154,6 @@ RANKING_APIS = {
         "description": "거래대금 상위 종목"
     },
 
-    # 등락률
     "ka10027": {
         "name": "전일대비등락률상위요청",
         "endpoint": "/api/dostk/rkinfo",
@@ -177,7 +168,6 @@ RANKING_APIS = {
         "description": "예상 체결 등락률 상위"
     },
 
-    # 외국인
     "ka10034": {
         "name": "외인기간별매매상위요청",
         "endpoint": "/api/dostk/rkinfo",
@@ -206,7 +196,6 @@ RANKING_APIS = {
         "description": "외국인+기관 매매 상위"
     },
 
-    # 기타
     "ka10021": {
         "name": "호가잔량급증요청",
         "endpoint": "/api/dostk/rkinfo",
@@ -292,7 +281,6 @@ RANKING_APIS = {
     },
 }
 
-# ==================== 종목 정보 API ====================
 
 STOCK_INFO_APIS = {
     "ka10001": {
@@ -408,7 +396,6 @@ STOCK_INFO_APIS = {
     },
 }
 
-# ==================== 업종 API ====================
 
 SECTOR_APIS = {
     "ka10010": {
@@ -454,10 +441,8 @@ SECTOR_APIS = {
     },
 }
 
-# ==================== 차트 API ====================
 
 CHART_APIS = {
-    # 주식 차트
     "ka10060": {
         "name": "투자자기관차트요청",
         "endpoint": "/api/dostk/chart",
@@ -514,7 +499,6 @@ CHART_APIS = {
         "description": "주식 연봉 차트"
     },
 
-    # 업종 차트
     "ka20004": {
         "name": "업종틱차트요청",
         "endpoint": "/api/dostk/chart",
@@ -558,7 +542,6 @@ CHART_APIS = {
     },
 }
 
-# ==================== 조건검색 API (WebSocket) ====================
 
 CONDITION_SEARCH_APIS = {
     "ka10171": {
@@ -605,7 +588,6 @@ CONDITION_SEARCH_APIS = {
     },
 }
 
-# API 통합 딕셔너리
 ALL_EXTENDED_APIS = {
     **MARKET_DATA_APIS,
     **RANKING_APIS,

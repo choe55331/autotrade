@@ -1,4 +1,3 @@
-"""
 utils/performance_monitor.py
 실시간 성능 모니터링 시스템 (v5.11 NEW)
 
@@ -8,7 +7,6 @@ Features:
 - API 호출 속도 모니터링
 - 병목 지점 자동 감지
 - 성능 리포트 생성
-"""
 from typing import Dict, Any, List, Optional, Callable
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -45,7 +43,6 @@ class PerformanceMetric:
         self.success = success
         self.error = error
 
-        # Memory measurement
         try:
             process = psutil.Process(os.getpid())
             self.memory_after = process.memory_info().rss
@@ -77,7 +74,6 @@ class PerformanceMonitor:
         self.metrics: List[PerformanceMetric] = []
         self.max_history = max_history
 
-        # 함수별 통계
         self.function_stats = defaultdict(lambda: {
             'count': 0,
             'total_time': 0,
@@ -88,13 +84,10 @@ class PerformanceMonitor:
             'last_call': None
         })
 
-        # 최근 N개 메트릭 (빠른 조회용)
         self.recent_metrics = deque(maxlen=100)
 
-        # Thread lock
         self.lock = threading.Lock()
 
-        # 시스템 리소스 모니터링
         self.system_monitor_active = False
         self.system_stats = {
             'cpu_percent': 0,
@@ -138,7 +131,6 @@ class PerformanceMonitor:
 
             return wrapper
 
-        # Handle both @track and @track(name='...')
         if func is None:
             return decorator
         else:
@@ -147,17 +139,13 @@ class PerformanceMonitor:
     def record_metric(self, metric: PerformanceMetric):
         """메트릭 기록"""
         with self.lock:
-            # Add to metrics list
             self.metrics.append(metric)
 
-            # Trim if exceeds max
             if len(self.metrics) > self.max_history:
                 self.metrics.pop(0)
 
-            # Add to recent deque
             self.recent_metrics.append(metric)
 
-            # Update function stats
             stats = self.function_stats[metric.name]
             stats['count'] += 1
             stats['last_call'] = datetime.now().isoformat()
@@ -411,7 +399,6 @@ class PerformanceContext:
             metadata=metadata
         )
 
-        # Memory before
         try:
             process = psutil.Process(os.getpid())
             self.metric.memory_before = process.memory_info().rss
@@ -428,10 +415,9 @@ class PerformanceContext:
         self.metric.finish(success=success, error=error)
         self.monitor.record_metric(self.metric)
 
-        return False  # Don't suppress exceptions
+        return False
 
 
-# Singleton instance
 _performance_monitor: Optional[PerformanceMonitor] = None
 
 
@@ -443,7 +429,6 @@ def get_performance_monitor() -> PerformanceMonitor:
     return _performance_monitor
 
 
-# Convenience decorators
 def track_performance(func=None, name=None):
     """
     성능 추적 데코레이터

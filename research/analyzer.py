@@ -1,7 +1,5 @@
-"""
 research/analyzer.py
 데이터 분석 모듈
-"""
 import logging
 from typing import Dict, Any, Optional, List
 from datetime import datetime, timedelta, time
@@ -32,7 +30,6 @@ class Analyzer:
         self.fetcher = DataFetcher(client)
         logger.info("Analyzer 초기화 완료")
     
-    # ==================== AI 분석용 데이터 ====================
     
     def get_stock_data_for_analysis(self, stock_code: str) -> Optional[Dict[str, Any]]:
         """
@@ -59,27 +56,21 @@ class Analyzer:
                 'timestamp': '2025-01-30 15:30:00'
             }
         """
-        # 현재가 정보
         price_info = self.fetcher.get_current_price(stock_code)
         if not price_info:
             logger.error(f"{stock_code} 현재가 조회 실패")
             return None
         
-        # 종목 상세 정보
         stock_info = self.fetcher.get_stock_info(stock_code)
         
-        # 투자자별 매매 동향
         investor_info = self.fetcher.get_investor_trading(stock_code)
         
-        # 일봉 데이터 (최근 20일)
         end_date = datetime.now().strftime('%Y%m%d')
         start_date = (datetime.now() - timedelta(days=30)).strftime('%Y%m%d')
         daily_data = self.fetcher.get_daily_price(stock_code, start_date, end_date)
         
-        # 기술적 지표 계산
         technical = self._calculate_technical_indicators(daily_data)
         
-        # 데이터 통합
         analysis_data = {
             'stock_code': stock_code,
             'stock_name': price_info.get('stock_name', ''),
@@ -106,7 +97,6 @@ class Analyzer:
         logger.info(f"{stock_code} 분석용 데이터 수집 완료")
         return analysis_data
     
-    # ==================== 매수 가능 계산 ====================
     
     def get_available_cash(self, account_number: str = None) -> int:
         """
@@ -134,7 +124,6 @@ class Analyzer:
         price: int = None,
         account_number: str = None
     ) -> int:
-        """
         매수 가능 수량 계산
         
         Args:
@@ -144,14 +133,11 @@ class Analyzer:
         
         Returns:
             매수 가능 수량 (주)
-        """
-        # 주문 가능 현금 조회
         available_cash = self.get_available_cash(account_number)
         
         if available_cash == 0:
             return 0
         
-        # 가격 결정
         if price is None:
             price_info = self.fetcher.get_current_price(stock_code)
             if not price_info:
@@ -161,8 +147,6 @@ class Analyzer:
         if price == 0:
             return 0
         
-        # 매수 가능 수량 계산
-        # 수수료: 0.015% (매수), 세금: 0.3% (매도 시만)
         commission_rate = 0.00015
         buyable_quantity = int(available_cash / (price * (1 + commission_rate)))
         
@@ -175,7 +159,6 @@ class Analyzer:
         quantity: int,
         order_type: str = 'buy'
     ) -> Dict[str, int]:
-        """
         주문 금액 계산 (수수료 포함)
         
         Args:
@@ -186,17 +169,16 @@ class Analyzer:
         Returns:
             주문 금액 정보
             {
-                'order_amount': 1000000,      # 주문금액 (가격 * 수량)
-                'commission': 150,            # 수수료
-                'tax': 3000,                  # 세금 (매도 시만)
-                'total_amount': 1003150       # 총 금액
+                'order_amount': 1000000,
+                'commission': 150,
+                'tax': 3000,
+                'total_amount': 1003150
             }
-        """
         order_amount = price * quantity
-        commission = int(order_amount * 0.00015)  # 수수료 0.015%
+        commission = int(order_amount * 0.00015)
         
         if order_type.lower() == 'sell':
-            tax = int(order_amount * 0.003)  # 증권거래세 0.3% (매도 시만)
+            tax = int(order_amount * 0.003)
             total_amount = order_amount - commission - tax
         else:
             tax = 0
@@ -212,13 +194,11 @@ class Analyzer:
         logger.debug(f"주문금액 계산: {result}")
         return result
     
-    # ==================== 기술적 지표 계산 ====================
     
     def _calculate_technical_indicators(
         self,
         daily_data: List[Dict[str, Any]]
     ) -> Dict[str, Any]:
-        """
         기술적 지표 계산
         
         Args:
@@ -227,36 +207,30 @@ class Analyzer:
         Returns:
             기술적 지표
             {
-                'ma5': 72000,      # 5일 이동평균
-                'ma20': 70000,     # 20일 이동평균
-                'ma60': 68000,     # 60일 이동평균
-                'rsi': 65.5,       # RSI (14일)
-                'volume_ma5': 10000000,  # 거래량 5일 이동평균
-                'price_position': 0.85,  # 가격 위치 (0~1)
+                'ma5': 72000,
+                'ma20': 70000,
+                'ma60': 68000,
+                'rsi': 65.5,
+                'volume_ma5': 10000000,
+                'price_position': 0.85,
             }
-        """
         if not daily_data or len(daily_data) == 0:
             return {}
         
-        # 종가 리스트 추출
         closes = [float(d.get('close', 0)) for d in daily_data]
         volumes = [int(d.get('volume', 0)) for d in daily_data]
         
         technical = {}
         
-        # 이동평균 계산
         technical['ma5'] = self._calculate_ma(closes, 5)
         technical['ma20'] = self._calculate_ma(closes, 20)
         technical['ma60'] = self._calculate_ma(closes, 60)
         
-        # 거래량 이동평균
         technical['volume_ma5'] = self._calculate_ma(volumes, 5)
         technical['volume_ma20'] = self._calculate_ma(volumes, 20)
         
-        # RSI 계산
         technical['rsi'] = self._calculate_rsi(closes, 14)
         
-        # 가격 위치 계산 (최근 20일 기준)
         if len(closes) >= 20:
             recent_closes = closes[:20]
             current_price = closes[0]
@@ -301,9 +275,8 @@ class Analyzer:
             RSI 값 (0~100)
         """
         if len(closes) < period + 1:
-            return 50.0  # 데이터 부족 시 중립값
+            return 50.0
         
-        # 가격 변화 계산
         changes = []
         for i in range(period):
             if i + 1 < len(closes):
@@ -313,7 +286,6 @@ class Analyzer:
         if not changes:
             return 50.0
         
-        # 상승/하락 분리
         gains = [c if c > 0 else 0 for c in changes]
         losses = [-c if c < 0 else 0 for c in changes]
         
@@ -328,7 +300,6 @@ class Analyzer:
         
         return round(rsi, 2)
     
-    # ==================== 시장 상태 분석 ====================
 
     def is_market_open(self) -> bool:
         """
@@ -375,24 +346,20 @@ class Analyzer:
         current_time = now.time()
         weekday = now.weekday()
 
-        # 시장 유형 및 거래 가능 여부 판단
         is_trading_hours = False
         is_test_mode = False
         market_type = '폐장'
         market_status = '폐장'
-        order_type_limit = 'all'  # 'limit_only' or 'all'
-        can_cancel_only = False  # 취소만 가능한지 여부
+        order_type_limit = 'all'
+        can_cancel_only = False
 
-        # 주말 체크 - 종가 기준 테스트 모드
-        if weekday >= 5:  # 토요일, 일요일
+        if weekday >= 5:
             market_status = '주말 (종가 테스트 모드)'
-            is_trading_hours = True  # 테스트 모드 활성화
+            is_trading_hours = True
             is_test_mode = True
             market_type = '테스트 모드'
 
-        # 평일 NXT 시장 시간 체크
         else:
-            # 1. NXT 프리마켓: 08:00 ~ 08:50 (지정가만)
             if time(8, 0) <= current_time < time(8, 50):
                 is_trading_hours = True
                 market_type = 'NXT 프리마켓'
@@ -400,14 +367,12 @@ class Analyzer:
                 is_test_mode = False
                 order_type_limit = 'limit_only'
 
-            # 2. NXT 프리마켓 종료 대기: 08:50 ~ 09:00
             elif time(8, 50) <= current_time < time(9, 0):
                 is_trading_hours = False
                 market_type = 'NXT 프리마켓 종료'
                 market_status = 'NXT 메인마켓 시작 대기'
                 is_test_mode = False
 
-            # 3. NXT 메인마켓: 09:00 ~ 15:20
             elif time(9, 0) <= current_time < time(15, 20):
                 is_trading_hours = True
                 market_type = 'NXT 메인마켓'
@@ -415,7 +380,6 @@ class Analyzer:
                 is_test_mode = False
                 order_type_limit = 'all'
 
-            # 4. KRX 종가 결정 시간: 15:20 ~ 15:30 (취소만 가능)
             elif time(15, 20) <= current_time < time(15, 30):
                 is_trading_hours = True
                 market_type = 'KRX 종가 결정'
@@ -423,14 +387,12 @@ class Analyzer:
                 is_test_mode = False
                 can_cancel_only = True
 
-            # 5. NXT 일시 중단: 15:30 ~ 15:40
             elif time(15, 30) <= current_time < time(15, 40):
                 is_trading_hours = False
                 market_type = 'NXT 일시 중단'
                 market_status = 'NXT 애프터마켓 시작 대기'
                 is_test_mode = False
 
-            # 6. NXT 애프터마켓: 15:40 ~ 20:00 (지정가만)
             elif time(15, 40) <= current_time < time(20, 0):
                 is_trading_hours = True
                 market_type = 'NXT 애프터마켓'
@@ -438,9 +400,8 @@ class Analyzer:
                 is_test_mode = False
                 order_type_limit = 'limit_only'
 
-            # 7. 그 외 시간 (폐장) - 종가 테스트 모드
             else:
-                is_trading_hours = True  # 테스트 모드 활성화
+                is_trading_hours = True
                 is_test_mode = True
                 market_type = '테스트 모드'
                 if current_time < time(8, 0):
@@ -448,7 +409,6 @@ class Analyzer:
                 elif current_time >= time(20, 0):
                     market_status = '장 종료 후 (종가 테스트 모드)'
 
-        # 다음 개장 시간 계산
         next_open = self._calculate_next_market_open(now)
 
         return {
@@ -459,9 +419,8 @@ class Analyzer:
             'weekday': ['월', '화', '수', '목', '금', '토', '일'][weekday],
             'market_status': market_status,
             'next_open': next_open.strftime('%Y-%m-%d %H:%M:%S') if next_open else None,
-            'order_type_limit': order_type_limit,  # 주문 유형 제한
-            'can_cancel_only': can_cancel_only,  # 취소만 가능 여부
-            # 호환성을 위한 필드
+            'order_type_limit': order_type_limit,
+            'can_cancel_only': can_cancel_only,
             'is_open': is_trading_hours
         }
     
@@ -470,16 +429,13 @@ class Analyzer:
         current_time = now.time()
         weekday = now.weekday()
 
-        # 오늘 NXT 시장 시작 전이면 오늘 08:00
         if weekday < 5 and current_time < time(8, 0):
             return datetime.combine(now.date(), time(8, 0))
 
-        # 평일이고 NXT 시장 마감 후면 내일 08:00
-        if weekday < 4:  # 월~목
+        if weekday < 4:
             next_day = now + timedelta(days=1)
             return datetime.combine(next_day.date(), time(8, 0))
 
-        # 금요일 장 마감 후 또는 주말이면 다음 월요일 08:00
         days_until_monday = (7 - weekday) % 7
         if days_until_monday == 0:
             days_until_monday = 7
@@ -487,13 +443,11 @@ class Analyzer:
         next_monday = now + timedelta(days=days_until_monday)
         return datetime.combine(next_monday.date(), time(8, 0))
     
-    # ==================== 포지션 분석 ====================
     
     def analyze_portfolio(
         self,
         account_number: str = None
     ) -> Dict[str, Any]:
-        """
         포트폴리오 분석
         
         Args:
@@ -510,15 +464,11 @@ class Analyzer:
                 'holdings_count': 5,
                 'holdings': [보유 종목 리스트]
             }
-        """
-        # 예수금 조회
         deposit = self.fetcher.get_deposit(account_number)
         cash = int(deposit.get('deposit_available', 0)) if deposit else 0
         
-        # 보유 종목 조회
         holdings = self.fetcher.get_holdings(account_number)
         
-        # 보유 종목 평가액 및 손익 계산
         stocks_value = 0
         total_profit_loss = 0
         
@@ -526,10 +476,8 @@ class Analyzer:
             stocks_value += holding.get('evaluation_amount', 0)
             total_profit_loss += holding.get('profit_loss', 0)
         
-        # 총 자산
         total_assets = cash + stocks_value
         
-        # 수익률 계산
         if total_assets > 0 and total_profit_loss != 0:
             profit_loss_rate = (total_profit_loss / (total_assets - total_profit_loss)) * 100
         else:

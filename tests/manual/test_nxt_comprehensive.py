@@ -1,4 +1,3 @@
-"""
 NXT 시간대 현재가 조회 및 매수 주문 종합 테스트
 모든 가능한 접근법을 시도해서 성공하는 방법을 찾아냅니다.
 
@@ -8,7 +7,6 @@ NXT 시간대 현재가 조회 및 매수 주문 종합 테스트
 결과:
     - test_results_nxt_YYYYMMDD_HHMMSS.json 파일 생성
     - 성공한 조합이 표시됨
-"""
 
 import json
 import logging
@@ -16,7 +14,6 @@ from datetime import datetime
 from typing import Dict, Any, List, Optional
 from pathlib import Path
 
-# 로깅 설정
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s | %(levelname)s | %(message)s'
@@ -41,10 +38,8 @@ class NXTComprehensiveTest:
         self.is_nxt_hours = is_nxt_hours
         self.is_market_hours = is_market_hours
 
-        # 테스트 종목 (삼성전자, SK하이닉스, NAVER)
         self.test_stocks = ['005930', '000660', '035420']
 
-        # 테스트 결과 저장
         self.results = {
             'timestamp': datetime.now().isoformat(),
             'is_nxt_time': is_nxt_hours(),
@@ -54,9 +49,6 @@ class NXTComprehensiveTest:
             'summary': {}
         }
 
-    # ========================================================================
-    # 현재가 조회 테스트 (10가지 접근법)
-    # ========================================================================
 
     def test_price_approach_1_ka10003_basic(self, stock_code: str) -> Dict[str, Any]:
         """접근법 1: ka10003 기본 체결정보"""
@@ -137,10 +129,8 @@ class NXTComprehensiveTest:
             )
 
             if response and response.get('return_code') == 0:
-                # 응답 구조 파악
                 logger.info(f"ka10087 응답: {json.dumps(response, ensure_ascii=False, indent=2)}")
 
-                # 현재가 필드 찾기
                 price = 0
                 for key in ['cur_prc', 'current_price', 'price', 'sgpr', 'dnpr']:
                     if key in response:
@@ -402,21 +392,17 @@ class NXTComprehensiveTest:
                 'error': str(e)
             }
 
-    # ========================================================================
-    # 매수 주문 테스트 (여러 파라미터 조합)
-    # ========================================================================
 
     def test_order_combination(self, dmst_stex_tp: str, trde_tp: str, stock_code: str = '005930') -> Dict[str, Any]:
         """주문 파라미터 조합 테스트"""
         logger.info(f"\n[주문 테스트] dmst_stex_tp={dmst_stex_tp}, trde_tp={trde_tp}")
 
         try:
-            # 최소 수량으로 테스트 (1주)
             body = {
                 "dmst_stex_tp": dmst_stex_tp,
                 "stk_cd": stock_code,
                 "ord_qty": "1",
-                "ord_uv": "50000",  # 임의 가격
+                "ord_uv": "50000",
                 "trde_tp": trde_tp
             }
 
@@ -447,9 +433,6 @@ class NXTComprehensiveTest:
                 'error': str(e)
             }
 
-    # ========================================================================
-    # 통합 테스트 실행
-    # ========================================================================
 
     def run_all_price_tests(self):
         """모든 현재가 조회 테스트 실행"""
@@ -490,13 +473,10 @@ class NXTComprehensiveTest:
         logger.info("📋 주문 파라미터 조합 테스트 시작")
         logger.info("="*80)
 
-        # dmst_stex_tp 조합
         dmst_stex_tp_values = ['KRX', 'NXT', 'SOR']
 
-        # trde_tp 조합 (API 스펙에서 가능한 값들)
         trde_tp_values = ['0', '3', '5', '6', '7', '10', '13', '16', '20', '23', '26']
 
-        # 테스트할 종목 (삼성전자)
         test_stock = '005930'
 
         for dmst in dmst_stex_tp_values:
@@ -515,7 +495,6 @@ class NXTComprehensiveTest:
         logger.info("📊 테스트 결과 요약")
         logger.info("="*80)
 
-        # 현재가 조회 성공률
         price_success = [r for r in self.results['price_tests'] if r.get('success')]
         price_total = len(self.results['price_tests'])
 
@@ -526,7 +505,6 @@ class NXTComprehensiveTest:
             for r in price_success:
                 logger.info(f"   - {r['approach']} ({r['stock_code']}): {r['price']:,}원 via {r['source']}")
 
-        # 주문 성공률
         order_success = [r for r in self.results['order_tests'] if r.get('success')]
         order_total = len(self.results['order_tests'])
 
@@ -537,7 +515,6 @@ class NXTComprehensiveTest:
             for r in order_success:
                 logger.info(f"   - {r['combination']}: 주문번호 {r['ord_no']}")
 
-        # Summary 저장
         self.results['summary'] = {
             'price_tests': {
                 'total': price_total,
@@ -573,10 +550,8 @@ class NXTComprehensiveTest:
         logger.info(f"NXT 시간: {self.is_nxt_hours()}")
         logger.info(f"정규장 시간: {self.is_market_hours()}")
 
-        # 1. 현재가 조회 테스트
         self.run_all_price_tests()
 
-        # 2. 주문 테스트
         logger.info("\n⚠️  주문 테스트를 실행하시겠습니까?")
         logger.info("   (실제 주문이 발생할 수 있습니다. 최소 금액으로 테스트합니다)")
         user_input = input("   계속하려면 'yes' 입력: ")
@@ -586,10 +561,8 @@ class NXTComprehensiveTest:
         else:
             logger.info("주문 테스트를 건너뜁니다.")
 
-        # 3. 요약 생성
         self.generate_summary()
 
-        # 4. 결과 저장
         filename = self.save_results()
 
         logger.info("\n" + "="*80)
@@ -597,7 +570,6 @@ class NXTComprehensiveTest:
         logger.info("="*80)
         logger.info(f"결과 파일: {filename}")
 
-        # 성공한 조합 출력
         price_success = [r for r in self.results['price_tests'] if r.get('success')]
         order_success = [r for r in self.results['order_tests'] if r.get('success')]
 

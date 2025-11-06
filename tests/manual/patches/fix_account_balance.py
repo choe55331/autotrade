@@ -1,4 +1,3 @@
-"""
 계좌 잔고 계산 수정 패치
 문제: 인출가능액(ord_alow_amt)이 아닌 실제 사용가능액을 표시해야 함
 해결: 예수금 - 보유주식 구매원가
@@ -7,7 +6,6 @@
 1. approach_1: 예수금(dps_amt) - 총 구매원가(pchs_amt)
 2. approach_2: 예수금에서 보유주식 평균단가*수량 차감
 3. approach_3: 계좌평가현황 API의 계산된 값 사용
-"""
 
 from typing import Dict, Any, List
 
@@ -25,39 +23,32 @@ class AccountBalanceFix:
         - 100stk_ord_alow_amt: 100% 주문가능금액 (실제 사용가능액)
         - ord_alow_amt: 일반 주문가능금액 (보수적)
         """
-        # 예수금 (entr 필드)
         deposit_amount = int(deposit.get('entr', '0').replace(',', ''))
 
-        # 실제 사용가능액 (100% 주문가능금액)
         available_cash = int(deposit.get('100stk_ord_alow_amt', '0').replace(',', ''))
 
-        # 보유주식 총 구매원가 (추가 정보용)
         total_purchase_cost = sum(int(str(h.get('pchs_amt', 0)).replace(',', '')) for h in holdings)
 
-        # 보유주식 현재가치
         stock_value = sum(int(str(h.get('eval_amt', 0)).replace(',', '')) for h in holdings)
 
-        # 총 자산 = 예수금 + 보유주식 평가액
         total_assets = deposit_amount + stock_value
 
-        # 손익
         profit_loss = stock_value - total_purchase_cost
         profit_loss_percent = (profit_loss / total_purchase_cost * 100) if total_purchase_cost > 0 else 0
 
         return {
             'total_assets': total_assets,
-            'cash': available_cash,  # 실제 사용가능액 (100stk_ord_alow_amt)
+            'cash': available_cash,
             'stock_value': stock_value,
             'profit_loss': profit_loss,
             'profit_loss_percent': profit_loss_percent,
             'open_positions': len(holdings),
 
-            # 디버깅 정보
             '_debug': {
-                'deposit_amount': deposit_amount,  # entr
-                'available_cash': available_cash,  # 100stk_ord_alow_amt
+                'deposit_amount': deposit_amount,
+                'available_cash': available_cash,
                 'total_purchase_cost': total_purchase_cost,
-                'ord_alow_amt': int(deposit.get('ord_alow_amt', '0').replace(',', '')),  # 참고용
+                'ord_alow_amt': int(deposit.get('ord_alow_amt', '0').replace(',', '')),
                 'field': '100stk_ord_alow_amt'
             }
         }
@@ -69,10 +60,8 @@ class AccountBalanceFix:
 
         평균단가 * 수량으로 직접 계산
         """
-        # 예수금
         deposit_amount = int(deposit.get('dps_amt', 0))
 
-        # 보유주식별 계산
         total_purchase_cost = 0
         stock_value = 0
 
@@ -81,21 +70,16 @@ class AccountBalanceFix:
             avg_price = int(h.get('pchs_avg_pric', h.get('avg_prc', 0)))
             current_price = int(h.get('prpr', h.get('cur_prc', 0)))
 
-            # 구매원가 = 평균단가 * 수량
             purchase_cost = avg_price * quantity
-            # 현재가치 = 현재가 * 수량
             current_value = current_price * quantity
 
             total_purchase_cost += purchase_cost
             stock_value += current_value
 
-        # 실제 사용가능액
         available_cash = deposit_amount - total_purchase_cost
 
-        # 총 자산
         total_assets = deposit_amount + stock_value
 
-        # 손익
         profit_loss = stock_value - total_purchase_cost
         profit_loss_percent = (profit_loss / total_purchase_cost * 100) if total_purchase_cost > 0 else 0
 
@@ -126,22 +110,16 @@ class AccountBalanceFix:
         if not account_eval or account_eval.get('return_code') != 0:
             raise ValueError("계좌평가현황 조회 실패")
 
-        # 예수금
         deposit_amount = int(account_eval.get('dps_amt', 0))
 
-        # 총 매입금액
         total_purchase = int(account_eval.get('tot_pchs_amt', 0))
 
-        # 총 평가금액
         total_eval = int(account_eval.get('tot_eval_amt', 0))
 
-        # 실제 사용가능액
         available_cash = deposit_amount - total_purchase
 
-        # 보유종목 수
         holdings = account_eval.get('stk_acnt_evlt_prst', [])
 
-        # 손익
         profit_loss = total_eval - total_purchase
         profit_loss_percent = (profit_loss / total_purchase * 100) if total_purchase > 0 else 0
 
@@ -162,9 +140,6 @@ class AccountBalanceFix:
         }
 
 
-# ============================================================================
-# 대시보드 적용 예시
-# ============================================================================
 
 def get_account_fixed_approach_1(bot_instance, test_mode_active=False, test_date=None):
     """
@@ -174,18 +149,15 @@ def get_account_fixed_approach_1(bot_instance, test_mode_active=False, test_date
     """
     try:
         if bot_instance and hasattr(bot_instance, 'account_api'):
-            # 실제 API에서 데이터 가져오기
             deposit = bot_instance.account_api.get_deposit()
             holdings = bot_instance.account_api.get_holdings()
 
             if deposit and holdings is not None:
-                # 수정된 계산 로직 사용
                 result = AccountBalanceFix.approach_1_deposit_minus_purchase(deposit, holdings)
                 result['test_mode'] = test_mode_active
                 result['test_date'] = test_date
                 return result
 
-        # 실패 시 기본값
         return {
             'total_assets': 0,
             'cash': 0,
@@ -294,9 +266,6 @@ def get_account_fixed_approach_3(bot_instance, test_mode_active=False, test_date
         }
 
 
-# ============================================================================
-# 테스트
-# ============================================================================
 
 if __name__ == "__main__":
     print("계좌 잔고 계산 수정 패치")

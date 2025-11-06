@@ -1,7 +1,5 @@
-"""
 core/rest_client.py
 키움증권 REST API 클라이언트 (최적화 버전)
-"""
 import requests
 import json
 import datetime
@@ -57,25 +55,19 @@ class KiwoomRESTClient:
             
             logger.info("KiwoomRESTClient 초기화 중 (싱글톤)")
             
-            # 설정 로드
             self._load_config()
             
-            # HTTP 세션 생성
             self.session = self._create_session()
             
-            # 토큰 관리
             self.token: Optional[str] = None
             self.token_expiry: datetime.datetime = datetime.datetime.now()
             
-            # 속도 제한 관리
             self.rate_limit_lock = threading.Lock()
-            self.min_call_interval = 0.3  # config에서 가져오도록 수정 가능
+            self.min_call_interval = 0.3
             self.last_call_time = 0.0
             
-            # 에러 메시지
             self.last_error_msg: Optional[str] = None
             
-            # 초기 토큰 발급
             self._initialize_token()
             
             self._initialized = True
@@ -96,13 +88,10 @@ class KiwoomRESTClient:
             self.account_prefix = kiwoom_config['account_prefix']
             self.account_suffix = kiwoom_config['account_suffix']
             
-            # API 속도 제한 설정
             self.min_call_interval = API_RATE_LIMIT.get('REST_CALL_INTERVAL', 0.3)
             self.max_retries = API_RATE_LIMIT.get('REST_MAX_RETRIES', 3)
             self.retry_backoff = API_RATE_LIMIT.get('REST_RETRY_BACKOFF', 1.0)
 
-            # 중요: NXT 시간외 거래는 실제 운영 서버(api.kiwoom.com)에서만 가능
-            # 모의투자 서버(mockapi.kiwoom.com)는 KRX만 지원
             if 'mockapi' in self.base_url:
                 logger.warning(f"⚠️ 모의투자 서버 사용 중: {self.base_url}")
                 logger.warning(f"⚠️ NXT 시간외 거래는 모의투자에서 지원되지 않습니다 (KRX만 지원)")
@@ -111,7 +100,6 @@ class KiwoomRESTClient:
 
             logger.info(f"계좌번호: {self.account_prefix}-{self.account_suffix}")
         except ImportError:
-            # config 모듈이 없을 경우 기본값 사용
             logger.warning("config 모듈을 찾을 수 없습니다. 기본값을 사용합니다.")
             self.base_url = "https://api.kiwoom.com"
             self.appkey = ""
@@ -127,10 +115,9 @@ class KiwoomRESTClient:
         """재시도 기능이 있는 HTTP 세션 생성"""
         session = requests.Session()
 
-        # 500 에러는 재시도하지 않음 (서버 측 문제이므로 즉시 확인 필요)
         retry_strategy = Retry(
             total=self.max_retries,
-            status_forcelist=[429, 502, 503, 504],  # 500 제거
+            status_forcelist=[429, 502, 503, 504],
             allowed_methods=["HEAD", "GET", "POST", "PUT", "DELETE"],
             backoff_factor=self.retry_backoff
         )
@@ -157,7 +144,6 @@ class KiwoomRESTClient:
         if not self.token:
             return False
         
-        # 만료 1분 전까지 유효한 것으로 간주
         buffer_time = datetime.timedelta(minutes=1)
         return datetime.datetime.now() < (self.token_expiry - buffer_time)
     
@@ -168,7 +154,6 @@ class KiwoomRESTClient:
         Returns:
             성공 여부
         """
-        # 기존 토큰이 유효하면 재사용
         if self._is_token_valid():
             logger.debug(f"기존 토큰 사용 (만료: {self.token_expiry.strftime('%Y-%m-%d %H:%M:%S')})")
             return True
@@ -313,7 +298,6 @@ class KiwoomRESTClient:
         path: str,
         http_method: str = "POST"
     ) -> Optional[Dict[str, Any]]:
-        """
         API 요청 실행 (자동 토큰 관리)
         
         Args:
@@ -324,8 +308,6 @@ class KiwoomRESTClient:
         
         Returns:
             API 응답 딕셔너리
-        """
-        # 토큰 유효성 확인 및 갱신
         if not self._is_token_valid():
             if not self._get_token():
                 logger.error(f"API 호출 실패 ({api_id}): 토큰 갱신 불가")
@@ -344,7 +326,6 @@ class KiwoomRESTClient:
         http_method: str,
         retry_on_auth: bool = True
     ) -> Optional[Dict[str, Any]]:
-        """
         실제 API 요청 실행
         
         Args:
@@ -356,36 +337,26 @@ class KiwoomRESTClient:
         
         Returns:
             API 응답 딕셔너리
-        """
-        # 속도 제한 처리
         self._handle_rate_limit()
         
-        # 헤더 구성
         headers = {
             "Content-Type": "application/json; charset=utf-8",
             "authorization": f"Bearer {self.token}",
             "api-id": api_id
         }
         
-        # URL 구성
-        # path에 전체 경로가 없으면 /api/dostk/ prefix 추가
         if path.startswith('/api/dostk/'):
-            # 이미 전체 경로인 경우
             url = f"{self.base_url}{path}"
         elif path.startswith('/'):
-            # 슬래시로 시작하지만 /api/dostk/ 없는 경우
             url = f"{self.base_url}{path}"
         else:
-            # 상대 경로인 경우 (예: "acnt", "inquire/dailyprice")
             url = f"{self.base_url}/api/dostk/{path}"
 
         logger.debug(f"[REST] {http_method} {url} (API ID: {api_id})")
         
         try:
-            # 요청 본문 준비
             request_body_json = json.dumps(body, ensure_ascii=False) if body else None
             
-            # HTTP 요청 실행
             start_time = time.monotonic()
             
             if http_method.upper() == "POST":
@@ -401,9 +372,7 @@ class KiwoomRESTClient:
             elapsed_ms = (time.monotonic() - start_time) * 1000
             logger.info(f"[REST 응답] {api_id} - 상태:{res.status_code}, 지연:{elapsed_ms:.2f}ms")
 
-            # 에러 상태 코드일 경우 상세 로그
             if res.status_code >= 400:
-                # 분봉 API 500 에러는 주말/공휴일에 정상 - DEBUG로 낮춤
                 if api_id == "DOSK_0001" and res.status_code == 500:
                     logger.debug(f"분봉 API 조회 불가 (장 마감/주말) - {api_id}")
                 else:
@@ -414,7 +383,6 @@ class KiwoomRESTClient:
                     logger.error(f"  응답 헤더: {dict(res.headers)}")
                     logger.error(f"  응답 본문: {res.text[:1000]}")
 
-            # 401 에러 처리 (토큰 갱신 후 재시도)
             if res.status_code == 401 and retry_on_auth:
                 logger.warning(f"401 에러 - 토큰 갱신 후 재시도 ({api_id})")
                 self.token = None
@@ -427,10 +395,8 @@ class KiwoomRESTClient:
                         "return_msg": f"재시도 실패: {self.last_error_msg}"
                     }
             
-            # HTTP 에러 확인
             res.raise_for_status()
             
-            # 응답 파싱
             return self._process_api_response(res, api_id)
         
         except requests.exceptions.Timeout:
@@ -474,7 +440,6 @@ class KiwoomRESTClient:
             logger.debug(f"전체 응답: {result_data}")
         else:
             logger.info(f"API 호출 성공 ({api_id})")
-            # output 데이터 유무 로깅
             if 'output' in result_data:
                 output_data = result_data['output']
                 if isinstance(output_data, list):
@@ -500,7 +465,6 @@ class KiwoomRESTClient:
         variant_idx: int = 1,
         body_override: Optional[Dict[str, Any]] = None
     ) -> Optional[Dict[str, Any]]:
-        """
         검증된 API 호출 (93.5% 성공률 보장)
 
         _immutable/api_specs/successful_apis.json의 검증된 파라미터 사용
@@ -516,7 +480,6 @@ class KiwoomRESTClient:
         Example:
             >>> client.call_verified_api('kt00005', variant_idx=1)
             {'return_code': 0, 'stk_cntr_remn': [...]}
-        """
         try:
             from config.api_loader import get_api_loader
 
@@ -531,7 +494,6 @@ class KiwoomRESTClient:
                                   f"_immutable/api_specs/successful_apis.json을 확인하세요."
                 }
 
-            # variant 찾기
             call_spec = loader.get_api_call(api_id, variant_idx)
             if not call_spec:
                 logger.error(f"API {api_id}의 variant {variant_idx}를 찾을 수 없습니다")
@@ -543,7 +505,6 @@ class KiwoomRESTClient:
             path = call_spec.get('path')
             body = call_spec.get('body', {})
 
-            # body override 적용
             if body_override:
                 body = {**body, **body_override}
 

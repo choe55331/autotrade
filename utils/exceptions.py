@@ -1,7 +1,5 @@
-"""
 AutoTrade Pro - 표준화된 예외 클래스
 일관된 에러 핸들링을 위한 커스텀 예외
-"""
 from typing import Optional, Dict, Any
 
 
@@ -29,9 +27,6 @@ class AutoTradeException(Exception):
         }
 
 
-# ============================================================
-# 거래 관련 예외
-# ============================================================
 
 class TradingException(AutoTradeException):
     """거래 관련 기본 예외"""
@@ -82,9 +77,6 @@ class PositionNotFoundException(TradingException):
         )
 
 
-# ============================================================
-# 리스크 관련 예외
-# ============================================================
 
 class RiskException(AutoTradeException):
     """리스크 관련 기본 예외"""
@@ -118,9 +110,6 @@ class StopLossTriggered(RiskException):
         )
 
 
-# ============================================================
-# 데이터 관련 예외
-# ============================================================
 
 class DataException(AutoTradeException):
     """데이터 관련 기본 예외"""
@@ -153,9 +142,6 @@ class InvalidDataException(DataException):
         )
 
 
-# ============================================================
-# API 관련 예외
-# ============================================================
 
 class APIException(AutoTradeException):
     """API 관련 기본 예외"""
@@ -208,9 +194,6 @@ class APIResponseException(APIException):
         )
 
 
-# ============================================================
-# 설정 관련 예외
-# ============================================================
 
 class ConfigurationException(AutoTradeException):
     """설정 관련 기본 예외"""
@@ -239,9 +222,6 @@ class MissingConfigException(ConfigurationException):
         )
 
 
-# ============================================================
-# 전략 관련 예외
-# ============================================================
 
 class StrategyException(AutoTradeException):
     """전략 관련 기본 예외"""
@@ -270,9 +250,6 @@ class BacktestException(StrategyException):
         )
 
 
-# ============================================================
-# 유틸리티 함수
-# ============================================================
 
 def handle_exception(e: Exception, logger, context: Optional[str] = None) -> Dict[str, Any]:
     """
@@ -311,7 +288,6 @@ def retry_on_exception(
     backoff: float = 2.0,
     logger=None
 ):
-    """
     예외 발생 시 재시도 데코레이터
 
     Args:
@@ -325,7 +301,6 @@ def retry_on_exception(
         @retry_on_exception(exceptions=(APIConnectionException,), max_retries=3)
         def call_api():
             ...
-    """
     import time
     from functools import wraps
 

@@ -1,7 +1,5 @@
-"""
 Gemini Ensemble Analyzer
 Gemini 전용 고급 분석 시스템 (다중 전략 투표)
-"""
 
 import asyncio
 from typing import Dict, List, Optional, Any
@@ -23,10 +21,10 @@ class AIModel(Enum):
 
 class VotingStrategy(Enum):
     """Ensemble voting strategies"""
-    MAJORITY = "majority"  # Simple majority vote
-    WEIGHTED = "weighted"  # Confidence-weighted average
-    UNANIMOUS = "unanimous"  # Only act if all agree
-    BEST_PERFORMER = "best_performer"  # Use historically best model
+    MAJORITY = "majority"
+    WEIGHTED = "weighted"
+    UNANIMOUS = "unanimous"
+    BEST_PERFORMER = "best_performer"
 
 
 class EnsembleAnalyzer(BaseAnalyzer):
@@ -43,16 +41,13 @@ class EnsembleAnalyzer(BaseAnalyzer):
         self,
         voting_strategy: VotingStrategy = VotingStrategy.WEIGHTED
     ):
-        """
         Initialize ensemble analyzer (Gemini only)
 
         Args:
             voting_strategy: Strategy for combining model outputs (kept for compatibility)
-        """
         super().__init__(name="GeminiEnsembleAnalyzer", config={})
         self.voting_strategy = voting_strategy
 
-        # Initialize Gemini analyzer only
         self.analyzers: Dict[AIModel, BaseAnalyzer] = {}
 
         try:
@@ -61,10 +56,9 @@ class EnsembleAnalyzer(BaseAnalyzer):
         except Exception as e:
             logger.error(f"Failed to initialize Gemini: {e}")
 
-        # Model performance tracking
         self.model_performance: Dict[AIModel, Dict[str, float]] = {
             model: {
-                'accuracy': 0.5,  # Start neutral
+                'accuracy': 0.5,
                 'total_predictions': 0,
                 'correct_predictions': 0,
                 'avg_confidence': 0.0
@@ -84,7 +78,6 @@ class EnsembleAnalyzer(BaseAnalyzer):
             True if initialization successful
         """
         try:
-            # Initialize all available analyzers
             for model_type, analyzer in self.analyzers.items():
                 if hasattr(analyzer, 'initialize'):
                     analyzer.initialize()
@@ -111,16 +104,13 @@ class EnsembleAnalyzer(BaseAnalyzer):
             logger.error("No AI models available")
             return self._get_default_analysis()
 
-        # Run all models concurrently
         tasks = []
         for model_type, analyzer in self.analyzers.items():
             task = self._analyze_with_model(model_type, analyzer, stock_data)
             tasks.append(task)
 
-        # Gather all results
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
-        # Filter out errors
         valid_results = []
         for i, result in enumerate(results):
             if isinstance(result, Exception):
@@ -133,7 +123,6 @@ class EnsembleAnalyzer(BaseAnalyzer):
             logger.error("All models failed")
             return self._get_default_analysis()
 
-        # Combine results using voting strategy
         ensemble_result = self._combine_results(valid_results, stock_data)
 
         return ensemble_result
@@ -156,11 +145,8 @@ class EnsembleAnalyzer(BaseAnalyzer):
         analyzer: BaseAnalyzer,
         stock_data: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """
         Analyze stock with a specific model
-        """
         try:
-            # Run analysis in thread pool to avoid blocking
             loop = asyncio.get_event_loop()
             result = await loop.run_in_executor(
                 None,
@@ -168,7 +154,6 @@ class EnsembleAnalyzer(BaseAnalyzer):
                 stock_data
             )
 
-            # Add model metadata
             result['model'] = model_type.value
             result['model_performance'] = self.model_performance[model_type]['accuracy']
 
@@ -183,9 +168,7 @@ class EnsembleAnalyzer(BaseAnalyzer):
         results: List[Dict[str, Any]],
         stock_data: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """
         Combine multiple model results using voting strategy
-        """
         if self.voting_strategy == VotingStrategy.MAJORITY:
             return self._majority_vote(results, stock_data)
         elif self.voting_strategy == VotingStrategy.WEIGHTED:
@@ -202,17 +185,13 @@ class EnsembleAnalyzer(BaseAnalyzer):
         results: List[Dict[str, Any]],
         stock_data: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """
         Simple majority voting
-        """
         signals = [r.get('signal', 'HOLD') for r in results]
 
-        # Count votes
         buy_votes = signals.count('BUY')
         sell_votes = signals.count('SELL')
         hold_votes = signals.count('HOLD')
 
-        # Determine winner
         if buy_votes > sell_votes and buy_votes > hold_votes:
             final_signal = 'BUY'
         elif sell_votes > buy_votes and sell_votes > hold_votes:
@@ -220,7 +199,6 @@ class EnsembleAnalyzer(BaseAnalyzer):
         else:
             final_signal = 'HOLD'
 
-        # Average other metrics
         scores = [r.get('score', 5) for r in results]
         avg_score = statistics.mean(scores)
 
@@ -244,15 +222,12 @@ class EnsembleAnalyzer(BaseAnalyzer):
         results: List[Dict[str, Any]],
         stock_data: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """
         Confidence and performance weighted averaging
-        """
         total_weight = 0
         weighted_score = 0
         signal_weights = {'BUY': 0, 'SELL': 0, 'HOLD': 0}
 
         for result in results:
-            # Calculate weight based on model performance and confidence
             model_name = result.get('model', 'unknown')
             model_enum = None
             for m in AIModel:
@@ -271,24 +246,19 @@ class EnsembleAnalyzer(BaseAnalyzer):
             weight = performance * confidence
             total_weight += weight
 
-            # Weighted score
             score = result.get('score', 5)
             weighted_score += score * weight
 
-            # Weighted signal
             signal = result.get('signal', 'HOLD')
             signal_weights[signal] += weight
 
-        # Calculate final values
         if total_weight > 0:
             final_score = weighted_score / total_weight
         else:
             final_score = 5.0
 
-        # Determine signal by highest weight
         final_signal = max(signal_weights, key=signal_weights.get)
 
-        # Confidence based on agreement
         max_weight = signal_weights[final_signal]
         confidence_pct = (max_weight / total_weight * 100) if total_weight > 0 else 50
 
@@ -316,12 +286,9 @@ class EnsembleAnalyzer(BaseAnalyzer):
         results: List[Dict[str, Any]],
         stock_data: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """
         Only buy/sell if all models agree
-        """
         signals = [r.get('signal', 'HOLD') for r in results]
 
-        # Check if all agree
         if len(set(signals)) == 1:
             final_signal = signals[0]
             final_confidence = 'High'
@@ -348,9 +315,7 @@ class EnsembleAnalyzer(BaseAnalyzer):
         results: List[Dict[str, Any]],
         stock_data: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """
         Use the historically best performing model
-        """
         best_result = None
         best_accuracy = 0
 
@@ -371,7 +336,6 @@ class EnsembleAnalyzer(BaseAnalyzer):
         if best_result is None:
             best_result = results[0]
 
-        # Enhance with ensemble metadata
         best_result['voting_strategy'] = 'best_performer'
         best_result['selected_model_accuracy'] = round(best_accuracy, 3)
         best_result['all_results'] = results
@@ -409,7 +373,6 @@ class EnsembleAnalyzer(BaseAnalyzer):
             score = result.get('score', 5)
             reasoning = result.get('reasoning', 'No reasoning provided')
 
-            # Truncate long reasoning
             if len(reasoning) > 150:
                 reasoning = reasoning[:150] + "..."
 
@@ -426,7 +389,6 @@ class EnsembleAnalyzer(BaseAnalyzer):
         if not self.analyzers:
             return self._get_default_market_analysis()
 
-        # Synchronous market analysis (can be made async if needed)
         results = []
         for model_type, analyzer in self.analyzers.items():
             try:
@@ -439,7 +401,6 @@ class EnsembleAnalyzer(BaseAnalyzer):
         if not results:
             return self._get_default_market_analysis()
 
-        # Aggregate market sentiment
         sentiments = [r.get('sentiment', 'Neutral') for r in results]
         sentiment_votes = {
             'Bullish': sentiments.count('Bullish'),
@@ -448,7 +409,6 @@ class EnsembleAnalyzer(BaseAnalyzer):
         }
         final_sentiment = max(sentiment_votes, key=sentiment_votes.get)
 
-        # Average score
         scores = [r.get('score', 5) for r in results]
         avg_score = statistics.mean(scores)
 
@@ -465,7 +425,6 @@ class EnsembleAnalyzer(BaseAnalyzer):
         self,
         portfolio_data: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """
         Analyze portfolio using ensemble
 
         Args:
@@ -473,7 +432,6 @@ class EnsembleAnalyzer(BaseAnalyzer):
 
         Returns:
             Portfolio analysis results
-        """
         if not self.analyzers:
             return {
                 'score': 5,
@@ -483,7 +441,6 @@ class EnsembleAnalyzer(BaseAnalyzer):
                 'timestamp': datetime.now().isoformat()
             }
 
-        # Synchronous portfolio analysis
         results = []
         for model_type, analyzer in self.analyzers.items():
             try:
@@ -503,11 +460,9 @@ class EnsembleAnalyzer(BaseAnalyzer):
                 'timestamp': datetime.now().isoformat()
             }
 
-        # Aggregate scores
         scores = [r.get('score', 5) for r in results]
         avg_score = statistics.mean(scores)
 
-        # Determine health
         if avg_score >= 7.5:
             health = 'Excellent'
         elif avg_score >= 6.0:
@@ -517,14 +472,12 @@ class EnsembleAnalyzer(BaseAnalyzer):
         else:
             health = 'Poor'
 
-        # Combine recommendations and risks
         all_recommendations = []
         all_risks = []
         for result in results:
             all_recommendations.extend(result.get('recommendations', []))
             all_risks.extend(result.get('risks', []))
 
-        # Remove duplicates
         unique_recommendations = list(set(all_recommendations))[:10]
         unique_risks = list(set(all_risks))[:10]
 
@@ -546,7 +499,6 @@ class EnsembleAnalyzer(BaseAnalyzer):
             conditions = result.get('conditions', [])
             all_conditions.extend(conditions)
 
-        # Remove duplicates while preserving order
         unique_conditions = []
         seen = set()
         for condition in all_conditions:
@@ -554,7 +506,7 @@ class EnsembleAnalyzer(BaseAnalyzer):
                 seen.add(condition)
                 unique_conditions.append(condition)
 
-        return unique_conditions[:10]  # Limit to top 10
+        return unique_conditions[:10]
 
     def update_model_performance(
         self,
@@ -562,14 +514,12 @@ class EnsembleAnalyzer(BaseAnalyzer):
         was_correct: bool,
         confidence: str
     ):
-        """
         Update performance tracking for a model
 
         Args:
             model: The AI model
             was_correct: Whether the prediction was correct
             confidence: The confidence level of the prediction
-        """
         if model not in self.model_performance:
             return
 
@@ -578,10 +528,8 @@ class EnsembleAnalyzer(BaseAnalyzer):
         if was_correct:
             perf['correct_predictions'] += 1
 
-        # Update accuracy
         perf['accuracy'] = perf['correct_predictions'] / perf['total_predictions']
 
-        # Update average confidence
         confidence_map = {'High': 1.0, 'Medium': 0.7, 'Low': 0.4}
         conf_value = confidence_map.get(confidence, 0.7)
 
@@ -609,7 +557,6 @@ class EnsembleAnalyzer(BaseAnalyzer):
                 'avg_confidence': round(perf['avg_confidence'], 3)
             })
 
-        # Sort by accuracy
         rankings.sort(key=lambda x: x['accuracy'], reverse=True)
         return rankings
 
@@ -633,14 +580,12 @@ class EnsembleAnalyzer(BaseAnalyzer):
         }
 
 
-# Singleton instance
 _analyzer_instance: Optional[EnsembleAnalyzer] = None
 
 
 def get_analyzer(
     voting_strategy: VotingStrategy = VotingStrategy.WEIGHTED
 ) -> EnsembleAnalyzer:
-    """
     Get singleton instance of EnsembleAnalyzer (Gemini only)
 
     Args:
@@ -648,7 +593,6 @@ def get_analyzer(
 
     Returns:
         EnsembleAnalyzer instance
-    """
     global _analyzer_instance
     if _analyzer_instance is None:
         _analyzer_instance = EnsembleAnalyzer(

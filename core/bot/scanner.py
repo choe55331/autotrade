@@ -1,7 +1,5 @@
-"""
 Stock Scanner Module
 스캔 전략 실행 모듈
-"""
 
 import logging
 from typing import List, Dict, Any, Optional
@@ -33,7 +31,6 @@ class StockScanner:
         self.scoring_system = scoring_system
         self.ai_analyzer = ai_analyzer
 
-        # 스캔 진행 상황
         self.scan_progress = {
             'current_strategy': '',
             'total_candidates': 0,
@@ -49,7 +46,6 @@ class StockScanner:
         dynamic_risk_manager,
         market_status: Dict[str, Any]
     ) -> List[Any]:
-        """
         3단계 스캔 파이프라인 실행
 
         Args:
@@ -59,10 +55,8 @@ class StockScanner:
 
         Returns:
             최종 승인된 매수 후보 리스트
-        """
 
         try:
-            # 1. 포지션 추가 가능 여부 확인
             positions = portfolio_manager.get_positions()
 
             if not portfolio_manager.can_add_position():
@@ -73,23 +67,19 @@ class StockScanner:
                 logger.info("⚠️  리스크 관리: 포지션 진입 불가")
                 return []
 
-            # 2. 현재 전략 실행
             final_candidates = self.strategy_manager.run_current_strategy()
 
             if not final_candidates:
                 logger.info("✅ 스캐닝 완료: 최종 후보 없음")
                 return []
 
-            # 3. 스코어링
             candidate_scores = self._score_candidates(
                 final_candidates,
                 self.strategy_manager.get_current_strategy_name()
             )
 
-            # 4. 상위 5개 선별
             top5 = self._select_top_candidates(final_candidates, candidate_scores, 5)
 
-            # 5. AI 검토 (상위 3개)
             approved_candidates = self._ai_review(
                 top5[:3],
                 candidate_scores,
@@ -107,7 +97,6 @@ class StockScanner:
         candidates: List[Any],
         scan_type: str
     ) -> Dict[str, Any]:
-        """후보 종목 스코어링"""
 
         strategy_to_scan_type = {
             '거래량 순위': 'volume_based',
@@ -155,14 +144,11 @@ class StockScanner:
         scores: Dict[str, Any],
         top_n: int
     ) -> List[Any]:
-        """상위 N개 후보 선별"""
 
-        # 점수 기준 정렬
         candidates.sort(key=lambda x: x.final_score, reverse=True)
 
         top_candidates = candidates[:top_n]
 
-        # 진행 상황 업데이트
         self.scan_progress['top_candidates'] = [
             {
                 'rank': idx + 1,
@@ -174,7 +160,6 @@ class StockScanner:
             for idx, c in enumerate(top_candidates)
         ]
 
-        # 로그 출력
         logger.info(f"\n📊 상위 {top_n}개 후보:")
         for rank, c in enumerate(top_candidates, 1):
             score_result = scores[c.code]
@@ -191,7 +176,6 @@ class StockScanner:
         scores: Dict[str, Any],
         portfolio_manager
     ) -> List[Any]:
-        """AI 검토"""
 
         approved = []
 
@@ -202,7 +186,6 @@ class StockScanner:
 
             logger.info(f"\n🤖 [{idx}/{len(candidates)}] {candidate.name} AI 검토 중...")
 
-            # AI 분석 실행
             scoring_result = scores[candidate.code]
 
             stock_data = {
@@ -228,7 +211,6 @@ class StockScanner:
                 }
             }
 
-            # AI 분석 (비동기는 동기로 호출)
             import asyncio
             try:
                 ai_analysis = asyncio.run(
@@ -239,7 +221,6 @@ class StockScanner:
                     )
                 )
             except:
-                # 폴백: Mock 분석
                 ai_analysis = {
                     'signal': 'hold',
                     'confidence': 0.5,
@@ -249,14 +230,12 @@ class StockScanner:
 
             ai_signal = ai_analysis.get('signal', 'hold')
 
-            # 결과 저장
             candidate.ai_signal = ai_signal
             candidate.ai_reasons = ai_analysis.get('reasons', [])
             candidate.ai_confidence = ai_analysis.get('confidence', 0.5)
 
             logger.info(f"   ✅ AI 결정: {ai_signal.upper()}")
 
-            # 승인 조건
             buy_approved = (
                 (ai_signal == 'buy' and scoring_result.total_score >= 250) or
                 (ai_signal == 'hold' and scoring_result.total_score >= 300)
@@ -296,7 +275,6 @@ class StockScanner:
 - 보유 종목: {summary['position_count']}개
 - 총 자산: {summary['total_assets']:,}원
 - 수익률: {summary['total_profit_loss_rate']:+.2f}%
-"""
         except:
             return "No positions"
 

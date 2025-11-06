@@ -1,7 +1,5 @@
-"""
 api/condition_api.py
 조건검색 API
-"""
 import logging
 from typing import Dict, Any, List, Optional
 
@@ -38,7 +36,6 @@ class ConditionAPI:
             ]
         """
         try:
-            # WebSocket 사용 필요 (ka10171)
             logger.warning("조건검색 목록 조회는 WebSocket API 필요")
             return []
             
@@ -54,7 +51,6 @@ class ConditionAPI:
         cont_yn: str = 'N',
         next_key: str = ''
     ) -> Dict[str, Any]:
-        """
         조건검색 실행 (일반)
         
         Args:
@@ -66,9 +62,7 @@ class ConditionAPI:
         
         Returns:
             검색 결과
-        """
         try:
-            # WebSocket 사용 필요 (ka10172)
             logger.warning("조건검색은 WebSocket API 필요")
             return {}
             

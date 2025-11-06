@@ -1,10 +1,8 @@
-"""
 AutoTrade Pro - 통합 설정 관리 시스템 (Backward Compatibility Layer)
 
 ⚠️  DEPRECATED: 이 파일은 backward compatibility를 위해 유지됩니다.
 새 코드에서는 config.manager를 사용하세요:
     from config.manager import get_config, get_setting, set_setting
-"""
 from pathlib import Path
 from typing import Dict, Any, Optional, Callable
 import logging
@@ -30,7 +28,7 @@ class UnifiedSettingsManager:
     새 코드에서는 config.manager.ConfigManager를 사용하세요.
     """
 
-    DEFAULT_SETTINGS = {}  # Empty - defaults are now in schemas.py
+    DEFAULT_SETTINGS = {}
 
     def __init__(self, config_path: Optional[Path] = None):
         """
@@ -145,7 +143,6 @@ class UnifiedSettingsManager:
         """기본값으로 리셋"""
         try:
             if category:
-                # Reset specific category (not implemented in new system)
                 logger.warning(f"Category-specific reset not implemented: {category}")
                 return False
             else:
@@ -159,7 +156,6 @@ class UnifiedSettingsManager:
         """설정 변경 리스너 등록"""
         _register_listener(key_path, callback)
 
-        # Also maintain local list for backward compat
         if key_path not in self.change_listeners:
             self.change_listeners[key_path] = []
         self.change_listeners[key_path].append(callback)
@@ -173,7 +169,6 @@ class UnifiedSettingsManager:
         return _import_json(str(file_path))
 
 
-# 싱글톤 인스턴스
 _unified_settings_manager: Optional[UnifiedSettingsManager] = None
 
 

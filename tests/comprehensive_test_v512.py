@@ -1,13 +1,10 @@
-"""
 Comprehensive Test Suite for v5.12 Enhancements
 LSTM Prediction, Data Caching, Risk Analysis
-"""
 import sys
 import os
 from datetime import datetime, timedelta
 import numpy as np
 
-# Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
@@ -20,14 +17,12 @@ def test_lstm_predictor():
     try:
         from ai.lstm_predictor import LSTMPricePredictor, AdvancedFeatureEngineering
 
-        # Test 1: Initialize
         print("\n[Test 1] LSTM Predictor Initialization")
         predictor = LSTMPricePredictor(sequence_length=60, hidden_size=256, num_layers=2)
         print(f"✓ Initialized: {predictor.model_name}")
         print(f"  Sequence Length: {predictor.sequence_length}")
         print(f"  Hidden Size: {predictor.hidden_size}")
 
-        # Test 2: Generate sample data
         print("\n[Test 2] Generating Sample Price Data")
         sample_data = []
         base_price = 70000
@@ -43,13 +38,11 @@ def test_lstm_predictor():
             })
         print(f"✓ Generated {len(sample_data)} days of data")
 
-        # Test 3: Feature Engineering
         print("\n[Test 3] Feature Engineering")
         features = AdvancedFeatureEngineering.extract_comprehensive_features(sample_data, 20)
         print(f"✓ Extracted {len(features)} features")
         print(f"  Features: {list(features.keys())[:5]}...")
 
-        # Test 4: Training
         print("\n[Test 4] Training LSTM Model")
         metrics = predictor.train(sample_data, epochs=20, validation_split=0.2)
         print(f"✓ Training complete:")
@@ -60,7 +53,6 @@ def test_lstm_predictor():
         print(f"  R² Score: {metrics.r2_score:.3f}")
         print(f"  Sharpe Ratio: {metrics.sharpe_ratio:.2f}")
 
-        # Test 5: Prediction
         print("\n[Test 5] Making Predictions")
         prediction = predictor.predict(
             stock_code='005930',
@@ -98,7 +90,6 @@ def test_data_cache():
     try:
         from utils.data_cache import LRUCache, MultiLevelCache, cached
 
-        # Test 1: LRU Cache
         print("\n[Test 1] LRU Cache Basic Operations")
         cache = LRUCache(max_size=10, max_memory_mb=1, default_ttl_seconds=60)
 
@@ -108,7 +99,6 @@ def test_data_cache():
         value = cache.get("key1")
         print(f"✓ Set and Get: {value}")
 
-        # Test 2: Cache Statistics
         print("\n[Test 2] Cache Statistics")
         stats = cache.get_stats()
         print(f"✓ Hit Rate: {stats.hit_rate:.2%}")
@@ -117,17 +107,14 @@ def test_data_cache():
         print(f"  Entry Count: {stats.entry_count}")
         print(f"  Memory Usage: {stats.memory_usage_bytes/1024:.2f}KB")
 
-        # Test 3: Cache Miss
         print("\n[Test 3] Cache Miss")
         miss_value = cache.get("nonexistent_key")
         print(f"✓ Cache miss handled: {miss_value is None}")
 
-        # Test 4: Cache Deletion
         print("\n[Test 4] Cache Deletion")
         deleted = cache.delete("key1")
         print(f"✓ Deletion successful: {deleted}")
 
-        # Test 5: Multi-Level Cache
         print("\n[Test 5] Multi-Level Cache")
         ml_cache = MultiLevelCache(
             l1_max_size=10,
@@ -143,7 +130,6 @@ def test_data_cache():
         ml_stats = ml_cache.get_stats()
         print(f"  L1 Entries: {ml_stats['l1']['entries']}")
 
-        # Test 6: Cached Decorator
         print("\n[Test 6] Cached Decorator")
 
         test_cache = LRUCache(max_size=10, max_memory_mb=1)
@@ -153,10 +139,9 @@ def test_data_cache():
             return sum(range(n))
 
         result1 = expensive_function(1000)
-        result2 = expensive_function(1000)  # Should hit cache
+        result2 = expensive_function(1000)
         print(f"✓ Decorator works: {result1} == {result2}")
 
-        # Test 7: Tag-based Invalidation
         print("\n[Test 7] Tag-based Invalidation")
         cache.set("stock_005930", {"price": 73500}, tags=["stock", "samsung"])
         cache.set("stock_000660", {"price": 130000}, tags=["stock", "skh"])
@@ -182,18 +167,15 @@ def test_risk_analyzer():
     try:
         from utils.risk_analyzer import RiskAnalyzer
 
-        # Test 1: Initialize
         print("\n[Test 1] Risk Analyzer Initialization")
         analyzer = RiskAnalyzer(risk_free_rate=0.03)
         print(f"✓ Initialized with risk-free rate: 3%")
 
-        # Test 2: Generate sample price data
         print("\n[Test 2] Generating Sample Data")
         price_history = []
         base_price = 70000
 
         for i in range(100):
-            # Add some volatility and trend
             trend = i * 50
             volatility = np.random.normal(0, 1500)
             price = base_price + trend + volatility
@@ -209,7 +191,6 @@ def test_risk_analyzer():
 
         print(f"✓ Generated {len(price_history)} days of price data")
 
-        # Test 3: Stock Risk Analysis
         print("\n[Test 3] Stock Risk Analysis")
         risk_metrics = analyzer.analyze_stock_risk(
             stock_code='005930',
@@ -230,13 +211,11 @@ def test_risk_analyzer():
         print(f"  Risk Score: {risk_metrics.risk_score:.1f}/100")
         print(f"  Risk Grade: {risk_metrics.risk_grade}")
 
-        # Test 4: Stress Tests
         print("\n[Test 4] Stress Test Scenarios")
         print(f"✓ Stress test results:")
         for scenario, price in list(risk_metrics.stress_test_scenarios.items())[:3]:
             print(f"  {scenario}: {price:,.0f}")
 
-        # Test 5: Portfolio Risk Analysis
         print("\n[Test 5] Portfolio Risk Analysis")
 
         positions = [
@@ -248,7 +227,7 @@ def test_risk_analyzer():
 
         price_histories = {
             '005930': price_history,
-            '000660': price_history,  # Reuse for testing
+            '000660': price_history,
             '035420': price_history,
             '051910': price_history
         }
@@ -270,7 +249,6 @@ def test_risk_analyzer():
         print(f"  Sharpe Ratio: {portfolio_metrics.sharpe_ratio:.2f}")
         print(f"  Risk Score: {portfolio_metrics.risk_score:.1f}/100")
 
-        # Test 6: Risk Recommendations
         print("\n[Test 6] Risk Recommendations")
         print(f"✓ Recommendations ({len(portfolio_metrics.recommendations)}):")
         for rec in portfolio_metrics.recommendations:
@@ -305,7 +283,6 @@ def test_integration():
 
         print("\n[Test 2] Integrated Workflow")
 
-        # Generate sample data
         sample_data = []
         for i in range(100):
             sample_data.append({
@@ -320,19 +297,16 @@ def test_integration():
         stock_code = '005930'
         stock_name = 'Samsung'
 
-        # Cache price data
         cache_key = f"price_history_{stock_code}"
         cache.set(cache_key, sample_data, ttl_seconds=300)
         cached_data = cache.get(cache_key)
         print(f"✓ Cached {len(cached_data)} price records")
 
-        # LSTM Prediction
         prediction = lstm.predict(stock_code, stock_name, sample_data, days_ahead=5)
         if prediction:
             print(f"✓ LSTM Prediction: {prediction.current_price:,.0f} → "
                   f"{prediction.predicted_prices[-1]:,.0f} ({prediction.trend_direction})")
 
-        # Risk Analysis
         risk_metrics = risk.analyze_stock_risk(
             stock_code, stock_name, sample_data,
             position_size=10000000, portfolio_value=50000000
@@ -359,19 +333,14 @@ def main():
 
     results = []
 
-    # Test 1: LSTM Predictor
     results.append(("LSTM Predictor", test_lstm_predictor()))
 
-    # Test 2: Data Cache
     results.append(("Data Cache", test_data_cache()))
 
-    # Test 3: Risk Analyzer
     results.append(("Risk Analyzer", test_risk_analyzer()))
 
-    # Test 4: Integration
     results.append(("Integration Test", test_integration()))
 
-    # Summary
     print("\n" + "=" * 60)
     print("TEST SUMMARY - v5.12")
     print("=" * 60)

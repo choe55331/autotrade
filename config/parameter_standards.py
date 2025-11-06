@@ -1,14 +1,12 @@
-"""
 AutoTrade Pro - 파라미터 네이밍 표준
 모든 모듈에서 사용하는 표준화된 파라미터 이름과 타입 정의
-"""
 from typing import Dict, Any, Type
 from enum import Enum
 
 
 class ParameterType(Enum):
     """파라미터 타입"""
-    PERCENTAGE = "percentage"  # 0.0 ~ 1.0 비율
+    PERCENTAGE = "percentage"
     INTEGER = "integer"
     FLOAT = "float"
     BOOLEAN = "boolean"
@@ -27,17 +25,13 @@ class StandardParameters:
     - 배수: *_multiplier (예: atr_multiplier = 2.0)
     """
 
-    # ================================================
-    # 포지션 관리 (Position Management)
-    # ================================================
     POSITION_PARAMS = {
-        # 크기 제한
         'max_position_size': {
             'type': ParameterType.PERCENTAGE,
             'range': (0.0, 1.0),
             'default': 0.30,
             'description': '최대 포지션 크기 (전체 자본 대비 비율)',
-            'aliases': ['max_position_ratio', 'position_size_rate']  # 기존 이름
+            'aliases': ['max_position_ratio', 'position_size_rate']
         },
         'min_position_size': {
             'type': ParameterType.PERCENTAGE,
@@ -46,7 +40,6 @@ class StandardParameters:
             'description': '최소 포지션 크기'
         },
 
-        # 개수 제한
         'position_limit': {
             'type': ParameterType.INTEGER,
             'range': (1, 100),
@@ -56,11 +49,7 @@ class StandardParameters:
         },
     }
 
-    # ================================================
-    # 리스크 관리 (Risk Management)
-    # ================================================
     RISK_PARAMS = {
-        # 손절 관련
         'stop_loss_pct': {
             'type': ParameterType.PERCENTAGE,
             'range': (0.0, 1.0),
@@ -75,7 +64,6 @@ class StandardParameters:
             'description': '긴급 손절 비율 (15%)',
         },
 
-        # 익절 관련
         'take_profit_pct': {
             'type': ParameterType.PERCENTAGE,
             'range': (0.0, 10.0),
@@ -84,7 +72,6 @@ class StandardParameters:
             'aliases': ['take_profit_rate', 'take_profit_ratio']
         },
 
-        # 일일 손실 제한
         'max_daily_loss_pct': {
             'type': ParameterType.PERCENTAGE,
             'range': (0.0, 1.0),
@@ -98,7 +85,6 @@ class StandardParameters:
             'description': '총 최대 손실 비율 (10%)',
         },
 
-        # 연속 손실
         'max_consecutive_losses': {
             'type': ParameterType.INTEGER,
             'range': (1, 20),
@@ -107,9 +93,6 @@ class StandardParameters:
         },
     }
 
-    # ================================================
-    # 트레일링 스톱 (Trailing Stop)
-    # ================================================
     TRAILING_STOP_PARAMS = {
         'atr_multiplier': {
             'type': ParameterType.FLOAT,
@@ -132,11 +115,7 @@ class StandardParameters:
         },
     }
 
-    # ================================================
-    # 전략 파라미터 (Strategy Parameters)
-    # ================================================
     STRATEGY_PARAMS = {
-        # 진입/청산 임계값
         'entry_threshold': {
             'type': ParameterType.FLOAT,
             'range': (-10.0, 10.0),
@@ -150,7 +129,6 @@ class StandardParameters:
             'description': '청산 임계값',
         },
 
-        # 이동평균
         'short_ma_period': {
             'type': ParameterType.INTEGER,
             'range': (1, 100),
@@ -164,7 +142,6 @@ class StandardParameters:
             'description': '장기 이동평균 기간',
         },
 
-        # RSI
         'rsi_period': {
             'type': ParameterType.INTEGER,
             'range': (5, 50),
@@ -184,7 +161,6 @@ class StandardParameters:
             'description': 'RSI 과매도 기준',
         },
 
-        # 변동성 돌파
         'k_value': {
             'type': ParameterType.FLOAT,
             'range': (0.1, 1.0),
@@ -192,7 +168,6 @@ class StandardParameters:
             'description': '변동성 돌파 K값 (Larry Williams)',
         },
 
-        # 거래량
         'volume_multiplier': {
             'type': ParameterType.FLOAT,
             'range': (1.0, 10.0),
@@ -200,7 +175,6 @@ class StandardParameters:
             'description': '평균 거래량 대비 배수',
         },
 
-        # 롤백 기간
         'lookback_period': {
             'type': ParameterType.INTEGER,
             'range': (10, 252),
@@ -210,9 +184,6 @@ class StandardParameters:
         },
     }
 
-    # ================================================
-    # 켈리 기준 (Kelly Criterion)
-    # ================================================
     KELLY_PARAMS = {
         'kelly_fraction': {
             'type': ParameterType.PERCENTAGE,
@@ -228,9 +199,6 @@ class StandardParameters:
         },
     }
 
-    # ================================================
-    # 백테스팅 (Backtesting)
-    # ================================================
     BACKTEST_PARAMS = {
         'initial_capital': {
             'type': ParameterType.FLOAT,
@@ -252,9 +220,6 @@ class StandardParameters:
         },
     }
 
-    # ================================================
-    # 최적화 (Optimization)
-    # ================================================
     OPTIMIZATION_PARAMS = {
         'n_trials': {
             'type': ParameterType.INTEGER,
@@ -300,7 +265,6 @@ class StandardParameters:
         all_params = cls.get_all_parameters()
 
         if param_name not in all_params:
-            # 별칭 확인
             for std_name, config in all_params.items():
                 if 'aliases' in config and param_name in config['aliases']:
                     param_name = std_name
@@ -312,7 +276,6 @@ class StandardParameters:
         param_type = param_config['type']
         param_range = param_config.get('range')
 
-        # 타입 검증
         if param_type == ParameterType.INTEGER:
             if not isinstance(value, int):
                 return False, f"{param_name}는 정수여야 합니다"
@@ -323,7 +286,6 @@ class StandardParameters:
             if not isinstance(value, bool):
                 return False, f"{param_name}는 불리언이어야 합니다"
 
-        # 범위 검증
         if param_range and isinstance(value, (int, float)):
             min_val, max_val = param_range
             if not (min_val <= value <= max_val):
@@ -336,7 +298,6 @@ class StandardParameters:
         """파라미터 기본값 반환"""
         all_params = cls.get_all_parameters()
 
-        # 별칭 처리
         for std_name, config in all_params.items():
             if std_name == param_name or (
                 'aliases' in config and param_name in config['aliases']
@@ -399,9 +360,7 @@ class ParameterConverter:
         return normalized
 
 
-# 하위 호환성을 위한 별칭 맵핑
 LEGACY_PARAMETER_MAPPING = {
-    # 기존 이름 -> 표준 이름
     'max_position_ratio': 'max_position_size',
     'position_size_rate': 'max_position_size',
     'max_positions': 'position_limit',
@@ -428,7 +387,6 @@ def migrate_parameters(params: Dict[str, Any]) -> Dict[str, Any]:
     migrated = {}
 
     for key, value in params.items():
-        # 표준 이름으로 변환
         std_name = LEGACY_PARAMETER_MAPPING.get(key, key)
         migrated[std_name] = value
 

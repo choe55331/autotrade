@@ -1,7 +1,5 @@
-"""
 종합 데이터 수집 테스트
 여러 방법으로 시도해서 실제로 작동하는 방법을 찾습니다
-"""
 import sys
 import os
 
@@ -41,7 +39,6 @@ class DataCollectionTester:
             'fail_count': 0
         }
 
-        # 1. 평균 거래량 & 변동성 테스트
         print("\n" + "-"*80)
         print("🧪 TEST 1: 평균 거래량 & 변동성")
         print("-"*80)
@@ -54,7 +51,6 @@ class DataCollectionTester:
         else:
             results['fail_count'] += 1
 
-        # 2. 증권사별 매매 테스트
         print("\n" + "-"*80)
         print("🧪 TEST 2: 증권사별 매매")
         print("-"*80)
@@ -67,7 +63,6 @@ class DataCollectionTester:
         else:
             results['fail_count'] += 1
 
-        # 3. 체결강도 테스트
         print("\n" + "-"*80)
         print("🧪 TEST 3: 체결강도")
         print("-"*80)
@@ -79,7 +74,6 @@ class DataCollectionTester:
         else:
             results['fail_count'] += 1
 
-        # 4. 프로그램매매 테스트
         print("\n" + "-"*80)
         print("🧪 TEST 4: 프로그램매매")
         print("-"*80)
@@ -96,12 +90,10 @@ class DataCollectionTester:
     def _test_volume_volatility(self, stock_code: str):
         """평균 거래량 & 변동성 테스트 (여러 방법)"""
 
-        # 방법 1: get_daily_chart() 사용 (ka10081)
         print("\n   방법 1: market_api.get_daily_chart() [ka10081]")
         try:
             daily_data = self.market_api.get_daily_chart(stock_code, period=20)
             if daily_data and len(daily_data) > 1:
-                # 평균 거래량
                 volumes = [d.get('volume', 0) for d in daily_data if d.get('volume')]
                 if volumes:
                     avg_volume = sum(volumes) / len(volumes)
@@ -110,10 +102,8 @@ class DataCollectionTester:
                     avg_volume = None
                     print(f"      ❌ 거래량 데이터 없음")
 
-                # 변동성 (등락률 표준편차)
                 rates = []
                 for d in daily_data:
-                    # 등락률 계산 (종가 기준)
                     close = d.get('close', 0)
                     open_price = d.get('open', 0)
                     if open_price and open_price > 0:
@@ -133,7 +123,6 @@ class DataCollectionTester:
         except Exception as e:
             print(f"      ❌ 실패: {e}")
 
-        # 방법 2: 직접 ka10081 호출
         print("\n   방법 2: 직접 ka10081 호출")
         try:
             from utils.trading_date import get_last_trading_date
@@ -151,13 +140,11 @@ class DataCollectionTester:
             if response and response.get('return_code') == 0:
                 daily_data = response.get('stk_dt_pole_chart_qry', [])
                 if daily_data and len(daily_data) > 1:
-                    # 평균 거래량
                     volumes = [int(d.get('trde_qty', 0)) for d in daily_data[:20] if d.get('trde_qty')]
                     if volumes:
                         avg_volume = sum(volumes) / len(volumes)
                         print(f"      ✅ 평균거래량 (직접): {avg_volume:,.0f}주")
 
-                        # 변동성
                         rates = []
                         for d in daily_data[:20]:
                             close = int(d.get('cur_prc', 0))
@@ -182,10 +169,8 @@ class DataCollectionTester:
     def _test_broker_trading(self, stock_code: str):
         """증권사별 매매 테스트 (여러 방법)"""
 
-        # 방법 1: 주요 증권사 코드로 개별 조회 후 합산
         print("\n   방법 1: 주요 증권사 개별 조회 후 합산")
         try:
-            # 주요 증권사 코드 (상위 10개)
             major_firms = [
                 ('001', '한국투자증권'),
                 ('003', '미래에셋증권'),
@@ -212,7 +197,6 @@ class DataCollectionTester:
                     )
 
                     if data and len(data) > 0:
-                        # 최근 데이터의 순매수 확인
                         latest = data[0]
                         net_qty = latest.get('net_qty', 0)
 
@@ -236,15 +220,12 @@ class DataCollectionTester:
         except Exception as e:
             print(f"      ❌ 실패: {e}")
 
-        # 방법 2: 통합 API 탐색
         print("\n   방법 2: 통합 증권사 API 탐색")
         try:
-            # ka10078의 다른 사용법 시도
-            # 회원사코드를 비워두거나 특수값 사용
             response = self.client.request(
                 api_id="ka10078",
                 body={
-                    "mmcm_cd": "",  # 빈 값으로 전체 조회 시도
+                    "mmcm_cd": "",
                     "stk_cd": stock_code,
                     "strt_dt": "",
                     "end_dt": ""
@@ -254,14 +235,12 @@ class DataCollectionTester:
 
             if response and response.get('return_code') == 0:
                 print(f"      ✅ 통합 API 성공!")
-                # 데이터 파싱 로직 추가 필요
                 return None, None, "unified_api"
             else:
                 print(f"      ❌ 통합 API 불가: {response.get('return_msg', 'unknown')}")
         except Exception as e:
             print(f"      ❌ 통합 API 실패: {e}")
 
-        # 방법 3: 대안 - 기관/외국인 데이터로 대체
         print("\n   방법 3: 대안 - 기관매매추이 사용")
         try:
             trend_data = self.market_api.get_institutional_trading_trend(
@@ -273,7 +252,6 @@ class DataCollectionTester:
             if trend_data:
                 print(f"      ✅ 기관매매추이 데이터 사용 가능")
                 print(f"      ℹ️  증권사 데이터 대신 기관 데이터 사용")
-                # 기관 데이터에서 순매수 정보 추출 가능
                 return 0, 0, "institutional_trend_fallback"
             else:
                 print(f"      ❌ 기관매매추이 없음")
@@ -285,7 +263,6 @@ class DataCollectionTester:
     def _test_execution_intensity(self, stock_code: str):
         """체결강도 테스트"""
 
-        # 방법 1: get_execution_intensity() 사용
         print("\n   방법 1: market_api.get_execution_intensity()")
         try:
             data = self.market_api.get_execution_intensity(stock_code)
@@ -298,7 +275,6 @@ class DataCollectionTester:
         except Exception as e:
             print(f"      ❌ 실패: {e}")
 
-        # 방법 2: 직접 API 호출
         print("\n   방법 2: 직접 ka10047 호출")
         try:
             response = self.client.request(
@@ -308,7 +284,6 @@ class DataCollectionTester:
             )
 
             if response and response.get('return_code') == 0:
-                # 응답 파싱
                 data_keys = [k for k in response.keys()
                             if k not in ['return_code', 'return_msg', 'api-id', 'cont-yn', 'next-key']]
 
@@ -316,7 +291,6 @@ class DataCollectionTester:
                     val = response.get(key)
                     if isinstance(val, list) and len(val) > 0:
                         latest = val[0]
-                        # 체결강도 필드 찾기
                         cntr_str = latest.get('cntr_str', latest.get('cntr_str', '0'))
                         if cntr_str:
                             try:
@@ -337,7 +311,6 @@ class DataCollectionTester:
     def _test_program_trading(self, stock_code: str):
         """프로그램매매 테스트"""
 
-        # 방법 1: get_program_trading() 사용
         print("\n   방법 1: market_api.get_program_trading()")
         try:
             data = self.market_api.get_program_trading(stock_code)
@@ -350,21 +323,19 @@ class DataCollectionTester:
         except Exception as e:
             print(f"      ❌ 실패: {e}")
 
-        # 방법 2: 직접 API 호출
         print("\n   방법 2: 직접 ka90013 호출")
         try:
             response = self.client.request(
                 api_id="ka90013",
                 body={
                     "stk_cd": stock_code,
-                    "amt_qty_tp": "1",  # 1: 금액, 2: 수량
+                    "amt_qty_tp": "1",
                     "date": ""
                 },
                 path="mrkcond"
             )
 
             if response and response.get('return_code') == 0:
-                # 응답 파싱
                 data_keys = [k for k in response.keys()
                             if k not in ['return_code', 'return_msg', 'api-id', 'cont-yn', 'next-key']]
 
@@ -372,7 +343,6 @@ class DataCollectionTester:
                     val = response.get(key)
                     if isinstance(val, list) and len(val) > 0:
                         latest = val[0]
-                        # 프로그램 순매수 필드 찾기
                         net_buy = latest.get('prm_netprps_amt', latest.get('prm_netslmt', '0'))
                         if net_buy:
                             try:
@@ -420,11 +390,11 @@ class DataCollectionTester:
         if 'ka10081' in results['methods_used']['volume_volatility']:
             print("\n1. 평균거래량/변동성:")
             print("   daily_data = self.market_api.get_daily_chart(candidate.code, period=20)")
-            print("   # ka10081 API 사용 (path='mrkcond') ✅")
+            print("
 
         if results['methods_used']['broker_trading'] == 'individual_firm_query':
             print("\n2. 증권사별매매:")
-            print("   # 주요 증권사 개별 조회 후 합산")
+            print("
             print("   major_firms = [('001', '한국투자증권'), ...]")
             print("   for firm_code, firm_name in major_firms:")
             print("       data = self.market_api.get_securities_firm_trading(firm_code, stock_code, days=5)")
@@ -432,19 +402,18 @@ class DataCollectionTester:
         if results['methods_used']['execution_intensity'] == 'get_execution_intensity':
             print("\n3. 체결강도:")
             print("   data = self.market_api.get_execution_intensity(candidate.code)")
-            print("   # 이미 정상 작동 ✅")
+            print("
 
         if results['methods_used']['program_trading'] == 'get_program_trading':
             print("\n4. 프로그램매매:")
             print("   data = self.market_api.get_program_trading(candidate.code)")
-            print("   # 이미 정상 작동 ✅")
+            print("
 
 
 def main():
     """메인 함수"""
     tester = DataCollectionTester()
 
-    # 여러 종목으로 테스트
     test_stocks = [
         ("005930", "삼성전자"),
         ("000660", "SK하이닉스"),
@@ -463,7 +432,6 @@ def main():
 
         tester.print_summary(results)
 
-        # 첫 번째 종목만 테스트 (시간 절약)
         break
 
     print("\n" + "="*80)

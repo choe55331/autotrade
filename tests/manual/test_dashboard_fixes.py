@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-"""
 대시보드 수정사항 테스트 스크립트 (실제 코드 구조 기반)
 
 테스트 항목:
@@ -12,7 +10,6 @@
 - 08:00-09:00: NXT 시장 (프리마켓)
 - 09:00-15:30: 일반 주식장
 - 15:30-20:00: NXT 시장 (애프터마켓)
-"""
 
 import sys
 import os
@@ -29,7 +26,6 @@ def test_account_info():
         from api.account import AccountAPI
         from core.rest_client import KiwoomRESTClient
 
-        # 싱글톤 클라이언트 생성
         client = KiwoomRESTClient()
         account_api = AccountAPI(client)
 
@@ -41,13 +37,11 @@ def test_account_info():
             print("   → main.py를 먼저 실행하여 토큰을 발급받으세요")
             return False
 
-        # 필드 검증
         print("\n✅ 예수금 정보 조회 성공")
         print(f"   - entr (예수금): {deposit.get('entr', 'N/A')}")
         print(f"   - 100stk_ord_alow_amt (주문가능금액): {deposit.get('100stk_ord_alow_amt', 'N/A')}")
         print(f"   - ord_alow_amt (일반주문가능금액): {deposit.get('ord_alow_amt', 'N/A')}")
 
-        # 계산 검증
         entr = int(str(deposit.get('entr', '0')).replace(',', ''))
         orderable = int(str(deposit.get('100stk_ord_alow_amt', '0')).replace(',', ''))
 
@@ -94,7 +88,7 @@ def test_holdings():
 
         print(f"\n✅ 보유 종목 {len(holdings)}개 조회 성공")
 
-        for i, h in enumerate(holdings[:3], 1):  # 최대 3개만 표시
+        for i, h in enumerate(holdings[:3], 1):
             code = str(h.get('stk_cd', '')).strip()
             if code.startswith('A'):
                 code = code[1:]
@@ -130,14 +124,12 @@ def test_virtual_trading():
     try:
         from virtual_trading.virtual_trader import VirtualTrader
 
-        # 가상매매 인스턴스 생성
         virtual_trader = VirtualTrader(initial_cash=10_000_000)
 
         print("\n✅ VirtualTrader 초기화 성공")
         print(f"   - 초기 자본: 10,000,000원")
         print(f"   - 전략 개수: {len(virtual_trader.accounts)}개")
 
-        # 전략별 요약 조회 (실제 필드명 사용)
         summaries = virtual_trader.get_all_summaries()
 
         for strategy_name, summary in summaries.items():
@@ -148,7 +140,6 @@ def test_virtual_trading():
             print(f"   - 포지션: {summary['position_count']}개")
             print(f"   - 승률: {summary['win_rate']:.1f}%")
 
-        # 최고 전략
         best = virtual_trader.get_best_strategy()
         print(f"\n🏆 최고 성과 전략: {best}")
 
@@ -176,11 +167,9 @@ def test_buy_calculation():
         client = KiwoomRESTClient()
         account_api = AccountAPI(client)
 
-        # 예수금 조회
         deposit = account_api.get_deposit()
         holdings = account_api.get_holdings()
 
-        # 올바른 필드 사용 (수정된 방식)
         deposit_total = int(str(deposit.get('entr', '0')).replace(',', '')) if deposit else 0
         available_cash = int(str(deposit.get('100stk_ord_alow_amt', '0')).replace(',', '')) if deposit else 0
 
@@ -188,28 +177,23 @@ def test_buy_calculation():
         print(f"   - 예수금: {deposit_total:,}원")
         print(f"   - 주문가능금액: {available_cash:,}원")
 
-        # 보유주식 평가액
         holdings_value = 0
         if holdings:
             for h in holdings:
                 holdings_value += int(str(h.get('eval_amt', 0)).replace(',', ''))
 
-        # 초기 자본 계산
         initial_capital = deposit_total + holdings_value
         if initial_capital == 0:
-            initial_capital = 10_000_000  # 기본값
+            initial_capital = 10_000_000
             print(f"   ⚠️  계좌 정보 없음, 기본값 사용")
 
         print(f"   - 보유주식 평가: {holdings_value:,}원")
         print(f"   - 총 자산: {initial_capital:,}원")
 
-        # 리스크 관리자 생성
         risk_manager = DynamicRiskManager(initial_capital=initial_capital)
 
-        # 테스트 주가
         test_prices = [10000, 20000, 50000, 100000]
 
-        # 계산에 사용할 현금 (available_cash가 0이면 초기자본의 20% 사용)
         calc_cash = available_cash if available_cash > 0 else int(initial_capital * 0.2)
 
         print(f"\n📊 매수 가능 수량 계산 (리스크 관리 적용):")
@@ -224,7 +208,6 @@ def test_buy_calculation():
 
         print("\n✅ PASS: 매수 가능 금액이 정상적으로 계산되었습니다")
 
-        # 장 운영 시간 안내
         print("\n⏰ 장 운영 시간 안내:")
         print("   - 08:00-09:00: NXT 프리마켓 (장전)")
         print("   - 09:00-15:30: 일반 주식장 (정규장)")
@@ -255,7 +238,6 @@ def main():
         "매수 수량 계산": test_buy_calculation(),
     }
 
-    # 결과 요약
     print("\n" + "="*60)
     print("📊 테스트 결과 요약")
     print("="*60)
@@ -288,7 +270,7 @@ def main():
         print("   → main.py가 실행 중인지 확인하세요")
         print("   → 위 오류 메시지를 확인하세요")
 
-    return passed >= total * 0.5  # 50% 이상 통과하면 성공
+    return passed >= total * 0.5
 
 
 if __name__ == '__main__':

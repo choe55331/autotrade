@@ -1,7 +1,5 @@
-"""
 수익 추적 및 성과 분석
 일간/주간/월간 수익률, 승률, 최대 낙폭 등 분석
-"""
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -15,11 +13,11 @@ class TradeRecord:
     trade_id: str
     stock_code: str
     stock_name: str
-    action: str  # 'buy' or 'sell'
+    action: str
     quantity: int
     price: int
     timestamp: datetime
-    profit_loss: Optional[float] = None  # 매도 시에만
+    profit_loss: Optional[float] = None
     profit_loss_percent: Optional[float] = None
 
     def to_dict(self) -> Dict:
@@ -39,27 +37,27 @@ class TradeRecord:
 @dataclass
 class PerformanceMetrics:
     """성과 지표"""
-    period: str  # 'daily', 'weekly', 'monthly'
+    period: str
     total_trades: int
     winning_trades: int
     losing_trades: int
-    win_rate: float  # 승률 (%)
+    win_rate: float
 
     total_profit: float
     total_loss: float
-    net_profit: float  # 순이익
+    net_profit: float
 
-    avg_profit_per_trade: float  # 거래당 평균 수익
-    avg_winning_trade: float  # 승리 거래 평균
-    avg_losing_trade: float  # 패배 거래 평균
+    avg_profit_per_trade: float
+    avg_winning_trade: float
+    avg_losing_trade: float
 
-    largest_win: float  # 최대 수익
-    largest_loss: float  # 최대 손실
+    largest_win: float
+    largest_loss: float
 
-    max_drawdown: float  # 최대 낙폭 (%)
-    sharpe_ratio: Optional[float]  # 샤프 비율
+    max_drawdown: float
+    sharpe_ratio: Optional[float]
 
-    avg_holding_period: Optional[float]  # 평균 보유 기간 (시간)
+    avg_holding_period: Optional[float]
 
     def to_dict(self) -> Dict:
         return {
@@ -165,7 +163,6 @@ class ProfitTracker:
         Returns:
             성과 지표
         """
-        # 기간 설정
         now = datetime.now()
         if period == 'daily':
             start_date = now - timedelta(days=1)
@@ -173,17 +170,14 @@ class ProfitTracker:
             start_date = now - timedelta(days=7)
         elif period == 'monthly':
             start_date = now - timedelta(days=30)
-        else:  # 'all'
+        else:
             start_date = None
 
-        # 거래 가져오기
         trades = self.get_trades(start_date=start_date)
 
-        # 매도 거래만 (손익 계산 가능)
         sell_trades = [t for t in trades if t.action == 'sell' and t.profit_loss is not None]
 
         if not sell_trades:
-            # 데이터 없음
             return PerformanceMetrics(
                 period=period,
                 total_trades=0,
@@ -203,34 +197,26 @@ class ProfitTracker:
                 avg_holding_period=None
             )
 
-        # 승/패 분류
         winning_trades = [t for t in sell_trades if t.profit_loss > 0]
         losing_trades = [t for t in sell_trades if t.profit_loss < 0]
 
-        # 승률
         win_rate = (len(winning_trades) / len(sell_trades)) * 100 if sell_trades else 0
 
-        # 수익/손실
         total_profit = sum(t.profit_loss for t in winning_trades)
         total_loss = abs(sum(t.profit_loss for t in losing_trades))
         net_profit = total_profit - total_loss
 
-        # 평균
         avg_profit_per_trade = net_profit / len(sell_trades) if sell_trades else 0
         avg_winning_trade = total_profit / len(winning_trades) if winning_trades else 0
         avg_losing_trade = total_loss / len(losing_trades) if losing_trades else 0
 
-        # 최대 수익/손실
         largest_win = max((t.profit_loss for t in winning_trades), default=0)
         largest_loss = abs(min((t.profit_loss for t in losing_trades), default=0))
 
-        # 최대 낙폭 (Max Drawdown)
         max_drawdown = self._calculate_max_drawdown(sell_trades)
 
-        # 샤프 비율 (간단 버전)
         sharpe_ratio = self._calculate_sharpe_ratio(sell_trades)
 
-        # 평균 보유 기간 (매수-매도 쌍으로 계산)
         avg_holding_period = self._calculate_avg_holding_period(trades)
 
         return PerformanceMetrics(
@@ -257,7 +243,6 @@ class ProfitTracker:
         if not trades:
             return 0.0
 
-        # 누적 손익
         cumulative = []
         total = 0
         for trade in sorted(trades, key=lambda t: t.timestamp):
@@ -267,7 +252,6 @@ class ProfitTracker:
         if not cumulative:
             return 0.0
 
-        # 최대값과 최소값의 차이
         peak = cumulative[0]
         max_dd = 0
 
@@ -284,30 +268,25 @@ class ProfitTracker:
         if not trades or len(trades) < 2:
             return None
 
-        # 수익률 리스트
         returns = [t.profit_loss_percent for t in trades if t.profit_loss_percent is not None]
 
         if not returns:
             return None
 
-        # 평균 수익률
         avg_return = sum(returns) / len(returns)
 
-        # 표준편차
         variance = sum((r - avg_return) ** 2 for r in returns) / len(returns)
         std_dev = variance ** 0.5
 
         if std_dev == 0:
             return None
 
-        # 샤프 비율 (무위험 이자율 0으로 가정)
         sharpe = avg_return / std_dev
 
         return sharpe
 
     def _calculate_avg_holding_period(self, trades: List[TradeRecord]) -> Optional[float]:
         """평균 보유 기간 계산 (시간)"""
-        # 매수-매도 쌍 찾기
         buy_trades = {t.stock_code: t for t in trades if t.action == 'buy'}
         sell_trades = [t for t in trades if t.action == 'sell']
 
@@ -315,7 +294,7 @@ class ProfitTracker:
         for sell in sell_trades:
             if sell.stock_code in buy_trades:
                 buy = buy_trades[sell.stock_code]
-                period = (sell.timestamp - buy.timestamp).total_seconds() / 3600  # 시간
+                period = (sell.timestamp - buy.timestamp).total_seconds() / 3600
                 holding_periods.append(period)
 
         if not holding_periods:

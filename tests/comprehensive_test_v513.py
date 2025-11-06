@@ -1,13 +1,10 @@
-"""
 Comprehensive Test Suite for v5.13 Enhancements
 WebSocket Streaming, Portfolio Optimization, Smart Execution
-"""
 import sys
 import os
 from datetime import datetime, timedelta
 import numpy as np
 
-# Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
@@ -23,7 +20,6 @@ def test_websocket_streaming():
             MessagePriority, ConnectionState
         )
 
-        # Test 1: Initialize
         print("\n[Test 1] WebSocket Manager Initialization")
         manager = WebSocketStreamManager(
             max_connections=100,
@@ -32,21 +28,18 @@ def test_websocket_streaming():
         )
         print(f"✓ Initialized: max_connections={manager.max_connections}")
 
-        # Test 2: Register Connections
         print("\n[Test 2] Register Connections")
         client_ids = ['client_001', 'client_002', 'client_003']
         for client_id in client_ids:
             success = manager.register_connection(client_id)
             print(f"✓ Registered {client_id}: {success}")
 
-        # Test 3: Subscribe to Channels
         print("\n[Test 3] Subscribe to Channels")
         for client_id in client_ids:
             manager.subscribe(client_id, 'prices', replay_history=False)
             manager.subscribe(client_id, 'alerts', replay_history=False)
         print(f"✓ All clients subscribed to channels")
 
-        # Test 4: Broadcast Messages
         print("\n[Test 4] Broadcast Messages")
         sent = manager.broadcast(
             'prices',
@@ -55,7 +48,6 @@ def test_websocket_streaming():
         )
         print(f"✓ Broadcasted to {sent} clients")
 
-        # Test 5: Get Pending Messages
         print("\n[Test 5] Get Pending Messages")
         messages = manager.get_pending_messages('client_001', max_messages=10)
         print(f"✓ Retrieved {len(messages)} pending messages")
@@ -63,14 +55,12 @@ def test_websocket_streaming():
             print(f"  First message: channel={messages[0].channel}, "
                   f"priority={messages[0].priority.name}")
 
-        # Test 6: Channel Statistics
         print("\n[Test 6] Channel Statistics")
         channel_stats = manager.get_channel_stats()
         print(f"✓ Channel stats retrieved: {len(channel_stats)} channels")
         for channel, stats in channel_stats.items():
             print(f"  {channel}: {stats['subscriber_count']} subscribers")
 
-        # Test 7: Global Statistics
         print("\n[Test 7] Global Statistics")
         global_stats = manager.get_global_stats()
         print(f"✓ Global stats:")
@@ -78,12 +68,10 @@ def test_websocket_streaming():
         print(f"  Active connections: {global_stats.active_connections}")
         print(f"  Avg latency: {global_stats.avg_latency_ms:.2f}ms")
 
-        # Test 8: Rate Limiting
         print("\n[Test 8] Rate Limiting")
         within_limit = manager.check_rate_limit('client_001')
         print(f"✓ Rate limit check: {within_limit}")
 
-        # Test 9: Data Aggregator
         print("\n[Test 9] Data Aggregator")
         aggregator = StreamingDataAggregator(aggregation_window_ms=100)
         aggregator.add_data('prices', {'price': 73500})
@@ -91,7 +79,6 @@ def test_websocket_streaming():
         aggregated = aggregator.get_aggregated_data('prices')
         print(f"✓ Aggregated {len(aggregated)} data points" if aggregated else "✓ No data")
 
-        # Test 10: Connection Cleanup
         print("\n[Test 10] Connection Cleanup")
         manager.unregister_connection('client_003')
         remaining = len(manager.connections)
@@ -118,12 +105,10 @@ def test_portfolio_optimizer():
             PortfolioOptimizer, OptimizationObjective
         )
 
-        # Test 1: Initialize
         print("\n[Test 1] Portfolio Optimizer Initialization")
         optimizer = PortfolioOptimizer(risk_free_rate=0.03)
         print(f"✓ Initialized with risk-free rate: 3%")
 
-        # Test 2: Generate Sample Data
         print("\n[Test 2] Generating Sample Price Histories")
         price_histories = {}
         stock_codes = ['005930', '000660', '035420', '051910']
@@ -144,7 +129,6 @@ def test_portfolio_optimizer():
 
         print(f"✓ Generated price histories for {len(price_histories)} stocks")
 
-        # Test 3: Maximum Sharpe Ratio
         print("\n[Test 3] Optimize: Maximum Sharpe Ratio")
         result = optimizer.optimize(
             price_histories,
@@ -158,7 +142,6 @@ def test_portfolio_optimizer():
         print(f"  Weights: {list(result.weights.values())[:3]}...")
         print(f"  Constraints Satisfied: {result.constraints_satisfied}")
 
-        # Test 4: Minimum Volatility
         print("\n[Test 4] Optimize: Minimum Volatility")
         result_min_vol = optimizer.optimize(
             price_histories,
@@ -168,7 +151,6 @@ def test_portfolio_optimizer():
         print(f"  Expected Volatility: {result_min_vol.expected_volatility:.2%}")
         print(f"  Expected Return: {result_min_vol.expected_return:.2%}")
 
-        # Test 5: Risk Parity
         print("\n[Test 5] Optimize: Risk Parity")
         result_rp = optimizer.optimize(
             price_histories,
@@ -178,7 +160,6 @@ def test_portfolio_optimizer():
         print(f"  Weights: {list(result_rp.weights.values())}")
         print(f"  Expected Return: {result_rp.expected_return:.2%}")
 
-        # Test 6: Efficient Frontier
         print("\n[Test 6] Calculate Efficient Frontier")
         frontier = optimizer.calculate_efficient_frontier(
             price_histories,
@@ -192,7 +173,6 @@ def test_portfolio_optimizer():
             print(f"  Max return point: return={frontier[-1].expected_return:.2%}, "
                   f"vol={frontier[-1].volatility:.2%}")
 
-        # Test 7: Rebalancing Recommendations
         print("\n[Test 7] Rebalancing Recommendations")
         current_weights = {'005930': 0.3, '000660': 0.3, '035420': 0.2, '051910': 0.2}
         recommendations = optimizer.rebalance_recommendation(
@@ -227,12 +207,10 @@ def test_smart_execution():
             SmartOrderExecutor, ExecutionAlgorithm, MarketData
         )
 
-        # Test 1: Initialize
         print("\n[Test 1] Smart Executor Initialization")
         executor = SmartOrderExecutor()
         print(f"✓ Initialized")
 
-        # Test 2: Generate Market Data
         print("\n[Test 2] Generating Market Data")
         market_data = []
         for i in range(20):
@@ -249,7 +227,6 @@ def test_smart_execution():
             market_data.append(md)
         print(f"✓ Generated {len(market_data)} market data points")
 
-        # Test 3: TWAP Execution
         print("\n[Test 3] Execute Order: TWAP")
         result_twap = executor.execute_order(
             order_id='ORD001',
@@ -267,7 +244,6 @@ def test_smart_execution():
         print(f"  Slippage: {result_twap.slippage_bps:.2f}bps")
         print(f"  Slices: {result_twap.slices_executed}/{result_twap.slices_total}")
 
-        # Test 4: VWAP Execution
         print("\n[Test 4] Execute Order: VWAP")
         result_vwap = executor.execute_order(
             order_id='ORD002',
@@ -285,7 +261,6 @@ def test_smart_execution():
         print(f"  Avg Price: {result_vwap.average_price:,.0f}")
         print(f"  Slippage: {result_vwap.slippage_bps:.2f}bps")
 
-        # Test 5: Iceberg Execution
         print("\n[Test 5] Execute Order: Iceberg")
         result_iceberg = executor.execute_order(
             order_id='ORD003',
@@ -302,7 +277,6 @@ def test_smart_execution():
         print(f"  Slices: {result_iceberg.slices_executed}")
         print(f"  Avg Price: {result_iceberg.average_price:,.0f}")
 
-        # Test 6: POV Execution
         print("\n[Test 6] Execute Order: POV")
         result_pov = executor.execute_order(
             order_id='ORD004',
@@ -319,7 +293,6 @@ def test_smart_execution():
         print(f"  Executed: {result_pov.executed_quantity}")
         print(f"  Slippage: {result_pov.slippage_bps:.2f}bps")
 
-        # Test 7: Implementation Shortfall
         print("\n[Test 7] Execute Order: Implementation Shortfall")
         result_is = executor.execute_order(
             order_id='ORD005',
@@ -336,7 +309,6 @@ def test_smart_execution():
         print(f"  Executed: {result_is.executed_quantity}")
         print(f"  Slices: {result_is.slices_executed}")
 
-        # Test 8: Adaptive Algorithm
         print("\n[Test 8] Execute Order: Adaptive")
         result_adaptive = executor.execute_order(
             order_id='ORD006',
@@ -353,7 +325,6 @@ def test_smart_execution():
         print(f"  Executed: {result_adaptive.executed_quantity}")
         print(f"  Algorithm chosen: {result_adaptive.metadata}")
 
-        # Test 9: Execution Statistics
         print("\n[Test 9] Execution Statistics")
         stats = executor.get_execution_stats()
         print(f"✓ Execution stats:")
@@ -392,11 +363,9 @@ def test_integration():
 
         print("\n[Test 2] Integrated Workflow")
 
-        # Register WebSocket client
         stream_mgr.register_connection('trading_client')
         stream_mgr.subscribe('trading_client', 'portfolio_updates')
 
-        # Generate sample data
         price_histories = {}
         for stock in ['005930', '000660', '035420']:
             history = []
@@ -408,14 +377,12 @@ def test_integration():
                 })
             price_histories[stock] = history
 
-        # Optimize portfolio
         result = optimizer.optimize(
             price_histories,
             objective=optimizer.OptimizationObjective.MAX_SHARPE
         )
         print(f"✓ Portfolio optimized: Sharpe={result.sharpe_ratio:.2f}")
 
-        # Broadcast portfolio update via WebSocket
         stream_mgr.broadcast(
             'portfolio_updates',
             {
@@ -426,9 +393,8 @@ def test_integration():
         )
         print("✓ Portfolio update broadcasted")
 
-        # Execute rebalancing orders
         for stock, weight in list(result.weights.items())[:2]:
-            quantity = int(weight * 100000)  # Mock quantity
+            quantity = int(weight * 100000)
             exec_result = executor.execute_order(
                 order_id=f'REBAL_{stock}',
                 stock_code=stock,
@@ -460,19 +426,14 @@ def main():
 
     results = []
 
-    # Test 1: WebSocket Streaming
     results.append(("WebSocket Streaming", test_websocket_streaming()))
 
-    # Test 2: Portfolio Optimizer
     results.append(("Portfolio Optimizer", test_portfolio_optimizer()))
 
-    # Test 3: Smart Execution
     results.append(("Smart Execution", test_smart_execution()))
 
-    # Test 4: Integration
     results.append(("Integration Test", test_integration()))
 
-    # Summary
     print("\n" + "=" * 60)
     print("TEST SUMMARY - v5.13")
     print("=" * 60)

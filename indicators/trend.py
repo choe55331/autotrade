@@ -1,9 +1,7 @@
-"""
 Trend Indicators
 - SMA (Simple Moving Average)
 - EMA (Exponential Moving Average)
 - Trend Detection
-"""
 import numpy as np
 import pandas as pd
 from typing import List, Tuple, Optional
@@ -70,7 +68,6 @@ def calculate_trend(prices: pd.Series, short_period: int = 20, long_period: int 
     current_short_ma = short_ma.iloc[-1]
     current_long_ma = long_ma.iloc[-1]
 
-    # Determine direction
     if current_short_ma > current_long_ma and current_price > current_short_ma:
         direction = 'uptrend'
         strength = min(100, ((current_short_ma / current_long_ma) - 1) * 100)
@@ -81,16 +78,13 @@ def calculate_trend(prices: pd.Series, short_period: int = 20, long_period: int 
         direction = 'sideways'
         strength = 50
 
-    # Check for recent crossover (within last 3 periods)
     crossover = False
     if len(short_ma) >= 3 and len(long_ma) >= 3:
         prev_short = short_ma.iloc[-3]
         prev_long = long_ma.iloc[-3]
 
-        # Golden cross (bullish)
         if current_short_ma > current_long_ma and prev_short <= prev_long:
             crossover = True
-        # Death cross (bearish)
         elif current_short_ma < current_long_ma and prev_short >= prev_long:
             crossover = True
 

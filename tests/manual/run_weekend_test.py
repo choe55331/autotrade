@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-"""
 주말/장마감 후 통합 테스트 실행 스크립트
 
 이 스크립트는 다음을 테스트합니다:
@@ -10,7 +8,6 @@
 키움증권 확인 사항:
 - REST API로 장이 안 열렸을 때도 가장 최근일 데이터로 테스트 가능
 - 웹소켓은 장 운영 시간에만 실시간 데이터 수신 (장 외 시간은 연결만 테스트)
-"""
 import sys
 import asyncio
 from datetime import datetime
@@ -40,16 +37,13 @@ async def test_rest_api():
 
         manager = TestModeManager()
 
-        # 테스트 모드 활성화 확인
         if manager.check_and_activate_test_mode():
             print(f"✅ 테스트 모드 활성화됨")
             print(f"   사용할 데이터 날짜: {manager.test_date}")
             print()
 
-            # 전체 기능 테스트 실행
             results = await manager.run_comprehensive_test()
 
-            # 요약 출력
             print("\n📊 REST API 테스트 요약")
             print("─" * 80)
 
@@ -88,12 +82,10 @@ async def test_websocket():
         print(f"WebSocket URL: {ws_url}")
         print("연결 시도 중...")
 
-        # WebSocket 연결 테스트 (5초 타임아웃)
         async with asyncio.timeout(5):
             ws = await websockets.connect(ws_url)
             print("✅ WebSocket 연결 성공")
 
-            # Ping 테스트
             await ws.ping()
             print("✅ Ping 응답 성공")
 
@@ -166,7 +158,6 @@ async def run_full_websocket_test():
         print("장 운영 시간입니다. 전체 WebSocket 테스트를 실행합니다...")
         print()
 
-        # test_websocket_v2.py 실행
         from test_websocket_v2 import WebSocketTesterV2
 
         tester = WebSocketTesterV2()
@@ -192,19 +183,14 @@ async def main():
         "websocket_full": False
     }
 
-    # 1. 거래일 유틸리티 테스트
     results["trading_date_utils"] = await test_trading_date_utils()
 
-    # 2. REST API 테스트
     results["rest_api"] = await test_rest_api()
 
-    # 3. WebSocket 연결 테스트
     results["websocket_connection"] = await test_websocket()
 
-    # 4. 전체 WebSocket 기능 테스트 (장 운영 시간에만)
     results["websocket_full"] = await run_full_websocket_test()
 
-    # 최종 결과 요약
     print("\n" + "=" * 80)
     print("📊 최종 테스트 결과 요약")
     print("=" * 80)

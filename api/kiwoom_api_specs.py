@@ -1,4 +1,3 @@
-"""
 api/kiwoom_api_specs.py
 키움증권 REST API 완전한 사양 정의
 
@@ -6,9 +5,7 @@ api/kiwoom_api_specs.py
 업데이트: 2025-10-31
 
 이 파일은 키움증권의 100개 이상 REST API를 모두 정의합니다.
-"""
 
-# ==================== 환경 설정 ====================
 
 ENVIRONMENTS = {
     "production": {
@@ -29,10 +26,8 @@ COMMON_HEADERS = {
     "next-key": {"required": False, "description": "Pagination key", "max_length": 50}
 }
 
-# ==================== 계좌 관련 API ====================
 
 ACCOUNT_APIS = {
-    # 예수금 및 잔고
     "kt00001": {
         "name": "예수금상세현황요청",
         "endpoint": "/api/dostk/acnt",
@@ -155,7 +150,6 @@ ACCOUNT_APIS = {
         }
     },
 
-    # 손익 관련
     "ka10072": {
         "name": "일자별종목별실현손익요청_일자",
         "endpoint": "/api/dostk/acnt",
@@ -198,7 +192,6 @@ ACCOUNT_APIS = {
         "description": "당일 매매 일지"
     },
 
-    # 미체결/체결
     "ka10075": {
         "name": "미체결요청",
         "endpoint": "/api/dostk/acnt",
@@ -221,10 +214,8 @@ ACCOUNT_APIS = {
     },
 }
 
-# ==================== 주문 관련 API ====================
 
 ORDER_APIS = {
-    # 현물 주문
     "kt10000": {
         "name": "주식매수주문",
         "endpoint": "/api/dostk/ordr",
@@ -274,7 +265,6 @@ ORDER_APIS = {
         }
     },
 
-    # 신용 주문
     "kt10006": {
         "name": "신용매수주문",
         "endpoint": "/api/dostk/crdordr",
@@ -308,7 +298,6 @@ ORDER_APIS = {
     },
 }
 
-# API 매핑 함수들
 def get_api_spec(api_id: str):
     """API ID로 사양 조회"""
     all_apis = {**ACCOUNT_APIS, **ORDER_APIS}

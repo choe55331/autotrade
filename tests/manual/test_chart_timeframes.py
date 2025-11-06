@@ -1,4 +1,3 @@
-"""
 차트 분봉 데이터 조회 테스트
 
 일봉, 1분봉, 3분봉, 5분봉, 10분봉, 60분봉을 모두 테스트하여
@@ -6,14 +5,12 @@
 
 실행 방법:
     python tests/manual_tests/test_chart_timeframes.py
-"""
 
 import sys
 from pathlib import Path
 import json
 from datetime import datetime, timedelta
 
-# 프로젝트 루트 경로 추가
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(BASE_DIR))
 
@@ -25,7 +22,7 @@ class ChartTimeframesTester:
 
     def __init__(self):
         self.client = KiwoomRESTClient()
-        self.test_stock = "005930"  # 삼성전자
+        self.test_stock = "005930"
         self.today = datetime.now().strftime("%Y%m%d")
         self.yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y%m%d")
         self.last_week = (datetime.now() - timedelta(days=7)).strftime("%Y%m%d")
@@ -49,7 +46,6 @@ class ChartTimeframesTester:
                 print(f"✅ API 호출 성공!")
                 print(f"응답 키: {list(response.keys())}")
 
-                # 데이터 확인 - 실제 데이터가 있는지 체크
                 has_data = False
                 data_count = 0
 
@@ -66,7 +62,6 @@ class ChartTimeframesTester:
                     else:
                         print(f"   - {key}: {value}")
 
-                # 실제 데이터가 있을 때만 성공으로 간주
                 if has_data:
                     print(f"✅ 실제 데이터 있음: {data_count}개")
                     self.success_results.append({
@@ -118,7 +113,6 @@ class ChartTimeframesTester:
         print(f"기준일: {self.today}")
         print(f"="*80)
 
-        # ===== 1. 일봉 (ka10081 - 검증 완료) =====
         self.test_api_call(
             test_name="1-1. 일봉 차트 조회 (ka10081)",
             api_id="ka10081",
@@ -126,12 +120,10 @@ class ChartTimeframesTester:
             body={
                 "stk_cd": self.test_stock,
                 "base_dt": self.today,
-                "upd_stkpc_tp": "1"  # 수정주가
+                "upd_stkpc_tp": "1"
             }
         )
 
-        # ===== 2. 분봉 시도 1: ka10081 + 분봉 파라미터 =====
-        # 일봉 API에 분봉 파라미터 추가
         for timeframe, code in [("1분봉", "1"), ("3분봉", "3"), ("5분봉", "5"), ("10분봉", "10"), ("60분봉", "60")]:
             self.test_api_call(
                 test_name=f"2-1. {timeframe} (ka10081 + inq_tp)",
@@ -141,19 +133,17 @@ class ChartTimeframesTester:
                     "stk_cd": self.test_stock,
                     "base_dt": self.today,
                     "upd_stkpc_tp": "1",
-                    "inq_tp": code  # 조회 타입
+                    "inq_tp": code
                 }
             )
 
-        # ===== 3. 분봉 시도 2: 다른 API ID 시도 =====
-        # ka10002, ka10003, ka10004, ka10005 등
         minute_apis = [
             ("ka10002", "chart"),
             ("ka10003", "chart"),
             ("ka10004", "chart"),
             ("ka10005", "chart"),
-            ("ka10080", "chart"),  # 틱차트
-            ("ka10082", "chart"),  # 기간별차트
+            ("ka10080", "chart"),
+            ("ka10082", "chart"),
         ]
 
         for api_id, path in minute_apis:
@@ -168,7 +158,6 @@ class ChartTimeframesTester:
                 }
             )
 
-        # ===== 4. 분봉 시도 3: 시간 범위 지정 =====
         self.test_api_call(
             test_name="4-1. 1분봉 + 시간범위 (ka10081)",
             api_id="ka10081",
@@ -177,12 +166,11 @@ class ChartTimeframesTester:
                 "stk_cd": self.test_stock,
                 "base_dt": self.today,
                 "upd_stkpc_tp": "1",
-                "fr_dt": self.last_week,  # 시작일
-                "to_dt": self.today,      # 종료일
+                "fr_dt": self.last_week,
+                "to_dt": self.today,
             }
         )
 
-        # ===== 5. 분봉 시도 4: 다른 path 시도 =====
         paths = ["mrkcond", "stkinfo", "stkprc", "inquire"]
 
         for path in paths:
@@ -197,7 +185,6 @@ class ChartTimeframesTester:
                 }
             )
 
-        # ===== 6. 분봉 시도 5: 주기 파라미터 =====
         for timeframe, period in [("1분봉", "1"), ("3분봉", "3"), ("5분봉", "5"), ("10분봉", "10"), ("60분봉", "60")]:
             self.test_api_call(
                 test_name=f"6-1. {timeframe} + period (ka10081)",
@@ -211,7 +198,6 @@ class ChartTimeframesTester:
                 }
             )
 
-        # ===== 7. 분봉 시도 6: 봉종류 파라미터 =====
         for timeframe, chart_type in [("1분봉", "M"), ("5분봉", "5"), ("10분봉", "10"), ("60분봉", "60")]:
             self.test_api_call(
                 test_name=f"7-1. {timeframe} + chart_type (ka10081)",
@@ -225,10 +211,9 @@ class ChartTimeframesTester:
                 }
             )
 
-        # ===== 8. 분봉 시도 7: 실시간 차트 API =====
         self.test_api_call(
             test_name="8-1. 실시간 분봉 (WebSocket 형식?)",
-            api_id="ka10000",  # 추측
+            api_id="ka10000",
             path="chart",
             body={
                 "stk_cd": self.test_stock,
@@ -236,7 +221,6 @@ class ChartTimeframesTester:
             }
         )
 
-        # ===== 9. 알려진 성공 API 재확인 =====
         print(f"\n{'='*80}")
         print(f"[최종] 알려진 성공 API 재확인")
         print(f"{'='*80}")
@@ -256,7 +240,6 @@ class ChartTimeframesTester:
                 body=body
             )
 
-        # ===== 결과 출력 =====
         self.print_summary()
 
     def print_summary(self):
@@ -283,7 +266,6 @@ class ChartTimeframesTester:
                 print(f"  Body: {json.dumps(result['body'], ensure_ascii=False)}")
                 print(f"  응답 키: {result['response_keys']}")
 
-        # 성공 결과를 JSON 파일로 저장
         if self.success_results:
             output_file = BASE_DIR / "tests" / "manual_tests" / "successful_chart_apis.json"
             with open(output_file, 'w', encoding='utf-8') as f:

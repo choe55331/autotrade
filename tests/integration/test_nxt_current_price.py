@@ -1,11 +1,7 @@
-"""
 NXT 현재가 조회 테스트
-"""
 import sys
 import os
 
-# Cross-platform path resolution
-# tests/integration/test_nxt_current_price.py -> tests/integration -> tests -> autotrade (project root)
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, project_root)
 
@@ -26,23 +22,19 @@ def test_nxt_current_price():
     print("NXT 현재가 조회 테스트")
     print("=" * 80)
 
-    # 현재 시간 확인
     now = datetime.now()
     print(f"\n[현재 시간]")
     print(f"  {now.strftime('%Y-%m-%d %H:%M:%S')}")
 
-    # NXT 장 시간: 09:00-15:30
     nxt_open_time = now.replace(hour=9, minute=0, second=0, microsecond=0)
     nxt_close_time = now.replace(hour=15, minute=30, second=0, microsecond=0)
 
     is_nxt_time = nxt_open_time <= now <= nxt_close_time
     print(f"  NXT 장 시간: {'✅ 예 (09:00-15:30)' if is_nxt_time else '❌ 아니오 (장외 시간)'}")
 
-    # 1. API 초기화
     client = KiwoomRESTClient()
     account_api = AccountAPI(client)
 
-    # 2. 보유 종목 조회 (KRX+NXT 통합)
     holdings = account_api.get_holdings(market_type="KRX+NXT")
     print(f"\n[보유 종목 조회 (KRX+NXT)]")
     print(f"  종목 수: {len(holdings) if holdings else 0}개")
@@ -50,9 +42,8 @@ def test_nxt_current_price():
     if not holdings:
         print("\n⚠️  경고: 보유 종목이 없습니다.")
         print("  - 종목을 보유하고 있어야 테스트를 진행할 수 있습니다.")
-        return True  # 종목이 없는 것은 오류가 아님
+        return True
 
-    # 3. 각 종목의 현재가 확인
     print(f"\n[종목 현재가]")
     all_prices_valid = True
 
@@ -64,14 +55,12 @@ def test_nxt_current_price():
         cur_prc = int(str(h.get('cur_prc', 0)).replace(',', ''))
         eval_amt = int(str(h.get('eval_amt', 0)).replace(',', ''))
 
-        # v5.5.0: 장외 시간 대응 - eval_amt이 0이면 직접 계산
         if eval_amt == 0 and cur_prc > 0:
             eval_amt = qty * cur_prc
             market_hours_note = " (장외 시간 계산)"
         else:
             market_hours_note = ""
 
-        # 현재가 검증
         if cur_prc > 0:
             status = "✅"
         else:
@@ -84,7 +73,6 @@ def test_nxt_current_price():
         print(f"      현재가: {cur_prc:,}원")
         print(f"      평가금액: {eval_amt:,}원{market_hours_note}")
 
-    # 4. 검증 결과
     print(f"\n[검증 결과]")
     if all_prices_valid:
         print("  ✅ 모든 종목의 현재가가 정상 조회됨")

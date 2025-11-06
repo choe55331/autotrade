@@ -1,4 +1,3 @@
-"""
 NXT 시장가격 조회 수정 패치
 문제: NXT 시간에도 주식의 현재가 조회가 가능해야 함
 해결: 시간대별로 적절한 API 호출
@@ -8,7 +7,6 @@ NXT 시장가격 조회 수정 패치
 2. approach_2: NXT 전용 API 사용
 3. approach_3: 보유종목의 현재가 활용
 4. approach_4: 여러 소스 시도 (fallback)
-"""
 
 from typing import Dict, Any, Optional
 from datetime import datetime, time
@@ -28,11 +26,9 @@ class NXTPriceFix:
         """
         now = datetime.now().time()
 
-        # 오전 시간외: 08:00 ~ 09:00
         morning_nxt_start = time(8, 0)
         morning_nxt_end = time(9, 0)
 
-        # 오후 시간외: 15:30 ~ 20:00
         afternoon_nxt_start = time(15, 30)
         afternoon_nxt_end = time(20, 0)
 
@@ -50,7 +46,6 @@ class NXTPriceFix:
         """
         now = datetime.now().time()
 
-        # 정규시장: 09:00 ~ 15:30
         market_start = time(9, 0)
         market_close = time(15, 30)
 
@@ -67,7 +62,6 @@ class NXTPriceFix:
         """
         try:
             if NXTPriceFix.is_regular_market_time() or NXTPriceFix.is_nxt_time():
-                # 정규시장 또는 NXT 시간: 체결정보 조회
                 result = market_api.get_stock_price(stock_code)
 
                 if result:
@@ -78,7 +72,6 @@ class NXTPriceFix:
                         'success': True
                     }
 
-            # 시간외: 전일 종가
             if hasattr(market_api, 'get_daily_price'):
                 daily_data = market_api.get_daily_price(stock_code, days=1)
                 if daily_data and len(daily_data) > 0:
@@ -103,18 +96,15 @@ class NXTPriceFix:
         API가 market_type을 지원한다면 명시적으로 지정
         """
         try:
-            # 자동 판단
             if market_type == "auto":
                 if NXTPriceFix.is_nxt_time():
                     market_type = "NXT"
                 else:
                     market_type = "KRX"
 
-            # API 호출 (market_type 지원 여부 확인 필요)
             if hasattr(market_api, 'get_stock_price_with_market'):
                 result = market_api.get_stock_price_with_market(stock_code, market_type)
             else:
-                # 기본 API 사용
                 result = market_api.get_stock_price(stock_code)
 
             if result:
@@ -141,7 +131,6 @@ class NXTPriceFix:
         2차: 보유종목에서 현재가 추출 (NXT 시간에도 업데이트됨)
         """
         try:
-            # 1차: market_api
             result = market_api.get_stock_price(stock_code)
             if result and result.get('current_price', 0) > 0:
                 return {
@@ -151,7 +140,6 @@ class NXTPriceFix:
                     'success': True
                 }
 
-            # 2차: 보유종목
             if account_api:
                 holdings = account_api.get_holdings(market_type="KRX")
 
@@ -186,7 +174,6 @@ class NXTPriceFix:
         try:
             sources_tried = []
 
-            # 1. market_api
             try:
                 result = market_api.get_stock_price(stock_code)
                 sources_tried.append('market_api')
@@ -202,7 +189,6 @@ class NXTPriceFix:
             except Exception as e:
                 print(f"market_api 실패: {e}")
 
-            # 2. holdings
             if account_api:
                 try:
                     holdings = account_api.get_holdings(market_type="KRX")
@@ -223,7 +209,6 @@ class NXTPriceFix:
                 except Exception as e:
                     print(f"holdings 실패: {e}")
 
-            # 3. 전일 종가
             if hasattr(market_api, 'get_daily_price'):
                 try:
                     daily_data = market_api.get_daily_price(stock_code, days=1)
@@ -240,7 +225,6 @@ class NXTPriceFix:
                 except Exception as e:
                     print(f"previous_close 실패: {e}")
 
-            # 모든 소스 실패
             return {
                 'stock_code': stock_code,
                 'current_price': 0,
@@ -255,9 +239,6 @@ class NXTPriceFix:
             return None
 
 
-# ============================================================================
-# MarketAPI 확장
-# ============================================================================
 
 class MarketAPIExtended:
     """
@@ -331,9 +312,6 @@ class MarketAPIExtended:
         }
 
 
-# ============================================================================
-# 대시보드 적용 예시
-# ============================================================================
 
 def get_stock_chart_data_fixed(bot_instance, stock_code: str):
     """
@@ -349,7 +327,6 @@ def get_stock_chart_data_fixed(bot_instance, stock_code: str):
                 bot_instance.account_api if hasattr(bot_instance, 'account_api') else None
             )
 
-            # 현재가 조회 (NXT 지원)
             price_info = market_api_ext.get_current_price_with_source(stock_code)
 
             return {
@@ -377,9 +354,6 @@ def get_stock_chart_data_fixed(bot_instance, stock_code: str):
         }
 
 
-# ============================================================================
-# 테스트
-# ============================================================================
 
 if __name__ == "__main__":
     print("NXT 시장가격 조회 수정 패치")

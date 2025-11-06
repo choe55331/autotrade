@@ -1,7 +1,5 @@
-"""
 api/account.py
 계좌 관련 API (검증된 API 로더 통합)
-"""
 import logging
 from typing import Dict, Any, Optional, List
 from datetime import datetime, timedelta
@@ -65,7 +63,6 @@ class AccountAPI:
         query_type: str = "2",
         market_type: str = "KRX"
     ) -> Optional[Dict[str, Any]]:
-        """
         계좌평가잔고내역 조회
 
         Args:
@@ -74,16 +71,14 @@ class AccountAPI:
 
         Returns:
             계좌평가잔고 정보
-        """
         try:
-            # variant 선택
             if query_type == "2" and market_type == "KRX":
                 variant_idx = 1
             elif query_type == "1" and market_type == "KRX":
                 variant_idx = 2
             elif query_type == "2" and market_type == "NXT":
                 variant_idx = 3
-            else:  # query_type == "1" and market_type == "NXT"
+            else:
                 variant_idx = 4
 
             result = self.client.call_verified_api(
@@ -197,7 +192,6 @@ class AccountAPI:
         order_type: str = "02",
         price: int = 0
     ) -> Optional[Dict[str, Any]]:
-        """
         주문가능금액 조회
 
         Args:
@@ -207,7 +201,6 @@ class AccountAPI:
 
         Returns:
             주문가능금액 정보
-        """
         try:
             result = self.client.call_verified_api(
                 api_id='kt00010',
@@ -235,7 +228,6 @@ class AccountAPI:
         start_date: str = None,
         end_date: str = None
     ) -> Optional[Dict[str, Any]]:
-        """
         일자별 실현손익 조회
 
         Args:
@@ -244,26 +236,22 @@ class AccountAPI:
 
         Returns:
             일자별 실현손익 정보
-        """
         try:
-            # 기본값: 오늘
             if not end_date:
                 end_date = datetime.now().strftime('%Y%m%d')
 
-            # 기본값: 1주일 전
             if not start_date:
                 start_date = (datetime.now() - timedelta(days=7)).strftime('%Y%m%d')
 
-            # 기간에 따라 variant 선택
             days_diff = (datetime.strptime(end_date, '%Y%m%d') -
                         datetime.strptime(start_date, '%Y%m%d')).days
 
             if days_diff == 0:
-                variant_idx = 1  # 당일
+                variant_idx = 1
             elif days_diff <= 7:
-                variant_idx = 2  # 1주일
+                variant_idx = 2
             else:
-                variant_idx = 3  # 1개월
+                variant_idx = 3
 
             result = self.client.call_verified_api(
                 api_id='ka10074',
@@ -291,7 +279,6 @@ class AccountAPI:
         start_date: str = None,
         end_date: str = None
     ) -> Optional[Dict[str, Any]]:
-        """
         일자별 종목별 실현손익 조회
 
         Args:
@@ -301,9 +288,7 @@ class AccountAPI:
 
         Returns:
             종목별 실현손익 정보
-        """
         try:
-            # 기본값 설정
             if not end_date:
                 end_date = datetime.now().strftime('%Y%m%d')
             if not start_date:
@@ -371,7 +356,6 @@ class AccountAPI:
         stock_code: str = None,
         order_type: str = "0"
     ) -> Optional[Dict[str, Any]]:
-        """
         미체결 주문 조회
 
         Args:
@@ -380,7 +364,6 @@ class AccountAPI:
 
         Returns:
             미체결 주문 정보
-        """
         try:
             override = {'trde_tp': order_type}
             if stock_code:
@@ -411,7 +394,6 @@ class AccountAPI:
         stock_code: str = None,
         query_type: str = "0"
     ) -> Optional[Dict[str, Any]]:
-        """
         체결 주문 조회
 
         Args:
@@ -420,7 +402,6 @@ class AccountAPI:
 
         Returns:
             체결 주문 정보
-        """
         try:
             override = {'qry_tp': query_type}
             if stock_code:
@@ -456,17 +437,13 @@ class AccountAPI:
             보유 종목 리스트 (stk_cd, stk_nm, rmnd_qty, avg_prc, cur_prc 등)
         """
         try:
-            # kt00004 사용 (계좌평가현황요청)
             result = self.get_account_evaluation(market_type=market_type)
 
             if result and result.get('return_code') == 0:
-                # 응답에서 보유 종목 리스트 추출
-                # kt00004 응답 구조: stk_acnt_evlt_prst 리스트
-                holdings_key = 'stk_acnt_evlt_prst'  # 종목별계좌평가현황
+                holdings_key = 'stk_acnt_evlt_prst'
                 holdings = result.get(holdings_key, [])
 
                 if holdings:
-                    # ✅ v5.16: _NX 접미사 유지 (NXT 현재가 조회 및 WebSocket 구독에 필요)
                     logger.info(f"보유 종목 조회 성공 (kt00004): {len(holdings)}개")
                     return holdings
                 else:

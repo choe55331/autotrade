@@ -1,4 +1,3 @@
-"""
 AutoTrade Pro v4.0 - 전략 파라미터 자동 최적화
 Grid Search, Random Search, Bayesian Optimization 지원
 
@@ -7,7 +6,6 @@ Grid Search, Random Search, Bayesian Optimization 지원
 - 병렬 처리로 빠른 최적화
 - Optuna 기반 Bayesian Optimization
 - 최적화 결과 시각화
-"""
 import logging
 from typing import Dict, Any, List, Callable, Optional, Tuple
 from datetime import datetime
@@ -50,7 +48,6 @@ class StrategyOptimizer:
         n_trials: int = 50,
         n_jobs: int = -1
     ):
-        """
         최적화 엔진 초기화
 
         Args:
@@ -63,7 +60,6 @@ class StrategyOptimizer:
             method: 최적화 방법 ('grid', 'random', 'bayesian')
             n_trials: 시도 횟수
             n_jobs: 병렬 작업 수 (-1 = 모든 CPU)
-        """
         self.objective_function = objective_function
         self.param_ranges = param_ranges
         self.method = method
@@ -99,7 +95,6 @@ class StrategyOptimizer:
         """Grid Search (격자 탐색)"""
         logger.info("Grid Search 시작...")
 
-        # 모든 파라미터 조합 생성
         import itertools
 
         param_names = list(self.param_ranges.keys())
@@ -108,7 +103,6 @@ class StrategyOptimizer:
 
         logger.info(f"총 {len(all_combinations)}개 조합 테스트")
 
-        # 병렬 평가
         results = []
         for values in all_combinations:
             params = dict(zip(param_names, values))
@@ -118,7 +112,6 @@ class StrategyOptimizer:
                 'score': score
             })
 
-        # 최고 점수 찾기
         best_trial = max(results, key=lambda x: x['score'])
 
         return OptimizationResult(
@@ -126,7 +119,7 @@ class StrategyOptimizer:
             best_score=best_trial['score'],
             n_trials=len(results),
             method='grid',
-            duration_seconds=0,  # 나중에 채워짐
+            duration_seconds=0,
             all_trials=results
         )
 
@@ -136,13 +129,11 @@ class StrategyOptimizer:
 
         results = []
         for i in range(self.n_trials):
-            # 무작위 파라미터 선택
             params = {}
             for name, values in self.param_ranges.items():
                 if isinstance(values, list):
                     params[name] = np.random.choice(values)
                 elif isinstance(values, tuple) and len(values) == 2:
-                    # 연속 범위인 경우
                     params[name] = np.random.uniform(values[0], values[1])
 
             score = self.objective_function(params)
@@ -154,7 +145,6 @@ class StrategyOptimizer:
             if (i + 1) % 10 == 0:
                 logger.info(f"Progress: {i+1}/{self.n_trials} trials completed")
 
-        # 최고 점수 찾기
         best_trial = max(results, key=lambda x: x['score'])
 
         return OptimizationResult(
@@ -175,10 +165,8 @@ class StrategyOptimizer:
             params = {}
             for name, values in self.param_ranges.items():
                 if isinstance(values, list):
-                    # 카테고리형
                     params[name] = trial.suggest_categorical(name, values)
                 elif isinstance(values, tuple) and len(values) == 2:
-                    # 연속형
                     if isinstance(values[0], int):
                         params[name] = trial.suggest_int(name, values[0], values[1])
                     else:
@@ -186,16 +174,13 @@ class StrategyOptimizer:
 
             return self.objective_function(params)
 
-        # Optuna study 생성
         study = optuna.create_study(
             direction='maximize',
             sampler=optuna.samplers.TPESampler(seed=42)
         )
 
-        # 최적화 실행
         study.optimize(objective, n_trials=self.n_trials, show_progress_bar=True)
 
-        # 결과 정리
         all_trials = []
         for trial in study.trials:
             all_trials.append({
@@ -230,19 +215,15 @@ class StrategyOptimizer:
         logger.info(f"최적화 결과 저장: {save_path}")
 
 
-# 사용 예시
 if __name__ == "__main__":
-    # 테스트용 목적 함수
     def dummy_objective(params):
         """더미 목적 함수 (Sharpe Ratio 시뮬레이션)"""
         ma_period = params['ma_period']
         rsi_threshold = params['rsi_threshold']
 
-        # 간단한 점수 계산 (실제로는 백테스팅 실행)
         score = -((ma_period - 20) ** 2 + (rsi_threshold - 50) ** 2) / 1000
         return score
 
-    # 최적화 실행
     optimizer = StrategyOptimizer(
         objective_function=dummy_objective,
         param_ranges={

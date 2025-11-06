@@ -1,9 +1,7 @@
-"""
 NXT 테스트 결과 분석 스크립트
 
 사용법:
     python analyze_nxt_results.py test_results_nxt_YYYYMMDD_HHMMSS.json
-"""
 
 import json
 import sys
@@ -24,12 +22,10 @@ def analyze_results(filename: str):
     print("📊 NXT 테스트 결과 분석")
     print("="*80)
 
-    # 기본 정보
     print(f"\n⏰ 테스트 시간: {results['timestamp']}")
     print(f"   NXT 시간대: {'✅ Yes' if results['is_nxt_time'] else '❌ No'}")
     print(f"   정규장 시간: {'✅ Yes' if results['is_market_time'] else '❌ No'}")
 
-    # 현재가 조회 결과
     print("\n" + "-"*80)
     print("🔍 현재가 조회 결과")
     print("-"*80)
@@ -41,7 +37,6 @@ def analyze_results(filename: str):
 
     if price_success:
         print("\n✅ 성공한 접근법:")
-        # 접근법별로 그룹화
         success_by_approach = {}
         for test in price_success:
             approach = test['approach']
@@ -54,19 +49,17 @@ def analyze_results(filename: str):
             for test in tests:
                 print(f"      - {test['stock_code']}: {test['price']:,}원 (출처: {test['source']})")
 
-        # 권장 방법
         print("\n" + "🎯 권장 현재가 조회 방법 ".ljust(80, "="))
         best = price_success[0]
         print(f"\n   접근법: {best['approach']}")
         print(f"   출처: {best['source']}")
 
-        # 코드 예시
         if 'nxt' in best['approach'].lower() or best.get('source') == 'raw_api_nxt':
             print("\n   💡 코드 적용 예시:")
             print("   ```python")
             print("   body = {")
             print('       "stk_cd": stock_code,')
-            print('       "dmst_stex_tp": "NXT"  # ← NXT 시간대용')
+            print('       "dmst_stex_tp": "NXT"
             print("   }")
             print("   response = self.client.request(api_id='ka10003', body=body, path='stkinfo')")
             print("   ```")
@@ -77,7 +70,6 @@ def analyze_results(filename: str):
         print("   - 네트워크 연결이 정상인가?")
         print("   - 장 운영 시간인가?")
 
-    # 주문 결과
     print("\n" + "-"*80)
     print("📋 주문 테스트 결과")
     print("-"*80)
@@ -94,12 +86,10 @@ def analyze_results(filename: str):
             print(f"      주문번호: {test.get('ord_no', 'N/A')}")
             print(f"      응답: {test.get('return_msg', 'N/A')}")
 
-        # 권장 조합
         print("\n" + "🎯 권장 주문 파라미터 ".ljust(80, "="))
         best_order = order_success[0]
         combination = best_order['combination']
 
-        # 파라미터 추출
         import re
         dmst_match = re.search(r'dmst_stex_tp=(\w+)', combination)
         trde_match = re.search(r'trde_tp=(\w+)', combination)
@@ -110,7 +100,6 @@ def analyze_results(filename: str):
         print(f"\n   dmst_stex_tp: {dmst}")
         print(f"   trde_tp: {trde}")
 
-        # trde_tp 설명
         trde_tp_desc = {
             '0': '지정가',
             '3': '시장가',
@@ -127,7 +116,6 @@ def analyze_results(filename: str):
         desc = trde_tp_desc.get(trde, '알 수 없음')
         print(f"   거래유형: {desc}")
 
-        # 코드 예시
         print("\n   💡 코드 적용 예시:")
         print("   ```python")
         print("   body = {")
@@ -147,7 +135,6 @@ def analyze_results(filename: str):
         print("   - 종목이 거래정지 상태가 아닌가?")
         print("   - 주문 시간이 적절한가?")
 
-    # Summary
     summary = results.get('summary', {})
     if summary:
         print("\n" + "="*80)
@@ -172,7 +159,6 @@ def analyze_results(filename: str):
 
 def main():
     if len(sys.argv) < 2:
-        # 가장 최근 결과 파일 찾기
         result_files = sorted(Path('.').glob('test_results_nxt_*.json'), reverse=True)
         if result_files:
             filename = str(result_files[0])

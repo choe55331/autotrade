@@ -1,12 +1,8 @@
-#!/usr/bin/env python3
-"""
 Gemini API 테스트 스크립트
 SAFETY 블록 문제 진단용
-"""
 import sys
 import os
 
-# 프로젝트 루트 경로 추가
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 try:
@@ -18,15 +14,12 @@ try:
     print(f"✓ 모델 이름: {GEMINI_MODEL_NAME}")
     print()
 
-    # API 설정
     genai.configure(api_key=GEMINI_API_KEY)
 
-    # 모델 생성
     model = genai.GenerativeModel(GEMINI_MODEL_NAME)
     print(f"✓ Gemini 모델 생성 성공: {GEMINI_MODEL_NAME}")
     print()
 
-    # 안전 설정
     safety_settings = {
         HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
         HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
@@ -39,7 +32,6 @@ try:
         max_output_tokens=512,
     )
 
-    # 테스트 1: 간단한 안전 프롬프트
     print("=" * 60)
     print("테스트 1: 간단한 안전 프롬프트")
     print("=" * 60)
@@ -67,7 +59,6 @@ try:
 
     print()
 
-    # 테스트 2: 사용자 예시 프롬프트 (성공한다고 함)
     print("=" * 60)
     print("테스트 2: 사용자 예시 프롬프트 (다른 프로그램에서 작동)")
     print("=" * 60)
@@ -87,7 +78,6 @@ try:
 [응답 형식]
 - 첫 번째 줄: "DECISION: [GO 또는 NO GO]"
 - 두 번째 줄: "REASON: [판단 근거 요약]"
-"""
 
     try:
         response = model.generate_content(
@@ -111,7 +101,6 @@ try:
 
     print()
 
-    # 테스트 3: 현재 사용 중인 프롬프트
     print("=" * 60)
     print("테스트 3: 현재 사용 중인 프롬프트")
     print("=" * 60)
@@ -138,7 +127,6 @@ try:
 접근: [높음이면 단계 제안]
 근거: [2줄 이내]
 경고: [리스크 1가지]
-"""
 
     try:
         response = model.generate_content(

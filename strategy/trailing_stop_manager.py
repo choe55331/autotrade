@@ -1,4 +1,3 @@
-"""
 AutoTrade Pro v4.0 - 동적 손절/익절 관리자 (Trailing Stop with ATR)
 ATR 기반 변동성을 고려한 동적 손절/익절
 
@@ -7,7 +6,6 @@ ATR 기반 변동성을 고려한 동적 손절/익절
 - Trailing Stop (수익 증가 시 손절선 상향)
 - 종목별 개별 관리
 - 실시간 업데이트
-"""
 import logging
 from typing import Dict, Any, Optional
 from datetime import datetime
@@ -26,9 +24,9 @@ class TrailingStopState:
     current_price: float
     stop_loss_price: float
     take_profit_price: float
-    highest_price: float          # 진입 후 최고가
-    activated: bool               # Trailing Stop 활성화 여부
-    atr_value: float              # ATR 값
+    highest_price: float
+    activated: bool
+    atr_value: float
     updated_at: datetime
 
 
@@ -53,7 +51,6 @@ class TrailingStopManager:
         self.activation_pct = self.settings.get('activation_pct', 0.03)
         self.min_profit_lock_pct = self.settings.get('min_profit_lock_pct', 0.50)
 
-        # 종목별 상태 관리
         self.states: Dict[str, TrailingStopState] = {}
 
         logger.info(f"Trailing Stop Manager 초기화: ATR x{self.atr_multiplier}")
@@ -66,7 +63,6 @@ class TrailingStopManager:
         initial_stop_loss_pct: float = 0.05,
         initial_take_profit_pct: float = 0.10
     ):
-        """
         포지션 추가 및 초기 손절/익절 설정
 
         Args:
@@ -75,15 +71,11 @@ class TrailingStopManager:
             atr_value: ATR 값
             initial_stop_loss_pct: 초기 손절 비율
             initial_take_profit_pct: 초기 익절 비율
-        """
-        # ATR 기반 손절가 계산
         atr_based_stop = entry_price - (atr_value * self.atr_multiplier)
         percentage_based_stop = entry_price * (1 - initial_stop_loss_pct)
 
-        # 둘 중 더 보수적인 것 선택
         stop_loss_price = max(atr_based_stop, percentage_based_stop)
 
-        # 익절가
         take_profit_price = entry_price * (1 + initial_take_profit_pct)
 
         state = TrailingStopState(
@@ -124,18 +116,14 @@ class TrailingStopManager:
         state = self.states[stock_code]
         state.current_price = current_price
 
-        # ATR 업데이트
         if atr_value is not None:
             state.atr_value = atr_value
 
-        # 최고가 업데이트
         if current_price > state.highest_price:
             state.highest_price = current_price
 
-        # 현재 수익률
         profit_pct = (current_price - state.entry_price) / state.entry_price
 
-        # Trailing Stop 활성화 체크
         if not state.activated and profit_pct >= self.activation_pct:
             state.activated = True
             logger.info(
@@ -143,12 +131,9 @@ class TrailingStopManager:
                 f"수익률={profit_pct*100:.2f}%"
             )
 
-        # Trailing Stop 로직
         if state.activated:
-            # 최고가 기준으로 손절선 상향 조정
             new_stop_loss = state.highest_price - (state.atr_value * self.atr_multiplier)
 
-            # 기존 손절선보다 높으면 업데이트
             if new_stop_loss > state.stop_loss_price:
                 old_stop_loss = state.stop_loss_price
                 state.stop_loss_price = new_stop_loss
@@ -157,13 +142,11 @@ class TrailingStopManager:
                     f"{old_stop_loss:,} -> {new_stop_loss:,}"
                 )
 
-            # 최소 수익 보호
             min_profit_price = state.entry_price * (
                 1 + self.activation_pct * self.min_profit_lock_pct
             )
             state.stop_loss_price = max(state.stop_loss_price, min_profit_price)
 
-        # 손절 체크
         if current_price <= state.stop_loss_price:
             logger.warning(
                 f"[{stock_code}] 손절 신호! "
@@ -171,7 +154,6 @@ class TrailingStopManager:
             )
             return True, "STOP_LOSS"
 
-        # 익절 체크
         if current_price >= state.take_profit_price:
             logger.info(
                 f"[{stock_code}] 익절 신호! "
@@ -197,14 +179,11 @@ class TrailingStopManager:
         return self.states.copy()
 
 
-# 테스트
 if __name__ == "__main__":
     manager = TrailingStopManager()
 
-    # 포지션 추가
     manager.add_position("005930", 70000, 1000)
 
-    # 가격 변동 시뮬레이션
     test_prices = [71000, 72000, 73000, 74000, 73500, 72800]
 
     for price in test_prices:

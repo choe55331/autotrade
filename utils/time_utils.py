@@ -1,9 +1,7 @@
-"""
 utils/time_utils.py
 시간 관련 유틸리티
 
 시간 파싱, 거래 시간 검증 등의 유틸리티 제공
-"""
 import logging
 from datetime import datetime, time, timedelta
 from typing import Optional
@@ -26,7 +24,6 @@ def parse_time_string(time_str: str) -> Optional[time]:
         return None
 
     try:
-        # "HH:MM" 형식
         if ':' in time_str:
             parts = time_str.split(':')
             if len(parts) == 2:
@@ -39,13 +36,11 @@ def parse_time_string(time_str: str) -> Optional[time]:
                 second = int(parts[2])
                 return time(hour, minute, second)
 
-        # "HHMM" 형식 (4자리)
         elif len(time_str) == 4:
             hour = int(time_str[:2])
             minute = int(time_str[2:])
             return time(hour, minute)
 
-        # "HHMMSS" 형식 (6자리)
         elif len(time_str) == 6:
             hour = int(time_str[:2])
             minute = int(time_str[2:4])
@@ -189,7 +184,6 @@ def get_time_until_market_open() -> timedelta:
     now = datetime.now()
     market_open = get_market_open_datetime()
 
-    # 이미 개장 시간이 지났으면 다음 날 개장 시간으로
     if now >= market_open:
         market_open += timedelta(days=1)
 
@@ -206,7 +200,6 @@ def get_time_until_market_close() -> timedelta:
     now = datetime.now()
     market_close = get_market_close_datetime()
 
-    # 이미 폐장 시간이 지났으면 다음 날 폐장 시간으로
     if now >= market_close:
         market_close += timedelta(days=1)
 
@@ -234,7 +227,7 @@ def format_time_delta(td: timedelta) -> str:
         parts.append(f"{hours}시간")
     if minutes > 0:
         parts.append(f"{minutes}분")
-    if seconds > 0 and hours == 0:  # 시간 단위가 있으면 초는 생략
+    if seconds > 0 and hours == 0:
         parts.append(f"{seconds}초")
 
     return " ".join(parts) if parts else "0초"
@@ -277,7 +270,6 @@ def is_near_market_close(minutes: int = 30, current_time: Optional[time] = None)
 
     market_close = get_market_close_time()
 
-    # market_close에서 minutes분 전 시간 계산
     close_threshold = (
         datetime.combine(datetime.today(), market_close) -
         timedelta(minutes=minutes)
@@ -302,7 +294,6 @@ def is_near_market_open(minutes: int = 10, current_time: Optional[time] = None) 
 
     market_open = get_market_open_time()
 
-    # market_open 이전 minutes분 계산
     open_threshold = (
         datetime.combine(datetime.today(), market_open) -
         timedelta(minutes=minutes)

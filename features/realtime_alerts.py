@@ -1,4 +1,3 @@
-"""
 features/realtime_alerts.py
 실시간 알림 시스템 (v5.10 NEW)
 
@@ -8,7 +7,6 @@ Features:
 - 거래량 급증 알림
 - AI 신호 알림
 - WebSocket을 통한 실시간 푸시
-"""
 from typing import Dict, Any, List, Optional, Callable
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -23,24 +21,24 @@ logger = get_logger()
 
 class AlertType(Enum):
     """알림 유형"""
-    PRICE_TARGET = "price_target"  # 목표가 도달
-    STOP_LOSS = "stop_loss"  # 손절가 도달
-    VOLUME_SURGE = "volume_surge"  # 거래량 급증
-    PATTERN_DETECTED = "pattern_detected"  # 패턴 감지
-    SUPPORT_RESISTANCE = "support_resistance"  # 지지/저항 터치
-    AI_SIGNAL = "ai_signal"  # AI 매매 신호
-    NEWS = "news"  # 뉴스/공시
-    PORTFOLIO_RISK = "portfolio_risk"  # 포트폴리오 리스크
-    MARKET_CHANGE = "market_change"  # 시장 급변
+    PRICE_TARGET = "price_target"
+    STOP_LOSS = "stop_loss"
+    VOLUME_SURGE = "volume_surge"
+    PATTERN_DETECTED = "pattern_detected"
+    SUPPORT_RESISTANCE = "support_resistance"
+    AI_SIGNAL = "ai_signal"
+    NEWS = "news"
+    PORTFOLIO_RISK = "portfolio_risk"
+    MARKET_CHANGE = "market_change"
 
 
 class AlertPriority(Enum):
     """알림 우선순위"""
-    CRITICAL = "critical"  # 🔴 즉시 조치 필요
-    HIGH = "high"  # 🟠 높은 우선순위
-    MEDIUM = "medium"  # 🟡 중간 우선순위
-    LOW = "low"  # 🟢 낮은 우선순위
-    INFO = "info"  # ℹ️ 정보성
+    CRITICAL = "critical"
+    HIGH = "high"
+    MEDIUM = "medium"
+    LOW = "low"
+    INFO = "info"
 
 
 @dataclass
@@ -104,14 +102,11 @@ class RealtimeAlertSystem:
         self.alert_history: List[Alert] = []
         self.max_history = max_history
 
-        # 알림 콜백 (WebSocket broadcast 등)
         self.callbacks: List[Callable] = []
 
-        # 중복 방지용 캐시 (stock_code:alert_type:price)
         self.dedup_cache: Dict[str, datetime] = {}
-        self.dedup_ttl = 300  # 5분
+        self.dedup_ttl = 300
 
-        # 스레드 안전성
         self.lock = Lock()
 
         logger.info("Realtime Alert System initialized (v5.10)")
@@ -134,7 +129,6 @@ class RealtimeAlertSystem:
         message: str,
         **kwargs
     ) -> Alert:
-        """
         새 알림 생성 및 발송
 
         Args:
@@ -146,16 +140,12 @@ class RealtimeAlertSystem:
 
         Returns:
             생성된 알림 객체
-        """
-        # 중복 체크
         if not self._should_create_alert(alert_type, kwargs.get('stock_code'), kwargs.get('current_price')):
             logger.debug(f"Duplicate alert skipped: {alert_type.value} for {kwargs.get('stock_code')}")
             return None
 
-        # 알림 ID 생성
         alert_id = f"{alert_type.value}_{int(datetime.now().timestamp() * 1000)}"
 
-        # 알림 객체 생성
         alert = Alert(
             id=alert_id,
             type=alert_type,
@@ -166,15 +156,12 @@ class RealtimeAlertSystem:
         )
 
         with self.lock:
-            # 활성 알림에 추가
             self.alerts.append(alert)
 
-            # 히스토리에 추가
             self.alert_history.append(alert)
             if len(self.alert_history) > self.max_history:
                 self.alert_history.pop(0)
 
-        # 콜백 실행 (WebSocket broadcast)
         self._trigger_callbacks(alert)
 
         logger.info(f"Alert created: [{priority.value}] {title}")
@@ -188,7 +175,6 @@ class RealtimeAlertSystem:
         target_price: float,
         direction: str = "reached"
     ):
-        """
         목표가 도달 알림
 
         Args:
@@ -197,7 +183,6 @@ class RealtimeAlertSystem:
             current_price: 현재가
             target_price: 목표가
             direction: "reached", "above", "below"
-        """
         message = f"{stock_name} ({stock_code})의 현재가 {current_price:,}원이 목표가 {target_price:,}원에 도달했습니다."
 
         if direction == "above":
@@ -225,7 +210,6 @@ class RealtimeAlertSystem:
         stop_loss_price: float,
         loss_percent: float
     ):
-        """
         손절가 도달 알림
 
         Args:
@@ -234,7 +218,6 @@ class RealtimeAlertSystem:
             current_price: 현재가
             stop_loss_price: 손절가
             loss_percent: 손실률 (%)
-        """
         message = f"{stock_name} ({stock_code})의 현재가 {current_price:,}원이 손절가 {stop_loss_price:,}원에 도달했습니다. (손실: {loss_percent:.1f}%)"
 
         return self.create_alert(
@@ -258,7 +241,6 @@ class RealtimeAlertSystem:
         avg_volume: int,
         surge_ratio: float
     ):
-        """
         거래량 급증 알림
 
         Args:
@@ -267,7 +249,6 @@ class RealtimeAlertSystem:
             current_volume: 현재 거래량
             avg_volume: 평균 거래량
             surge_ratio: 급증 비율
-        """
         message = f"{stock_name} ({stock_code})의 거래량이 평균 대비 {surge_ratio:.1f}배 급증했습니다. (현재: {current_volume:,}주, 평균: {avg_volume:,}주)"
 
         return self.create_alert(
@@ -294,7 +275,6 @@ class RealtimeAlertSystem:
         strength: int,
         description: str
     ):
-        """
         차트 패턴 감지 알림
 
         Args:
@@ -304,7 +284,6 @@ class RealtimeAlertSystem:
             pattern_type: 패턴 유형 (bullish/bearish)
             strength: 강도 (1-10)
             description: 설명
-        """
         icon = "🟢" if pattern_type == "bullish" else "🔴" if pattern_type == "bearish" else "⚪"
         message = f"{stock_name} ({stock_code})에서 {pattern_name} 패턴이 감지되었습니다. (강도: {strength}/10)\n{description}"
 
@@ -334,7 +313,6 @@ class RealtimeAlertSystem:
         level_type: str,
         strength: int
     ):
-        """
         지지/저항 레벨 터치 알림
 
         Args:
@@ -344,7 +322,6 @@ class RealtimeAlertSystem:
             level_price: 지지/저항 가격
             level_type: 'support' or 'resistance'
             strength: 레벨 강도 (1-10)
-        """
         level_name = "지지선" if level_type == "support" else "저항선"
         message = f"{stock_name} ({stock_code})의 현재가 {current_price:,}원이 주요 {level_name} {level_price:,}원에 근접했습니다. (강도: {strength}/10)"
 
@@ -373,7 +350,6 @@ class RealtimeAlertSystem:
         score: float,
         reasoning: str
     ):
-        """
         AI 매매 신호 알림
 
         Args:
@@ -383,7 +359,6 @@ class RealtimeAlertSystem:
             confidence: 신뢰도
             score: 점수
             reasoning: 근거
-        """
         icon = "🟢" if signal == "BUY" or signal.startswith("BUY") else "🔴" if signal == "SELL" or signal.startswith("SELL") else "⚪"
 
         priority_map = {
@@ -421,14 +396,12 @@ class RealtimeAlertSystem:
         message: str,
         affected_stocks: List[str] = None
     ):
-        """
         포트폴리오 리스크 알림
 
         Args:
             risk_level: 리스크 레벨 (High/Medium/Low)
             message: 메시지
             affected_stocks: 영향받는 종목 리스트
-        """
         priority = AlertPriority.CRITICAL if risk_level == "High" else AlertPriority.HIGH
 
         return self.create_alert(
@@ -449,7 +422,6 @@ class RealtimeAlertSystem:
         type_filter: Optional[AlertType] = None,
         unread_only: bool = False
     ) -> List[Alert]:
-        """
         활성 알림 조회
 
         Args:
@@ -459,7 +431,6 @@ class RealtimeAlertSystem:
 
         Returns:
             알림 리스트
-        """
         with self.lock:
             filtered = [a for a in self.alerts if not a.is_dismissed]
 
@@ -500,9 +471,6 @@ class RealtimeAlertSystem:
             self.alerts.clear()
             logger.info("All alerts cleared")
 
-    # ========================================================================
-    # Private Helper Methods
-    # ========================================================================
 
     def _should_create_alert(
         self,
@@ -510,25 +478,20 @@ class RealtimeAlertSystem:
         stock_code: Optional[str],
         price: Optional[float]
     ) -> bool:
-        """중복 알림 체크"""
         if not stock_code:
             return True
 
-        # 캐시 키 생성
         cache_key = f"{stock_code}:{alert_type.value}:{int(price) if price else 0}"
 
-        # 캐시에서 확인
         if cache_key in self.dedup_cache:
             last_time = self.dedup_cache[cache_key]
             elapsed = (datetime.now() - last_time).total_seconds()
 
             if elapsed < self.dedup_ttl:
-                return False  # 중복
+                return False
 
-        # 캐시 업데이트
         self.dedup_cache[cache_key] = datetime.now()
 
-        # 오래된 캐시 정리
         self._clean_dedup_cache()
 
         return True
@@ -554,7 +517,6 @@ class RealtimeAlertSystem:
                 logger.error(f"Alert callback error: {e}")
 
 
-# Singleton instance
 _alert_system: Optional[RealtimeAlertSystem] = None
 
 

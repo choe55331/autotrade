@@ -1,7 +1,5 @@
-"""
 api/market/market_data.py
 시세 및 호가 데이터 조회 API
-"""
 import logging
 from typing import Dict, Any, Optional
 
@@ -45,7 +43,6 @@ class MarketDataAPI:
         """
         from utils.trading_date import is_nxt_hours
 
-        # _NX 접미사 제거 (테스트 결과: 기본 코드만 작동)
         base_code = stock_code[:-3] if stock_code.endswith("_NX") else stock_code
 
         body = {
@@ -59,21 +56,17 @@ class MarketDataAPI:
         )
 
         if response and response.get('return_code') == 0:
-            # ka10003 응답: cntr_infr 리스트
             cntr_infr = response.get('cntr_infr', [])
 
             if cntr_infr and len(cntr_infr) > 0:
-                # 최신 체결 정보 (첫 번째 항목)
                 latest = cntr_infr[0]
 
-                # 현재가 파싱 (+/- 부호 제거)
                 cur_prc_str = latest.get('cur_prc', '0')
                 current_price = abs(int(cur_prc_str.replace('+', '').replace('-', '')))
 
-                # 정규화된 응답
                 price_info = {
                     'current_price': current_price,
-                    'cur_prc': current_price,  # 원본 필드명도 유지
+                    'cur_prc': current_price,
                     'change': latest.get('pred_pre', '0'),
                     'change_rate': latest.get('pre_rt', '0'),
                     'volume': latest.get('cntr_trde_qty', '0'),
@@ -91,7 +84,6 @@ class MarketDataAPI:
         else:
             logger.warning(f"현재가 조회 API 실패: {response.get('return_msg') if response else 'No response'}")
 
-        # Fallback 1: 호가 정보에서 현재가 추출 시도 (NXT 코드)
         if use_fallback:
             logger.info(f"{stock_code} 호가 정보로 현재가 조회 시도...")
             orderbook = self.get_orderbook(stock_code)
@@ -105,10 +97,8 @@ class MarketDataAPI:
                     'time': '',
                 }
 
-            # Fallback 2: NXT 시간대에 _NX 호가도 실패하면 기본 코드로 재시도
             if is_nxt_hours() and nxt_stock_code != stock_code:
                 logger.info(f"{stock_code} NXT 호가 실패 - 기본 코드로 재시도...")
-                # get_orderbook 내부에서 _NX를 추가하므로, 강제로 기본 코드 사용
                 body_fallback = {"stk_cd": stock_code}
                 response_fallback = self.client.request(
                     api_id="ka10004",
@@ -123,7 +113,6 @@ class MarketDataAPI:
                     buy_price = abs(int(buy_fpr_bid)) if buy_fpr_bid and buy_fpr_bid != '0' else 0
 
                     if sell_price > 0 or buy_price > 0:
-                        # 중간가 계산
                         if sell_price > 0 and buy_price > 0:
                             current_price = (sell_price + buy_price) // 2
                         elif sell_price > 0:
@@ -164,7 +153,6 @@ class MarketDataAPI:
                 ...
             }
         """
-        # _NX 접미사 제거 (테스트 결과: 기본 코드만 작동)
         base_code = stock_code[:-3] if stock_code.endswith("_NX") else stock_code
 
         body = {
@@ -178,32 +166,26 @@ class MarketDataAPI:
         )
 
         if response and response.get('return_code') == 0:
-            # ka10004 응답은 output 키 없이 바로 데이터가 옴
             orderbook = response
 
-            # 매도1호가 / 매수1호가 파싱
             sel_fpr_bid = orderbook.get('sel_fpr_bid', '0').replace('+', '').replace('-', '')
             buy_fpr_bid = orderbook.get('buy_fpr_bid', '0').replace('+', '').replace('-', '')
 
             sell_price = abs(int(sel_fpr_bid)) if sel_fpr_bid and sel_fpr_bid != '0' else 0
             buy_price = abs(int(buy_fpr_bid)) if buy_fpr_bid and buy_fpr_bid != '0' else 0
 
-            # 총잔량 파싱
             tot_sel_req = orderbook.get('tot_sel_req', '0').replace('+', '').replace('-', '')
             tot_buy_req = orderbook.get('tot_buy_req', '0').replace('+', '').replace('-', '')
 
             total_sell_qty = abs(int(tot_sel_req)) if tot_sel_req and tot_sel_req != '0' else 0
             total_buy_qty = abs(int(tot_buy_req)) if tot_buy_req and tot_buy_req != '0' else 0
 
-            # 정규화된 응답
-            orderbook['sell_price'] = sell_price  # 매도1호가
-            orderbook['buy_price'] = buy_price    # 매수1호가
+            orderbook['sell_price'] = sell_price
+            orderbook['buy_price'] = buy_price
 
-            # scanner_pipeline.py 호환 필드명 추가
             orderbook['매도_총잔량'] = total_sell_qty
             orderbook['매수_총잔량'] = total_buy_qty
 
-            # 중간가 계산
             if sell_price > 0 and buy_price > 0:
                 orderbook['mid_price'] = (sell_price + buy_price) // 2
             elif sell_price > 0:
@@ -213,7 +195,6 @@ class MarketDataAPI:
             else:
                 orderbook['mid_price'] = 0
 
-            # 현재가 필드 추가 (scanner 호환)
             orderbook['현재가'] = orderbook['mid_price']
 
             logger.info(

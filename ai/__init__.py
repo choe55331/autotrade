@@ -1,4 +1,3 @@
-"""
 Advanced AI Package
 Next-generation AI trading system
 
@@ -24,18 +23,14 @@ v4.2 Modules:
 - Performance Optimization: Multi-processing, caching
 - Options Pricing: Black-Scholes, Greeks, strategies
 - High-Frequency Trading: Microsecond latency, arbitrage
-"""
 
-# Legacy ensemble analyzer (for backward compatibility)
 from .ensemble_analyzer import EnsembleAnalyzer, get_analyzer
 
-# v4.0 modules
 from .ml_predictor import MLPricePredictor, PricePrediction, get_ml_predictor
 from .rl_agent import DQNAgent, RLState, RLAction, get_rl_agent
 from .ensemble_ai import EnsembleAI, EnsemblePrediction, get_ensemble_ai
 from .meta_learning import MetaLearningEngine, MetaKnowledge, get_meta_learning_engine
 
-# v4.1 modules
 from .deep_learning import (
     DeepLearningManager, DeepLearningPrediction,
     LSTMPricePredictor, TransformerPricePredictor, CNNPatternRecognizer,
@@ -54,10 +49,8 @@ from .backtesting import (
     BacktestEngine, BacktestResult, BacktestConfig,
     BacktestTrade, get_backtest_engine
 )
-# Position is now imported from core (v4.2 standardization)
 from core import Position
 
-# v4.2 modules
 from .realtime_system import (
     RealTimeDataStream, EventDrivenTradingEngine,
     StreamingTick, StreamingCandle, StreamingEvent,
@@ -87,7 +80,6 @@ from .options_hft import (
     get_bs_model, get_options_analyzer, get_hft_trader
 )
 
-# v4.0 Advanced Features
 try:
     from .backtest_report_generator import BacktestReportGenerator, BacktestReport
     from .strategy_optimizer import StrategyOptimizer, OptimizationResult
@@ -102,32 +94,26 @@ except ImportError as e:
     AnomalyDetector = AnomalyEvent = AnomalyType = None
 
 __all__ = [
-    # Legacy
     'EnsembleAnalyzer',
     'get_analyzer',
 
-    # v4.0 - ML Predictor
     'MLPricePredictor',
     'PricePrediction',
     'get_ml_predictor',
 
-    # v4.0 - RL Agent
     'DQNAgent',
     'RLState',
     'RLAction',
     'get_rl_agent',
 
-    # v4.0 - Ensemble AI
     'EnsembleAI',
     'EnsemblePrediction',
     'get_ensemble_ai',
 
-    # v4.0 - Meta Learning
     'MetaLearningEngine',
     'MetaKnowledge',
     'get_meta_learning_engine',
 
-    # v4.1 - Deep Learning
     'DeepLearningManager',
     'DeepLearningPrediction',
     'LSTMPricePredictor',
@@ -135,7 +121,6 @@ __all__ = [
     'CNNPatternRecognizer',
     'get_deep_learning_manager',
 
-    # v4.1 - Advanced RL
     'AdvancedRLManager',
     'AdvancedRLAction',
     'A3CAgent',
@@ -143,22 +128,19 @@ __all__ = [
     'SACAgent',
     'get_advanced_rl_manager',
 
-    # v4.1 - AutoML
     'AutoMLManager',
     'AutoMLResult',
     'HyperparameterConfig',
     'FeatureImportance',
     'get_automl_manager',
 
-    # v4.1 - Backtesting
     'BacktestEngine',
     'BacktestResult',
     'BacktestConfig',
-    'BacktestTrade',  # v4.2: Renamed from Trade
-    'Position',  # v4.2: From core (standardized)
+    'BacktestTrade',
+    'Position',
     'get_backtest_engine',
 
-    # v4.2 - Real-time System
     'RealTimeDataStream',
     'EventDrivenTradingEngine',
     'StreamingTick',
@@ -167,7 +149,6 @@ __all__ = [
     'get_data_stream',
     'get_trading_engine',
 
-    # v4.2 - Portfolio Optimization
     'PortfolioOptimizationManager',
     'PortfolioAllocation',
     'PortfolioMetrics',
@@ -177,7 +158,6 @@ __all__ = [
     'MonteCarloSimulator',
     'get_portfolio_manager',
 
-    # v4.2 - Sentiment Analysis
     'SentimentAnalysisManager',
     'SentimentReport',
     'NewsSentimentAnalyzer',
@@ -186,7 +166,6 @@ __all__ = [
     'SocialMediaPost',
     'get_sentiment_manager',
 
-    # v4.2 - Advanced Systems
     'MultiAgentSystem',
     'AdvancedRiskManager',
     'MarketRegimeDetector',
@@ -200,7 +179,6 @@ __all__ = [
     'get_regime_detector',
     'get_performance_optimizer',
 
-    # v4.2 - Options & HFT
     'BlackScholesModel',
     'OptionsStrategyAnalyzer',
     'HighFrequencyTrader',
@@ -212,7 +190,6 @@ __all__ = [
     'get_options_analyzer',
     'get_hft_trader',
 
-    # v4.0 - Advanced Features
     'BacktestReportGenerator',
     'BacktestReport',
     'StrategyOptimizer',

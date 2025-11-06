@@ -1,4 +1,3 @@
-"""
 NXT 주문 최종 테스트 (가격 없이)
 
 발견 사항:
@@ -8,7 +7,6 @@ NXT 주문 최종 테스트 (가격 없이)
 
 사용법:
     python test_nxt_orders_final.py
-"""
 
 import json
 import logging
@@ -58,7 +56,6 @@ class NXTOrderFinalTest:
 
     def test_order(self, dmst_stex_tp: str, trde_tp: str, ord_uv: str, desc: str,
                    stock_code: str = '005930') -> Dict[str, Any]:
-        """주문 테스트"""
 
         logger.info(f"\n{'='*70}")
         logger.info(f"🧪 {desc}")
@@ -71,7 +68,7 @@ class NXTOrderFinalTest:
                 "dmst_stex_tp": dmst_stex_tp,
                 "stk_cd": stock_code,
                 "ord_qty": "1",
-                "ord_uv": ord_uv,  # 시간외종가는 빈 문자열
+                "ord_uv": ord_uv,
                 "trde_tp": trde_tp
             }
 
@@ -129,7 +126,6 @@ class NXTOrderFinalTest:
         logger.info(f"거래 시간대: {period}")
         logger.info(f"NXT 시간: {self.is_nxt}")
 
-        # 테스트 케이스 정의
         test_cases = []
 
         if period == '프리마켓':
@@ -143,11 +139,9 @@ class NXTOrderFinalTest:
         elif period == '애프터마켓':
             logger.info("\n📌 애프터마켓 테스트 (15:30-20:00)")
             test_cases = [
-                # 시간외종가 (가격 없이)
                 ('KRX', '81', '', '✅ KRX + 장마감후시간외(81) + 가격없음'),
                 ('NXT', '81', '', '✅ NXT + 장마감후시간외(81) + 가격없음'),
 
-                # 실험: 가격 지정
                 ('KRX', '81', '50000', '🧪 KRX + 장마감후시간외(81) + 가격있음 (실패 예상)'),
                 ('NXT', '81', '50000', '🧪 NXT + 장마감후시간외(81) + 가격있음 (실패 예상)'),
             ]
@@ -159,7 +153,6 @@ class NXTOrderFinalTest:
                 ('NXT', '81', '', '✅ NXT + 장마감후시간외(81) + 가격없음'),
             ]
 
-        # 확인
         logger.info("\n" + "="*80)
         logger.info("⚠️  실제 주문이 발생합니다!")
         logger.info("="*80)
@@ -172,12 +165,10 @@ class NXTOrderFinalTest:
             logger.info("테스트를 취소합니다.")
             return
 
-        # 테스트 실행
         for dmst, trde, price, desc in test_cases:
             result = self.test_order(dmst, trde, price, desc)
             self.results['tests'].append(result)
 
-        # 결과 요약
         self.print_summary()
         self.save_results()
 
@@ -204,7 +195,6 @@ class NXTOrderFinalTest:
                 logger.info(f"      ord_uv = '{test['ord_uv']}'")
                 logger.info(f"      주문번호: {test['ord_no']}")
 
-            # 권장 코드
             best = success_tests[0]
             logger.info("\n" + "="*80)
             logger.info("💡 즉시 적용 가능한 코드 (api/order.py)")
@@ -219,7 +209,7 @@ def buy_stock_nxt(self, stock_code: str, quantity: int) -> Optional[str]:
         "dmst_stex_tp": "{best['dmst_stex_tp']}",
         "stk_cd": stock_code,
         "ord_qty": str(quantity),
-        "ord_uv": "{best['ord_uv']}",  # 시간외종가는 빈 문자열!
+        "ord_uv": "{best['ord_uv']}",
         "trde_tp": "{best['trde_tp']}"
     }}
 
@@ -230,7 +220,6 @@ def buy_stock_nxt(self, stock_code: str, quantity: int) -> Optional[str]:
     )
 
     return response.get('ord_no') if response.get('return_code') == 0 else None
-            """)
 
         else:
             logger.warning("\n❌ 성공한 조합이 없습니다.")

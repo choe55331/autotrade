@@ -1,4 +1,3 @@
-"""
 features/test_mode_manager.py
 주말/장마감 후 테스트 모드 매니저
 
@@ -7,7 +6,6 @@ features/test_mode_manager.py
 
 키움증권에 확인 결과: REST API로 장이 안 열렸을 때도
 가장 최근일 데이터로 테스트 가능합니다.
-"""
 import asyncio
 import json
 from datetime import datetime
@@ -36,18 +34,17 @@ class TestModeManager:
         self.test_results: Dict[str, Any] = {}
         self.start_time: Optional[datetime] = None
 
-        # 테스트할 종목 리스트 (대형주 중심)
         self.test_stocks = [
-            "005930",  # 삼성전자
-            "000660",  # SK하이닉스
-            "005380",  # 현대차
-            "051910",  # LG화학
-            "035420",  # NAVER
-            "035720",  # 카카오
-            "005490",  # POSCO홀딩스
-            "006400",  # 삼성SDI
-            "068270",  # 셀트리온
-            "207940",  # 삼성바이오로직스
+            "005930",
+            "000660",
+            "005380",
+            "051910",
+            "035420",
+            "035720",
+            "005490",
+            "006400",
+            "068270",
+            "207940",
         ]
 
         logger.info("테스트 모드 매니저 초기화 완료")
@@ -68,24 +65,20 @@ class TestModeManager:
 
         now = datetime.now()
         current_hour = now.hour
-        current_weekday = now.weekday()  # 0=월, 6=일
+        current_weekday = now.weekday()
 
-        # 주말 (토요일, 일요일)
         if current_weekday in [5, 6]:
             self.is_test_mode = True
             reason = "주말"
 
-        # 평일 오전 8시 이전
         elif current_hour < 8:
             self.is_test_mode = True
             reason = "오전 8시 이전"
 
-        # 평일 오후 8시 이후 (20:00)
         elif current_hour >= 20:
             self.is_test_mode = True
             reason = "오후 8시 이후"
 
-        # 장 운영 시간이 아닌 경우
         elif not is_market_hours():
             self.is_test_mode = True
             reason = "장 마감 시간"
@@ -95,7 +88,6 @@ class TestModeManager:
             logger.info("정규 장 시간 - 테스트 모드 비활성화")
             return False
 
-        # 테스트 모드 활성화
         self.test_date = get_last_trading_date()
         logger.info(f"✅ 테스트 모드 활성화 ({reason})")
         logger.info(f"   사용할 데이터 날짜: {self.test_date}")
@@ -139,31 +131,22 @@ class TestModeManager:
         print(f"시작 시간: {self.start_time.strftime('%Y-%m-%d %H:%M:%S')}")
         print("=" * 80)
 
-        # 1. 계좌 조회 테스트
         await self._test_account_info()
 
-        # 2. 시장 탐색 테스트
         await self._test_market_search()
 
-        # 3. 종목 정보 조회 테스트
         await self._test_stock_info()
 
-        # 4. 차트 데이터 조회 테스트
         await self._test_chart_data()
 
-        # 5. 호가 조회 테스트
         await self._test_order_book()
 
-        # 6. 잔고 조회 테스트
         await self._test_balance()
 
-        # 7. AI 분석 테스트
         await self._test_ai_analysis()
 
-        # 8. 매수/매도 시뮬레이션 테스트
         await self._test_trading_simulation()
 
-        # 테스트 완료
         end_time = datetime.now()
         duration = (end_time - self.start_time).total_seconds()
 
@@ -176,7 +159,6 @@ class TestModeManager:
         print(f"소요 시간: {duration:.2f}초")
         print(f"성공한 테스트: {sum(1 for t in self.test_results['tests'].values() if t.get('success'))}/{len(self.test_results['tests'])}")
 
-        # 결과 저장
         self._save_test_results()
 
         return self.test_results
@@ -188,7 +170,6 @@ class TestModeManager:
         try:
             from api.account import get_account_balance
 
-            # 가장 최근 영업일 데이터로 조회
             result = get_account_balance(date=self.test_date)
 
             success = result is not None
@@ -219,7 +200,6 @@ class TestModeManager:
         try:
             from api.market import get_stock_list
 
-            # KOSPI, KOSDAQ 종목 리스트 조회
             result = get_stock_list(market="ALL")
 
             success = result is not None and len(result) > 0
@@ -251,8 +231,7 @@ class TestModeManager:
         try:
             from api.market import get_current_price
 
-            # 테스트 종목들의 현재가 조회 (최근 영업일 데이터)
-            for stock_code in self.test_stocks[:3]:  # 처음 3개만 테스트
+            for stock_code in self.test_stocks[:3]:
                 try:
                     result = get_current_price(stock_code, date=self.test_date)
                     if result:
@@ -269,7 +248,7 @@ class TestModeManager:
                         })
                         print(f"   ❌ {stock_code}: 조회 실패")
 
-                    await asyncio.sleep(0.3)  # API 속도 제한
+                    await asyncio.sleep(0.3)
 
                 except Exception as e:
                     logger.error(f"종목 {stock_code} 조회 실패: {e}")
@@ -303,7 +282,6 @@ class TestModeManager:
         try:
             from api.market import get_daily_chart
 
-            # 삼성전자 일봉 차트 (최근 20일)
             stock_code = "005930"
             result = get_daily_chart(
                 stock_code,
@@ -340,7 +318,6 @@ class TestModeManager:
         try:
             from api.market import get_order_book
 
-            # 삼성전자 호가 (최근 영업일 데이터)
             stock_code = "005930"
             result = get_order_book(stock_code, date=self.test_date)
 
@@ -374,7 +351,6 @@ class TestModeManager:
         try:
             from api.account import get_holdings
 
-            # 보유 종목 조회 (최근 영업일 데이터)
             result = get_holdings(date=self.test_date)
 
             success = result is not None
@@ -403,7 +379,6 @@ class TestModeManager:
         print("\n[7/8] AI 분석 및 기술적 지표 계산 테스트...")
 
         try:
-            # 실제 차트 데이터를 사용한 기술적 지표 계산
             print("   📊 차트 데이터 조회 및 기술적 지표 계산 중...")
 
             from api.market import get_daily_chart
@@ -412,12 +387,10 @@ class TestModeManager:
             from indicators.volatility import bollinger_bands, calculate_volatility_score
             from indicators.volume import calculate_volume_profile
 
-            # 삼성전자 차트 데이터 조회 (60일)
             stock_code = "005930"
             chart_data = get_daily_chart(stock_code, period=60, date=self.test_date)
 
             if not chart_data or len(chart_data) < 20:
-                # 데이터가 충분하지 않으면 시뮬레이션 모드
                 technical_analysis = {
                     "rsi": "데이터 부족",
                     "macd": "데이터 부족",
@@ -426,31 +399,25 @@ class TestModeManager:
                 }
                 print("   ⚠️ 차트 데이터 부족 - 시뮬레이션 모드")
             else:
-                # DataFrame 변환 (필드명은 API 응답에 맞춰 조정 필요)
                 df = pd.DataFrame(chart_data)
 
-                # 필드명 표준화 (API 응답 구조에 따라 조정)
-                if 'stck_clpr' in df.columns:  # 키움 API 필드명
+                if 'stck_clpr' in df.columns:
                     df['close'] = pd.to_numeric(df['stck_clpr'], errors='coerce')
                     df['high'] = pd.to_numeric(df.get('stck_hgpr', df['stck_clpr']), errors='coerce')
                     df['low'] = pd.to_numeric(df.get('stck_lwpr', df['stck_clpr']), errors='coerce')
                     df['volume'] = pd.to_numeric(df.get('acml_vol', 0), errors='coerce')
                 elif 'close' not in df.columns and len(df.columns) > 0:
-                    # 컬럼명이 다른 경우 매핑
-                    df['close'] = pd.to_numeric(df.iloc[:, 4], errors='coerce')  # 5번째 컬럼 = 종가
-                    df['high'] = pd.to_numeric(df.iloc[:, 2], errors='coerce')   # 3번째 컬럼 = 고가
-                    df['low'] = pd.to_numeric(df.iloc[:, 3], errors='coerce')    # 4번째 컬럼 = 저가
-                    df['volume'] = pd.to_numeric(df.iloc[:, 5], errors='coerce')  # 6번째 컬럼 = 거래량
+                    df['close'] = pd.to_numeric(df.iloc[:, 4], errors='coerce')
+                    df['high'] = pd.to_numeric(df.iloc[:, 2], errors='coerce')
+                    df['low'] = pd.to_numeric(df.iloc[:, 3], errors='coerce')
+                    df['volume'] = pd.to_numeric(df.iloc[:, 5], errors='coerce')
 
-                # 실제 기술적 지표 계산
                 close_prices = df['close'].dropna()
 
                 if len(close_prices) >= 20:
-                    # RSI 계산
                     rsi_values = rsi(close_prices, period=14)
                     current_rsi = round(rsi_values.iloc[-1], 2) if not pd.isna(rsi_values.iloc[-1]) else 50.0
 
-                    # MACD 계산
                     macd_line, signal_line, histogram = macd(close_prices)
                     current_hist = histogram.iloc[-1] if not pd.isna(histogram.iloc[-1]) else 0
 
@@ -461,7 +428,6 @@ class TestModeManager:
                     else:
                         macd_signal = "중립"
 
-                    # Bollinger Bands 계산
                     high_prices = df['high'].dropna()
                     low_prices = df['low'].dropna()
 
@@ -483,7 +449,6 @@ class TestModeManager:
                     else:
                         bollinger_signal = "중립"
 
-                    # 거래량 분석
                     volumes = df['volume'].dropna()
                     if len(volumes) >= 20:
                         avg_volume = volumes.tail(20).mean()
@@ -502,7 +467,6 @@ class TestModeManager:
 
                     print(f"   ✅ 실제 기술적 지표 계산 완료 ({len(close_prices)}일 데이터 사용)")
                 else:
-                    # 데이터 부족
                     technical_analysis = {
                         "rsi": "데이터 부족",
                         "macd": "데이터 부족",
@@ -511,7 +475,6 @@ class TestModeManager:
                     }
                     print("   ⚠️ 유효한 가격 데이터 부족")
 
-            # 감성 분석은 시뮬레이션 (실제 뉴스/소셜 분석은 별도 구현 필요)
             sentiment_analysis = {
                 "news_sentiment": "시뮬레이션",
                 "social_sentiment": "시뮬레이션",
@@ -547,7 +510,6 @@ class TestModeManager:
             print("   🔄 매매 시뮬레이션 실행 중...")
             print("   ⚠️  실제 주문은 발생하지 않습니다")
 
-            # 매수 시뮬레이션
             buy_simulation = {
                 "action": "buy",
                 "stock_code": "005930",
@@ -560,7 +522,6 @@ class TestModeManager:
                 "note": "장 마감 시간이므로 실제 주문 미발생"
             }
 
-            # 매도 시뮬레이션
             sell_simulation = {
                 "action": "sell",
                 "stock_code": "005930",
@@ -597,15 +558,12 @@ class TestModeManager:
     def _save_test_results(self):
         """테스트 결과 저장"""
         try:
-            # 결과 디렉토리 생성
             result_dir = Path("test_results")
             result_dir.mkdir(exist_ok=True)
 
-            # 파일명
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
             result_file = result_dir / f"test_mode_results_{timestamp}.json"
 
-            # 결과 저장
             with open(result_file, 'w', encoding='utf-8') as f:
                 json.dump(self.test_results, f, ensure_ascii=False, indent=2)
 

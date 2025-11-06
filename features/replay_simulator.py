@@ -1,4 +1,3 @@
-"""
 AutoTrade Pro v4.0 - 과거 데이터 리플레이 시뮬레이터
 실제 과거 시점의 시장 데이터를 재현하여 전략 테스트
 
@@ -7,7 +6,6 @@ AutoTrade Pro v4.0 - 과거 데이터 리플레이 시뮬레이터
 - 호가창, 체결 내역 포함
 - 실시간처럼 데이터 스트리밍
 - 전략 실행 및 결과 기록
-"""
 import logging
 from typing import Dict, Any, List, Optional, Callable
 from datetime import datetime, timedelta, time
@@ -28,17 +26,14 @@ class MarketSnapshot:
     price: float
     volume: int = 0
 
-    # 호가창 데이터
-    bid_prices: List[float] = field(default_factory=list)  # 매수호가 (5단계)
+    bid_prices: List[float] = field(default_factory=list)
     bid_volumes: List[int] = field(default_factory=list)
-    ask_prices: List[float] = field(default_factory=list)  # 매도호가 (5단계)
+    ask_prices: List[float] = field(default_factory=list)
     ask_volumes: List[int] = field(default_factory=list)
 
-    # 체결 데이터
     trade_price: float = 0.0
     trade_volume: int = 0
 
-    # 추가 정보
     high: float = 0.0
     low: float = 0.0
     open: float = 0.0
@@ -52,29 +47,24 @@ class ReplaySimulator:
         data_directory: Path = None,
         playback_speed: float = 1.0
     ):
-        """
         초기화
 
         Args:
             data_directory: 과거 데이터 디렉토리
             playback_speed: 재생 속도 (1.0 = 실시간, 10.0 = 10배속)
-        """
         if data_directory is None:
             data_directory = Path("data/replay")
 
         self.data_directory = data_directory
         self.playback_speed = playback_speed
 
-        # 데이터 저장
         self.snapshots: Dict[str, List[MarketSnapshot]] = {}
 
-        # 재생 상태
         self.is_playing = False
         self.current_time: Optional[datetime] = None
         self.start_time: Optional[datetime] = None
         self.end_time: Optional[datetime] = None
 
-        # 콜백
         self.on_tick_callbacks: List[Callable] = []
 
         logger.info(f"리플레이 시뮬레이터 초기화: 속도={playback_speed}x")
@@ -85,7 +75,6 @@ class ReplaySimulator:
         date: str,
         data_source: str = "file"
     ) -> bool:
-        """
         과거 데이터 로드
 
         Args:
@@ -95,7 +84,6 @@ class ReplaySimulator:
 
         Returns:
             성공 여부
-        """
         try:
             if data_source == "file":
                 return self._load_from_file(stock_code, date)
@@ -115,7 +103,6 @@ class ReplaySimulator:
 
         if not file_path.exists():
             logger.warning(f"데이터 파일 없음: {file_path}")
-            # 샘플 데이터 생성
             self._generate_sample_data(stock_code, date)
             return True
 
@@ -171,9 +158,8 @@ class ReplaySimulator:
 
         snapshots = []
         base_date = datetime.strptime(date, "%Y-%m-%d")
-        base_price = 70000  # 초기 가격
+        base_price = 70000
 
-        # 09:00 ~ 15:30까지 1분 간격으로 데이터 생성
         start_time = base_date.replace(hour=9, minute=0)
         end_time = base_date.replace(hour=15, minute=30)
 
@@ -181,11 +167,9 @@ class ReplaySimulator:
         current_price = base_price
 
         while current_time <= end_time:
-            # 가격 변동 (랜덤 워크)
             price_change = random.randint(-500, 500)
             current_price = max(1000, current_price + price_change)
 
-            # 호가창 데이터
             bid_prices = [current_price - (i * 50) for i in range(1, 6)]
             ask_prices = [current_price + (i * 50) for i in range(1, 6)]
             bid_volumes = [random.randint(100, 1000) for _ in range(5)]
@@ -242,7 +226,6 @@ class ReplaySimulator:
 
         logger.info(f"리플레이 시작: {self.start_time} ~ {self.end_time}")
 
-        # 모든 종목의 데이터를 시간순으로 정렬
         all_snapshots = []
         for code in stock_codes:
             if code in self.snapshots:
@@ -250,20 +233,17 @@ class ReplaySimulator:
 
         all_snapshots.sort(key=lambda x: x.timestamp)
 
-        # 재생
         prev_time = None
         for snapshot in all_snapshots:
             if not self.is_playing:
                 break
 
-            # 시간 간격 계산 및 대기
             if prev_time is not None:
                 time_diff = (snapshot.timestamp - prev_time).total_seconds()
                 sleep_time = time_diff / self.playback_speed
                 if sleep_time > 0:
                     time_module.sleep(sleep_time)
 
-            # 콜백 호출
             for callback in self.on_tick_callbacks:
                 try:
                     callback(snapshot)
@@ -297,7 +277,6 @@ class ReplaySimulator:
         if stock_code not in self.snapshots or self.current_time is None:
             return None
 
-        # 현재 시간에 가장 가까운 스냅샷 찾기
         snapshots = self.snapshots[stock_code]
         for snapshot in snapshots:
             if snapshot.timestamp >= self.current_time:
@@ -316,7 +295,6 @@ class ReplaySimulator:
 
         data = [asdict(snapshot) for snapshot in self.snapshots[stock_code]]
 
-        # datetime을 문자열로 변환
         for item in data:
             item['timestamp'] = item['timestamp'].isoformat()
 
@@ -326,18 +304,14 @@ class ReplaySimulator:
         logger.info(f"리플레이 데이터 저장: {file_path}")
 
 
-# 사용 예시
 if __name__ == "__main__":
     simulator = ReplaySimulator(playback_speed=10.0)
 
-    # 과거 데이터 로드
     simulator.load_historical_data("005930", "2024-01-15")
 
-    # 콜백 등록
     def on_tick(snapshot: MarketSnapshot):
         print(f"[{snapshot.timestamp}] {snapshot.stock_code}: {snapshot.price:,}원")
 
     simulator.register_callback(on_tick)
 
-    # 재생
     simulator.play()

@@ -1,7 +1,5 @@
-"""
 api/short_selling_api.py
 공매도 API
-"""
 import logging
 from typing import Dict, Any, List
 
@@ -32,7 +30,6 @@ class ShortSellingAPI:
         end_dt: str,
         tm_tp: str = '1'
     ) -> List[Dict[str, Any]]:
-        """
         공매도 추이 조회 (ka10014)
         
         Args:
@@ -43,7 +40,6 @@ class ShortSellingAPI:
         
         Returns:
             공매도 추이 리스트
-        """
         try:
             headers = {
                 'api-id': 'ka10014'
@@ -75,7 +71,6 @@ class ShortSellingAPI:
         strt_dt: str,
         end_dt: str
     ) -> Dict[str, Any]:
-        """
         공매도 분석
         
         Args:
@@ -85,19 +80,15 @@ class ShortSellingAPI:
         
         Returns:
             공매도 분석 결과
-        """
         trends = self.get_short_selling_trend(stk_cd, strt_dt, end_dt)
         
         if not trends:
             return {}
         
-        # 총 공매도량
         total_short_qty = sum(int(t.get('shrts_qty', 0)) for t in trends)
         
-        # 평균 매매비중
         avg_weight = sum(float(t.get('trde_wght', 0)) for t in trends) / len(trends)
         
-        # 최근 데이터
         recent = trends[0] if trends else {}
         
         return {
@@ -109,7 +100,7 @@ class ShortSellingAPI:
             'recent_trade_weight': float(recent.get('trde_wght', 0)),
             'recent_avg_price': int(recent.get('shrts_avg_pric', 0)),
             'data_count': len(trends),
-            'high_short_selling': avg_weight > 5.0,  # 5% 이상이면 공매도 비중 높음
+            'high_short_selling': avg_weight > 5.0,
         }
 
 

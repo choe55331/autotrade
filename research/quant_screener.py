@@ -1,4 +1,3 @@
-"""
 AutoTrade Pro v4.0 - 퀀트 팩터 스크리닝
 마법공식, 가치/모멘텀/퀄리티 팩터 스크리닝
 
@@ -6,7 +5,6 @@ AutoTrade Pro v4.0 - 퀀트 팩터 스크리닝
 - 조엘 그린블랫 마법공식
 - 멀티 팩터 스크리닝
 - 팩터 점수 계산
-"""
 import logging
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
@@ -20,32 +18,26 @@ class StockFactors:
     stock_code: str
     stock_name: str
 
-    # 가치 팩터
-    per: float  # 주가수익비율
-    pbr: float  # 주가순자산비율
-    pcr: float  # 주가현금흐름비율
-    psr: float  # 주가매출액비율
+    per: float
+    pbr: float
+    pcr: float
+    psr: float
 
-    # 퀄리티 팩터
-    roe: float  # 자기자본이익률
-    roa: float  # 총자산이익률
-    debt_ratio: float  # 부채비율
-    current_ratio: float  # 유동비율
+    roe: float
+    roa: float
+    debt_ratio: float
+    current_ratio: float
 
-    # 모멘텀 팩터
-    return_1m: float  # 1개월 수익률
-    return_3m: float  # 3개월 수익률
-    return_6m: float  # 6개월 수익률
-    return_12m: float  # 12개월 수익률
+    return_1m: float
+    return_3m: float
+    return_6m: float
+    return_12m: float
 
-    # 변동성
-    volatility: float  # 변동성
+    volatility: float
 
-    # 마법공식
-    earnings_yield: float  # 이익수익률 (EBIT/EV)
-    return_on_capital: float  # 자본수익률 (EBIT/(운전자본+순유형자산))
+    earnings_yield: float
+    return_on_capital: float
 
-    # 종합 점수
     total_score: float = 0.0
 
 
@@ -70,7 +62,6 @@ class QuantScreener:
         stocks: List[StockFactors],
         top_n: int = 30
     ) -> List[StockFactors]:
-        """
         마법공식 스크리닝 (조엘 그린블랫)
 
         Args:
@@ -79,20 +70,15 @@ class QuantScreener:
 
         Returns:
             스크리닝된 종목 리스트
-        """
-        # 이익수익률 순위 계산
         stocks_sorted_ey = sorted(stocks, key=lambda x: x.earnings_yield, reverse=True)
         ey_ranks = {stock.stock_code: rank for rank, stock in enumerate(stocks_sorted_ey, 1)}
 
-        # 자본수익률 순위 계산
         stocks_sorted_roc = sorted(stocks, key=lambda x: x.return_on_capital, reverse=True)
         roc_ranks = {stock.stock_code: rank for rank, stock in enumerate(stocks_sorted_roc, 1)}
 
-        # 통합 순위
         for stock in stocks:
             stock.total_score = ey_ranks[stock.stock_code] + roc_ranks[stock.stock_code]
 
-        # 순위 낮은 순(점수 낮은 순)으로 정렬
         result = sorted(stocks, key=lambda x: x.total_score)[:top_n]
 
         logger.info(f"마법공식 스크리닝: {len(result)}개 종목 선정")
@@ -104,7 +90,6 @@ class QuantScreener:
         weights: Dict[str, float] = None,
         top_n: int = 50
     ) -> List[StockFactors]:
-        """
         멀티 팩터 스크리닝
 
         Args:
@@ -114,7 +99,6 @@ class QuantScreener:
 
         Returns:
             스크리닝된 종목
-        """
         if weights is None:
             weights = {
                 'value': 0.30,
@@ -124,15 +108,13 @@ class QuantScreener:
             }
 
         for stock in stocks:
-            # 가치 점수 (낮을수록 좋음)
             value_score = 0
             if stock.per > 0 and stock.per < 20:
                 value_score += 1
             if stock.pbr > 0 and stock.pbr < 1.5:
                 value_score += 1
-            value_score = value_score / 2.0 * 10  # 0~10점
+            value_score = value_score / 2.0 * 10
 
-            # 퀄리티 점수
             quality_score = 0
             if stock.roe > 10:
                 quality_score += 1
@@ -140,7 +122,6 @@ class QuantScreener:
                 quality_score += 1
             quality_score = quality_score / 2.0 * 10
 
-            # 모멘텀 점수
             momentum_score = 0
             if stock.return_3m > 0.05:
                 momentum_score += 1
@@ -148,10 +129,8 @@ class QuantScreener:
                 momentum_score += 1
             momentum_score = momentum_score / 2.0 * 10
 
-            # 저변동성 점수
             low_vol_score = max(0, 10 - stock.volatility * 100)
 
-            # 가중 평균
             stock.total_score = (
                 value_score * weights['value'] +
                 quality_score * weights['quality'] +
@@ -183,7 +162,6 @@ class QuantScreener:
 
 
 if __name__ == "__main__":
-    # 샘플 데이터
     import random
 
     stocks = []
@@ -211,7 +189,6 @@ if __name__ == "__main__":
 
     screener = QuantScreener()
 
-    # 마법공식
     magic_stocks = screener.magic_formula_screen(stocks, top_n=10)
     print("마법공식 상위 10개:")
     for stock in magic_stocks:

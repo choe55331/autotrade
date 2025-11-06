@@ -1,10 +1,8 @@
-"""
 Backtesting Engine for Strategy Validation
 Tests trading strategies on historical data
 
 Author: AutoTrade Pro
-Version: 4.2 - CRITICAL #2: Use standard Position/Trade from core
-"""
+Version: 4.2 - CRITICAL
 
 from dataclasses import dataclass, asdict, field
 from typing import List, Dict, Any, Optional, Callable
@@ -13,18 +11,16 @@ from datetime import datetime, timedelta
 from collections import defaultdict
 import json
 
-# v4.2: Use standard types from core (CRITICAL #2)
 from core import Position, Trade as CoreTrade, OrderAction
 
 
-# Backtesting-specific classes
 @dataclass
 class BacktestTrade:
     """Backtest trade record (extends core.Trade with backtest-specific fields)"""
     trade_id: int
-    timestamp: str  # ISO format
+    timestamp: str
     stock_code: str
-    action: str  # 'buy' or 'sell'
+    action: str
     quantity: int
     price: float
     value: float
@@ -47,12 +43,6 @@ class BacktestTrade:
         )
 
 
-# Note: Using core.Position directly instead of custom Position class
-# core.Position has all needed fields:
-# - purchase_price (= avg_price)
-# - current_price
-# - profit_loss (= unrealized_pnl)
-# - profit_loss_rate (= unrealized_pnl_pct)
 
 
 @dataclass
@@ -66,14 +56,12 @@ class BacktestResult:
     total_return: float
     total_return_pct: float
 
-    # Performance metrics
     sharpe_ratio: float
     sortino_ratio: float
     max_drawdown: float
     max_drawdown_pct: float
     calmar_ratio: float
 
-    # Trading metrics
     total_trades: int
     winning_trades: int
     losing_trades: int
@@ -82,13 +70,11 @@ class BacktestResult:
     avg_loss: float
     profit_factor: float
 
-    # Daily metrics
     avg_daily_return: float
     std_daily_return: float
     best_day: float
     worst_day: float
 
-    # Positions
     trades: List[BacktestTrade] = field(default_factory=list)
     equity_curve: List[float] = field(default_factory=list)
     daily_returns: List[float] = field(default_factory=list)
@@ -97,18 +83,15 @@ class BacktestResult:
 @dataclass
 class BacktestConfig:
     """Backtest configuration"""
-    initial_capital: float = 10000000  # 1천만원
-    commission_rate: float = 0.00015  # 0.015%
-    slippage_pct: float = 0.0005  # 0.05%
-    position_size_limit: float = 0.3  # 30% max per position
-    stop_loss_pct: Optional[float] = None  # -5%
-    take_profit_pct: Optional[float] = None  # +10%
+    initial_capital: float = 10000000
+    commission_rate: float = 0.00015
+    slippage_pct: float = 0.0005
+    position_size_limit: float = 0.3
+    stop_loss_pct: Optional[float] = None
+    take_profit_pct: Optional[float] = None
     max_positions: int = 5
 
 
-# ============================================================================
-# Backtesting Engine
-# ============================================================================
 
 class BacktestEngine:
     """
@@ -125,14 +108,12 @@ class BacktestEngine:
     def __init__(self, config: BacktestConfig = None):
         self.config = config or BacktestConfig()
 
-        # Portfolio state
         self.cash = self.config.initial_capital
         self.positions: Dict[str, Position] = {}
         self.trades: List[Trade] = []
         self.equity_curve: List[float] = []
         self.daily_returns: List[float] = []
 
-        # Metrics
         self.trade_counter = 0
         self.peak_equity = self.config.initial_capital
         self.max_drawdown = 0.0
@@ -140,7 +121,6 @@ class BacktestEngine:
     def run_backtest(self, historical_data: List[Dict],
                     strategy_fn: Callable,
                     strategy_name: str = "Custom Strategy") -> BacktestResult:
-        """
         Run backtest on historical data
 
         Args:
@@ -160,7 +140,6 @@ class BacktestEngine:
 
         Returns:
             Backtest result with performance metrics
-        """
         print("\n" + "="*80)
         print(f"🔄 Backtesting: {strategy_name}")
         print("="*80)
@@ -169,29 +148,23 @@ class BacktestEngine:
         print(f"Data Points: {len(historical_data)}")
         print("="*80 + "\n")
 
-        # Reset state
         self._reset()
 
-        # Get date range
         if historical_data:
             start_date = historical_data[0].get('date', datetime.now().isoformat())
             end_date = historical_data[-1].get('date', datetime.now().isoformat())
         else:
             start_date = end_date = datetime.now().isoformat()
 
-        # Simulate trading day by day
         prev_equity = self.config.initial_capital
 
         for i, data in enumerate(historical_data):
             current_date = data.get('date', '')
 
-            # Update position prices
             self._update_positions(data)
 
-            # Get current portfolio state
             portfolio = self._get_portfolio_state()
 
-            # Execute strategy
             try:
                 action = strategy_fn(data, portfolio)
 
@@ -201,16 +174,13 @@ class BacktestEngine:
                 print(f"Strategy error on {current_date}: {e}")
                 continue
 
-            # Calculate equity
             equity = self._calculate_equity()
             self.equity_curve.append(equity)
 
-            # Calculate daily return
             daily_return = (equity - prev_equity) / prev_equity * 100
             self.daily_returns.append(daily_return)
             prev_equity = equity
 
-            # Update max drawdown
             if equity > self.peak_equity:
                 self.peak_equity = equity
 
@@ -218,13 +188,11 @@ class BacktestEngine:
             if drawdown > self.max_drawdown:
                 self.max_drawdown = drawdown
 
-            # Progress update
             if (i + 1) % 50 == 0:
                 print(f"Progress: {i+1}/{len(historical_data)} days | "
                       f"Equity: {equity:,.0f}원 | "
                       f"Return: {(equity - self.config.initial_capital) / self.config.initial_capital * 100:+.2f}%")
 
-        # Calculate final metrics
         final_equity = self._calculate_equity()
         result = self._calculate_metrics(strategy_name, start_date, end_date, final_equity)
 
@@ -259,7 +227,7 @@ class BacktestEngine:
 
         if stock_code in self.positions:
             pos = self.positions[stock_code]
-            pos.update_current_price(close_price)  # Automatically calculates P&L
+            pos.update_current_price(close_price)
 
     def _get_portfolio_state(self) -> Dict[str, Any]:
         """Get current portfolio state"""
@@ -286,15 +254,12 @@ class BacktestEngine:
         if quantity <= 0:
             return
 
-        # Get price with slippage
         price = data.get('close', 0) * (1 + self.config.slippage_pct)
         value = price * quantity
         commission = value * self.config.commission_rate
         total_cost = value + commission
 
-        # Check if we have enough cash
         if total_cost > self.cash:
-            # Reduce quantity to fit available cash
             quantity = int(self.cash / (price * (1 + self.config.commission_rate)))
             if quantity <= 0:
                 return
@@ -302,22 +267,19 @@ class BacktestEngine:
             commission = value * self.config.commission_rate
             total_cost = value + commission
 
-        # Check position size limit
         equity = self._calculate_equity()
         if value > equity * self.config.position_size_limit:
             return
 
-        # Execute trade
         self.cash -= total_cost
 
-        # Update or create position (using core.Position)
         if stock_code in self.positions:
             pos = self.positions[stock_code]
             total_quantity = pos.quantity + quantity
             total_cost_basis = pos.purchase_price * pos.quantity + price * quantity
             pos.purchase_price = total_cost_basis / total_quantity
             pos.quantity = total_quantity
-            pos.update_current_price(price)  # Recalculate P&L
+            pos.update_current_price(price)
         else:
             self.positions[stock_code] = Position(
                 stock_code=stock_code,
@@ -326,7 +288,6 @@ class BacktestEngine:
                 current_price=price
             )
 
-        # Record trade
         self.trade_counter += 1
         self.trades.append(BacktestTrade(
             trade_id=self.trade_counter,
@@ -347,26 +308,21 @@ class BacktestEngine:
 
         pos = self.positions[stock_code]
 
-        # Limit quantity to available shares
         quantity = min(quantity, pos.quantity)
         if quantity <= 0:
             return
 
-        # Get price with slippage
         price = data.get('close', 0) * (1 - self.config.slippage_pct)
         value = price * quantity
         commission = value * self.config.commission_rate
         total_proceeds = value - commission
 
-        # Execute trade
         self.cash += total_proceeds
         pos.quantity -= quantity
 
-        # Remove position if fully sold
         if pos.quantity == 0:
             del self.positions[stock_code]
 
-        # Record trade
         self.trade_counter += 1
         self.trades.append(BacktestTrade(
             trade_id=self.trade_counter,
@@ -390,12 +346,10 @@ class BacktestEngine:
 
     def _calculate_metrics(self, strategy_name: str, start_date: str,
                           end_date: str, final_equity: float) -> BacktestResult:
-        """Calculate comprehensive performance metrics"""
         initial_capital = self.config.initial_capital
         total_return = final_equity - initial_capital
         total_return_pct = total_return / initial_capital * 100
 
-        # Trading metrics
         winning_trades = [t for t in self.trades if t.action == 'sell' and
                          self._is_winning_trade(t)]
         losing_trades = [t for t in self.trades if t.action == 'sell' and
@@ -413,28 +367,23 @@ class BacktestEngine:
         total_losses = abs(sum([self._get_trade_pnl(t) for t in losing_trades]))
         profit_factor = (total_wins / total_losses) if total_losses > 0 else 0
 
-        # Daily returns metrics
         returns_array = np.array(self.daily_returns) if self.daily_returns else np.array([0])
         avg_daily_return = float(np.mean(returns_array))
         std_daily_return = float(np.std(returns_array))
         best_day = float(np.max(returns_array))
         worst_day = float(np.min(returns_array))
 
-        # Sharpe ratio (annualized)
         if std_daily_return > 0:
             sharpe_ratio = (avg_daily_return / std_daily_return) * np.sqrt(252)
         else:
             sharpe_ratio = 0.0
 
-        # Sortino ratio (downside deviation)
         downside_returns = returns_array[returns_array < 0]
         downside_std = float(np.std(downside_returns)) if len(downside_returns) > 0 else 1e-10
         sortino_ratio = (avg_daily_return / downside_std) * np.sqrt(252) if downside_std > 0 else 0
 
-        # Calmar ratio
         calmar_ratio = (total_return_pct / self.max_drawdown) if self.max_drawdown > 0 else 0
 
-        # Max drawdown in currency
         max_drawdown_value = self.peak_equity * (self.max_drawdown / 100)
 
         return BacktestResult(
@@ -468,7 +417,6 @@ class BacktestEngine:
 
     def _is_winning_trade(self, trade: BacktestTrade) -> bool:
         """Check if trade was profitable"""
-        # Find corresponding buy trade
         for t in reversed(self.trades):
             if (t.stock_code == trade.stock_code and
                 t.action == 'buy' and
@@ -478,7 +426,6 @@ class BacktestEngine:
 
     def _get_trade_pnl(self, sell_trade: BacktestTrade) -> float:
         """Get P&L for a sell trade"""
-        # Find corresponding buy trade
         for buy_trade in reversed(self.trades):
             if (buy_trade.stock_code == sell_trade.stock_code and
                 buy_trade.action == 'buy' and
@@ -489,9 +436,6 @@ class BacktestEngine:
         return 0.0
 
 
-# ============================================================================
-# Strategy Templates
-# ============================================================================
 
 def moving_average_crossover_strategy(data: Dict, portfolio: Dict) -> Optional[Dict]:
     """
@@ -500,8 +444,6 @@ def moving_average_crossover_strategy(data: Dict, portfolio: Dict) -> Optional[D
     Buy: When short MA crosses above long MA
     Sell: When short MA crosses below long MA
     """
-    # This is a template - would need historical MA calculation
-    # For demo purposes, using random signals
 
     signal = np.random.choice(['buy', 'sell', 'hold'], p=[0.1, 0.1, 0.8])
 
@@ -548,7 +490,6 @@ def rsi_strategy(data: Dict, portfolio: Dict) -> Optional[Dict]:
     return {'action': 'hold'}
 
 
-# Singleton instance
 _backtest_engine = None
 
 def get_backtest_engine(config: BacktestConfig = None) -> BacktestEngine:
@@ -562,7 +503,6 @@ def get_backtest_engine(config: BacktestConfig = None) -> BacktestEngine:
 if __name__ == '__main__':
     print("🔄 Backtesting Engine Test")
 
-    # Generate mock historical data
     historical_data = []
     base_price = 73000
     for i in range(100):
@@ -582,7 +522,6 @@ if __name__ == '__main__':
 
         base_price = close_price
 
-    # Run backtest
     engine = get_backtest_engine()
     result = engine.run_backtest(
         historical_data,

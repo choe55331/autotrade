@@ -1,8 +1,5 @@
-#!/usr/bin/env python3
-"""
 API 응답 디버그 스크립트
 실제 API 응답을 확인하여 문제를 진단합니다.
-"""
 import sys
 import json
 from pathlib import Path
@@ -17,7 +14,6 @@ def test_api_response():
     print("API 응답 디버그 테스트")
     print("="*80)
 
-    # 1. 클라이언트 초기화
     print("\n1. REST 클라이언트 초기화...")
     try:
         client = KiwoomRESTClient()
@@ -31,14 +27,13 @@ def test_api_response():
         traceback.print_exc()
         return
 
-    # 2. 간단한 API 테스트 (거래량 순위)
     print("\n2. 거래량 순위 API 호출 테스트...")
     print("   API: ka10030 (당일거래량상위요청)")
 
     body = {
-        "stk_knd_cd": "0",  # 전체
-        "cndt_vol": "100000",  # 거래량 조건
-        "stk_cnt": "20"  # 20개
+        "stk_knd_cd": "0",
+        "cndt_vol": "100000",
+        "stk_cnt": "20"
     }
 
     try:
@@ -54,7 +49,6 @@ def test_api_response():
         print("="*80)
         print(json.dumps(response, indent=2, ensure_ascii=False))
 
-        # 응답 분석
         print("\n" + "="*80)
         print("응답 분석:")
         print("="*80)
@@ -66,7 +60,6 @@ def test_api_response():
             print(f"Return Code: {return_code}")
             print(f"Return Message: {return_msg}")
 
-            # 데이터 키 확인
             data_keys = [k for k in response.keys() if k not in ['return_code', 'return_msg']]
             print(f"\nData Keys: {data_keys}")
 
@@ -86,7 +79,6 @@ def test_api_response():
             else:
                 print("\n⚠️ 데이터 키가 없습니다.")
 
-            # Return code 해석
             if return_code == 0:
                 print(f"\n✅ API 호출 성공")
                 if not data_keys or all(not response.get(k) for k in data_keys):
@@ -107,7 +99,6 @@ def test_api_response():
         import traceback
         traceback.print_exc()
 
-    # 3. 토큰 정보 확인
     print("\n" + "="*80)
     print("토큰 정보:")
     print("="*80)

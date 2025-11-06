@@ -1,6 +1,4 @@
-"""
 database 패키지
-"""
 from .models import (
     Trade,
     Position,

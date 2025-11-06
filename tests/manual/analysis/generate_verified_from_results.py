@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# generate_verified_from_results.py
-# 기존 kiwoom_api_test_results.json을 verified_api_calls.json으로 변환
 
 import json
 from pathlib import Path
@@ -23,10 +20,8 @@ def convert_test_results_to_verified():
 
     for api_id, result in test_results.items():
         if result.get("status") == "success" and result.get("data_count", 0) > 0:
-            # 성공한 API만 추가
             request_body = result.get("request_body", {})
 
-            # path 추정 (대부분 순위 API는 rkinfo 경로)
             path = "rkinfo"
             if api_id.startswith("kt"):
                 path = "acnt"
@@ -52,7 +47,6 @@ def convert_test_results_to_verified():
                 "note": "Converted from kiwoom_api_test_results.json"
             }
 
-    # 저장
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(verified_calls, f, ensure_ascii=False, indent=2)
 

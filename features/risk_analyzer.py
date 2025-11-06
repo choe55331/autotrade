@@ -1,4 +1,3 @@
-"""
 Risk Analyzer with Visual Heatmap
 Portfolio risk analysis with correlation matrix and visual heatmap
 
@@ -9,7 +8,6 @@ Features:
 - Beta calculation
 - Risk heatmap data generation
 - Stress testing
-"""
 import json
 import numpy as np
 import pandas as pd
@@ -27,13 +25,13 @@ class StockRisk:
     """Risk metrics for a single stock"""
     code: str
     name: str
-    beta: float  # Market beta
-    volatility: float  # Historical volatility (%)
-    var_1day: float  # 1-day VaR at 95% confidence (%)
-    var_5day: float  # 5-day VaR at 95% confidence (%)
-    max_drawdown: float  # Maximum drawdown (%)
-    sharpe_ratio: float  # Sharpe ratio
-    risk_level: str  # 'Low', 'Medium', 'High'
+    beta: float
+    volatility: float
+    var_1day: float
+    var_5day: float
+    max_drawdown: float
+    sharpe_ratio: float
+    risk_level: str
 
 
 @dataclass
@@ -43,8 +41,8 @@ class CorrelationPair:
     name1: str
     code2: str
     name2: str
-    correlation: float  # -1.0 to 1.0
-    correlation_strength: str  # 'Strong', 'Moderate', 'Weak'
+    correlation: float
+    correlation_strength: str
 
 
 @dataclass
@@ -53,10 +51,10 @@ class SectorRisk:
     sector: str
     position_count: int
     total_value: float
-    weight: float  # % of portfolio
+    weight: float
     avg_beta: float
     avg_volatility: float
-    concentration_risk: str  # 'Low', 'Medium', 'High'
+    concentration_risk: str
 
 
 @dataclass
@@ -69,9 +67,9 @@ class PortfolioRisk:
     portfolio_var_5day: float
     max_correlation: float
     avg_correlation: float
-    diversification_benefit: float  # 0-100%
-    risk_score: float  # 0-100
-    risk_level: str  # 'Conservative', 'Moderate', 'Aggressive'
+    diversification_benefit: float
+    risk_score: float
+    risk_level: str
 
 
 @dataclass
@@ -82,7 +80,7 @@ class RiskAnalysis:
     stock_risks: List[StockRisk]
     sector_risks: List[SectorRisk]
     correlations: List[CorrelationPair]
-    heatmap_data: Dict[str, Any]  # Data for correlation heatmap
+    heatmap_data: Dict[str, Any]
     recommendations: List[str]
 
     def to_dict(self) -> Dict:
@@ -110,7 +108,7 @@ class RiskAnalyzer:
         """
         self.market_api = market_api
         self.cache_file = Path('data/risk_cache.json')
-        self.cache_ttl = 3600  # 1 hour
+        self.cache_ttl = 3600
         self._ensure_data_dir()
 
     def _ensure_data_dir(self):
@@ -130,8 +128,7 @@ class RiskAnalyzer:
         if seed is not None:
             np.random.seed(seed)
 
-        # Generate 30 days of returns with some autocorrelation
-        returns = np.random.normal(0.001, 0.02, 30)  # Mean 0.1%, StdDev 2%
+        returns = np.random.normal(0.001, 0.02, 30)
         return returns
 
     def _calculate_beta(self, returns: np.ndarray, market_returns: np.ndarray) -> float:
@@ -172,7 +169,7 @@ class RiskAnalyzer:
         """
         vol = np.std(returns)
         if annualize:
-            vol *= np.sqrt(252)  # Trading days per year
+            vol *= np.sqrt(252)
         return round(vol * 100, 2)
 
     def _calculate_var(self, returns: np.ndarray, confidence: float = 0.95, days: int = 1) -> float:
@@ -234,7 +231,6 @@ class RiskAnalyzer:
         """Determine risk level based on metrics"""
         risk_score = 0
 
-        # Volatility component
         if volatility > 40:
             risk_score += 3
         elif volatility > 25:
@@ -242,7 +238,6 @@ class RiskAnalyzer:
         else:
             risk_score += 1
 
-        # VaR component
         if var > 5:
             risk_score += 3
         elif var > 3:
@@ -250,7 +245,6 @@ class RiskAnalyzer:
         else:
             risk_score += 1
 
-        # Beta component
         if abs(beta) > 1.5:
             risk_score += 2
         elif abs(beta) > 1.0:
@@ -288,7 +282,6 @@ class RiskAnalyzer:
         stock_name: str,
         returns: Optional[np.ndarray] = None
     ) -> StockRisk:
-        """
         Analyze risk for a single stock
 
         Args:
@@ -298,16 +291,12 @@ class RiskAnalyzer:
 
         Returns:
             StockRisk object
-        """
-        # Use mock data if no returns provided
         if returns is None:
             seed = int(stock_code) % 1000 if stock_code.isdigit() else 42
             returns = self._generate_mock_returns(seed)
 
-        # Generate mock market returns
         market_returns = self._generate_mock_returns(seed=1)
 
-        # Calculate metrics
         beta = self._calculate_beta(returns, market_returns)
         volatility = self._calculate_volatility(returns)
         var_1day = self._calculate_var(returns, days=1)
@@ -332,7 +321,6 @@ class RiskAnalyzer:
         self,
         positions: List[Dict[str, Any]]
     ) -> Tuple[pd.DataFrame, List[CorrelationPair]]:
-        """
         Calculate correlation matrix for portfolio positions
 
         Args:
@@ -340,24 +328,19 @@ class RiskAnalyzer:
 
         Returns:
             (DataFrame with correlation matrix, List of CorrelationPair objects)
-        """
         if len(positions) < 2:
             return pd.DataFrame(), []
 
-        # Generate mock returns for each stock
         returns_data = {}
         for pos in positions:
             code = pos['code']
             seed = int(code) % 1000 if code.isdigit() else hash(code) % 1000
             returns_data[code] = self._generate_mock_returns(seed)
 
-        # Create DataFrame
         df = pd.DataFrame(returns_data)
 
-        # Calculate correlation matrix
         corr_matrix = df.corr()
 
-        # Extract correlation pairs
         pairs = []
         codes = list(returns_data.keys())
         for i in range(len(codes)):
@@ -365,7 +348,6 @@ class RiskAnalyzer:
                 code1, code2 = codes[i], codes[j]
                 corr = corr_matrix.loc[code1, code2]
 
-                # Find names
                 name1 = next((p['name'] for p in positions if p['code'] == code1), code1)
                 name2 = next((p['name'] for p in positions if p['code'] == code2), code2)
 
@@ -378,7 +360,6 @@ class RiskAnalyzer:
                     correlation_strength=self._classify_correlation(corr)
                 ))
 
-        # Sort by absolute correlation descending
         pairs.sort(key=lambda x: abs(x.correlation), reverse=True)
 
         return corr_matrix, pairs
@@ -387,7 +368,6 @@ class RiskAnalyzer:
         self,
         positions: List[Dict[str, Any]]
     ) -> Optional[RiskAnalysis]:
-        """
         Complete portfolio risk analysis
 
         Args:
@@ -396,7 +376,6 @@ class RiskAnalyzer:
 
         Returns:
             RiskAnalysis object with complete analysis
-        """
         try:
             if not positions:
                 logger.warning("No positions to analyze")
@@ -404,7 +383,6 @@ class RiskAnalyzer:
 
             total_value = sum(p['value'] for p in positions)
 
-            # 1. Analyze individual stock risks
             stock_risks = []
             stock_returns = {}
 
@@ -417,17 +395,13 @@ class RiskAnalyzer:
                 risk = self.analyze_stock_risk(code, pos['name'], returns)
                 stock_risks.append(risk)
 
-            # 2. Calculate correlations
             corr_matrix, correlations = self.calculate_correlation_matrix(positions)
 
-            # 3. Calculate portfolio-level metrics
             weights = np.array([p['weight'] / 100.0 for p in positions])
 
-            # Portfolio beta (weighted average)
             betas = np.array([r.beta for r in stock_risks])
             portfolio_beta = round(np.dot(weights, betas), 2)
 
-            # Portfolio volatility (considering correlations)
             volatilities = np.array([r.volatility / 100.0 for r in stock_risks])
             if len(corr_matrix) > 0:
                 portfolio_variance = np.dot(weights, np.dot(corr_matrix.values, weights * volatilities**2))
@@ -435,14 +409,12 @@ class RiskAnalyzer:
             else:
                 portfolio_vol = round(np.dot(weights, volatilities) * 100, 2)
 
-            # Portfolio VaR (simplified weighted average)
             vars_1day = np.array([r.var_1day for r in stock_risks])
             portfolio_var_1day = round(np.dot(weights, vars_1day), 2)
 
             vars_5day = np.array([r.var_5day for r in stock_risks])
             portfolio_var_5day = round(np.dot(weights, vars_5day), 2)
 
-            # Correlation metrics
             if correlations:
                 max_corr = max(abs(c.correlation) for c in correlations)
                 avg_corr = sum(c.correlation for c in correlations) / len(correlations)
@@ -450,10 +422,8 @@ class RiskAnalyzer:
                 max_corr = 0.0
                 avg_corr = 0.0
 
-            # Diversification benefit (lower correlation = higher benefit)
             diversification_benefit = round(max(0, (1 - avg_corr) * 100), 1)
 
-            # Overall risk score
             risk_score = (portfolio_beta * 20) + (portfolio_vol * 1.5) + (max_corr * 30)
             risk_score = min(100, max(0, risk_score))
 
@@ -477,7 +447,6 @@ class RiskAnalyzer:
                 risk_level=risk_level
             )
 
-            # 4. Analyze sector risks
             sector_data: Dict[str, Dict] = {}
             for pos in positions:
                 sector = pos.get('sector', '기타')
@@ -492,7 +461,6 @@ class RiskAnalyzer:
                 sector_data[sector]['count'] += 1
                 sector_data[sector]['value'] += pos['value']
 
-                # Find stock risk
                 risk = next((r for r in stock_risks if r.code == pos['code']), None)
                 if risk:
                     sector_data[sector]['betas'].append(risk.beta)
@@ -505,7 +473,6 @@ class RiskAnalyzer:
                 avg_beta = np.mean(data['betas']) if data['betas'] else 1.0
                 avg_vol = np.mean(data['volatilities']) if data['volatilities'] else 0.0
 
-                # Concentration risk
                 if weight > 50:
                     conc_risk = 'High'
                 elif weight > 30:
@@ -525,10 +492,8 @@ class RiskAnalyzer:
 
             sector_risks.sort(key=lambda x: x.weight, reverse=True)
 
-            # 5. Generate heatmap data
             heatmap_data = self._generate_heatmap_data(positions, corr_matrix)
 
-            # 6. Generate recommendations
             recommendations = self._generate_risk_recommendations(
                 portfolio_risk, stock_risks, sector_risks, correlations
             )
@@ -538,7 +503,7 @@ class RiskAnalyzer:
                 portfolio_risk=portfolio_risk,
                 stock_risks=stock_risks,
                 sector_risks=sector_risks,
-                correlations=correlations[:10],  # Top 10 correlations
+                correlations=correlations[:10],
                 heatmap_data=heatmap_data,
                 recommendations=recommendations
             )
@@ -552,7 +517,6 @@ class RiskAnalyzer:
         positions: List[Dict],
         corr_matrix: pd.DataFrame
     ) -> Dict[str, Any]:
-        """Generate data for correlation heatmap visualization"""
         if len(corr_matrix) == 0:
             return {'labels': [], 'data': []}
 
@@ -573,38 +537,32 @@ class RiskAnalyzer:
         sector_risks: List[SectorRisk],
         correlations: List[CorrelationPair]
     ) -> List[str]:
-        """Generate risk-based recommendations"""
         recommendations = []
 
-        # 1. High portfolio risk
         if portfolio_risk.risk_score > 70:
             recommendations.append(
                 f"⚠️ 포트폴리오 리스크가 높습니다 (점수: {portfolio_risk.risk_score:.0f}/100). "
                 "변동성이 큰 종목의 비중을 줄이는 것을 고려하세요."
             )
 
-        # 2. High correlation
         if portfolio_risk.max_correlation > 0.8:
             recommendations.append(
                 f"📊 일부 종목 간 상관관계가 매우 높습니다 ({portfolio_risk.max_correlation:.2f}). "
                 "분산 효과가 제한적일 수 있습니다."
             )
 
-        # 3. High beta
         if portfolio_risk.portfolio_beta > 1.3:
             recommendations.append(
                 f"📈 포트폴리오 베타가 높습니다 ({portfolio_risk.portfolio_beta:.2f}). "
                 "시장 변동에 민감하게 반응할 수 있습니다."
             )
 
-        # 4. High VaR
         if portfolio_risk.portfolio_var_1day > 4:
             recommendations.append(
                 f"💰 1일 VaR이 {portfolio_risk.portfolio_var_1day:.1f}%입니다. "
                 "단기 손실 위험이 있으니 주의하세요."
             )
 
-        # 5. Individual stock risks
         high_risk_stocks = [s for s in stock_risks if s.risk_level == 'High']
         if high_risk_stocks:
             stock_names = ', '.join([s.name for s in high_risk_stocks[:3]])
@@ -612,7 +570,6 @@ class RiskAnalyzer:
                 f"⚡ 고위험 종목: {stock_names}. 변동성이 크니 주의가 필요합니다."
             )
 
-        # 6. Sector concentration
         high_conc_sectors = [s for s in sector_risks if s.concentration_risk == 'High']
         if high_conc_sectors:
             sector_names = ', '.join([s.sector for s in high_conc_sectors])
@@ -620,7 +577,6 @@ class RiskAnalyzer:
                 f"🏢 섹터 집중 위험: {sector_names}. 다른 섹터로 분산을 고려하세요."
             )
 
-        # 7. Good diversification
         if portfolio_risk.diversification_benefit > 60:
             recommendations.append(
                 f"✅ 우수한 분산 투자 ({portfolio_risk.diversification_benefit:.0f}% 분산 효과). "
@@ -633,12 +589,10 @@ class RiskAnalyzer:
         self,
         positions: List[Dict[str, Any]]
     ) -> Dict[str, Any]:
-        """
         Get risk analysis formatted for dashboard
 
         Returns:
             Dictionary ready for JSON API response
-        """
         try:
             analysis = self.analyze_portfolio_risk(positions)
 
@@ -661,9 +615,7 @@ class RiskAnalyzer:
             }
 
 
-# Example usage
 if __name__ == '__main__':
-    # Test with sample positions
     sample_positions = [
         {'code': '005930', 'name': '삼성전자', 'value': 7350000, 'weight': 32.0, 'sector': '반도체'},
         {'code': '000660', 'name': 'SK하이닉스', 'value': 6500000, 'weight': 28.3, 'sector': '반도체'},

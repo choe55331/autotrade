@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# automated_api_tester.py - CLI 기반 자동 API 테스터
-# 목적: GUI 없이 API를 테스트하고 성공한 조회 방식을 저장/재사용
 
 import sys
 import logging
@@ -11,10 +8,8 @@ import traceback
 from pathlib import Path
 from typing import Dict, Any, List, Tuple, Optional
 
-# 프로젝트 루트 경로 추가
 sys.path.insert(0, str(Path(__file__).parent))
 
-# 기존 모듈 import
 try:
     from core import KiwoomRESTClient
     from config.config_manager import get_config
@@ -25,7 +20,6 @@ except ImportError as e:
     print("sys.path:", sys.path)
     sys.exit(1)
 
-# 로깅 설정
 logging.basicConfig(
     level=logging.INFO,
     format="[%(asctime)s] [%(levelname)s] %(message)s",
@@ -33,7 +27,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger("AutoAPITester")
 
-# 결과 파일 경로
 VERIFIED_CALLS_FILE = Path("verified_api_calls.json")
 TEST_RESULTS_FILE = Path("api_test_results.json")
 FAILED_CALLS_FILE = Path("failed_api_calls.json")
@@ -46,10 +39,9 @@ class APITester:
         self.api_client = None
         self.client_ready = False
         self.test_results = []
-        self.verified_calls = {}  # 성공한 API 호출 저장
-        self.failed_calls = {}     # 실패한 API 호출 저장
+        self.verified_calls = {}
+        self.failed_calls = {}
 
-        # API 이름 매핑 (comprehensive_api_debugger.py에서 가져옴)
         self.api_names = {
             "kt00001": "예수금상세현황요청",
             "kt00018": "계좌평가잔고내역요청",
@@ -85,7 +77,6 @@ class APITester:
             config = get_config()
             self.api_client = KiwoomRESTClient()
 
-            # config에서 필요한 값 확인
             required_keys = ['appkey', 'appsecret', 'account_number', 'base_url']
             api_config = config.get('api', {})
 
@@ -110,8 +101,7 @@ class APITester:
     def get_common_params(self) -> Dict[str, str]:
         """공통 파라미터 생성"""
         params = account.p_common.copy()
-        # 추가 파라미터 설정
-        params["stk_cd"] = params.get("placeholder_stk_kospi", "005930")  # 삼성전자
+        params["stk_cd"] = params.get("placeholder_stk_kospi", "005930")
         params["ord_qty"] = "1"
         params["ord_uv"] = "0"
         params["start_dt"] = params.get("week_ago_str", "")
@@ -135,7 +125,6 @@ class APITester:
         }
 
         try:
-            # API 호출
             result = self.api_client.request(api_id=api_id, body=body, path_prefix=path)
 
             if isinstance(result, dict):
@@ -146,7 +135,6 @@ class APITester:
                 result_info["return_msg"] = rm
 
                 if rc == 0:
-                    # 데이터 확인
                     list_keys = [k for k, v in result.items()
                                 if isinstance(v, list) and k not in ['return_code', 'return_msg']]
 
@@ -162,7 +150,6 @@ class APITester:
                         else:
                             result_info["status"] = "no_data"
                     else:
-                        # 단일 값 확인
                         single_keys = [k for k, v in result.items()
                                      if not isinstance(v, list) and k not in
                                      ['return_code', 'return_msg', 'api-id', 'cont-yn', 'next-key']]
@@ -194,7 +181,6 @@ class APITester:
         common_params = self.get_common_params()
 
         try:
-            # account.py에서 variants 가져오기
             func = account.get_api_definition(api_id)
             if not func:
                 logger.warning(f"⚪ '{api_id}' 정의 없음 - 건너뜀")
@@ -217,7 +203,6 @@ class APITester:
 
                 results.append(result)
 
-                # 결과 로깅
                 status = result["status"]
                 if status == "success":
                     logger.info(f"  ✅ Variant {idx}/{len(variants)}: 성공 (데이터 {result['data_count']}개)")
@@ -228,10 +213,8 @@ class APITester:
                 else:
                     logger.error(f"  ❌ Variant {idx}/{len(variants)}: {status} - {result.get('error', '')}")
 
-                # API 요청 간격
                 time.sleep(0.05)
 
-            # 성공한 Variant 저장
             success_variants = [r for r in results if r["status"] == "success" and r["data_received"]]
             if success_variants:
                 self.verified_calls[api_id] = {
@@ -246,7 +229,6 @@ class APITester:
                 }
                 logger.info(f"  💾 {len(success_variants)}개 성공 Variant 저장됨")
 
-            # 실패한 Variant 저장
             failed_variants = [r for r in results if r["status"] not in ["success", "no_data"]]
             if failed_variants:
                 self.failed_calls[api_id] = {
@@ -275,17 +257,15 @@ class APITester:
             logger.error("API 클라이언트가 준비되지 않았습니다.")
             return
 
-        # 제외할 API (주문, WS 등)
         exclude_api_ids = set()
         if exclude_orders:
             exclude_api_ids = {
-                "kt10000", "kt10001", "kt10002", "kt10003",  # 주식 주문
-                "kt10006", "kt10007", "kt10008", "kt10009",  # 신용 주문
-                "kt50000", "kt50001", "kt50002", "kt50003",  # 금현물 주문
-                "ka10171", "ka10172", "ka10173", "ka10174",  # 조건검색 WS
+                "kt10000", "kt10001", "kt10002", "kt10003",
+                "kt10006", "kt10007", "kt10008", "kt10009",
+                "kt50000", "kt50001", "kt50002", "kt50003",
+                "ka10171", "ka10172", "ka10173", "ka10174",
             }
 
-        # account.py에서 모든 API ID 가져오기
         all_api_ids = [api_id for api_id in self.api_names.keys()
                       if api_id not in exclude_api_ids]
 
@@ -305,7 +285,6 @@ class APITester:
         logger.info(f"✅ 전체 테스트 완료 - {total_tests}개 Variant 테스트 ({elapsed_time:.1f}초)")
         logger.info("=" * 80)
 
-        # 결과 저장
         self.save_results()
 
     def run_verified_tests(self):
@@ -318,7 +297,6 @@ class APITester:
             logger.error("API 클라이언트가 준비되지 않았습니다.")
             return
 
-        # 저장된 검증 파일 로드
         verified = self.load_verified_calls()
         if not verified:
             logger.warning("저장된 검증 API가 없습니다. 먼저 전체 테스트를 실행하세요.")
@@ -360,25 +338,21 @@ class APITester:
         """테스트 결과 저장"""
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
-        # 전체 테스트 결과 저장
         result_file = Path(f"api_test_results_{timestamp}.json")
         with open(result_file, 'w', encoding='utf-8') as f:
             json.dump(self.test_results, f, ensure_ascii=False, indent=2)
         logger.info(f"📄 테스트 결과 저장: {result_file}")
 
-        # 검증된 API 저장
         if self.verified_calls:
             with open(VERIFIED_CALLS_FILE, 'w', encoding='utf-8') as f:
                 json.dump(self.verified_calls, f, ensure_ascii=False, indent=2)
             logger.info(f"📄 검증된 API 저장: {VERIFIED_CALLS_FILE} ({len(self.verified_calls)}개)")
 
-        # 실패한 API 저장
         if self.failed_calls:
             with open(FAILED_CALLS_FILE, 'w', encoding='utf-8') as f:
                 json.dump(self.failed_calls, f, ensure_ascii=False, indent=2)
             logger.info(f"📄 실패한 API 저장: {FAILED_CALLS_FILE} ({len(self.failed_calls)}개)")
 
-        # 요약 통계
         self.print_summary()
 
     def load_verified_calls(self) -> Dict:
@@ -412,7 +386,6 @@ class APITester:
         logger.info(f"  ❌ 실패: {failed}개 ({failed/total*100:.1f}%)")
         logger.info("=" * 80)
 
-        # 검증된 API 목록
         if self.verified_calls:
             logger.info(f"\n💾 검증된 API ({len(self.verified_calls)}개):")
             for api_id, info in sorted(self.verified_calls.items()):
@@ -436,7 +409,6 @@ def main():
     tester = APITester()
 
     if args.mode == "list":
-        # 검증된 API 목록만 출력
         verified = tester.load_verified_calls()
         if verified:
             print(f"\n검증된 API ({len(verified)}개):")
@@ -447,12 +419,10 @@ def main():
             print("저장된 검증 API가 없습니다.")
         return
 
-    # API 클라이언트 초기화
     if not tester.initialize_client():
         logger.error("API 클라이언트 초기화 실패. 종료합니다.")
         sys.exit(1)
 
-    # 모드에 따라 실행
     if args.mode == "all":
         tester.run_all_tests(exclude_orders=True)
     elif args.mode == "verified":

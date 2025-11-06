@@ -1,4 +1,3 @@
-"""
 AutoTrade Pro v4.0 - ML 기반 시스템 이상 감지
 시스템 로그, API 응답 시간, 주문 실패율 등을 모니터링하여 이상 패턴 감지
 
@@ -7,7 +6,6 @@ AutoTrade Pro v4.0 - ML 기반 시스템 이상 감지
 - 실시간 모니터링
 - 자동 알림
 - 대시보드 통합
-"""
 import logging
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timedelta
@@ -31,7 +29,7 @@ class AnomalyEvent:
     """이상 이벤트"""
     timestamp: datetime
     anomaly_type: str
-    severity: str  # low, medium, high, critical
+    severity: str
     expected_value: float
     actual_value: float
     anomaly_score: float
@@ -60,14 +58,12 @@ class AnomalyDetector:
         self.history_size = self.settings.get('history_size', 1000)
         self.contamination = self.settings.get('contamination', 0.1)
 
-        # 모니터링 데이터
         self.api_response_times: deque = deque(maxlen=self.history_size)
         self.order_failure_rates: deque = deque(maxlen=self.history_size)
         self.account_balances: deque = deque(maxlen=self.history_size)
         self.cpu_usages: deque = deque(maxlen=self.history_size)
         self.memory_usages: deque = deque(maxlen=self.history_size)
 
-        # 이상 감지 모델
         if SKLEARN_AVAILABLE:
             self.model = IsolationForest(
                 contamination=self.contamination,
@@ -78,7 +74,6 @@ class AnomalyDetector:
             self.model = None
             self.model_trained = False
 
-        # 이상 이벤트 히스토리
         self.anomaly_history: List[AnomalyEvent] = []
 
         logger.info("이상 감지 시스템 초기화")
@@ -119,16 +114,13 @@ class AnomalyDetector:
         """이상 감지 실행"""
         anomalies = []
 
-        # 각 메트릭별로 이상 감지
         anomalies.extend(self._check_api_response_time())
         anomalies.extend(self._check_order_failure_rate())
         anomalies.extend(self._check_account_balance())
         anomalies.extend(self._check_system_metrics())
 
-        # 이상 이벤트 저장
         self.anomaly_history.extend(anomalies)
 
-        # 최근 1000개만 유지
         if len(self.anomaly_history) > 1000:
             self.anomaly_history = self.anomaly_history[-1000:]
 
@@ -148,7 +140,6 @@ class AnomalyDetector:
 
         recent_value = values[-1]
 
-        # 3-sigma 규칙
         if recent_value > mean + 3 * std:
             anomaly_score = min((recent_value - mean) / (3 * std), 1.0)
 
@@ -175,9 +166,8 @@ class AnomalyDetector:
 
         recent_value = values[-1]
 
-        # 실패율이 평균의 3배 이상
-        if recent_value > mean * 3 and recent_value > 0.1:  # 최소 10% 실패
-            anomaly_score = min(recent_value / 0.5, 1.0)  # 50% 실패를 최대로
+        if recent_value > mean * 3 and recent_value > 0.1:
+            anomaly_score = min(recent_value / 0.5, 1.0)
 
             return [AnomalyEvent(
                 timestamp=datetime.now(),
@@ -198,16 +188,14 @@ class AnomalyDetector:
 
         values = [x['value'] for x in self.account_balances]
 
-        # 최근 5개 평균과 비교
         recent_avg = np.mean(values[-5:])
         previous_avg = np.mean(values[-10:-5])
 
         if previous_avg > 0:
             change_ratio = abs(recent_avg - previous_avg) / previous_avg
 
-            # 10% 이상 급변
             if change_ratio > 0.10:
-                anomaly_score = min(change_ratio / 0.20, 1.0)  # 20% 변화를 최대로
+                anomaly_score = min(change_ratio / 0.20, 1.0)
 
                 return [AnomalyEvent(
                     timestamp=datetime.now(),
@@ -225,7 +213,6 @@ class AnomalyDetector:
         """시스템 리소스 이상 감지"""
         anomalies = []
 
-        # CPU 사용률
         if len(self.cpu_usages) > 0:
             recent_cpu = self.cpu_usages[-1]['value']
             if recent_cpu > 90:
@@ -239,7 +226,6 @@ class AnomalyDetector:
                     description=f"CPU 사용률 높음: {recent_cpu:.1f}%"
                 ))
 
-        # 메모리 사용률
         if len(self.memory_usages) > 0:
             recent_memory = self.memory_usages[-1]['value']
             if recent_memory > 90:
@@ -285,24 +271,20 @@ class AnomalyDetector:
                 'medium': len([e for e in self.anomaly_history if e.severity == 'medium']),
                 'low': len([e for e in self.anomaly_history if e.severity == 'low']),
             },
-            'by_type': {}  # TODO: 타입별 통계
+            'by_type': {}
         }
 
 
-# 테스트
 if __name__ == "__main__":
     detector = AnomalyDetector()
 
-    # 정상 데이터 기록
     for i in range(50):
         detector.record_api_response_time(100 + np.random.normal(0, 10))
         detector.record_order_failure_rate(0.02 + np.random.uniform(-0.01, 0.01))
 
-    # 이상 데이터
-    detector.record_api_response_time(500)  # 매우 느린 응답
-    detector.record_order_failure_rate(0.30)  # 높은 실패율
+    detector.record_api_response_time(500)
+    detector.record_order_failure_rate(0.30)
 
-    # 이상 감지
     anomalies = detector.check_anomalies()
 
     for anomaly in anomalies:

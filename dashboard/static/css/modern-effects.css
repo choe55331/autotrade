@@ -1,0 +1,487 @@
+/*
+Modern UI Effects v1.0
+최신 UI 트렌드: Glassmorphism, Neumorphism, Micro-interactions
+*/
+
+:root {
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.18);
+    --glass-shadow: rgba(0, 0, 0, 0.1);
+    --neuro-light: #ffffff;
+    --neuro-dark: #d1d9e6;
+    --neuro-shadow: rgba(0, 0, 0, 0.1);
+    --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --gradient-success: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --gradient-info: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+    background: rgba(255, 255, 255, 0.8);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.2);
+}
+
+.glass-card-dark {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.neuro-button {
+    background: linear-gradient(145deg, #f0f0f3, #cacaca);
+    box-shadow:
+        5px 5px 10px var(--neuro-shadow),
+        -5px -5px 10px var(--neuro-light);
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+
+.neuro-button:hover {
+    box-shadow:
+        3px 3px 6px var(--neuro-shadow),
+        -3px -3px 6px var(--neuro-light);
+}
+
+.neuro-button:active {
+    box-shadow:
+        inset 2px 2px 4px var(--neuro-shadow),
+        inset -2px -2px 4px var(--neuro-light);
+}
+
+.neuro-card {
+    background: #e0e5ec;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow:
+        9px 9px 16px rgba(163, 177, 198, 0.6),
+        -9px -9px 16px rgba(255, 255, 255, 0.5);
+}
+
+.gradient-border {
+    position: relative;
+    background: white;
+    border-radius: 12px;
+    padding: 2px;
+}
+
+.gradient-border::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 12px;
+    padding: 2px;
+    background: var(--gradient-primary);
+    -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+.animated-gradient {
+    background: linear-gradient(
+        -45deg,
+        #ee7752,
+        #e73c7e,
+        #23a6d5,
+        #23d5ab
+    );
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
+}
+
+@keyframes gradientShift {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.glow-on-hover {
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.glow-on-hover::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    background: radial-gradient(
+        600px circle at var(--mouse-x) var(--mouse-y),
+        rgba(255, 255, 255, 0.1),
+        transparent 40%
+    );
+    z-index: -1;
+}
+
+.glow-on-hover:hover::before {
+    opacity: 1;
+}
+
+.flip-card {
+    perspective: 1000px;
+    width: 100%;
+    height: 200px;
+}
+
+.flip-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+}
+
+.flip-card:hover .flip-card-inner {
+    transform: rotateY(180deg);
+}
+
+.flip-card-front,
+.flip-card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.flip-card-front {
+    background: var(--gradient-primary);
+    color: white;
+}
+
+.flip-card-back {
+    background: var(--gradient-info);
+    color: white;
+    transform: rotateY(180deg);
+}
+
+.floating {
+    animation: floating 3s ease-in-out infinite;
+}
+
+@keyframes floating {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.tilt-on-hover {
+    transition: transform 0.3s ease;
+}
+
+.tilt-on-hover:hover {
+    transform: perspective(1000px) rotateX(5deg) rotateY(5deg);
+}
+
+.ripple {
+    position: relative;
+    overflow: hidden;
+}
+
+.ripple::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.ripple:active::after {
+    width: 300px;
+    height: 300px;
+}
+
+.smooth-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.smooth-scrollbar::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+}
+
+.smooth-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 10px;
+    transition: background 0.3s ease;
+}
+
+.smooth-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+.progress-ring {
+    transform: rotate(-90deg);
+}
+
+.progress-ring-circle {
+    transition: stroke-dashoffset 0.5s ease;
+    transform-origin: 50% 50%;
+}
+
+.stat-card {
+    position: relative;
+    padding: 24px;
+    border-radius: 16px;
+    background: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--gradient-primary);
+    transform: scaleY(0);
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover::before {
+    transform: scaleY(1);
+}
+
+.stat-card:hover {
+    transform: translateX(4px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+}
+
+.notification-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    animation: badgePulse 2s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(245, 87, 108, 0.7);
+    }
+    50% {
+        transform: scale(1.1);
+        box-shadow: 0 0 0 8px rgba(245, 87, 108, 0);
+    }
+}
+
+.skeleton-wave {
+    position: relative;
+    overflow: hidden;
+    background: #f0f0f0;
+}
+
+.skeleton-wave::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.6),
+        transparent
+    );
+    animation: skeletonWave 1.5s infinite;
+}
+
+@keyframes skeletonWave {
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+.typewriter {
+    overflow: hidden;
+    border-right: 2px solid;
+    white-space: nowrap;
+    animation:
+        typing 3.5s steps(40, end),
+        blinkCaret 0.75s step-end infinite;
+}
+
+@keyframes typing {
+    from {
+        width: 0;
+    }
+    to {
+        width: 100%;
+    }
+}
+
+@keyframes blinkCaret {
+    from, to {
+        border-color: transparent;
+    }
+    50% {
+        border-color: currentColor;
+    }
+}
+
+.gradient-text {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-weight: bold;
+}
+
+.subtle-bounce {
+    animation: subtleBounce 2s ease-in-out infinite;
+}
+
+@keyframes subtleBounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+.rotate-on-hover {
+    transition: transform 0.5s ease;
+}
+
+.rotate-on-hover:hover {
+    transform: rotate(360deg);
+}
+
+.zoom-on-hover {
+    transition: transform 0.3s ease;
+}
+
+.zoom-on-hover:hover {
+    transform: scale(1.05);
+}
+
+.color-shift {
+    animation: colorShift 5s ease infinite;
+}
+
+@keyframes colorShift {
+    0%, 100% {
+        filter: hue-rotate(0deg);
+    }
+    50% {
+        filter: hue-rotate(180deg);
+    }
+}
+
+.blur-on-hover {
+    transition: filter 0.3s ease;
+}
+
+.blur-on-hover:hover {
+    filter: blur(0px);
+}
+
+.blur-on-hover:not(:hover) {
+    filter: blur(2px);
+}
+
+.underline-gradient {
+    position: relative;
+    display: inline-block;
+}
+
+.underline-gradient::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--gradient-primary);
+    transition: width 0.3s ease;
+}
+
+.underline-gradient:hover::after {
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .glass-card {
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+    }
+
+    .neuro-card {
+        box-shadow:
+            5px 5px 10px rgba(163, 177, 198, 0.4),
+            -5px -5px 10px rgba(255, 255, 255, 0.4);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .floating,
+    .animated-gradient,
+    .typewriter,
+    .subtle-bounce,
+    .color-shift {
+        animation: none;
+    }
+
+    .tilt-on-hover:hover,
+    .rotate-on-hover:hover {
+        transform: none;
+    }
+}

@@ -1,9 +1,7 @@
-"""
 utils/cache_manager.py
 캐시 관리 시스템
 
 API 호출 결과를 캐싱하여 성능 최적화
-"""
 import logging
 import time
 from typing import Any, Optional, Callable
@@ -36,12 +34,10 @@ class CacheManager:
         self.max_size = max_size
         self.default_ttl = default_ttl
 
-        # OrderedDict for LRU
         self._cache: OrderedDict = OrderedDict()
-        self._timestamps: dict = {}  # key -> expiry timestamp
+        self._timestamps: dict = {}
         self._lock = RLock()
 
-        # 통계
         self._hits = 0
         self._misses = 0
 
@@ -58,22 +54,18 @@ class CacheManager:
             캐시된 값 또는 None (캐시 미스/만료)
         """
         with self._lock:
-            # 키 존재 확인
             if key not in self._cache:
                 self._misses += 1
                 return None
 
-            # TTL 확인
             if key in self._timestamps:
                 if time.time() > self._timestamps[key]:
-                    # 만료됨
                     del self._cache[key]
                     del self._timestamps[key]
                     self._misses += 1
                     logger.debug(f"Cache expired: {key}")
                     return None
 
-            # 캐시 히트 - LRU 업데이트 (move to end)
             self._cache.move_to_end(key)
             self._hits += 1
 
@@ -91,16 +83,13 @@ class CacheManager:
             ttl: TTL (초), None이면 default_ttl 사용
         """
         with self._lock:
-            # TTL 계산
             ttl = ttl if ttl is not None else self.default_ttl
             expiry_time = time.time() + ttl
 
-            # 캐시 추가
             self._cache[key] = value
-            self._cache.move_to_end(key)  # Most recent
+            self._cache.move_to_end(key)
             self._timestamps[key] = expiry_time
 
-            # LRU eviction
             while len(self._cache) > self.max_size:
                 oldest_key = next(iter(self._cache))
                 del self._cache[oldest_key]
@@ -157,7 +146,6 @@ class CacheManager:
                 logger.debug(f"Cleaned up {len(expired_keys)} expired items")
 
 
-# Global cache instance
 _global_cache = None
 
 
@@ -191,26 +179,21 @@ def cached(ttl: int = 60, key_func: Optional[Callable] = None):
         def wrapper(*args, **kwargs):
             cache = get_cache_manager()
 
-            # 캐시 키 생성
             if key_func:
                 cache_key = key_func(args, kwargs)
             else:
-                # 기본 키: 함수명 + args + kwargs
                 cache_key = f"{func.__module__}.{func.__name__}"
                 if args:
                     cache_key += f":{str(args)}"
                 if kwargs:
                     cache_key += f":{str(sorted(kwargs.items()))}"
 
-            # 캐시 조회
             cached_result = cache.get(cache_key)
             if cached_result is not None:
                 return cached_result
 
-            # 캐시 미스 - 함수 실행
             result = func(*args, **kwargs)
 
-            # 결과 캐싱
             cache.set(cache_key, result, ttl=ttl)
 
             return result

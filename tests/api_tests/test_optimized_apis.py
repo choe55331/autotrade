@@ -1,15 +1,11 @@
-#!/usr/bin/env python3
-"""
 test_optimized_apis.py
 최적화된 API + 실패 API 전체 테스트 및 실패 원인 분석
-"""
 import json
 import sys
 from pathlib import Path
 from datetime import datetime, time
 from collections import defaultdict
 
-# core 모듈에서 KiwoomRESTClient import
 try:
     from core.rest_client import KiwoomRESTClient
 except ImportError:
@@ -19,18 +15,16 @@ except ImportError:
 def check_time_allowed():
     """실행 가능 시간 확인 (8:00-20:00)"""
     now = datetime.now().time()
-    start_time = time(8, 0)   # 08:00
-    end_time = time(20, 0)     # 20:00
+    start_time = time(8, 0)
+    end_time = time(20, 0)
     return start_time <= now <= end_time, now
 
 def load_test_data():
     """테스트 데이터 로드"""
 
-    # 최적화된 API (성공)
     with open('optimized_api_calls.json', 'r', encoding='utf-8') as f:
         optimized = json.load(f)
 
-    # 전체 API (실패한 것 포함)
     with open('all_394_api_calls.json', 'r', encoding='utf-8') as f:
         all_apis = json.load(f)
 
@@ -43,7 +37,6 @@ def categorize_apis(optimized, all_apis):
     all_api_ids = set(all_apis.keys())
     failed_apis = all_api_ids - success_apis
 
-    # 실패 API 정보 추출
     failed_api_info = {}
     for api_id in failed_apis:
         failed_api_info[api_id] = all_apis[api_id]
@@ -67,22 +60,19 @@ def test_api_call(client, api_id, api_name, path, body):
                 'full_response': {}
             }
 
-        # 결과 분석
         return_code = result.get('return_code', -1)
         return_msg = result.get('return_msg', '메시지 없음')
 
-        # 데이터 확인 (return_code, return_msg 제외한 실제 데이터)
         data_keys = [k for k in result.keys() if k not in ['return_code', 'return_msg']]
         has_data = len(data_keys) > 0
 
-        # 상세 데이터 분석
         data_items = 0
         if has_data:
             for key in data_keys:
                 value = result[key]
                 if isinstance(value, list):
                     data_items += len(value)
-                elif value:  # None이나 빈 값이 아니면
+                elif value:
                     data_items += 1
 
         return {
@@ -107,11 +97,11 @@ def analyze_failure_patterns(failed_results):
     """실패 패턴 분석"""
 
     patterns = {
-        'no_data': defaultdict(list),      # return_code=0 이지만 데이터 없음
-        'api_error': defaultdict(list),     # API 오류
-        'exception': defaultdict(list),     # 예외 발생
-        'by_path': defaultdict(list),       # Path별 분류
-        'by_msg': defaultdict(list)         # 오류 메시지별 분류
+        'no_data': defaultdict(list),
+        'api_error': defaultdict(list),
+        'exception': defaultdict(list),
+        'by_path': defaultdict(list),
+        'by_msg': defaultdict(list)
     }
 
     for result in failed_results:
@@ -119,14 +109,11 @@ def analyze_failure_patterns(failed_results):
         status = result['status']
         path = result['path']
 
-        # 상태별 분류
         if status in patterns:
             patterns[status][api_id].append(result)
 
-        # Path별 분류
         patterns['by_path'][path].append(result)
 
-        # 메시지별 분류 (api_error인 경우)
         if status == 'api_error':
             msg = result.get('return_msg', 'Unknown')
             patterns['by_msg'][msg].append(result)
@@ -142,7 +129,6 @@ def run_comprehensive_test(force=False):
     print("최적화된 API + 실패 API 종합 테스트")
     print("="*80)
 
-    # 시간 체크
     allowed, current_time = check_time_allowed()
     print(f"\n⏰ 실행 가능 시간: 08:00~20:00 (현재: {current_time.strftime('%H:%M')})")
 
@@ -157,7 +143,6 @@ def run_comprehensive_test(force=False):
 
     print("✅ 테스트 시작\n")
 
-    # 데이터 로드
     print("[1] 데이터 로드 중...")
     optimized, all_apis = load_test_data()
     success_apis, failed_api_info = categorize_apis(optimized, all_apis)
@@ -169,7 +154,6 @@ def run_comprehensive_test(force=False):
     print(f"  ❌ 실패 API: {total_failed_apis}개")
     print(f"  📊 총 테스트: {total_success_apis + total_failed_apis}개")
 
-    # KiwoomRESTClient 초기화
     print("\n[2] Kiwoom API 클라이언트 초기화...")
     try:
         client = KiwoomRESTClient()
@@ -178,7 +162,6 @@ def run_comprehensive_test(force=False):
         print(f"  ❌ 초기화 실패: {e}")
         return
 
-    # 테스트 결과 저장
     results = {
         'test_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         'success_api_results': [],
@@ -186,9 +169,6 @@ def run_comprehensive_test(force=False):
         'statistics': {}
     }
 
-    # ================================================================================
-    # [3] 성공 API 재검증
-    # ================================================================================
     print("\n[3] 최적화된 API 재검증 중...")
     print("-"*80)
 
@@ -226,7 +206,6 @@ def run_comprehensive_test(force=False):
 
             results['success_api_results'].append(result_entry)
 
-            # 상태 출력
             if test_result['status'] == 'success':
                 print(f"✅ SUCCESS ({test_result['data_items']}개)")
                 success_stats['still_success'] += 1
@@ -237,9 +216,6 @@ def run_comprehensive_test(force=False):
                 print(f"❌ ERROR: {test_result.get('return_msg', 'Unknown')}")
                 success_stats['changed_to_error'] += 1
 
-    # ================================================================================
-    # [4] 실패 API 재시도 및 상세 분석
-    # ================================================================================
     print("\n[4] 실패 API 재시도 및 원인 분석...")
     print("-"*80)
 
@@ -279,7 +255,6 @@ def run_comprehensive_test(force=False):
 
             results['failed_api_results'].append(result_entry)
 
-            # 상태 출력 및 통계
             if test_result['status'] == 'success':
                 print(f"✅ SUCCESS! ({test_result['data_items']}개) - 상태 개선!")
                 failed_stats['now_success'] += 1
@@ -290,7 +265,6 @@ def run_comprehensive_test(force=False):
                 print(f"❌ {test_result.get('return_msg', test_result.get('error', 'Unknown'))}")
                 failed_stats['still_failed'] += 1
 
-            # 파라미터와 응답 상세 출력 (디버깅용)
             if test_result['status'] != 'success':
                 print(f"       Path: {path}")
                 print(f"       Body: {json.dumps(body, ensure_ascii=False)}")
@@ -298,9 +272,6 @@ def run_comprehensive_test(force=False):
                     print(f"       Return Code: {test_result['return_code']}")
                     print(f"       Data Keys: {test_result.get('data_keys', [])}")
 
-    # ================================================================================
-    # [5] 통계 및 분석
-    # ================================================================================
     print("\n" + "="*80)
     print("📊 테스트 결과 통계")
     print("="*80)
@@ -320,26 +291,22 @@ def run_comprehensive_test(force=False):
         'failed_apis': failed_stats
     }
 
-    # 실패 패턴 분석
     patterns = analyze_failure_patterns(results['failed_api_results'])
 
     print("\n" + "="*80)
     print("🔍 실패 원인 분석")
     print("="*80)
 
-    # Path별 실패
     print("\n📂 Path별 실패 분포:")
     for path, failures in sorted(patterns['by_path'].items()):
         failed_count = len([f for f in failures if f['status'] != 'success'])
         if failed_count > 0:
             print(f"  {path:15s}: {failed_count}개 실패")
 
-    # 메시지별 실패
     print("\n💬 오류 메시지별 분포:")
     for msg, failures in sorted(patterns['by_msg'].items(), key=lambda x: len(x[1]), reverse=True):
         print(f"  {msg:50s}: {len(failures)}개")
 
-    # API별 실패 원인 추정
     print("\n🔬 API별 실패 원인 추정:")
 
     failure_analysis = analyze_api_failures(results['failed_api_results'])
@@ -350,7 +317,6 @@ def run_comprehensive_test(force=False):
             print(f"    추정 원인: {analysis['suspected_reason']}")
             print(f"    상세: {analysis['details']}")
 
-    # 결과 저장
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     result_file = f'comprehensive_test_results_{timestamp}.json'
 
@@ -361,7 +327,6 @@ def run_comprehensive_test(force=False):
     print(f"💾 테스트 결과 저장: {result_file}")
     print("="*80)
 
-    # 실패 분석 보고서 생성
     generate_failure_report(results, patterns, failure_analysis)
 
 def analyze_api_failures(failed_results):
@@ -369,7 +334,6 @@ def analyze_api_failures(failed_results):
 
     api_analysis = {}
 
-    # API별로 그룹화
     by_api = defaultdict(list)
     for result in failed_results:
         by_api[result['api_id']].append(result)
@@ -382,14 +346,11 @@ def analyze_api_failures(failed_results):
         api_name = first['api_name']
         path = first['path']
 
-        # 모든 variant가 실패했는지 확인
         all_failed = all(r['status'] != 'success' for r in results)
 
-        # 실패 원인 추정
         suspected_reason = "알 수 없음"
         details = ""
 
-        # Path 기반 분석
         if path == 'gold':
             suspected_reason = "금현물 계좌 미보유"
             details = "금현물 거래 계좌가 없으면 데이터를 조회할 수 없습니다."
@@ -414,7 +375,6 @@ def analyze_api_failures(failed_results):
             suspected_reason = "계좌/거래 데이터 없음"
             details = "해당 조건에 맞는 데이터가 계좌에 없습니다."
 
-        # return_msg 분석
         msgs = [r.get('return_msg', '') for r in results if r.get('return_msg')]
         if msgs:
             common_msg = max(set(msgs), key=msgs.count)
@@ -464,7 +424,6 @@ def generate_failure_report(results, patterns, failure_analysis):
             report_lines.append(f"  추정 원인: {analysis['suspected_reason']}")
             report_lines.append(f"  상세 설명: {analysis['details']}")
 
-            # 해결 방안
             if 'gold' in analysis['path']:
                 report_lines.append("  해결 방안: 금현물 계좌 개설 필요")
             elif '미체결' in analysis['api_name'] or '체결' in analysis['api_name']:
@@ -499,7 +458,6 @@ def generate_failure_report(results, patterns, failure_analysis):
 
     report_text = "\n".join(report_lines)
 
-    # 파일 저장
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     report_file = f'failure_analysis_report_{timestamp}.txt'
 
@@ -508,7 +466,6 @@ def generate_failure_report(results, patterns, failure_analysis):
 
     print(f"\n📄 실패 분석 보고서: {report_file}")
 
-    # 화면 출력
     print("\n" + report_text)
 
 if __name__ == "__main__":

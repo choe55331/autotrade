@@ -1,17 +1,15 @@
-"""
 strategy 패키지
 매매 전략 모듈
 
 v4.2 Changes:
 - Position now imported from core (standardized)
 - PositionManager still available for backward compatibility
-"""
 from .base_strategy import BaseStrategy
 from .momentum_strategy import MomentumStrategy
 from .portfolio_manager import PortfolioManager
 from .risk_manager import RiskManager
+from .risk.advanced_risk_manager import AdvancedRiskManager, RiskMode, get_advanced_risk_manager
 
-# v4.0 Advanced Strategies
 try:
     from .trailing_stop_manager import TrailingStopManager, TrailingStopState
     from .volatility_breakout_strategy import VolatilityBreakoutStrategy, BreakoutState
@@ -19,19 +17,16 @@ try:
     from .kelly_criterion import KellyCriterion, KellyParameters
     from .institutional_following_strategy import InstitutionalFollowingStrategy, InstitutionalData
 except ImportError:
-    # numpy 등 의존성 없을 때
     TrailingStopManager = TrailingStopState = None
     VolatilityBreakoutStrategy = BreakoutState = None
     PairsTradingStrategy = PairState = None
     KellyCriterion = KellyParameters = None
     InstitutionalFollowingStrategy = InstitutionalData = None
 
-# v4.2: Position from core (standardized), PositionManager from local
-from core import Position  # v4.2: Use standard Position
+from core import Position
 from .position_manager import PositionManager, get_position_manager
 from .signal_checker import SignalChecker, SignalType, TradingSignalValidator
 
-# v4.1 Advanced Risk & Orchestration
 from .risk_orchestrator import RiskOrchestrator, RiskLevel, RiskAssessment, get_risk_orchestrator
 
 __all__ = [
@@ -39,7 +34,9 @@ __all__ = [
     'MomentumStrategy',
     'PortfolioManager',
     'RiskManager',
-    # v4.0 Advanced Strategies
+    'AdvancedRiskManager',
+    'RiskMode',
+    'get_advanced_risk_manager',
     'TrailingStopManager',
     'TrailingStopState',
     'VolatilityBreakoutStrategy',
@@ -50,14 +47,12 @@ __all__ = [
     'KellyParameters',
     'InstitutionalFollowingStrategy',
     'InstitutionalData',
-    # v4.0 Utilities
     'PositionManager',
     'Position',
     'get_position_manager',
     'SignalChecker',
     'SignalType',
     'TradingSignalValidator',
-    # v4.1 Advanced Risk & Orchestration
     'RiskOrchestrator',
     'RiskLevel',
     'RiskAssessment',

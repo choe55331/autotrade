@@ -1,7 +1,5 @@
-"""
 research/screener.py
 종목 스크리닝 모듈
-"""
 import logging
 from typing import Dict, Any, Optional, List
 
@@ -31,7 +29,6 @@ class Screener:
         self.fetcher = DataFetcher(client)
         logger.info("Screener 초기화 완료")
     
-    # ==================== 단일 조건 스크리닝 ====================
     
     def screen_by_volume(
         self,
@@ -39,7 +36,6 @@ class Screener:
         market: str = 'ALL',
         limit: int = 50
     ) -> List[Dict[str, Any]]:
-        """
         거래량 기준 스크리닝
         
         Args:
@@ -49,11 +45,8 @@ class Screener:
         
         Returns:
             필터링된 종목 리스트
-        """
-        # 거래량 순위 조회
         volume_rank = self.fetcher.get_volume_rank(market, limit)
         
-        # 최소 거래량 필터
         filtered = [
             stock for stock in volume_rank
             if int(stock.get('volume', 0)) >= min_volume
@@ -69,7 +62,6 @@ class Screener:
         stocks: List[Dict[str, Any]] = None,
         market: str = 'ALL'
     ) -> List[Dict[str, Any]]:
-        """
         가격대 기준 스크리닝
         
         Args:
@@ -80,11 +72,9 @@ class Screener:
         
         Returns:
             필터링된 종목 리스트
-        """
         if stocks is None:
             stocks = self.fetcher.get_volume_rank(market, 100)
         
-        # 가격 필터
         filtered = [
             stock for stock in stocks
             if min_price <= int(stock.get('current_price', 0)) <= max_price
@@ -100,7 +90,6 @@ class Screener:
         market: str = 'ALL',
         limit: int = 50
     ) -> List[Dict[str, Any]]:
-        """
         등락률 기준 스크리닝
         
         Args:
@@ -111,11 +100,8 @@ class Screener:
         
         Returns:
             필터링된 종목 리스트
-        """
-        # 상승률 순위 조회
         rise_rank = self.fetcher.get_price_change_rank(market, 'rise', limit)
         
-        # 등락률 필터
         filtered = [
             stock for stock in rise_rank
             if min_rate <= float(stock.get('change_rate', 0)) <= max_rate
@@ -130,7 +116,6 @@ class Screener:
         market: str = 'ALL',
         limit: int = 50
     ) -> List[Dict[str, Any]]:
-        """
         거래대금 기준 스크리닝
 
         Args:
@@ -140,11 +125,8 @@ class Screener:
 
         Returns:
             필터링된 종목 리스트
-        """
-        # 거래대금 순위 조회
         trading_rank = self.fetcher.get_trading_value_rank(market, limit)
 
-        # 최소 거래대금 필터
         filtered = [
             stock for stock in trading_rank
             if int(stock.get('trading_value', 0)) >= min_value
@@ -153,14 +135,12 @@ class Screener:
         logger.info(f"거래대금 스크리닝 완료: {len(filtered)}개 종목 (최소 {min_value:,}원)")
         return filtered
 
-    # v5.9: 투자자별 매매 기준 스크리닝
     def screen_by_foreign_buying(
         self,
         market: str = 'KOSPI',
         min_net_amount: int = 0,
         limit: int = 50
     ) -> List[Dict[str, Any]]:
-        """
         외국인 순매수 종목 스크리닝 (v5.9 NEW)
 
         Args:
@@ -170,11 +150,8 @@ class Screener:
 
         Returns:
             외국인 순매수 종목 리스트
-        """
-        # 외국인 순매수 순위 조회
         foreign_rank = self.fetcher.get_foreign_buying_rank(market, limit=limit)
 
-        # 최소 순매수 금액 필터
         filtered = [
             stock for stock in foreign_rank
             if int(stock.get('net_amount', 0)) >= min_net_amount
@@ -189,7 +166,6 @@ class Screener:
         min_net_amount: int = 0,
         limit: int = 50
     ) -> List[Dict[str, Any]]:
-        """
         기관 순매수 종목 스크리닝 (v5.9 NEW)
 
         Args:
@@ -199,11 +175,8 @@ class Screener:
 
         Returns:
             기관 순매수 종목 리스트
-        """
-        # 기관 순매수 순위 조회
         inst_rank = self.fetcher.get_institution_buying_rank(market, limit=limit)
 
-        # 최소 순매수 금액 필터
         filtered = [
             stock for stock in inst_rank
             if int(stock.get('net_amount', 0)) >= min_net_amount
@@ -219,7 +192,6 @@ class Screener:
         min_inst_amount: int = 0,
         limit: int = 50
     ) -> List[Dict[str, Any]]:
-        """
         스마트머니 (외국인+기관 동시 순매수) 종목 스크리닝 (v5.9 NEW)
 
         외국인과 기관이 동시에 순매수하는 종목을 찾습니다.
@@ -233,16 +205,12 @@ class Screener:
 
         Returns:
             스마트머니 종목 리스트
-        """
-        # 외국인 & 기관 순매수 순위 조회
         foreign_rank = self.fetcher.get_foreign_buying_rank(market, limit=limit)
         inst_rank = self.fetcher.get_institution_buying_rank(market, limit=limit)
 
-        # 종목코드로 매핑
         foreign_map = {s['code']: s for s in foreign_rank}
         inst_map = {s['code']: s for s in inst_rank}
 
-        # 교집합 찾기 (둘 다 순매수)
         smart_money = []
         for code in set(foreign_map.keys()) & set(inst_map.keys()):
             foreign_data = foreign_map[code]
@@ -251,7 +219,6 @@ class Screener:
             foreign_amt = int(foreign_data.get('net_amount', 0))
             inst_amt = int(inst_data.get('net_amount', 0))
 
-            # 최소 금액 조건 체크
             if foreign_amt >= min_foreign_amount and inst_amt >= min_inst_amount:
                 smart_money.append({
                     'code': code,
@@ -263,7 +230,6 @@ class Screener:
                     'institution_net_qty': inst_data.get('net_qty', 0),
                 })
 
-        # 총 순매수 금액으로 정렬
         smart_money.sort(key=lambda x: x['total_net_amount'], reverse=True)
 
         logger.info(f"스마트머니 스크리닝 완료: {len(smart_money)}개 종목 (외국인+기관 동시 순매수)")
@@ -275,7 +241,6 @@ class Screener:
         min_net_amount: int = 0,
         limit: int = 50
     ) -> List[Dict[str, Any]]:
-        """
         외국인 순매도 종목 스크리닝 (v5.9 NEW)
 
         역발상 투자나 저점 매수 타이밍을 찾는데 활용
@@ -287,11 +252,8 @@ class Screener:
 
         Returns:
             외국인 순매도 종목 리스트
-        """
-        # 외국인 순매도 순위 조회
         foreign_rank = self.fetcher.get_foreign_selling_rank(market, limit=limit)
 
-        # 최소 순매도 금액 필터
         filtered = [
             stock for stock in foreign_rank
             if int(stock.get('net_amount', 0)) >= min_net_amount
@@ -306,7 +268,6 @@ class Screener:
         min_net_amount: int = 0,
         limit: int = 50
     ) -> List[Dict[str, Any]]:
-        """
         기관 순매도 종목 스크리닝 (v5.9 NEW)
 
         Args:
@@ -316,11 +277,8 @@ class Screener:
 
         Returns:
             기관 순매도 종목 리스트
-        """
-        # 기관 순매도 순위 조회
         inst_rank = self.fetcher.get_institution_selling_rank(market, limit=limit)
 
-        # 최소 순매도 금액 필터
         filtered = [
             stock for stock in inst_rank
             if int(stock.get('net_amount', 0)) >= min_net_amount
@@ -329,7 +287,6 @@ class Screener:
         logger.info(f"기관 순매도 스크리닝 완료: {len(filtered)}개 종목 (최소 {min_net_amount:,}백만원)")
         return filtered
 
-    # ==================== 복합 조건 스크리닝 ====================
 
     def screen_stocks(
         self,
@@ -342,7 +299,6 @@ class Screener:
         market: str = 'ALL',
         limit: int = 100
     ) -> List[Dict[str, Any]]:
-        """
         종목 스크리닝 (screen_combined의 별칭)
 
         Args:
@@ -357,7 +313,6 @@ class Screener:
 
         Returns:
             필터링된 종목 리스트
-        """
         return self.screen_combined(
             min_volume=min_volume,
             min_price=min_price,
@@ -378,7 +333,6 @@ class Screener:
         market: str = 'ALL',
         limit: int = 100
     ) -> List[Dict[str, Any]]:
-        """
         복합 조건 스크리닝
         
         Args:
@@ -392,24 +346,20 @@ class Screener:
         
         Returns:
             필터링된 종목 리스트
-        """
         logger.info(f"복합 조건 스크리닝 시작...")
         logger.info(f"  - 거래량: {min_volume:,}주 이상")
         logger.info(f"  - 가격: {min_price:,}원 ~ {max_price:,}원")
         logger.info(f"  - 등락률: {min_rate}% ~ {max_rate}%")
         
-        # 1단계: 거래량 순위 조회
         candidates = self.fetcher.get_volume_rank(market, limit)
         logger.info(f"1단계 후보: {len(candidates)}개")
         
-        # 2단계: 복합 필터 적용
         filtered = []
         for stock in candidates:
             volume = int(stock.get('volume', 0))
             price = int(stock.get('current_price', 0))
             change_rate = float(stock.get('change_rate', 0))
             
-            # 모든 조건 만족 체크
             if (volume >= min_volume and
                 min_price <= price <= max_price and
                 min_rate <= change_rate <= max_rate):
@@ -423,7 +373,6 @@ class Screener:
         filters: Dict[str, Any],
         market: str = 'ALL'
     ) -> List[Dict[str, Any]]:
-        """
         딕셔너리 필터로 스크리닝
         
         Args:
@@ -440,7 +389,6 @@ class Screener:
         
         Returns:
             필터링된 종목 리스트
-        """
         min_volume = filters.get('min_volume', 100000)
         min_price = filters.get('min_price', 1000)
         max_price = filters.get('max_price', 1000000)
@@ -456,7 +404,6 @@ class Screener:
             market=market
         )
     
-    # ==================== 고급 스크리닝 ====================
     
     def screen_with_investor_trend(
         self,
@@ -464,7 +411,6 @@ class Screener:
         foreign_net_positive: bool = True,
         institution_net_positive: bool = True
     ) -> List[Dict[str, Any]]:
-        """
         투자자 매매 동향 기준 필터링
         
         Args:
@@ -474,7 +420,6 @@ class Screener:
         
         Returns:
             필터링된 종목 리스트
-        """
         filtered = []
         
         for stock in stocks:
@@ -482,7 +427,6 @@ class Screener:
             if not stock_code:
                 continue
             
-            # 투자자 매매 동향 조회
             investor_info = self.fetcher.get_investor_trading(stock_code)
             if not investor_info:
                 continue
@@ -490,7 +434,6 @@ class Screener:
             foreign_net = int(investor_info.get('foreign_net', 0))
             institution_net = int(investor_info.get('institution_net', 0))
             
-            # 조건 체크
             foreign_ok = (foreign_net > 0) if foreign_net_positive else (foreign_net <= 0)
             institution_ok = (institution_net > 0) if institution_net_positive else (institution_net <= 0)
             
@@ -507,7 +450,6 @@ class Screener:
         min_rate: float = 3.0,
         min_volume_ratio: float = 2.0
     ) -> List[Dict[str, Any]]:
-        """
         모멘텀 종목 스크리닝
         
         Args:
@@ -517,20 +459,15 @@ class Screener:
         
         Returns:
             모멘텀 종목 리스트
-        """
-        # 상승률 순위 조회
         rise_rank = self.fetcher.get_price_change_rank(market, 'rise', 100)
         
         filtered = []
         for stock in rise_rank:
             change_rate = float(stock.get('change_rate', 0))
             
-            # 등락률 조건
             if change_rate < min_rate:
                 continue
             
-            # 거래량 조건은 실제 구현 시 추가
-            # (현재 거래량 / 평균 거래량 비율 계산 필요)
             
             filtered.append(stock)
         
@@ -541,7 +478,6 @@ class Screener:
         self,
         stocks: List[Dict[str, Any]]
     ) -> Dict[str, Any]:
-        """
         스크리닝 결과 요약
         
         Args:
@@ -557,7 +493,6 @@ class Screener:
                 'price_range': [10000, 100000],
                 'top_3': [상위 3개 종목]
             }
-        """
         if not stocks:
             return {
                 'count': 0,

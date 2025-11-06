@@ -1,7 +1,5 @@
-"""
 utils/validators.py
 데이터 검증 유틸리티
-"""
 import re
 import logging
 from typing import Any, Tuple
@@ -23,7 +21,6 @@ def validate_stock_code(stock_code: str) -> Tuple[bool, str]:
     if not stock_code:
         return False, "종목코드가 비어있습니다"
     
-    # 6자리 숫자 확인
     if not re.match(r'^\d{6}$', stock_code):
         return False, f"종목코드는 6자리 숫자여야 합니다: {stock_code}"
     
@@ -95,7 +92,6 @@ def validate_account_number(account_number: str) -> Tuple[bool, str]:
     if not account_number:
         return False, "계좌번호가 비어있습니다"
     
-    # 형식 확인: XXXXXXXX-XX
     if not re.match(r'^\d{8}-\d{2}$', account_number):
         return False, f"계좌번호 형식이 잘못되었습니다 (XXXXXXXX-XX): {account_number}"
     
@@ -201,7 +197,6 @@ def validate_api_response(response: dict) -> Tuple[bool, str]:
     if not isinstance(response, dict):
         return False, f"응답이 딕셔너리가 아닙니다: {type(response)}"
     
-    # return_code 확인
     return_code = response.get('return_code')
     
     if return_code is None:
@@ -219,7 +214,6 @@ def validate_position_size(
     total_assets: float,
     max_position_ratio: float = 0.30
 ) -> Tuple[bool, str]:
-    """
     포지션 크기 검증
     
     Args:
@@ -229,7 +223,6 @@ def validate_position_size(
     
     Returns:
         (검증 통과 여부, 메시지)
-    """
     if total_assets <= 0:
         return False, "총 자산이 0 이하입니다"
     
@@ -256,7 +249,6 @@ def validate_trading_params(params: dict) -> Tuple[bool, list]:
     """
     errors = []
     
-    # 필수 파라미터 확인
     required_params = [
         'MAX_OPEN_POSITIONS',
         'RISK_PER_TRADE_RATIO',
@@ -268,7 +260,6 @@ def validate_trading_params(params: dict) -> Tuple[bool, list]:
         if param not in params:
             errors.append(f"필수 파라미터 누락: {param}")
     
-    # 범위 검증
     if 'MAX_OPEN_POSITIONS' in params:
         if not (1 <= params['MAX_OPEN_POSITIONS'] <= 50):
             errors.append("MAX_OPEN_POSITIONS는 1~50 사이여야 합니다")
@@ -298,10 +289,8 @@ def sanitize_stock_code(stock_code: str) -> str:
     Returns:
         정제된 종목코드 (6자리 숫자)
     """
-    # 숫자만 추출
     digits = ''.join(filter(str.isdigit, stock_code))
     
-    # 6자리 맞추기
     if len(digits) < 6:
         digits = digits.zfill(6)
     elif len(digits) > 6:
@@ -320,10 +309,8 @@ def sanitize_account_number(account_number: str) -> str:
     Returns:
         정제된 계좌번호 (XXXXXXXX-XX 형식)
     """
-    # 숫자만 추출
     digits = ''.join(filter(str.isdigit, account_number))
     
-    # 형식 맞추기
     if len(digits) >= 10:
         return f"{digits[:8]}-{digits[8:10]}"
     

@@ -1,7 +1,5 @@
-"""
 virtual_trading/trade_logger.py
 거래 로그 및 분석
-"""
 from typing import Dict, List
 from datetime import datetime
 from pathlib import Path
@@ -24,7 +22,6 @@ class TradeLogger:
         }
         self.trades.append(trade_record)
 
-        # 일일 로그 파일에 추가
         today = datetime.now().strftime('%Y%m%d')
         log_file = self.log_dir / f"trades_{today}.jsonl"
 
@@ -33,7 +30,6 @@ class TradeLogger:
 
     def log_buy(self, strategy: str, stock_code: str, stock_name: str,
                 price: int, quantity: int, reason: str = ""):
-        """매수 로그"""
         self.log_trade({
             'type': 'BUY',
             'strategy': strategy,
@@ -48,7 +44,6 @@ class TradeLogger:
     def log_sell(self, strategy: str, stock_code: str, stock_name: str,
                  price: int, quantity: int, realized_pnl: int,
                  pnl_rate: float, reason: str = ""):
-        """매도 로그"""
         self.log_trade({
             'type': 'SELL',
             'strategy': strategy,
@@ -67,7 +62,6 @@ class TradeLogger:
         if not self.trades:
             return {}
 
-        # 전략 필터링
         trades = self.trades
         if strategy:
             trades = [t for t in trades if t.get('strategy') == strategy]
@@ -75,7 +69,6 @@ class TradeLogger:
         if not trades:
             return {}
 
-        # 매도 거래만 (실현 손익)
         sell_trades = [t for t in trades if t['type'] == 'SELL']
 
         if not sell_trades:
@@ -87,7 +80,6 @@ class TradeLogger:
                 'lose_trades': 0,
             }
 
-        # 통계 계산
         win_trades = [t for t in sell_trades if t['realized_pnl'] > 0]
         lose_trades = [t for t in sell_trades if t['realized_pnl'] <= 0]
 
@@ -97,10 +89,8 @@ class TradeLogger:
         avg_profit = total_profit / len(win_trades) if win_trades else 0
         avg_loss = total_loss / len(lose_trades) if lose_trades else 0
 
-        # Profit Factor
         profit_factor = abs(total_profit / total_loss) if total_loss != 0 else 0
 
-        # 최고/최악 거래
         best_trade = max(sell_trades, key=lambda x: x['realized_pnl']) if sell_trades else None
         worst_trade = min(sell_trades, key=lambda x: x['realized_pnl']) if sell_trades else None
 

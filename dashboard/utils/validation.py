@@ -1,6 +1,4 @@
-"""
 Input validation utilities for dashboard API
-"""
 import re
 from typing import Any, Dict, List, Optional
 from flask import request
@@ -23,11 +21,9 @@ def validate_stock_code(code: str) -> bool:
     if not code:
         return False
 
-    # KRX stocks: 6 digits
     if re.match(r'^\d{6}$', code):
         return True
 
-    # US stocks: 1-5 uppercase letters
     if re.match(r'^[A-Z]{1,5}$', code):
         return True
 
@@ -55,12 +51,10 @@ def validate_request_data(required_fields: List[str], optional_fields: Optional[
 
     data = request.get_json()
 
-    # Check required fields
     missing_fields = [field for field in required_fields if field not in data]
     if missing_fields:
         return False, {}, f"Missing required fields: {', '.join(missing_fields)}"
 
-    # Extract only required and optional fields
     allowed_fields = required_fields + (optional_fields or [])
     validated_data = {key: value for key, value in data.items() if key in allowed_fields}
 
@@ -83,7 +77,6 @@ def validate_pagination_params(default_page: int = 1, default_limit: int = 20, m
         page = int(request.args.get('page', default_page))
         limit = int(request.args.get('limit', default_limit))
 
-        # Validate ranges
         page = max(1, page)
         limit = max(1, min(limit, max_limit))
 
@@ -130,7 +123,7 @@ def validate_date_range(start_date: Optional[str], end_date: Optional[str]) -> t
     from datetime import datetime
 
     if not start_date or not end_date:
-        return True, None  # Optional parameters
+        return True, None
 
     try:
         start = datetime.strptime(start_date, '%Y-%m-%d')

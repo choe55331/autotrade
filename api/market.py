@@ -1,4 +1,3 @@
-"""
 api/market.py
 시세 및 시장 정보 API (Backward Compatibility Wrapper)
 
@@ -17,10 +16,8 @@ api/market.py
 - api/market/ranking.py: 순위 정보
 - api/market/investor_data.py: 투자자 매매 데이터
 - api/market/stock_info.py: 종목/업종/테마 정보
-"""
 import warnings
 
-# Import from modular structure
 from api.market import (
     MarketAPI,
     MarketDataAPI,
@@ -31,7 +28,6 @@ from api.market import (
     get_daily_chart,
 )
 
-# Show deprecation warning
 warnings.warn(
     "api.market is now modularized into 5 specialized modules. "
     "Consider updating imports to: from api.market import MarketAPI",
@@ -39,7 +35,6 @@ warnings.warn(
     stacklevel=2
 )
 
-# Export all for backward compatibility
 __all__ = [
     'MarketAPI',
     'MarketDataAPI',

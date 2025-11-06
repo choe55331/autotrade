@@ -1,10 +1,8 @@
-"""
 AutoML System for Automatic Model Optimization
 Implements hyperparameter tuning, model selection, and feature engineering
 
 Author: AutoTrade Pro
 Version: 4.1
-"""
 
 from dataclasses import dataclass, asdict
 from typing import List, Dict, Any, Optional, Tuple, Callable
@@ -56,9 +54,6 @@ class AutoMLResult:
     improvement_pct: float
 
 
-# ============================================================================
-# 1. Hyperparameter Optimization
-# ============================================================================
 
 class HyperparameterOptimizer:
     """
@@ -114,7 +109,6 @@ class HyperparameterOptimizer:
 
     def grid_search(self, model_type: str, objective_fn: Callable,
                     max_trials: int = 100) -> HyperparameterConfig:
-        """
         Grid search optimization
 
         Args:
@@ -124,18 +118,15 @@ class HyperparameterOptimizer:
 
         Returns:
             Best hyperparameter configuration
-        """
         if model_type not in self.search_spaces:
             raise ValueError(f"Unknown model type: {model_type}")
 
         search_space = self.search_spaces[model_type]
 
-        # Generate all combinations
         if SKLEARN_AVAILABLE:
             param_grid = ParameterGrid(search_space)
             all_params = list(param_grid)[:max_trials]
         else:
-            # Manual grid generation
             keys = list(search_space.keys())
             values = [search_space[k] for k in keys]
             all_combinations = list(itertools.product(*values))[:max_trials]
@@ -178,7 +169,6 @@ class HyperparameterOptimizer:
 
     def random_search(self, model_type: str, objective_fn: Callable,
                      n_trials: int = 50) -> HyperparameterConfig:
-        """
         Random search optimization
 
         Args:
@@ -188,7 +178,6 @@ class HyperparameterOptimizer:
 
         Returns:
             Best hyperparameter configuration
-        """
         if model_type not in self.search_spaces:
             raise ValueError(f"Unknown model type: {model_type}")
 
@@ -199,7 +188,6 @@ class HyperparameterOptimizer:
         print(f"🎲 Random Search: Testing {n_trials} random configurations...")
 
         for i in range(n_trials):
-            # Sample random parameters
             params = {
                 key: np.random.choice(values)
                 for key, values in search_space.items()
@@ -236,7 +224,6 @@ class HyperparameterOptimizer:
 
     def bayesian_optimization(self, model_type: str, objective_fn: Callable,
                              n_trials: int = 30) -> HyperparameterConfig:
-        """
         Simplified Bayesian optimization
 
         Args:
@@ -246,15 +233,12 @@ class HyperparameterOptimizer:
 
         Returns:
             Best hyperparameter configuration
-        """
-        # Simplified version - use random search with exploration-exploitation
         print(f"🧠 Bayesian Optimization (Simplified): {n_trials} trials...")
 
         search_space = self.search_spaces[model_type]
         best_score = -np.inf
         best_params = None
 
-        # Initial random exploration
         n_random = min(10, n_trials // 3)
         for i in range(n_random):
             params = {
@@ -274,12 +258,9 @@ class HyperparameterOptimizer:
                 'phase': 'exploration'
             })
 
-        # Exploitation around best parameters
         for i in range(n_random, n_trials):
-            # Perturb best parameters
             params = best_params.copy()
 
-            # Randomly modify 1-2 parameters
             keys_to_modify = np.random.choice(
                 list(params.keys()),
                 size=min(2, len(params)),
@@ -314,9 +295,6 @@ class HyperparameterOptimizer:
         )
 
 
-# ============================================================================
-# 2. Automatic Feature Engineering
-# ============================================================================
 
 class AutoFeatureEngineer:
     """
@@ -374,13 +352,11 @@ class AutoFeatureEngineer:
         for feat_idx in range(n_features):
             feat_data = data[:, feat_idx]
 
-            # Rolling statistics
             features[f'feature_{feat_idx}_rolling_mean'] = self._rolling_stat(feat_data, window, np.mean)
             features[f'feature_{feat_idx}_rolling_std'] = self._rolling_stat(feat_data, window, np.std)
             features[f'feature_{feat_idx}_rolling_min'] = self._rolling_stat(feat_data, window, np.min)
             features[f'feature_{feat_idx}_rolling_max'] = self._rolling_stat(feat_data, window, np.max)
 
-            # Momentum features
             features[f'feature_{feat_idx}_momentum'] = self._momentum(feat_data, window)
             features[f'feature_{feat_idx}_rate_of_change'] = self._rate_of_change(feat_data, window)
 
@@ -411,7 +387,6 @@ class AutoFeatureEngineer:
 
     def select_top_features(self, X: np.ndarray, y: np.ndarray,
                            feature_names: List[str], top_k: int = 20) -> Tuple[np.ndarray, List[str]]:
-        """
         Select top K most important features
 
         Args:
@@ -422,28 +397,21 @@ class AutoFeatureEngineer:
 
         Returns:
             Selected features, selected feature names
-        """
-        # Calculate correlation with target
         correlations = []
         for i in range(X.shape[1]):
             corr = np.abs(np.corrcoef(X[:, i], y)[0, 1])
             correlations.append(corr if not np.isnan(corr) else 0)
 
-        # Select top K
         top_indices = np.argsort(correlations)[-top_k:]
         selected_features = X[:, top_indices]
         selected_names = [feature_names[i] for i in top_indices]
 
-        # Store importance scores
         for idx, name in zip(top_indices, selected_names):
             self.importance_scores[name] = correlations[idx]
 
         return selected_features, selected_names
 
 
-# ============================================================================
-# 3. Automatic Model Selection
-# ============================================================================
 
 class AutoModelSelector:
     """
@@ -462,7 +430,6 @@ class AutoModelSelector:
 
     def compare_models(self, models: Dict[str, Any], X: np.ndarray, y: np.ndarray,
                       cv: int = 5) -> List[Dict[str, Any]]:
-        """
         Compare multiple models using cross-validation
 
         Args:
@@ -473,7 +440,6 @@ class AutoModelSelector:
 
         Returns:
             List of model results sorted by score
-        """
         results = []
 
         print(f"📊 Comparing {len(models)} models with {cv}-fold CV...")
@@ -481,12 +447,10 @@ class AutoModelSelector:
         for model_name, model in models.items():
             try:
                 if SKLEARN_AVAILABLE:
-                    # Cross-validation
                     scores = cross_val_score(model, X, y, cv=cv, scoring='r2')
                     mean_score = np.mean(scores)
                     std_score = np.std(scores)
                 else:
-                    # Simple train-test split
                     split_idx = int(len(X) * 0.8)
                     X_train, X_test = X[:split_idx], X[split_idx:]
                     y_train, y_test = y[:split_idx], y[split_idx:]
@@ -513,7 +477,6 @@ class AutoModelSelector:
                 print(f"  {model_name}: Failed - {e}")
                 continue
 
-        # Sort by score
         results.sort(key=lambda x: x['mean_score'], reverse=True)
 
         if results:
@@ -526,9 +489,6 @@ class AutoModelSelector:
         return self.best_model
 
 
-# ============================================================================
-# AutoML Manager
-# ============================================================================
 
 class AutoMLManager:
     """
@@ -552,7 +512,6 @@ class AutoMLManager:
                      model_types: List[str] = None,
                      optimization_method: str = 'bayesian',
                      n_trials: int = 30) -> AutoMLResult:
-        """
         Automatic end-to-end optimization
 
         Args:
@@ -564,7 +523,6 @@ class AutoMLManager:
 
         Returns:
             AutoML optimization result
-        """
         start_time = datetime.now()
 
         if model_types is None:
@@ -574,15 +532,12 @@ class AutoMLManager:
         print("🤖 AutoML Optimization Started")
         print("="*60)
 
-        # Step 1: Feature Engineering
         print("\n📊 Step 1: Automatic Feature Engineering")
         stat_features = self.feature_engineer.generate_statistical_features(X)
 
-        # Combine original and engineered features
         all_features = np.hstack([X] + [f.reshape(-1, 1) for f in stat_features.values()])
         feature_names = [f'original_{i}' for i in range(X.shape[1])] + list(stat_features.keys())
 
-        # Feature selection
         print(f"  Generated {len(feature_names)} features")
         top_k = min(20, len(feature_names))
         X_selected, selected_names = self.feature_engineer.select_top_features(
@@ -590,7 +545,6 @@ class AutoMLManager:
         )
         print(f"  Selected top {len(selected_names)} features")
 
-        # Step 2: Model Optimization
         print(f"\n🔧 Step 2: Hyperparameter Optimization ({optimization_method})")
         all_trials = []
         best_overall_score = -np.inf
@@ -599,12 +553,9 @@ class AutoMLManager:
         for model_type in model_types:
             print(f"\n  Optimizing {model_type}...")
 
-            # Mock objective function
             def objective(params):
-                # Simplified - return random score for demo
                 return np.random.uniform(0.6, 0.9)
 
-            # Optimize
             if optimization_method == 'grid':
                 config = self.hp_optimizer.grid_search(
                     model_type, objective, max_trials=min(n_trials, 50)
@@ -629,7 +580,6 @@ class AutoMLManager:
             print(f"    Best {model_type} score: {config.score:.4f}")
             print(f"    Best parameters: {config.parameters}")
 
-        # Step 3: Results
         optimization_time = (datetime.now() - start_time).total_seconds()
 
         print("\n" + "="*60)
@@ -640,7 +590,6 @@ class AutoMLManager:
         print(f"Optimization Time: {optimization_time:.2f}s")
         print("="*60)
 
-        # Feature importances
         feature_importances = []
         sorted_features = sorted(
             self.feature_engineer.importance_scores.items(),
@@ -665,7 +614,7 @@ class AutoMLManager:
             feature_importances=feature_importances,
             all_trials=all_trials,
             optimization_time=optimization_time,
-            improvement_pct=0.0  # Would calculate based on baseline
+            improvement_pct=0.0
         )
 
         self.optimization_history.append(result)
@@ -676,7 +625,6 @@ class AutoMLManager:
         return self.optimization_history
 
 
-# Singleton instance
 _automl_manager = None
 
 def get_automl_manager() -> AutoMLManager:
@@ -690,7 +638,6 @@ def get_automl_manager() -> AutoMLManager:
 if __name__ == '__main__':
     print("🤖 AutoML System Test")
 
-    # Mock data
     X = np.random.randn(100, 5)
     y = np.random.randn(100)
 

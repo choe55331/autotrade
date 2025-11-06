@@ -1,4 +1,3 @@
-"""
 AI 스캐닝 종목 연동 수정 패치
 문제: 대시보드에 AI 시스템 스캐닝 종목이 표시되지 않음
 해결: scanner_pipeline의 결과를 대시보드에 올바르게 전달
@@ -8,7 +7,6 @@ AI 스캐닝 종목 연동 수정 패치
 2. approach_2: scan_progress 업데이트 로직 추가
 3. approach_3: 실시간 스캔 상태 반영
 4. approach_4: 캐시와 실시간 데이터 결합
-"""
 
 from typing import Dict, Any, Optional, List
 from datetime import datetime
@@ -34,21 +32,18 @@ class AIScanningFix:
                     'error': 'scanner_pipeline not available'
                 }
 
-            # Fast Scan 결과
             fast_results = getattr(scanner_pipeline, 'fast_scan_results', [])
             fast_count = len(fast_results)
             fast_last_run = None
             if hasattr(scanner_pipeline, 'last_fast_scan') and scanner_pipeline.last_fast_scan > 0:
                 fast_last_run = datetime.fromtimestamp(scanner_pipeline.last_fast_scan).isoformat()
 
-            # Deep Scan 결과
             deep_results = getattr(scanner_pipeline, 'deep_scan_results', [])
             deep_count = len(deep_results)
             deep_last_run = None
             if hasattr(scanner_pipeline, 'last_deep_scan') and scanner_pipeline.last_deep_scan > 0:
                 deep_last_run = datetime.fromtimestamp(scanner_pipeline.last_deep_scan).isoformat()
 
-            # AI Scan 결과
             ai_results = getattr(scanner_pipeline, 'ai_scan_results', [])
             ai_count = len(ai_results)
             ai_last_run = None
@@ -66,7 +61,7 @@ class AIScanningFix:
                             'price': s.price,
                             'score': s.fast_scan_score
                         }
-                        for s in fast_results[:5]  # 상위 5개만
+                        for s in fast_results[:5]
                     ]
                 },
                 'deep_scan': {
@@ -124,15 +119,12 @@ class AIScanningFix:
                     'error': 'bot_instance not available'
                 }
 
-            # scanner_pipeline에서 데이터 가져오기
             if hasattr(bot_instance, 'scanner_pipeline'):
                 pipeline = bot_instance.scanner_pipeline
 
-                # scan_progress 업데이트
                 if not hasattr(bot_instance, 'scan_progress'):
                     bot_instance.scan_progress = {}
 
-                # Fast Scan → top_candidates
                 fast_results = getattr(pipeline, 'fast_scan_results', [])
                 bot_instance.scan_progress['top_candidates'] = [
                     {
@@ -144,9 +136,7 @@ class AIScanningFix:
                     for s in fast_results
                 ]
 
-                # Deep Scan → (approved + rejected)
                 deep_results = getattr(pipeline, 'deep_scan_results', [])
-                # deep_scan은 AI 분석 전 단계이므로 'pending'으로 간주
                 bot_instance.scan_progress['pending_ai_analysis'] = [
                     {
                         'code': s.code,
@@ -157,7 +147,6 @@ class AIScanningFix:
                     for s in deep_results
                 ]
 
-                # AI Scan → approved
                 ai_results = getattr(pipeline, 'ai_scan_results', [])
                 bot_instance.scan_progress['approved'] = [
                     {
@@ -170,7 +159,6 @@ class AIScanningFix:
                     for s in ai_results
                 ]
 
-                # 결과 반환
                 fast_count = len(fast_results)
                 deep_count = len(deep_results)
                 ai_count = len(ai_results)
@@ -197,7 +185,6 @@ class AIScanningFix:
                     'synced': True
                 }
 
-            # scanner_pipeline이 없으면 scan_progress 사용
             elif hasattr(bot_instance, 'scan_progress'):
                 scan_progress = bot_instance.scan_progress
 
@@ -243,7 +230,6 @@ class AIScanningFix:
                 'ai_scan': {'count': 0, 'last_run': 'N/A'}
             }
 
-            # scanner_pipeline 우선
             if hasattr(bot_instance, 'scanner_pipeline'):
                 pipeline = bot_instance.scanner_pipeline
 
@@ -275,7 +261,6 @@ class AIScanningFix:
                     'source': 'scanner_pipeline'
                 }
 
-            # scanner_pipeline이 없으면 scan_progress 사용
             elif hasattr(bot_instance, 'scan_progress'):
                 scan_progress = bot_instance.scan_progress
 
@@ -326,7 +311,6 @@ class AIScanningFix:
 
             pipeline = bot_instance.scanner_pipeline
 
-            # 강제 스캔 또는 간격 체크
             if force_scan or pipeline.should_run_fast_scan():
                 print("🔍 Fast Scan 실행...")
                 pipeline.run_fast_scan()
@@ -336,7 +320,6 @@ class AIScanningFix:
                     print("🔍 Deep Scan 실행...")
                     pipeline.run_deep_scan()
 
-            # 결과 반환
             fast_results = getattr(pipeline, 'fast_scan_results', [])
             deep_results = getattr(pipeline, 'deep_scan_results', [])
             ai_results = getattr(pipeline, 'ai_scan_results', [])
@@ -373,9 +356,6 @@ class AIScanningFix:
             }
 
 
-# ============================================================================
-# 대시보드 적용 예시
-# ============================================================================
 
 def get_system_status_fixed_approach_1(bot_instance):
     """
@@ -384,17 +364,12 @@ def get_system_status_fixed_approach_1(bot_instance):
     dashboard/app_apple.py의 /api/system 엔드포인트 수정
     scanner_pipeline 직접 접근
     """
-    # ... (기존 system_status, test_mode_info, risk_info 코드)
 
-    # AI 스캐닝 정보 - 수정된 로직
     scanning_info = AIScanningFix.approach_1_direct_pipeline_access(
         bot_instance.scanner_pipeline if hasattr(bot_instance, 'scanner_pipeline') else None
     )
 
     return {
-        # 'system': system_status,
-        # 'test_mode': test_mode_info,
-        # 'risk': risk_info,
         'scanning': scanning_info
     }
 
@@ -406,7 +381,6 @@ def get_system_status_fixed_approach_3(bot_instance):
     scanner_pipeline과 scan_progress 결합
     가장 견고한 방법
     """
-    # AI 스캐닝 정보 - 여러 소스 시도
     scanning_info = AIScanningFix.approach_3_combined_sources(bot_instance)
 
     return {
@@ -414,9 +388,6 @@ def get_system_status_fixed_approach_3(bot_instance):
     }
 
 
-# ============================================================================
-# 편의 함수
-# ============================================================================
 
 def get_scanning_info(bot_instance, method: str = 'combined') -> Dict[str, Any]:
     """
@@ -446,9 +417,6 @@ def get_scanning_info(bot_instance, method: str = 'combined') -> Dict[str, Any]:
         raise ValueError(f"Unknown method: {method}")
 
 
-# ============================================================================
-# 테스트
-# ============================================================================
 
 if __name__ == "__main__":
     print("AI 스캐닝 종목 연동 수정 패치")
