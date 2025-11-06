@@ -77,6 +77,14 @@ def test_nxt_closing_price():
                 path="stkinfo"
             )
 
+            # 디버깅: 전체 응답 출력
+            print(f"  {YELLOW}[DEBUG] 응답:{RESET}")
+            if response:
+                import json
+                print(f"  {json.dumps(response, ensure_ascii=False, indent=2)[:500]}")
+            else:
+                print(f"  {RED}None{RESET}")
+
             if response and 'output' in response:
                 output = response['output']
                 cur_prc = output.get('cur_prc', 'N/A')
@@ -91,9 +99,11 @@ def test_nxt_closing_price():
                 else:
                     print(f"  {RED}❌ 가격 없음{RESET}")
             else:
-                print(f"  {RED}❌ 응답 데이터 없음{RESET}")
+                print(f"  {RED}❌ 응답 데이터 없음 (output 필드 없음){RESET}")
         except Exception as e:
             print(f"  {RED}❌ 오류: {e}{RESET}")
+            import traceback
+            traceback.print_exc()
 
         # 2. _NX 접미사로 조회
         print(f"\n{CYAN}2️⃣ _NX 접미사 조회: {code}_NX{RESET}")
@@ -103,6 +113,14 @@ def test_nxt_closing_price():
                 body={"stk_cd": f"{code}_NX"},
                 path="stkinfo"
             )
+
+            # 디버깅: 전체 응답 출력
+            print(f"  {YELLOW}[DEBUG] 응답:{RESET}")
+            if response:
+                import json
+                print(f"  {json.dumps(response, ensure_ascii=False, indent=2)[:500]}")
+            else:
+                print(f"  {RED}None{RESET}")
 
             if response and 'output' in response:
                 output = response['output']
@@ -118,9 +136,11 @@ def test_nxt_closing_price():
                 else:
                     print(f"  {RED}❌ 가격 없음{RESET}")
             else:
-                print(f"  {RED}❌ 응답 데이터 없음{RESET}")
+                print(f"  {RED}❌ 응답 데이터 없음 (output 필드 없음){RESET}")
         except Exception as e:
             print(f"  {RED}❌ 오류: {e}{RESET}")
+            import traceback
+            traceback.print_exc()
 
         # 결과 판정
         base_success = any(item[0] == code for item in results['base_code_success'])
