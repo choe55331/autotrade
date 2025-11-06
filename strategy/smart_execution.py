@@ -1,5 +1,7 @@
+"""
 Smart Order Execution Algorithms - v5.13
 TWAP, VWAP, Iceberg, POV, Implementation Shortfall
+"""
 from dataclasses import dataclass
 from typing import List, Optional, Dict, Any, Callable
 from datetime import datetime, timedelta

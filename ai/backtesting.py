@@ -1,5 +1,7 @@
+"""
 Backtesting Engine for Strategy Validation
 Tests trading strategies on historical data
+"""
 
 Author: AutoTrade Pro
 Version: 4.2 - CRITICAL

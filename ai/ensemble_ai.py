@@ -1,5 +1,7 @@
+"""
 Ensemble AI System
 Combines multiple AI models for superior predictions
+"""
 
 Features:
 - Multiple AI model integration

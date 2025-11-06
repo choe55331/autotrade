@@ -1,5 +1,7 @@
+"""
 AutoML System for Automatic Model Optimization
 Implements hyperparameter tuning, model selection, and feature engineering
+"""
 
 Author: AutoTrade Pro
 Version: 4.1

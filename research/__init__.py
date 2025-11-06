@@ -1,5 +1,7 @@
+"""
 research 패키지
 데이터 조회 및 분석 모듈
+"""
 from .data_fetcher import DataFetcher
 from .analyzer import Analyzer
 from .screener import Screener

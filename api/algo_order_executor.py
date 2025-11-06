@@ -1,5 +1,7 @@
+"""
 Algorithmic Order Execution
 Advanced order execution strategies: TWAP, VWAP, Iceberg, etc.
+"""
 
 import time
 from typing import Dict, List, Optional, Any

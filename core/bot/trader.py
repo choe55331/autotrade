@@ -1,5 +1,7 @@
+"""
 Trade Executor Module
 매매 실행 모듈
+"""
 
 import logging
 from typing import Dict, Any, Optional

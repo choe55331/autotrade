@@ -1,5 +1,7 @@
+"""
 AI Mode v3.6 - Basic AI Functionality
 Handles basic AI mode operations: status, toggle, decisions, learning, optimization
+"""
 from flask import Blueprint, jsonify, request
 from dataclasses import asdict
 from .common import get_bot_instance

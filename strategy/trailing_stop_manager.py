@@ -1,5 +1,7 @@
+"""
 AutoTrade Pro v4.0 - 동적 손절/익절 관리자 (Trailing Stop with ATR)
 ATR 기반 변동성을 고려한 동적 손절/익절
+"""
 
 주요 기능:
 - ATR 기반 손절선 동적 조정

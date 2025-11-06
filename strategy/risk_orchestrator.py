@@ -1,5 +1,7 @@
+"""
 AutoTrade Pro - 통합 리스크 관리 조율 시스템
 모든 리스크 관리 모듈을 통합 조율
+"""
 from typing import Dict, List, Tuple, Optional, Any
 from dataclasses import dataclass, field
 from datetime import datetime

@@ -1,6 +1,8 @@
+"""
 virtual_trading/data_enricher.py
 가상 매매 전략을 위한 데이터 enrichment
 Missing fields를 채워서 모든 전략이 작동하도록 함
+"""
 import logging
 from typing import Dict, Optional
 

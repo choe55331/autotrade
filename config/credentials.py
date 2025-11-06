@@ -1,5 +1,7 @@
+"""
 config/credentials.py
 API 키 및 민감정보 관리
+"""
 
 로딩 우선순위:
 1. _immutable/credentials/secrets.json (최우선)

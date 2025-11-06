@@ -1,3 +1,4 @@
+"""
 Advanced Risk Analytics
 Professional-grade risk management and analytics
 - Value at Risk (VaR)
@@ -5,6 +6,7 @@ Professional-grade risk management and analytics
 - Sharpe/Sortino Ratios
 - Maximum Drawdown
 - Risk-adjusted returns
+"""
 
 import numpy as np
 from typing import Dict, List, Any, Optional, Tuple

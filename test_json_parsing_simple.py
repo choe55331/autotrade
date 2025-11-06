@@ -1,5 +1,7 @@
+"""
 JSON 파싱 문제 디버깅 스크립트
 API 키 없이 다양한 응답 형식을 테스트
+"""
 
 import json
 import re

@@ -1,5 +1,7 @@
+"""
 AutoTrade Pro v4.0 - 켈리 배팅 자금 관리
 Kelly Criterion 기반 최적 포지션 사이징
+"""
 
 공식: f* = (bp - q) / b
 - f*: 최적 베팅 비율

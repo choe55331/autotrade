@@ -1,6 +1,8 @@
+"""
 AutoTrade Pro - 고급 기능 모듈
 실시간 호가창, 수익 추적, 포트폴리오 최적화, 뉴스 피드, 리스크 분석,
 AI 자율 모드, 가상매매, 거래 일지, 알림 시스템 등
+"""
 
 from .test_mode_manager import TestModeManager, run_test_mode
 

@@ -1,5 +1,7 @@
+"""
 analyze_failures_detailed.py
 실패 API 집중 분석 - 로그 데이터와 문서 기반 원인 파악
+"""
 import json
 from pathlib import Path
 from collections import defaultdict

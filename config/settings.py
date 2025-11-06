@@ -1,5 +1,7 @@
+"""
 config/settings.py
 기본 설정 파일
+"""
 import os
 from pathlib import Path
 from typing import Dict, Any

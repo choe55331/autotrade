@@ -1,5 +1,7 @@
+"""
 api/realtime.py
 실시간 데이터 API (WebSocket 기반)
+"""
 import logging
 from typing import Dict, Any, Optional, Callable, List
 

@@ -1,5 +1,7 @@
+"""
 comprehensive_api_debugger.py의 GUI 없는 CLI 버전
 모든 Kiwoom REST API를 자동으로 테스트하고 결과를 저장합니다.
+"""
 import sys
 import logging
 import json

@@ -1,5 +1,7 @@
+"""
 AutoTrade Pro Dashboard Module
 v5.7.3 - Production Ready (Complete Overhaul)
+"""
 
 Major Features:
 - 10 Diverse Trading Strategies (Real Methodologies)

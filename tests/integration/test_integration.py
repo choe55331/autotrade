@@ -1,5 +1,7 @@
+"""
 test_integration.py
 통합 테스트 - 새로운 시스템이 제대로 import되는지 확인
+"""
 import sys
 from pathlib import Path
 

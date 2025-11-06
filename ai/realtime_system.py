@@ -1,5 +1,7 @@
+"""
 Real-time Data Processing System
 WebSocket-based streaming and event-driven trading
+"""
 
 Author: AutoTrade Pro
 Version: 4.2

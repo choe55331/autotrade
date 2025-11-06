@@ -1,5 +1,7 @@
+"""
 Comprehensive Test Suite for v5.11 Enhancements
 Dashboard UX, Performance Monitoring, Advanced Backtesting
+"""
 import sys
 import os
 from datetime import datetime, timedelta

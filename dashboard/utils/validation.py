@@ -1,4 +1,6 @@
+"""
 Input validation utilities for dashboard API
+"""
 import re
 from typing import Any, Dict, List, Optional
 from flask import request

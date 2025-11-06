@@ -1,5 +1,7 @@
+"""
 core/websocket_client.py
 WebSocket 클라이언트 (기존 websocket 모듈과 통합)
+"""
 import json
 import logging
 import threading

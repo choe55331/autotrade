@@ -1,5 +1,7 @@
+"""
 api/kiwoom_api_specs.py
 키움증권 REST API 완전한 사양 정의
+"""
 
 공식 문서 기반: https://github.com/kiwoom-retail/Kiwoom-Securities
 업데이트: 2025-10-31

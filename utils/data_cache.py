@@ -1,5 +1,7 @@
+"""
 Advanced Data Caching System - v5.12
 Multi-level caching with LRU, TTL, and intelligent invalidation
+"""
 from dataclasses import dataclass
 from typing import Any, Optional, Dict, Callable, List
 from datetime import datetime, timedelta

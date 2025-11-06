@@ -1,5 +1,7 @@
+"""
 features/profit_optimizer.py
 수익 최적화 엔진 - 자동 손절/익절, 포지션 사이징, 트레일링 스톱
+"""
 
 v5.7.2: 실질적인 수익 증대 및 손실 감소 기능
 from typing import Dict, List, Tuple, Optional

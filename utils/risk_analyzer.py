@@ -1,5 +1,7 @@
+"""
 Comprehensive Risk Analysis System - v5.12
 VaR, CVaR, Stress Testing, Portfolio Risk Metrics
+"""
 from dataclasses import dataclass
 from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime, timedelta

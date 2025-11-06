@@ -1,5 +1,7 @@
+"""
 utils/logger_new.py
 Loguru 기반 통합 로깅 시스템 (v4.2)
+"""
 
 CRITICAL 개선 사항:
 - 3개의 로깅 시스템 통합 (logger.py, logger_new.py, rate_limited_logger.py)

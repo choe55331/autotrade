@@ -1,5 +1,7 @@
+"""
 AutoTrade Pro - 파라미터 네이밍 표준
 모든 모듈에서 사용하는 표준화된 파라미터 이름과 타입 정의
+"""
 from typing import Dict, Any, Type
 from enum import Enum
 

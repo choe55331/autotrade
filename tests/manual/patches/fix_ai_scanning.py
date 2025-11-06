@@ -1,6 +1,8 @@
+"""
 AI 스캐닝 종목 연동 수정 패치
 문제: 대시보드에 AI 시스템 스캐닝 종목이 표시되지 않음
 해결: scanner_pipeline의 결과를 대시보드에 올바르게 전달
+"""
 
 다양한 접근법:
 1. approach_1: scanner_pipeline 직접 접근

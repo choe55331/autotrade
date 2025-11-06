@@ -1,5 +1,7 @@
+"""
 Trading Routes Module
 Handles all trading-related API endpoints including control, paper trading, virtual trading, and backtesting
+"""
 import json
 import logging
 from datetime import datetime, timedelta

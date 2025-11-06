@@ -1,5 +1,7 @@
+"""
 Notification System
 Multi-channel notification system for trading alerts
+"""
 
 Features:
 - Sound notifications

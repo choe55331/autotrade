@@ -1,5 +1,7 @@
+"""
 Portfolio Management Routes Module
 Handles portfolio optimization, risk analysis, and performance tracking
+"""
 from datetime import datetime
 from flask import Blueprint, jsonify, request
 

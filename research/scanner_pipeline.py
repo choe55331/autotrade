@@ -1,5 +1,7 @@
+"""
 research/scanner_pipeline.py
 3단계 스캐닝 파이프라인 (Fast → Deep → AI)
+"""
 import time
 from typing import List, Dict, Any, Optional, Tuple
 from dataclasses import dataclass, field

@@ -1,5 +1,7 @@
+"""
 Advanced AI v4.0 Routes
 Handles ML, RL, Ensemble, and Meta-Learning endpoints
+"""
 from flask import Blueprint, jsonify, request
 from dataclasses import asdict
 from .common import get_bot_instance

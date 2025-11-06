@@ -1,5 +1,7 @@
+"""
 ai/base_analyzer.py
 AI 분석기 기본 인터페이스
+"""
 import logging
 from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional, List

@@ -1,5 +1,7 @@
+"""
 Security Module v6.0
 API 키 암호화, 환경변수 검증
+"""
 
 import os
 from pathlib import Path

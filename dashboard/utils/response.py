@@ -1,4 +1,6 @@
+"""
 Response formatting utilities for dashboard API
+"""
 from typing import Any, Dict, Optional
 from flask import jsonify
 

@@ -1,4 +1,6 @@
+"""
 WebSocket connection handlers for real-time dashboard updates
+"""
 from flask import request
 from flask_socketio import emit
 

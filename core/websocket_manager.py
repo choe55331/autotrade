@@ -1,5 +1,7 @@
+"""
 core/websocket_manager.py
 WebSocket 실시간 시세 매니저
+"""
 
 성공 패턴:
 1. WebSocket 연결

@@ -1,6 +1,8 @@
+"""
 Auto-Analysis Routes
 Handles background AI analysis including position monitoring, portfolio optimization,
 performance tracking, stock recommendations, and market trend analysis
+"""
 from flask import Blueprint, jsonify, request
 from datetime import datetime, timedelta
 import random

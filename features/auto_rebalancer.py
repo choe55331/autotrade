@@ -1,5 +1,7 @@
+"""
 features/auto_rebalancer.py
 포트폴리오 자동 리밸런싱 시스템 (v5.10 NEW)
+"""
 
 Features:
 - 목표 포트폴리오 비율 유지

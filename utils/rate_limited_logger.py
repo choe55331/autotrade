@@ -1,5 +1,7 @@
+"""
 AutoTrade Pro - Rate-Limited Logger
 고빈도 로깅으로 인한 성능 저하 방지
+"""
 import time
 import logging
 from typing import Dict, Optional

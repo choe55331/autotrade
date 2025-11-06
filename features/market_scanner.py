@@ -1,5 +1,7 @@
+"""
 Real-Time Market Scanner - v5.14
 Advanced market scanning with anomaly detection, pattern recognition, and opportunity discovery
+"""
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Any, Callable
 from datetime import datetime, timedelta

@@ -1,5 +1,7 @@
+"""
 research/strategy_manager.py
 스캔 전략 순환 관리자
+"""
 from typing import List, Dict, Any
 from datetime import datetime
 

@@ -1,5 +1,7 @@
+"""
 utils/position_calculator.py
 포지션 사이즈 계산 유틸리티
+"""
 
 다양한 포지션 사이징 전략을 제공
 import logging

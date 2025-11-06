@@ -1,4 +1,6 @@
+"""
 WebSocket 실시간 현재가 조회 테스트 - KRX + NXT 혼합
+"""
 
 핵심 발견:
 - WebSocket 실시간 구독에서는 _NX 접미사 사용 필수!

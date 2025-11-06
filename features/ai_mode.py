@@ -1,5 +1,7 @@
+"""
 AI Mode - Autonomous Trading Agent
 Complete AI-driven trading system with self-learning and dynamic optimization
+"""
 
 Features:
 - Dynamic parameter optimization

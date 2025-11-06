@@ -1,5 +1,7 @@
+"""
 Portfolio Optimization Engine
 Advanced portfolio optimization techniques
+"""
 
 Author: AutoTrade Pro
 Version: 4.2

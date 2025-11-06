@@ -1,7 +1,9 @@
+"""
 Volume Indicators
 - Volume SMA
 - OBV (On-Balance Volume)
 - Volume Ratio Analysis
+"""
 import numpy as np
 import pandas as pd
 from typing import Dict

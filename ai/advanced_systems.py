@@ -1,5 +1,7 @@
+"""
 Advanced Trading Systems
 Multi-Agent, Risk Management, Market Regime Detection, and more
+"""
 
 Author: AutoTrade Pro
 Version: 4.2

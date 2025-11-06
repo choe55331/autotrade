@@ -1,5 +1,7 @@
+"""
 utils/profit_calculator.py
 수익률 및 손익 계산 유틸리티
+"""
 
 모든 전략에서 공통으로 사용하는 수익/손실 계산 로직을 통합
 import logging

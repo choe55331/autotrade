@@ -1,5 +1,7 @@
+"""
 Deep Learning Models for Advanced Price Prediction
 Implements LSTM, Transformer, and CNN models
+"""
 
 Author: AutoTrade Pro
 Version: 4.1

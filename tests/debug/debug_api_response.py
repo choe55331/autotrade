@@ -1,5 +1,7 @@
+"""
 API 응답 디버그 스크립트
 실제 API 응답을 확인하여 문제를 진단합니다.
+"""
 import sys
 import json
 from pathlib import Path

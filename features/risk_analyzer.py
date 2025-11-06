@@ -1,5 +1,7 @@
+"""
 Risk Analyzer with Visual Heatmap
 Portfolio risk analysis with correlation matrix and visual heatmap
+"""
 
 Features:
 - Stock correlation analysis

@@ -1,5 +1,7 @@
+"""
 Performance Optimization Utilities v6.0
 NumPy 벡터화, Numba JIT 컴파일
+"""
 
 import numpy as np
 from typing import List, Dict, Any

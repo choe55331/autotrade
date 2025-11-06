@@ -1,5 +1,7 @@
+"""
 System Routes Module for AutoTrade Pro v4.2
 Handles all system-related API endpoints including status, configuration, monitoring, and notifications.
+"""
 
 import json
 import logging

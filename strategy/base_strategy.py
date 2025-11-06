@@ -1,5 +1,7 @@
+"""
 strategy/base_strategy.py
 전략 기본 클래스
+"""
 import logging
 from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional, List

@@ -1,5 +1,7 @@
+"""
 Trading Bot Core Module v6.0
 Main.py 모듈화
+"""
 
 from .trading_bot import TradingBotV2
 from .lifecycle import BotLifecycle

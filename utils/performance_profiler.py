@@ -1,5 +1,7 @@
+"""
 AutoTrade Pro - 성능 프로파일링 도구
 코드 성능 측정 및 최적화 지원
+"""
 import time
 import cProfile
 import pstats

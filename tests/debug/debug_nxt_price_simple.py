@@ -1,5 +1,7 @@
+"""
 NXT 현재가 조회 디버그 - 단순 직접 테스트
 목적: API 응답을 직접 확인하고 어떤 방법이 작동하는지 찾기
+"""
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))

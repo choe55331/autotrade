@@ -1,5 +1,7 @@
+"""
 Market Routes Module
 Handles all market data API endpoints including orderbook, news, chart data, and rankings
+"""
 import asyncio
 from datetime import datetime, timedelta
 from pathlib import Path

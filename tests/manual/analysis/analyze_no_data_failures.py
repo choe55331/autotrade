@@ -1,5 +1,7 @@
+"""
 analyze_no_data_failures.py
 데이터 없는 101개 API 호출 분석 및 최적화 방안 제시
+"""
 import json
 from pathlib import Path
 from collections import defaultdict

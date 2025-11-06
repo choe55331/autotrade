@@ -1,5 +1,7 @@
+"""
 Meta-Learning Engine
 Learning how to learn - adaptive strategy selection and optimization
+"""
 
 Features:
 - Strategy performance meta-analysis

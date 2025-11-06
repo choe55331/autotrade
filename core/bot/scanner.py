@@ -1,5 +1,7 @@
+"""
 Stock Scanner Module
 스캔 전략 실행 모듈
+"""
 
 import logging
 from typing import List, Dict, Any, Optional

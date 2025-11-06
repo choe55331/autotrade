@@ -1,5 +1,7 @@
+"""
 api/theme_api.py
 테마 API
+"""
 import logging
 from typing import Dict, Any, List, Optional
 

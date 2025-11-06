@@ -1,5 +1,7 @@
+"""
 AutoTrade Pro - 통합 신호 체크 유틸리티
 모든 전략에서 공통으로 사용하는 신호 체크 로직
+"""
 from enum import Enum
 from typing import Tuple, Optional, Dict, Any
 import logging

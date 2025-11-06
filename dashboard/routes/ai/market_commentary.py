@@ -1,5 +1,7 @@
+"""
 Market Commentary Routes
 AI real-time market commentary with voice alerts
+"""
 from flask import Blueprint, jsonify
 from datetime import datetime
 from .common import get_bot_instance

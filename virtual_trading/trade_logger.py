@@ -1,5 +1,7 @@
+"""
 virtual_trading/trade_logger.py
 거래 로그 및 분석
+"""
 from typing import Dict, List
 from datetime import datetime
 from pathlib import Path

@@ -1,5 +1,7 @@
+"""
 config/config_manager.py
 YAML 기반 설정 관리 시스템 (Backward Compatibility Layer)
+"""
 
 ⚠️  DEPRECATED: 이 파일은 backward compatibility를 위해 유지됩니다.
 새 코드에서는 config.manager를 사용하세요:

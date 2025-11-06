@@ -1,5 +1,7 @@
+"""
 dashboard/routes/alerts.py
 v5.7.5: 알림 시스템 API 라우트
+"""
 from flask import Blueprint, jsonify, request
 from utils.alert_manager import get_alert_manager
 
