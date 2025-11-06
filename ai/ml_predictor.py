@@ -1,5 +1,7 @@
+"""
 ML Price Predictor
 Advanced machine learning models for price prediction
+"""
 
 Features:
 - Multiple ML models (Random Forest, XGBoost, LSTM)

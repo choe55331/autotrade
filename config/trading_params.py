@@ -1,5 +1,7 @@
+"""
 config/trading_params.py
 매매 전략 파라미터
+"""
 from typing import Dict, Any
 
 POSITION_CONFIG = {

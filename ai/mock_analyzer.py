@@ -1,5 +1,7 @@
+"""
 ai/mock_analyzer.py
 Mock AI 분석기 (테스트/개발용)
+"""
 import logging
 import random
 import time

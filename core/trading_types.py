@@ -1,5 +1,7 @@
+"""
 AutoTrade Pro - Core Type Definitions
 표준 데이터 타입 정의 (v4.2 CRITICAL
+"""
 
 CRITICAL 개선:
 - 4개의 Position 클래스 통합 → 단일 표준 Position

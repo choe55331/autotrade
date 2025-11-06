@@ -1,5 +1,7 @@
+"""
 Comprehensive Test Suite for v5.14 Enhancements
 Market Scanner, Trading Bot
+"""
 import sys
 import os
 from datetime import datetime, timedelta

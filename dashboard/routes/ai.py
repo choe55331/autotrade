@@ -1,4 +1,6 @@
+"""
 AI Routes - Backward Compatibility Wrapper
+"""
 
 ⚠️ DEPRECATED: This file is a backward compatibility wrapper.
 The AI routes have been refactored into modular structure.

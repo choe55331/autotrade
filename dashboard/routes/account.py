@@ -1,5 +1,7 @@
+"""
 Account-related API routes
 Handles account balance, positions, and detailed holdings
+"""
 from flask import Blueprint, jsonify
 from typing import Dict, Any
 from datetime import datetime

@@ -1,6 +1,8 @@
+"""
 test_verified_and_corrected_apis_fixed.py
 검증된 347개 + 수정된 23개 = 총 370개 API 테스트
 test_all_394_calls.py와 동일한 방식 사용 (성공 확인됨)
+"""
 import os
 import sys
 import requests

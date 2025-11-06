@@ -1,5 +1,7 @@
+"""
 database/models.py
 SQLAlchemy 데이터베이스 모델
+"""
 from datetime import datetime
 from typing import Optional
 from sqlalchemy import (

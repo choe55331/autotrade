@@ -1,4 +1,6 @@
+"""
 Dashboard routes package
+"""
 from flask import Blueprint
 
 from .account import account_bp

@@ -1,7 +1,9 @@
+"""
 Momentum Indicators
 - RSI (Relative Strength Index)
 - MACD (Moving Average Convergence Divergence)
 - Stochastic Oscillator
+"""
 import numpy as np
 import pandas as pd
 from typing import Tuple, Dict

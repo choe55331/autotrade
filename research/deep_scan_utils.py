@@ -1,5 +1,7 @@
+"""
 research/deep_scan_utils.py
 v5.7.5: Deep Scan 공통 유틸리티
+"""
 
 모든 스캔 전략에서 사용하는 Deep Scan 로직을 공통화
 import time

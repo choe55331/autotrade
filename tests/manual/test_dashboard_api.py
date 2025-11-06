@@ -1,5 +1,7 @@
+"""
 대시보드 API 테스트 스크립트
 실제로 데이터를 반환하는지 확인합니다.
+"""
 import requests
 import json
 from datetime import datetime

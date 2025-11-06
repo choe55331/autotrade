@@ -1,5 +1,7 @@
+"""
 AutoTrade Pro v4.0 - ML 기반 시스템 이상 감지
 시스템 로그, API 응답 시간, 주문 실패율 등을 모니터링하여 이상 패턴 감지
+"""
 
 주요 기능:
 - Isolation Forest 기반 이상 감지

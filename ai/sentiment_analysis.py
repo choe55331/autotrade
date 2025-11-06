@@ -1,5 +1,7 @@
+"""
 Sentiment Analysis System
 News and social media sentiment analysis for trading
+"""
 
 Author: AutoTrade Pro
 Version: 4.2

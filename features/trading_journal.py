@@ -1,5 +1,7 @@
+"""
 Trading Journal with AI Analysis
 Automatic trade recording and intelligent analysis
+"""
 
 Features:
 - Automatic trade recording

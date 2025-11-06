@@ -1,5 +1,7 @@
+"""
 research/scan_strategies.py
 3가지 시장 스캔 전략 구현
+"""
 
 v5.7.5: Deep Scan 공통화 적용
 import time

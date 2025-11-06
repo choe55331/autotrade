@@ -1,6 +1,8 @@
+"""
 신규 API 테스트 스크립트
 - ka10047: 체결강도
 - ka90013: 프로그램매매
+"""
 import sys
 import os
 

@@ -1,5 +1,7 @@
+"""
 utils/performance_monitor.py
 실시간 성능 모니터링 시스템 (v5.11 NEW)
+"""
 
 Features:
 - 함수 실행 시간 측정

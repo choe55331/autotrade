@@ -1,5 +1,7 @@
+"""
 research/data_fetcher.py
 데이터 수집 모듈
+"""
 import logging
 from typing import Dict, Any, Optional, List
 from datetime import datetime, time

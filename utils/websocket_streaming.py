@@ -1,5 +1,7 @@
+"""
 Advanced WebSocket Streaming System - v5.13
 Real-time data streaming with connection management, backpressure, and optimization
+"""
 from dataclasses import dataclass, asdict
 from typing import Dict, List, Optional, Callable, Any, Set
 from datetime import datetime, timedelta

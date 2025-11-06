@@ -1,5 +1,7 @@
+"""
 strategy/risk/__init__.py
 통합 위험 관리 시스템
+"""
 
 기존 5개 risk 파일을 통합하는 인터페이스 제공
 import warnings

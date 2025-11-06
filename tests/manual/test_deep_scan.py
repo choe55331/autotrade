@@ -1,5 +1,7 @@
+"""
 Deep Scan 테스트 스크립트
 scan_strategies.py의 Deep Scan이 모든 데이터를 수집하는지 검증
+"""
 import sys
 import os
 

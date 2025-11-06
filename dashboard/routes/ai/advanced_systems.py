@@ -1,5 +1,7 @@
+"""
 Advanced Systems v4.2 Routes
 Handles Sentiment, Multi-Agent, Risk, Regime, Options, and HFT endpoints
+"""
 from flask import Blueprint, jsonify, request
 import random
 from .common import get_bot_instance

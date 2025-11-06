@@ -1,4 +1,6 @@
+"""
 대시보드 이슈 테스트 실행 스크립트
+"""
 
 사용법:
     python tests/manual_tests/run_dashboard_tests.py

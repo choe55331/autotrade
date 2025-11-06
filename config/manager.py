@@ -1,5 +1,7 @@
+"""
 AutoTrade Pro - Unified Configuration Manager
 통합 설정 관리자 (v5.6+ Enhanced)
+"""
 
 COMPREHENSIVE 개선:
 - 5개 설정 시스템을 단일 매니저로 통합

@@ -1,5 +1,7 @@
+"""
 AutoTrade Pro v5.4 - Modular Dashboard
 Modern, elegant dashboard with comprehensive AI-powered trading features
+"""
 
 v5.4 Improvements:
 - Modular route architecture (routes/, websocket/, utils/)

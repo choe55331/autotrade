@@ -1,5 +1,7 @@
+"""
 utils/chart_patterns.py
 고급 차트 패턴 인식 모듈 (v5.10 NEW)
+"""
 
 Features:
 - 캔들스틱 패턴 자동 인식

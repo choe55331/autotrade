@@ -1,5 +1,7 @@
+"""
 AutoTrade Pro v4.0 - 고급 백테스팅 리포트 생성기
 HTML/PDF 리포트 자동 생성 with 차트 및 통계
+"""
 
 주요 기능:
 - MDD, Sharpe Ratio, 승률 등 상세 지표

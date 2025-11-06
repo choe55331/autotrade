@@ -1,5 +1,7 @@
+"""
 v6.0 기능 검증 스크립트
 백엔드 기능들이 실제로 작동하는지 확인
+"""
 import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))

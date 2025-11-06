@@ -1,5 +1,7 @@
+"""
 Advanced Reinforcement Learning Algorithms
 Implements A3C, PPO, and SAC for optimal trading
+"""
 
 Author: AutoTrade Pro
 Version: 4.1

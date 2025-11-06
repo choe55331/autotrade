@@ -1,5 +1,7 @@
+"""
 Automated Trading Bot - v5.14
 Multi-strategy automated trading with risk management and position control
+"""
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any, Callable
 from datetime import datetime, timedelta

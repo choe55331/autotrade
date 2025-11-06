@@ -1,5 +1,7 @@
+"""
 NXT 실시간 현재가 조회 테스트 - WebSocket 활용
 목적: 종가 vs NXT 실시간 현재가 비교
+"""
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))

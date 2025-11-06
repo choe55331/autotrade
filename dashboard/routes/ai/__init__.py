@@ -1,5 +1,7 @@
+"""
 AI Routes Module - Modularized Structure
 Handles all AI-related API endpoints
+"""
 
 Modules:
 - ai_mode: AI Mode v3.6 (status, toggle, decision, learning, optimize)

@@ -1,5 +1,7 @@
+"""
 NXT 실시간 현재가 처리 모듈 - v5.15
 NXT 시장 시간대(15:30~20:00)의 실시간 현재가 정확한 반영
+"""
 from datetime import datetime, time
 from typing import Dict, Any, Optional
 import logging

@@ -1,5 +1,7 @@
+"""
 AutoTrade Pro - 통합 포지션 관리자
 모든 전략에서 공통으로 사용하는 포지션 관리 로직
+"""
 
 v4.2 CRITICAL
 from datetime import datetime

@@ -1,5 +1,7 @@
+"""
 Comprehensive Test Suite for v5.13 Enhancements
 WebSocket Streaming, Portfolio Optimization, Smart Execution
+"""
 import sys
 import os
 from datetime import datetime, timedelta

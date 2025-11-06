@@ -1,5 +1,7 @@
+"""
 Gemini API 테스트 스크립트
 SAFETY 블록 문제 진단용
+"""
 import sys
 import os
 

@@ -1,5 +1,7 @@
+"""
 main_v2.py
 AutoTrade Pro v2.0 - 통합된 자동매매 시스템
+"""
 import sys
 import time
 import signal

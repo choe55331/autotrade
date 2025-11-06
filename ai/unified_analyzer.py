@@ -1,6 +1,8 @@
+"""
 Unified AI Analyzer v6.1
 통합 AI 분석기 - Gemini 전용 (최적화)
 고도화된 프롬프트 엔지니어링 적용
+"""
 
 import os
 import json

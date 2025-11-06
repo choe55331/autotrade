@@ -1,5 +1,7 @@
+"""
 크로스 체크 기능 테스트 스크립트
 gemini-2.0-flash-exp vs gemini-2.5-flash 비교
+"""
 import os
 import sys
 import json

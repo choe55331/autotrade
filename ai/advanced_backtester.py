@@ -1,5 +1,7 @@
+"""
 ai/advanced_backtester.py
 고급 백테스팅 엔진 (v5.11 NEW)
+"""
 
 Features:
 - 다양한 전략 백테스팅

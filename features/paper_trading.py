@@ -1,5 +1,7 @@
+"""
 Paper Trading Engine
 Real-time virtual trading system for strategy testing and AI learning
+"""
 
 Features:
 - Multiple strategies running simultaneously

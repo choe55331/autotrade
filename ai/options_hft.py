@@ -1,5 +1,7 @@
+"""
 Options Pricing and High-Frequency Trading
 Advanced derivatives and ultra-fast trading systems
+"""
 
 Author: AutoTrade Pro
 Version: 4.2

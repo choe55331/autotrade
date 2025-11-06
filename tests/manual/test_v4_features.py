@@ -1,5 +1,7 @@
+"""
 AutoTrade Pro v4.0 기능 테스트 스크립트
 각 기능의 작동 여부, 통합성, 효율성을 검증합니다.
+"""
 
 import sys
 import traceback

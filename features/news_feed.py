@@ -1,5 +1,7 @@
+"""
 News Feed with Sentiment Analysis
 Real-time stock news fetching and AI sentiment analysis
+"""
 
 Features:
 - Fetch latest news for stocks

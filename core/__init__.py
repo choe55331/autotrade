@@ -1,5 +1,7 @@
+"""
 core 패키지
 핵심 API 클라이언트 + 표준 타입 시스템
+"""
 
 v4.2 CRITICAL
 - Position 클래스 통합 (4 → 1)

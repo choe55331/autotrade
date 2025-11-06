@@ -1,5 +1,7 @@
+"""
 strategy 패키지
 매매 전략 모듈
+"""
 
 v4.2 Changes:
 - Position now imported from core (standardized)

@@ -1,5 +1,7 @@
+"""
 features/status_monitor.py
 시스템 상태 모니터링 - Gemini, REST API, WebSocket, 테스트모드 연결 상태 추적
+"""
 import logging
 import time
 from typing import Dict, Any, Optional

@@ -1,5 +1,7 @@
+"""
 API 응답 구조 디버깅 스크립트
 ka90009와 ka10065의 실제 응답을 확인합니다.
+"""
 
 import sys
 import json

@@ -1,9 +1,11 @@
+"""
 create_optimized_api_list.py
 최적화된 최종 API 목록 생성:
 1. 완전 성공 API (모든 variant 성공)
 2. 부분 성공 API (성공한 variant만 포함)
 3. 문서 기반 최적화 제안
 4. 신규 API (문서에서 발견)
+"""
 import json
 from pathlib import Path
 from collections import defaultdict

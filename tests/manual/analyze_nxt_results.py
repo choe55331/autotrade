@@ -1,4 +1,6 @@
+"""
 NXT 테스트 결과 분석 스크립트
+"""
 
 사용법:
     python analyze_nxt_results.py test_results_nxt_YYYYMMDD_HHMMSS.json

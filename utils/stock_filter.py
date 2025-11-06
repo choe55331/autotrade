@@ -1,5 +1,7 @@
+"""
 utils/stock_filter.py
 종목 필터링 유틸리티
+"""
 
 
 ETF_KEYWORDS = [

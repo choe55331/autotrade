@@ -1,5 +1,7 @@
+"""
 NXT 현재가 조회 - 모든 방법 총망라 테스트
 목표: 가능한 모든 조합을 시도해서 성공하는 방법 찾기
+"""
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))

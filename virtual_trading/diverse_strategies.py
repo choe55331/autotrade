@@ -1,5 +1,7 @@
+"""
 virtual_trading/diverse_strategies.py
 12가지 다양한 실전 매매 전략 구현 (v5.7.5: 10개 → 12개 확장)
+"""
 
 User Requirement:
 "시중에 나온 다양한 매매 전략법을 완전 다른걸로 12개 해서 유리한 조합 테스트"

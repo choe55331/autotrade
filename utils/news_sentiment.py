@@ -1,5 +1,7 @@
+"""
 News Sentiment Analysis Module v6.0
 실시간 뉴스 크롤링 및 AI 감정 분석
+"""
 
 import asyncio
 from typing import List, Dict, Any, Optional

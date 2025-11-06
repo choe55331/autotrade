@@ -1,5 +1,7 @@
+"""
 features/realtime_alerts.py
 실시간 알림 시스템 (v5.10 NEW)
+"""
 
 Features:
 - 가격 알림 (목표가 도달, 손절가 도달)

@@ -1,5 +1,7 @@
+"""
 test_verified_and_corrected_apis.py
 검증된 API + 수정된 API 엄격한 데이터 검증 테스트
+"""
 
 test_all_394_calls.py처럼 실제 데이터 수신 여부를 확인:
 - return_code = 0

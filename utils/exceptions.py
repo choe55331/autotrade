@@ -1,5 +1,7 @@
+"""
 AutoTrade Pro - 표준화된 예외 클래스
 일관된 에러 핸들링을 위한 커스텀 예외
+"""
 from typing import Optional, Dict, Any
 
 

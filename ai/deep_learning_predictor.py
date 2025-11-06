@@ -1,5 +1,7 @@
+"""
 Deep Learning Price Predictor
 LSTM, CNN, and Transformer models for stock price prediction
+"""
 
 import numpy as np
 from typing import Dict, List, Any, Optional, Tuple

@@ -1,5 +1,7 @@
+"""
 AutoTrade Pro v4.0 - 전략 파라미터 자동 최적화
 Grid Search, Random Search, Bayesian Optimization 지원
+"""
 
 주요 기능:
 - 다양한 최적화 방법 지원

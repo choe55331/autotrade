@@ -1,5 +1,7 @@
+"""
 Advanced AI Package
 Next-generation AI trading system
+"""
 
 v4.0 Modules:
 - ML Predictor: Machine learning price prediction

@@ -1,5 +1,7 @@
+"""
 virtual_trading/virtual_trader.py
 가상 트레이더 - 여러 전략 동시 테스트
+"""
 
 v5.7.5: 12가지 다양한 실전 매매 전략 적용 (10개 → 12개 확장)
 v6.0: Data enrichment 추가 - 모든 전략이 필요로 하는 데이터 자동 보강

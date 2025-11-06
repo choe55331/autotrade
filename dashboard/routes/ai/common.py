@@ -1,5 +1,7 @@
+"""
 AI Routes - Common Utilities
 Shared utilities and bot instance management for AI routes
+"""
 
 _bot_instance = None
 

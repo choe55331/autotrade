@@ -1,5 +1,7 @@
+"""
 test_verified_apis.py
 검증된 347개 API 호출을 실제로 재테스트
+"""
 import os
 import sys
 import requests

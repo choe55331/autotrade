@@ -1,5 +1,7 @@
+"""
 AI Learning System
 Advanced machine learning for trading strategy optimization
+"""
 
 Features:
 - Pattern recognition from historical data

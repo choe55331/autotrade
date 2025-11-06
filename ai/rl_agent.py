@@ -1,5 +1,7 @@
+"""
 Reinforcement Learning Agent
 DQN-based autonomous trading agent
+"""
 
 Features:
 - Deep Q-Network (DQN) for action selection

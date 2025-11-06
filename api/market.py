@@ -1,5 +1,7 @@
+"""
 api/market.py
 시세 및 시장 정보 API (Backward Compatibility Wrapper)
+"""
 
 ⚠️ 이 파일은 backward compatibility를 위해 유지됩니다.
    실제 구현은 api/market/ 디렉토리의 모듈들로 이동되었습니다.

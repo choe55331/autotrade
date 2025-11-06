@@ -1,5 +1,7 @@
+"""
 Real-time Trading Activity Monitor
 실시간 매매 활동 추적
+"""
 from typing import Dict, List, Any, Optional
 from datetime import datetime
 from collections import deque

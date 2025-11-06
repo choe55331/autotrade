@@ -1,5 +1,7 @@
+"""
 strategy/scoring_system.py
 10가지 기준 스코어링 시스템 (440점 만점)
+"""
 
 v5.9 Performance Enhancements:
 - 캐싱: 동일 종목 중복 계산 방지 (30초 TTL)

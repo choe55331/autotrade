@@ -1,5 +1,7 @@
+"""
 NXT 실시간 가격 변동 확인
 목적: 시간차를 두고 여러 번 조회해서 실시간 변동 확인
+"""
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))

@@ -1,5 +1,7 @@
+"""
 AutoTrade Pro - Unified Configuration Schema
 Pydantic 기반 통합 설정 스키마 (v5.6+ Comprehensive)
+"""
 
 COMPREHENSIVE 개선:
 - 5개 설정 시스템 통합 → 단일 Pydantic 스키마

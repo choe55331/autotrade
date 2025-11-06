@@ -1,5 +1,7 @@
+"""
 HTML page routes for dashboard UI
 Serves different dashboard variations and configuration pages
+"""
 from flask import Blueprint, render_template
 
 pages_bp = Blueprint('pages', __name__)
