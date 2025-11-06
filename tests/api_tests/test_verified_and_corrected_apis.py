@@ -3,11 +3,13 @@ test_verified_and_corrected_apis.py
 검증된 API + 수정된 API 엄격한 데이터 검증 테스트
 """
 
+"""
 test_all_394_calls.py처럼 실제 데이터 수신 여부를 확인:
 - return_code = 0
 - 데이터 키 존재 (return_code, return_msg 제외)
 - 데이터가 비어있지 않음
 - LIST는 실제 아이템 포함
+"""
 import json
 import sys
 from pathlib import Path

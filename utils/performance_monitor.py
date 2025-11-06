@@ -3,12 +3,14 @@ utils/performance_monitor.py
 실시간 성능 모니터링 시스템 (v5.11 NEW)
 """
 
+"""
 Features:
 - 함수 실행 시간 측정
 - 메모리 사용량 추적
 - API 호출 속도 모니터링
 - 병목 지점 자동 감지
 - 성능 리포트 생성
+"""
 from typing import Dict, Any, List, Optional, Callable
 from dataclasses import dataclass, field
 from datetime import datetime

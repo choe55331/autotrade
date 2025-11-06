@@ -3,8 +3,10 @@ api/api_definitions.py
 키움증권 REST API 통합 정의 모듈
 """
 
+"""
 전체 100개 이상의 키움증권 REST API를 통합 관리합니다.
 공식 문서: https://github.com/kiwoom-retail/Kiwoom-Securities
+"""
 
 from .kiwoom_api_specs import (
     ENVIRONMENTS,

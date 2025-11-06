@@ -3,6 +3,7 @@ AutoTrade Pro v4.0 - FastAPI REST API Server
 완전한 REST API 엔드포인트 제공
 """
 
+"""
 주요 기능:
 - 계좌 조회 및 관리
 - 종목 분석 및 검색
@@ -10,6 +11,7 @@ AutoTrade Pro v4.0 - FastAPI REST API Server
 - 백테스팅 및 최적화
 - 시스템 모니터링
 - 설정 관리
+"""
 import sys
 from pathlib import Path
 from typing import Dict, Any, List, Optional

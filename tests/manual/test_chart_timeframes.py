@@ -2,11 +2,15 @@
 차트 분봉 데이터 조회 테스트
 """
 
+"""
 일봉, 1분봉, 3분봉, 5분봉, 10분봉, 60분봉을 모두 테스트하여
 성공하는 API ID와 파라미터 조합을 찾습니다.
+"""
 
+"""
 실행 방법:
     python tests/manual_tests/test_chart_timeframes.py
+"""
 
 import sys
 from pathlib import Path

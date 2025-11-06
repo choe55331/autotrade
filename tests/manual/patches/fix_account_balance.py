@@ -4,10 +4,12 @@
 해결: 예수금 - 보유주식 구매원가
 """
 
+"""
 다양한 접근법:
 1. approach_1: 예수금(dps_amt) - 총 구매원가(pchs_amt)
 2. approach_2: 예수금에서 보유주식 평균단가*수량 차감
 3. approach_3: 계좌평가현황 API의 계산된 값 사용
+"""
 
 from typing import Dict, Any, List
 

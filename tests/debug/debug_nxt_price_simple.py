@@ -135,8 +135,10 @@ def extract_price(response: dict, api_id: str):
 def main():
     """메인 테스트"""
     print(f"\n{'#'*80}")
-    print(f"
-    print(f"
+    print(f"")
+
+    print(f"")
+
     print(f"{'#'*80}")
 
     print(f"\n{BLUE}클라이언트 초기화 중...{RESET}")

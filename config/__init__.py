@@ -1,11 +1,11 @@
 """
 config 패키지
 설정 관리 모듈
-"""
 
 v4.2 Changes:
 - New unified config system with Pydantic (schemas.py + manager.py)
 - Backward compatible with all existing config systems
+"""
 from .settings import (
     LOG_CONFIG,
     FILE_PATHS,

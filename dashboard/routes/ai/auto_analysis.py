@@ -85,12 +85,12 @@ def get_position_monitor():
 
                     signal = 'HOLD'
                     signal_reason = '현재 보유 유지'
-                    signal_color = '
+                    signal_color = 'gray'
 
                     if profit_pct < -5:
                         signal = 'SELL'
                         signal_reason = f'손실 {abs(profit_pct):.1f}% - 손절 검토'
-                        signal_color = '
+                        signal_color = 'red'
                         alerts.append({
                             'stock': stock_name,
                             'type': 'loss',
@@ -99,15 +99,15 @@ def get_position_monitor():
                     elif ai_grade in ['D', 'F']:
                         signal = 'SELL'
                         signal_reason = f'AI 등급 {ai_grade} - 매도 고려'
-                        signal_color = '
+                        signal_color = 'red'
                     elif profit_pct > 15:
                         signal = 'TAKE_PROFIT'
                         signal_reason = f'수익 {profit_pct:.1f}% - 익절 고려'
-                        signal_color = '
+                        signal_color = 'green'
                     elif ai_grade in ['S', 'A'] and profit_pct > 0:
                         signal = 'HOLD'
                         signal_reason = f'AI 등급 {ai_grade} - 보유 추천'
-                        signal_color = '
+                        signal_color = 'blue'
 
                     stop_loss_price = int(buy_price * 0.95)
                     take_profit_price = int(buy_price * 1.15)

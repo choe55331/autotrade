@@ -392,11 +392,13 @@ class DataCollectionTester:
         if 'ka10081' in results['methods_used']['volume_volatility']:
             print("\n1. 평균거래량/변동성:")
             print("   daily_data = self.market_api.get_daily_chart(candidate.code, period=20)")
-            print("
+            print("")
+
 
         if results['methods_used']['broker_trading'] == 'individual_firm_query':
             print("\n2. 증권사별매매:")
-            print("
+            print("")
+
             print("   major_firms = [('001', '한국투자증권'), ...]")
             print("   for firm_code, firm_name in major_firms:")
             print("       data = self.market_api.get_securities_firm_trading(firm_code, stock_code, days=5)")
@@ -404,12 +406,14 @@ class DataCollectionTester:
         if results['methods_used']['execution_intensity'] == 'get_execution_intensity':
             print("\n3. 체결강도:")
             print("   data = self.market_api.get_execution_intensity(candidate.code)")
-            print("
+            print("")
+
 
         if results['methods_used']['program_trading'] == 'get_program_trading':
             print("\n4. 프로그램매매:")
             print("   data = self.market_api.get_program_trading(candidate.code)")
-            print("
+            print("")
+
 
 
 def main():

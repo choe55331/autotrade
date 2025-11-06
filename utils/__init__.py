@@ -3,9 +3,11 @@ utils 패키지
 유틸리티 모듈
 """
 
+"""
 v4.2 CRITICAL 개선:
 - 통합 로깅 시스템 (logger.py, logger_new.py, rate_limited_logger.py → logger_new.py)
 - 3→1 로거 통합으로 80% I/O 감소
+"""
 
 from .logger_new import (
     get_logger,

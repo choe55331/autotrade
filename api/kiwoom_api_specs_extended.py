@@ -3,7 +3,9 @@ api/kiwoom_api_specs_extended.py
 키움증권 REST API 확장 사양 (시세, 순위, 차트, 종목정보 등)
 """
 
+"""
 공식 문서 기반: https://github.com/kiwoom-retail/Kiwoom-Securities
+"""
 
 
 MARKET_DATA_APIS = {

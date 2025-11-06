@@ -2,10 +2,14 @@
 대시보드 이슈 원클릭 테스트
 """
 
+"""
 사용법:
     python test_dashboard.py
+"""
 
+"""
 모든 테스트를 자동으로 실행하고 결과를 표시합니다.
+"""
 
 import sys
 import os

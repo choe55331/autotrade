@@ -361,7 +361,7 @@ def get_chart_data(stock_code: str):
                             indicators['volume'].append({
                                 'time': time_value,
                                 'value': float(item.get('volume', 0)),
-                                'color': '
+                                'color': 'rgba(76, 175, 80, 0.5)'
                             })
 
                             if not pd.isna(sma_5.iloc[idx]):

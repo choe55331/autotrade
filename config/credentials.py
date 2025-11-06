@@ -3,10 +3,12 @@ config/credentials.py
 API 키 및 민감정보 관리
 """
 
+"""
 로딩 우선순위:
 1. _immutable/credentials/secrets.json (최우선)
 2. 환경변수 (.env)
 3. 기본값
+"""
 import os
 import json
 from pathlib import Path
