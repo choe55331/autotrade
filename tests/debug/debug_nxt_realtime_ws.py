@@ -252,7 +252,7 @@ async def main():
             print(f"{RED}클라이언트 초기화 실패{RESET}")
             return
 
-        if not bot.websocket_manager or not bot.websocket_manager.connected:
+        if not bot.websocket_manager or not bot.websocket_manager.is_connected:
             print(f"{RED}WebSocket 연결 실패{RESET}")
             return
 
