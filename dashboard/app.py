@@ -72,6 +72,7 @@ from .routes.system import (
     set_config_manager as system_set_config_manager,
     set_unified_settings as system_set_unified_settings
 )
+from .routes.monitoring import monitoring_bp
 
 app.register_blueprint(account_bp)
 app.register_blueprint(trading_bp)
@@ -81,6 +82,7 @@ app.register_blueprint(portfolio_bp)
 app.register_blueprint(system_bp)
 app.register_blueprint(pages_bp)
 app.register_blueprint(alerts_bp)
+app.register_blueprint(monitoring_bp)
 
 from .websocket import register_websocket_handlers
 register_websocket_handlers(socketio)
