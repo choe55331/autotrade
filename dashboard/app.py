@@ -65,14 +65,16 @@ realtime_chart_manager = None
 
 # Import all route blueprints
 from .routes import (
-    account_bp, trading_bp, ai_bp, market_bp,
+    account_bp, trading_bp, market_bp,
     portfolio_bp, system_bp, pages_bp, alerts_bp  # v5.7.5: 알림 시스템
 )
+
+# Import AI routes registration function (v5.7.5: modularized AI routes)
+from .routes.ai import register_ai_routes, set_bot_instance as ai_set_bot
 
 # Import route setter functions
 from .routes.account import set_bot_instance as account_set_bot
 from .routes.trading import set_bot_instance as trading_set_bot, set_socketio as trading_set_socketio
-from .routes.ai import set_bot_instance as ai_set_bot
 from .routes.market import set_bot_instance as market_set_bot, set_realtime_chart_manager as market_set_chart_manager
 from .routes.portfolio import set_bot_instance as portfolio_set_bot
 from .routes.system import (
@@ -84,7 +86,7 @@ from .routes.system import (
 # Register all blueprints
 app.register_blueprint(account_bp)
 app.register_blueprint(trading_bp)
-app.register_blueprint(ai_bp)
+register_ai_routes(app)  # v5.7.5: Register modularized AI routes (6 sub-blueprints, 34 endpoints)
 app.register_blueprint(market_bp)
 app.register_blueprint(portfolio_bp)
 app.register_blueprint(system_bp)
