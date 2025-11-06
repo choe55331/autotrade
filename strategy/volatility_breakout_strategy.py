@@ -11,6 +11,11 @@ import logging
 from typing import Dict, Any, Optional, List
 from datetime import datetime, time
 
+# 공통 유틸리티 임포트
+from utils.time_utils import parse_time_string
+from utils.profit_calculator import calculate_profit_loss, calculate_profit_loss_rate
+from utils.position_calculator import calculate_position_size_by_ratio
+
 logger = logging.getLogger(__name__)
 
 
@@ -34,8 +39,8 @@ class VolatilityBreakoutStrategy:
         """
         self.settings = settings or {}
         self.k_value = self.settings.get('k_value', 0.5)
-        self.entry_time = self._parse_time(self.settings.get('entry_time', '09:05'))
-        self.exit_time = self._parse_time(self.settings.get('exit_time', '15:15'))
+        self.entry_time = parse_time_string(self.settings.get('entry_time', '09:05'))
+        self.exit_time = parse_time_string(self.settings.get('exit_time', '15:15'))
         self.use_volume_filter = self.settings.get('use_volume_filter', True)
         self.min_volume_ratio = self.settings.get('min_volume_ratio', 1.2)
         self.stop_loss_pct = self.settings.get('stop_loss_pct', 0.03)
@@ -48,11 +53,6 @@ class VolatilityBreakoutStrategy:
             f"변동성 돌파 전략 초기화: K={self.k_value}, "
             f"진입={self.entry_time}, 청산={self.exit_time}"
         )
-
-    def _parse_time(self, time_str: str) -> time:
-        """시간 문자열 파싱"""
-        hour, minute = map(int, time_str.split(':'))
-        return time(hour, minute)
 
     def update_daily_range(
         self,
@@ -208,8 +208,17 @@ class VolatilityBreakoutStrategy:
             return
 
         position = self.positions[stock_code]
-        profit_loss = (exit_price - position['entry_price']) * position['quantity']
-        profit_loss_pct = (exit_price - position['entry_price']) / position['entry_price'] * 100
+
+        # 공통 유틸리티를 사용한 손익 계산
+        profit_loss = calculate_profit_loss(
+            entry_price=position['entry_price'],
+            exit_price=exit_price,
+            quantity=position['quantity']
+        )
+        profit_loss_pct = calculate_profit_loss_rate(
+            entry_price=position['entry_price'],
+            exit_price=exit_price
+        )
 
         logger.info(
             f"[{stock_code}] 포지션 청산: "
@@ -234,7 +243,7 @@ class VolatilityBreakoutStrategy:
         max_position_ratio: float = 0.10
     ) -> int:
         """
-        포지션 크기 계산
+        포지션 크기 계산 (공통 유틸리티 사용)
 
         Args:
             total_capital: 총 자본금
@@ -244,9 +253,15 @@ class VolatilityBreakoutStrategy:
         Returns:
             매수 수량
         """
-        max_amount = total_capital * max_position_ratio
-        quantity = int(max_amount / current_price)
-        return max(1, quantity)
+        # 공통 유틸리티를 사용한 포지션 사이즈 계산
+        quantity = calculate_position_size_by_ratio(
+            capital=total_capital,
+            price=current_price,
+            ratio=max_position_ratio,
+            commission_rate=0.00015,
+            min_quantity=1
+        )
+        return quantity
 
 
 # 테스트
