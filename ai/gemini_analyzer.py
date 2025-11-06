@@ -544,7 +544,86 @@ class GeminiAnalyzer(BaseAnalyzer):
         response_text: str,
         stock_data: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """종목 분석 응답 파싱 - 관심도, 분할매수, 근거, 경고 추출"""
+        """종목 분석 응답 파싱 - JSON 또는 텍스트 형식 모두 지원"""
+
+        # v6.0.1: JSON 응답 처리 추가
+        try:
+            # JSON 블록 찾기 (```json ... ``` 또는 { ... })
+            import re
+            import json
+
+            # Clean response text - remove leading/trailing whitespace
+            cleaned_text = response_text.strip()
+
+            # Try to extract JSON from markdown code blocks
+            json_match = re.search(r'```json\s*\n(.*?)\n```', cleaned_text, re.DOTALL)
+            if json_match:
+                json_str = json_match.group(1)
+            else:
+                # Try to find raw JSON object
+                json_match = re.search(r'\{.*\}', cleaned_text, re.DOTALL)
+                if json_match:
+                    json_str = json_match.group(0)
+                else:
+                    json_str = None
+
+            # Try parsing JSON
+            if json_str:
+                try:
+                    data = json.loads(json_str.strip())
+
+                    # Extract values from JSON response
+                    signal_map = {
+                        'STRONG_BUY': 'buy',
+                        'BUY': 'buy',
+                        'WEAK_BUY': 'buy',
+                        'HOLD': 'hold',
+                        'WEAK_SELL': 'sell',
+                        'SELL': 'sell',
+                        'STRONG_SELL': 'sell'
+                    }
+
+                    signal = signal_map.get(data.get('signal', 'HOLD').upper(), 'hold')
+
+                    # Extract detailed reasoning
+                    reasons = []
+                    if 'detailed_reasoning' in data:
+                        reasons.append(data['detailed_reasoning'])
+                    if 'key_insights' in data:
+                        reasons.extend(data['key_insights'])
+
+                    # Extract warnings
+                    warnings = data.get('warnings', [])
+
+                    # Extract trading plan
+                    trading_plan = data.get('trading_plan', {})
+                    entry_strategy = trading_plan.get('entry_strategy', '')
+
+                    result = {
+                        'score': 0,  # AI는 점수 안 줌 (scoring_system이 계산)
+                        'signal': signal,
+                        'split_strategy': entry_strategy,
+                        'confidence': data.get('confidence_level', 'Medium'),
+                        'recommendation': signal,
+                        'reasons': reasons if reasons else [cleaned_text],
+                        'risks': warnings,
+                        'target_price': int(stock_data.get('current_price', 0) * 1.1),
+                        'stop_loss_price': int(stock_data.get('current_price', 0) * 0.95),
+                        'analysis_text': cleaned_text,
+                    }
+
+                    logger.info(f"✅ JSON 응답 파싱 성공: {signal}")
+                    return result
+
+                except json.JSONDecodeError as e:
+                    logger.warning(f"JSON 파싱 실패, 텍스트 파싱으로 전환: {e}")
+                    # Fall through to text parsing
+
+        except Exception as e:
+            logger.warning(f"JSON 처리 중 에러, 텍스트 파싱으로 전환: {e}")
+            # Fall through to text parsing
+
+        # ===== 기존 텍스트 파싱 로직 (Fallback) =====
         lines = response_text.split('\n')
 
         # 관심도 찾기 (높음 → buy, 보통 → hold)
@@ -640,7 +719,7 @@ class GeminiAnalyzer(BaseAnalyzer):
             'analysis_text': response_text,
         }
 
-        logger.debug(f"AI 결정: {signal}, 분할매수: {split_strategy[:50]}..., 경고: {warning[:30] if warning else 'N/A'}")
+        logger.debug(f"텍스트 파싱: AI 결정={signal}")
 
         return result
     
