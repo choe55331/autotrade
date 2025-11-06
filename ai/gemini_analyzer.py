@@ -17,8 +17,48 @@ class GeminiAnalyzer(BaseAnalyzer):
     Gemini API를 사용한 종목/시장 분석
     """
 
-    # 종목 분석 프롬프트 템플릿 (v6.1 - ULTRA ENHANCED)
-    STOCK_ANALYSIS_PROMPT_TEMPLATE = """# 🎯 PROFESSIONAL QUANTITATIVE TRADING ANALYSIS REQUEST (v6.1 - Gemini Pro)
+    # 종목 분석 프롬프트 템플릿 (v6.1.1 - SIMPLIFIED FOR RELIABILITY)
+    # 복잡한 프롬프트는 JSON 생성 실패 가능성이 높음 - 간소화
+    STOCK_ANALYSIS_PROMPT_TEMPLATE_SIMPLE = """# 종목 투자 분석 요청
+
+당신은 전문 트레이더입니다. 다음 종목을 분석하여 **반드시 JSON 형식으로만** 응답하세요.
+
+## 종목 정보
+- 종목: {stock_name} ({stock_code})
+- 현재가: {current_price:,}원
+- 등락률: {change_rate:+.2f}%
+- 거래량: {volume:,}주
+
+## 평가 점수
+- 종합 점수: {score}/{percentage:.1f}%
+- 세부 점수:
+{score_breakdown_detailed}
+
+## 투자자 동향
+- 기관 순매수: {institutional_net_buy:,}원
+- 외국인 순매수: {foreign_net_buy:,}원
+- 매수호가 비율: {bid_ask_ratio:.2f}
+
+## 포트폴리오
+{portfolio_info}
+
+---
+
+**중요: 반드시 아래 JSON 형식으로만 응답하세요. 다른 텍스트는 포함하지 마세요.**
+
+```json
+{{
+  "signal": "buy" 또는 "hold" 또는 "sell",
+  "confidence_level": "Very High" 또는 "High" 또는 "Medium" 또는 "Low",
+  "overall_score": 0.0~10.0 사이의 숫자,
+  "reasons": ["이유1", "이유2", "이유3"],
+  "risks": ["리스크1", "리스크2"],
+  "detailed_reasoning": "상세 분석 (3-5문장)"
+}}
+```"""
+
+    # 종목 분석 프롬프트 템플릿 (v6.1 - ULTRA ENHANCED - 복잡함, 실패 가능성 높음)
+    STOCK_ANALYSIS_PROMPT_TEMPLATE_COMPLEX = """# 🎯 PROFESSIONAL QUANTITATIVE TRADING ANALYSIS REQUEST (v6.1 - Gemini Pro)
 
 당신은 20년 이상의 경력을 가진 퀀트 헤지펀드 매니저이자 리스크 관리 전문가입니다.
 다음 한국 주식에 대한 심층 분석을 수행해주세요.
@@ -411,8 +451,9 @@ class GeminiAnalyzer(BaseAnalyzer):
                 foreign_net_buy = stock_data.get('foreign_net_buy', 0)
                 bid_ask_ratio = stock_data.get('bid_ask_ratio', 1.0)
 
-                # 프롬프트 템플릿 사용
-                prompt = self.STOCK_ANALYSIS_PROMPT_TEMPLATE.format(
+                # v6.1.1: 간단한 프롬프트 사용 (신뢰성 향상)
+                # 복잡한 프롬프트는 JSON 생성 실패율이 높음
+                prompt = self.STOCK_ANALYSIS_PROMPT_TEMPLATE_SIMPLE.format(
                     stock_name=stock_data.get('stock_name', ''),
                     stock_code=stock_data.get('stock_code', ''),
                     current_price=stock_data.get('current_price', 0),
@@ -451,8 +492,19 @@ class GeminiAnalyzer(BaseAnalyzer):
                     reason_name = reason_map.get(finish_reason, f"UNKNOWN({finish_reason})")
                     raise ValueError(f"Gemini blocked: {reason_name}")
 
+                # 응답 텍스트 검증 (v6.1.1 - 빈 응답 체크 추가)
+                if not hasattr(response, 'text'):
+                    raise ValueError("Gemini API response has no 'text' attribute")
+
+                response_text = response.text
+                if not response_text or len(response_text.strip()) == 0:
+                    raise ValueError("Gemini API returned empty response")
+
+                # 디버깅: 응답 길이 로깅
+                logger.debug(f"Gemini 응답 길이: {len(response_text)} chars")
+
                 # 응답 파싱
-                result = self._parse_stock_analysis_response(response.text, stock_data)
+                result = self._parse_stock_analysis_response(response_text, stock_data)
 
                 # v5.7.5: 캐시에 저장
                 self._analysis_cache[cache_key] = {
@@ -614,7 +666,16 @@ class GeminiAnalyzer(BaseAnalyzer):
         response_text: str,
         stock_data: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """종목 분석 응답 파싱 - JSON 또는 텍스트 형식 모두 지원 (v6.1 강화)"""
+        """종목 분석 응답 파싱 - JSON 또는 텍스트 형식 모두 지원 (v6.1.1 강화)"""
+
+        # v6.1.1: 응답 텍스트 검증 추가
+        if not response_text:
+            logger.error("빈 응답 텍스트를 받았습니다")
+            raise ValueError("Empty response text")
+
+        # 응답 미리보기 로깅 (디버깅용)
+        preview_len = min(300, len(response_text))
+        logger.debug(f"응답 미리보기 ({preview_len}/{len(response_text)} chars): {response_text[:preview_len]}")
 
         # v6.1: 더 강력한 JSON 파싱
         try:
@@ -724,14 +785,24 @@ class GeminiAnalyzer(BaseAnalyzer):
                     return result
 
                 except json.JSONDecodeError as e:
-                    logger.warning(f"JSON 파싱 실패 (위치: {e.pos}), 텍스트 파싱으로 전환")
-                    logger.warning(f"JSON 문자열 샘플: {json_str[:200]}...")
+                    # v6.1.1: 더 상세한 에러 로깅
+                    logger.warning(f"JSON 파싱 실패 (위치: {e.pos}, 메시지: {e.msg}), 텍스트 파싱으로 전환")
+                    if json_str:
+                        error_context = json_str[max(0, e.pos-50):min(len(json_str), e.pos+50)]
+                        logger.warning(f"에러 컨텍스트: ...{error_context}...")
+                        logger.warning(f"JSON 문자열 샘플 (처음 200자): {json_str[:200]}")
+                    else:
+                        logger.warning("JSON 문자열이 None입니다")
                 except Exception as e:
-                    logger.warning(f"JSON 처리 중 에러: {e}, 텍스트 파싱으로 전환")
-                    logger.warning(f"JSON 문자열 샘플: {json_str[:200] if json_str else 'N/A'}...")
+                    logger.warning(f"JSON 처리 중 예외: {type(e).__name__}: {e}, 텍스트 파싱으로 전환")
+                    if json_str:
+                        logger.warning(f"JSON 문자열 샘플: {json_str[:200]}")
+                    else:
+                        logger.warning("JSON 문자열이 None입니다")
 
         except Exception as e:
-            logger.warning(f"JSON 추출 실패: {e}, 텍스트 파싱으로 전환")
+            logger.warning(f"JSON 추출 중 예외 발생: {type(e).__name__}: {e}, 텍스트 파싱으로 전환")
+            logger.debug(f"원본 응답 (처음 500자): {response_text[:500]}")
 
         # ===== Fallback: 간단한 텍스트 파싱 =====
         logger.info("텍스트 파싱 모드로 전환")
