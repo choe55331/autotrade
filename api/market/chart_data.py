@@ -1,12 +1,12 @@
 """
 api/market/chart_data.py
 차트 및 히스토리컬 데이터 조회 API (Enhanced v5.9)
-"""
 
 v5.9 개선사항:
 - 분봉 차트 데이터 조회 추가 (1/5/15/30/60분)
 - 다양한 시간프레임 지원
 - 데이터 검증 및 에러 핸들링 강화
+"""
 import logging
 from typing import Dict, Any, List, Literal
 from utils.trading_date import get_last_trading_date
@@ -39,7 +39,7 @@ class ChartDataAPI:
         period: int = 20,
         date: str = None
     ) -> List[Dict[str, Any]]:
-        일봉 차트 데이터 조회 (ka10081 사용)
+        """일봉 차트 데이터 조회 (ka10081 사용)
 
         Args:
             stock_code: 종목코드
@@ -59,6 +59,7 @@ class ChartDataAPI:
                 },
                 ...
             ]
+        """
         if not date:
             date = get_last_trading_date()
 
@@ -104,7 +105,7 @@ class ChartDataAPI:
         count: int = 100,
         adjusted: bool = True
     ) -> List[Dict[str, Any]]:
-        분봉 차트 데이터 조회 (ka10080 사용) - v5.9 NEW
+        """분봉 차트 데이터 조회 (ka10080 사용) - v5.9 NEW
 
         Args:
             stock_code: 종목코드
@@ -126,6 +127,7 @@ class ChartDataAPI:
                 },
                 ...
             ]
+        """
         valid_intervals = [1, 5, 15, 30, 60]
         if interval not in valid_intervals:
             logger.error(f"유효하지 않은 분봉 간격: {interval}분. 유효한 값: {valid_intervals}")
@@ -179,7 +181,7 @@ class ChartDataAPI:
         stock_code: str,
         timeframes: List[Literal[1, 5, 15, 30, 60, 'daily']] = [1, 5, 15, 'daily']
     ) -> Dict[str, List[Dict[str, Any]]]:
-        다중 시간프레임 차트 데이터 한번에 조회 - v5.9 NEW
+        """다중 시간프레임 차트 데이터 한번에 조회 - v5.9 NEW
 
         Args:
             stock_code: 종목코드
@@ -194,6 +196,7 @@ class ChartDataAPI:
                 '15': [...],
                 'daily': [...]
             }
+        """
         result = {}
 
         for tf in timeframes:
@@ -241,7 +244,7 @@ def get_minute_chart(
     count: int = 100,
     adjusted: bool = True
 ) -> List[Dict[str, Any]]:
-    분봉 차트 데이터 조회 (standalone function) - v5.9 NEW
+    """분봉 차트 데이터 조회 (standalone function) - v5.9 NEW
 
     Args:
         stock_code: 종목코드
@@ -251,6 +254,7 @@ def get_minute_chart(
 
     Returns:
         분봉 데이터 리스트
+    """
     from core.rest_client import KiwoomRESTClient
 
     client = KiwoomRESTClient.get_instance()
@@ -262,7 +266,7 @@ def get_multi_timeframe_data(
     stock_code: str,
     timeframes: List[Literal[1, 5, 15, 30, 60, 'daily']] = [1, 5, 15, 'daily']
 ) -> Dict[str, List[Dict[str, Any]]]:
-    다중 시간프레임 데이터 조회 (standalone function) - v5.9 NEW
+    """다중 시간프레임 데이터 조회 (standalone function) - v5.9 NEW
 
     Args:
         stock_code: 종목코드
@@ -270,6 +274,7 @@ def get_multi_timeframe_data(
 
     Returns:
         시간프레임별 데이터 딕셔너리
+    """
     from core.rest_client import KiwoomRESTClient
 
     client = KiwoomRESTClient.get_instance()
