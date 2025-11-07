@@ -96,13 +96,21 @@ class Kiwoom64BitAPI:
                 return False
             print("✅ OCX 등록 확인됨\n")
 
-            # COM 아파트먼트 초기화
-            pythoncom.CoInitialize()
+            # COM 아파트먼트 초기화 (STA 모델 명시)
+            pythoncom.CoInitializeEx(pythoncom.COINIT_APARTMENTTHREADED)
 
-            # ProgID 확인
+            # ProgID 확인 (DispatchWithEvents 사용)
             try:
-                self.ocx = win32com.client.Dispatch("KHOPENAPI.KHOpenAPICtrl.1")
+                self.ocx = win32com.client.DispatchWithEvents(
+                    "KHOPENAPI.KHOpenAPICtrl.1",
+                    KiwoomEventHandler
+                )
                 print("✅ ActiveX 컨트롤 생성 성공 (KHOPENAPI.KHOpenAPICtrl.1)")
+
+                # 전역 인스턴스 설정 (이벤트 핸들러에서 접근)
+                global kiwoom_instance
+                kiwoom_instance = self
+
             except Exception as e:
                 print(f"❌ ActiveX 컨트롤 생성 실패: {e}")
                 print("\n💡 해결 방법:")
@@ -112,14 +120,8 @@ class Kiwoom64BitAPI:
                 print("   3. 관리자 권한으로 OCX 등록:")
                 print("      regsvr32 C:\\OpenApi\\KHOpenAPI64.ocx")
                 print("   4. 다른 Kiwoom 프로그램 종료 (HTS, API 등)")
+                print("   5. PC 재부팅 후 재시도")
                 return False
-
-            # 이벤트 핸들러 연결
-            win32com.client.WithEvents(self.ocx, KiwoomEventHandler)
-
-            # 전역 인스턴스 설정
-            global kiwoom_instance
-            kiwoom_instance = self
 
             return True
 
@@ -129,51 +131,93 @@ class Kiwoom64BitAPI:
             traceback.print_exc()
             return False
 
-    def login(self, timeout=30):
+    def login(self, timeout=60):
         """로그인"""
         try:
             print("🔐 로그인 시도 중...")
             print("   로그인 창이 나타나면 ID/PW를 입력하세요...\n")
 
+            # 메시지 큐를 먼저 비움
+            pythoncom.PumpWaitingMessages()
+            time.sleep(0.5)
+
             ret = self.ocx.CommConnect()
 
             if ret == 0:
                 print("✅ 로그인 요청 전송 완료")
+                print(f"   최대 {timeout}초 대기 중...\n")
 
-                # 이벤트 대기
+                # 이벤트 대기 - 메시지 루프를 더 적극적으로 처리
                 start_time = time.time()
                 while not self.is_connected and (time.time() - start_time) < timeout:
                     pythoncom.PumpWaitingMessages()
-                    time.sleep(0.1)
+                    time.sleep(0.05)  # 더 짧은 간격으로 체크
 
                 if self.is_connected:
                     print("\n✅ 로그인 성공!\n")
 
                     # 계정 정보 출력
-                    account_cnt = self.ocx.GetLoginInfo("ACCOUNT_CNT")
-                    accounts = self.ocx.GetLoginInfo("ACCNO")
-                    user_id = self.ocx.GetLoginInfo("USER_ID")
-                    user_name = self.ocx.GetLoginInfo("USER_NM")
+                    try:
+                        account_cnt = self.ocx.GetLoginInfo("ACCOUNT_CNT")
+                        accounts = self.ocx.GetLoginInfo("ACCNO")
+                        user_id = self.ocx.GetLoginInfo("USER_ID")
+                        user_name = self.ocx.GetLoginInfo("USER_NM")
 
-                    print("📋 로그인 정보:")
-                    print(f"   사용자 ID: {user_id}")
-                    print(f"   사용자명: {user_name}")
-                    print(f"   보유 계좌수: {account_cnt}")
-                    print(f"   계좌번호: {accounts}")
-                    print()
+                        print("📋 로그인 정보:")
+                        print(f"   사용자 ID: {user_id}")
+                        print(f"   사용자명: {user_name}")
+                        print(f"   보유 계좌수: {account_cnt}")
+                        print(f"   계좌번호: {accounts}")
+                        print()
+                    except Exception as e:
+                        print(f"⚠️  로그인 정보 조회 중 오류: {e}")
 
                     return True
                 else:
                     print(f"\n❌ 로그인 시간 초과 ({timeout}초)")
+                    print("\n💡 해결 방법:")
+                    print("   1. 로그인 창이 표시되지 않았다면:")
+                    print("      - 작업 관리자에서 모든 KH* 프로세스 종료")
+                    print("      - PC 재부팅")
+                    print("   2. 로그인 창은 나타났지만 로그인이 안된다면:")
+                    print("      - ID/PW 확인")
+                    print("      - 인증서 확인")
                     return False
             else:
                 print(f"❌ 로그인 요청 실패 (ret={ret})")
+                print("\n💡 가능한 원인:")
+                if ret == -100:
+                    print("   - 사용자 정보 교환 실패")
+                elif ret == -101:
+                    print("   - 서버 접속 실패")
+                elif ret == -102:
+                    print("   - 버전처리 실패")
+                else:
+                    print(f"   - 알 수 없는 오류 코드: {ret}")
+                print("\n   해결: 진단 도구 실행 (python diagnose_kiwoom_64bit.py)")
                 return False
 
         except Exception as e:
+            error_code = getattr(e, 'args', [None])[0]
             print(f"❌ 로그인 중 오류: {e}")
-            import traceback
-            traceback.print_exc()
+
+            if error_code == -2147418113:  # RPC_E_CALL_REJECTED
+                print("\n💡 오류 분석 (0x8001011F = RPC_E_CALL_REJECTED):")
+                print("   COM 호출이 거부되었습니다.")
+                print("\n   가능한 원인:")
+                print("   1. 다른 Kiwoom 프로세스가 이미 COM 객체를 사용 중")
+                print("   2. 이전 세션이 완전히 종료되지 않음")
+                print("   3. 메시지 큐가 응답하지 않음")
+                print("\n   해결 방법:")
+                print("   1. 작업 관리자에서 모든 KH* 프로세스 강제 종료:")
+                print("      taskkill /F /IM KHOpenAPI.exe")
+                print("      taskkill /F /IM KHOpenAPICtrl.exe")
+                print("      taskkill /F /IM OpSysMsg.exe")
+                print("   2. Python 스크립트 재실행")
+                print("   3. 그래도 안되면 PC 재부팅 (권장)")
+            else:
+                import traceback
+                traceback.print_exc()
             return False
 
     def request_minute_chart(self, stock_code, interval=1, target_count=1000):
