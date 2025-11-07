@@ -1,12 +1,13 @@
 """
 AutoTrade Pro v4.0 - 변동성 돌파 전략
 래리 윌리엄스 변동성 돌파 전략 구현
-"""
+
 
 전략 개요:
 - 전일 변동폭(고가-저가)의 K배만큼 시가에서 상승하면 매수
 - 당일 종가까지 보유 후 청산
 - 거래량 필터 적용 가능
+"""
 import logging
 from typing import Dict, Any, Optional, List
 from datetime import datetime, time
@@ -59,6 +60,7 @@ class VolatilityBreakoutStrategy:
         yesterday_low: float,
         yesterday_close: float
     ):
+        """
         전일 데이터 업데이트
 
         Args:
@@ -88,6 +90,7 @@ class VolatilityBreakoutStrategy:
         current_volume: float,
         avg_volume: float
     ) -> tuple[bool, Optional[str]]:
+        """
         매수 신호 체크
 
         Args:
@@ -100,6 +103,7 @@ class VolatilityBreakoutStrategy:
 
         Returns:
             (should_buy, reason)
+        """
         if current_time < self.entry_time:
             return False, "아직 진입 시간 아님"
 
@@ -137,6 +141,7 @@ class VolatilityBreakoutStrategy:
         entry_price: float,
         quantity: int
     ):
+        """
         stop_loss_price = entry_price * (1 - self.stop_loss_pct)
 
         self.positions[stock_code] = {
@@ -157,6 +162,7 @@ class VolatilityBreakoutStrategy:
         current_time: time,
         current_price: float
     ) -> tuple[bool, Optional[str]]:
+        """
         매도 신호 체크
 
         Args:
@@ -166,6 +172,7 @@ class VolatilityBreakoutStrategy:
 
         Returns:
             (should_sell, reason)
+        """
         if stock_code not in self.positions:
             return False, None
 
@@ -224,6 +231,7 @@ class VolatilityBreakoutStrategy:
         current_price: float,
         max_position_ratio: float = 0.10
     ) -> int:
+        """
         포지션 크기 계산 (공통 유틸리티 사용)
 
         Args:
@@ -233,6 +241,7 @@ class VolatilityBreakoutStrategy:
 
         Returns:
             매수 수량
+        """
         quantity = calculate_position_size_by_ratio(
             capital=total_capital,
             price=current_price,

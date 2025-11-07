@@ -1,13 +1,14 @@
 """
 AutoTrade Pro v4.0 - 전략 파라미터 자동 최적화
 Grid Search, Random Search, Bayesian Optimization 지원
-"""
+
 
 주요 기능:
 - 다양한 최적화 방법 지원
 - 병렬 처리로 빠른 최적화
 - Optuna 기반 Bayesian Optimization
 - 최적화 결과 시각화
+"""
 import logging
 from typing import Dict, Any, List, Callable, Optional, Tuple
 from datetime import datetime
@@ -50,6 +51,7 @@ class StrategyOptimizer:
         n_trials: int = 50,
         n_jobs: int = -1
     ):
+        """
         최적화 엔진 초기화
 
         Args:
@@ -131,8 +133,10 @@ class StrategyOptimizer:
 
         results = []
         for i in range(self.n_trials):
+            """
             params = {}
             for name, values in self.param_ranges.items():
+                """
                 if isinstance(values, list):
                     params[name] = np.random.choice(values)
                 elif isinstance(values, tuple) and len(values) == 2:
@@ -166,10 +170,12 @@ class StrategyOptimizer:
             """Optuna objective function"""
             params = {}
             for name, values in self.param_ranges.items():
+                """
                 if isinstance(values, list):
                     params[name] = trial.suggest_categorical(name, values)
                 elif isinstance(values, tuple) and len(values) == 2:
                     if isinstance(values[0], int):
+                        """
                         params[name] = trial.suggest_int(name, values[0], values[1])
                     else:
                         params[name] = trial.suggest_float(name, values[0], values[1])

@@ -1,11 +1,12 @@
 """
 Options Pricing and High-Frequency Trading
 Advanced derivatives and ultra-fast trading systems
-"""
+
 
 Author: AutoTrade Pro
 Version: 4.2
 
+"""
 from dataclasses import dataclass
 from typing import List, Dict, Any, Optional, Tuple
 import numpy as np
@@ -51,6 +52,7 @@ class BlackScholesModel:
     """
 
     def __init__(self, risk_free_rate: float = 0.02):
+        """
         self.risk_free_rate = risk_free_rate
 
     def price_option(
@@ -61,6 +63,7 @@ class BlackScholesModel:
         volatility: float,
         option_type: str = 'call'
     ) -> float:
+        """
         Calculate option price using Black-Scholes
 
         Args:
@@ -72,6 +75,7 @@ class BlackScholesModel:
 
         Returns:
             Option price
+        """
         if not SCIPY_AVAILABLE:
             intrinsic = max(0, spot_price - strike_price) if option_type == 'call' \
                 else max(0, strike_price - spot_price)
@@ -101,10 +105,12 @@ class BlackScholesModel:
         volatility: float,
         option_type: str = 'call'
     ) -> OptionGreeks:
+        """
         Calculate option Greeks
 
         Returns:
             All Greeks
+        """
         if not SCIPY_AVAILABLE:
             return OptionGreeks(
                 delta=0.5 if option_type == 'call' else -0.5,
@@ -157,6 +163,7 @@ class BlackScholesModel:
         time_to_expiry: float,
         option_type: str = 'call'
     ) -> float:
+        """
         Calculate implied volatility using Newton-Raphson
 
         Args:
@@ -168,9 +175,11 @@ class BlackScholesModel:
 
         Returns:
             Implied volatility
+        """
         volatility = 0.3
 
         for _ in range(100):
+            """
             price = self.price_option(spot_price, strike_price, time_to_expiry, volatility, option_type)
             diff = option_price - price
 
@@ -202,6 +211,7 @@ class OptionsStrategyAnalyzer:
     """
 
     def __init__(self):
+        """
         self.bs_model = BlackScholesModel()
 
     def covered_call(
@@ -212,10 +222,12 @@ class OptionsStrategyAnalyzer:
         volatility: float,
         shares: int = 100
     ) -> Dict[str, Any]:
+        """
         Analyze covered call strategy
 
         Returns:
             Strategy analysis
+        """
         call_premium = self.bs_model.price_option(
             spot_price, strike_price, time_to_expiry, volatility, 'call'
         )
@@ -240,10 +252,12 @@ class OptionsStrategyAnalyzer:
         volatility: float,
         shares: int = 100
     ) -> Dict[str, Any]:
+        """
         Analyze protective put strategy
 
         Returns:
             Strategy analysis
+        """
         put_premium = self.bs_model.price_option(
             spot_price, strike_price, time_to_expiry, volatility, 'put'
         )
@@ -267,10 +281,12 @@ class OptionsStrategyAnalyzer:
         time_to_expiry: float,
         volatility: float
     ) -> Dict[str, Any]:
+        """
         Analyze straddle strategy (buy call + put at same strike)
 
         Returns:
             Strategy analysis
+        """
         call_premium = self.bs_model.price_option(
             spot_price, strike_price, time_to_expiry, volatility, 'call'
         )
@@ -328,6 +344,7 @@ class HighFrequencyTrader:
     """
 
     def __init__(self):
+        """
         self.order_queue = []
         self.execution_times = []
         self.avg_latency_us = 0.0
@@ -338,6 +355,7 @@ class HighFrequencyTrader:
         ask_prices: List[float],
         exchanges: List[str]
     ) -> Optional[HFTSignal]:
+        """
         Detect arbitrage opportunities across exchanges
 
         Args:
@@ -347,6 +365,7 @@ class HighFrequencyTrader:
 
         Returns:
             Arbitrage signal if found
+        """
         max_bid_idx = np.argmax(bid_prices)
         min_ask_idx = np.argmin(ask_prices)
 
@@ -376,6 +395,7 @@ class HighFrequencyTrader:
         inventory: int,
         target_inventory: int = 0
     ) -> Tuple[float, float]:
+        """
         Market making strategy with inventory management
 
         Args:
@@ -386,6 +406,7 @@ class HighFrequencyTrader:
 
         Returns:
             (bid_price, ask_price)
+        """
         half_spread = spread / 2
 
         inventory_skew = (inventory - target_inventory) * 0.001
@@ -400,6 +421,7 @@ class HighFrequencyTrader:
         price_changes: np.ndarray,
         window: int = 100
     ) -> Optional[HFTSignal]:
+        """
         Ultra-short-term momentum signal
 
         Args:
@@ -408,6 +430,7 @@ class HighFrequencyTrader:
 
         Returns:
             Momentum signal if strong enough
+        """
         if len(price_changes) < window:
             return None
 
@@ -440,6 +463,7 @@ class HighFrequencyTrader:
         order: HFTOrder,
         simulate: bool = True
     ) -> Dict[str, Any]:
+        """
         Execute HFT order
 
         Args:
@@ -448,6 +472,7 @@ class HighFrequencyTrader:
 
         Returns:
             Execution result
+        """
         start_time = time.time()
 
         if simulate:
@@ -557,4 +582,4 @@ if __name__ == '__main__':
     result = hft.execute_order(order)
     print(f"\nHFT Execution Latency: {result['latency_us']:.0f} μs")
 
-    print("\n✅ Options & HFT systems ready")
+    print("\n[OK] Options & HFT systems ready")

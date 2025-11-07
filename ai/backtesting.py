@@ -1,11 +1,12 @@
 """
 Backtesting Engine for Strategy Validation
 Tests trading strategies on historical data
-"""
+
 
 Author: AutoTrade Pro
 Version: 4.2 - CRITICAL
 
+"""
 from dataclasses import dataclass, asdict, field
 from typing import List, Dict, Any, Optional, Callable
 import numpy as np
@@ -108,6 +109,7 @@ class BacktestEngine:
     """
 
     def __init__(self, config: BacktestConfig = None):
+        """
         self.config = config or BacktestConfig()
 
         self.cash = self.config.initial_capital
@@ -123,6 +125,7 @@ class BacktestEngine:
     def run_backtest(self, historical_data: List[Dict],
                     strategy_fn: Callable,
                     strategy_name: str = "Custom Strategy") -> BacktestResult:
+        """
         Run backtest on historical data
 
         Args:
@@ -161,6 +164,7 @@ class BacktestEngine:
         prev_equity = self.config.initial_capital
 
         for i, data in enumerate(historical_data):
+            """
             current_date = data.get('date', '')
 
             self._update_positions(data)
@@ -171,6 +175,7 @@ class BacktestEngine:
                 action = strategy_fn(data, portfolio)
 
                 if action and isinstance(action, dict):
+                    """
                     self._execute_action(action, data)
             except Exception as e:
                 print(f"Strategy error on {current_date}: {e}")
@@ -199,7 +204,7 @@ class BacktestEngine:
         result = self._calculate_metrics(strategy_name, start_date, end_date, final_equity)
 
         print("\n" + "="*80)
-        print("✅ Backtest Complete")
+        print("[OK] Backtest Complete")
         print("="*80)
         print(f"Final Capital: {final_equity:,.0f}원")
         print(f"Total Return: {result.total_return:+,.0f}원 ({result.total_return_pct:+.2f}%)")
@@ -348,6 +353,7 @@ class BacktestEngine:
 
     def _calculate_metrics(self, strategy_name: str, start_date: str,
                           end_date: str, final_equity: float) -> BacktestResult:
+        """
         initial_capital = self.config.initial_capital
         total_return = final_equity - initial_capital
         total_return_pct = total_return / initial_capital * 100
@@ -420,18 +426,22 @@ class BacktestEngine:
     def _is_winning_trade(self, trade: BacktestTrade) -> bool:
         """Check if trade was profitable"""
         for t in reversed(self.trades):
+            """
             if (t.stock_code == trade.stock_code and
                 t.action == 'buy' and
                 t.timestamp < trade.timestamp):
+                """
                 return trade.price > t.price
         return False
 
     def _get_trade_pnl(self, sell_trade: BacktestTrade) -> float:
         """Get P&L for a sell trade"""
         for buy_trade in reversed(self.trades):
+            """
             if (buy_trade.stock_code == sell_trade.stock_code and
                 buy_trade.action == 'buy' and
                 buy_trade.timestamp < sell_trade.timestamp):
+                """
                 pnl = (sell_trade.price - buy_trade.price) * sell_trade.quantity
                 pnl -= (sell_trade.commission + buy_trade.commission)
                 return pnl
@@ -508,6 +518,7 @@ if __name__ == '__main__':
     historical_data = []
     base_price = 73000
     for i in range(100):
+        """
         price_change = np.random.uniform(-0.03, 0.03)
         close_price = base_price * (1 + price_change)
 

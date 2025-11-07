@@ -69,6 +69,7 @@ class RiskOrchestrator:
     """
 
     def __init__(self, settings: Optional[Dict] = None):
+        """
         self.settings = settings or {}
 
         self.static_risk_manager = None
@@ -132,6 +133,7 @@ class RiskOrchestrator:
         account_info: Optional[Dict] = None,
         position_info: Optional[Dict] = None
     ) -> RiskAssessment:
+        """
         매매 리스크 종합 평가
 
         Args:
@@ -192,6 +194,7 @@ class RiskOrchestrator:
         account_info: Optional[Dict],
         position_info: Optional[Dict]
     ) -> List[RiskCheck]:
+        """
         checks = []
 
         if not self.static_risk_manager or not account_info:
@@ -234,6 +237,7 @@ class RiskOrchestrator:
         quantity: int,
         price: float
     ) -> List[RiskCheck]:
+        """
         checks = []
 
         if not self.dynamic_risk_manager:
@@ -264,6 +268,7 @@ class RiskOrchestrator:
         current_price: float,
         position_info: Dict
     ) -> List[RiskCheck]:
+        """
         checks = []
 
         if not self.trailing_stop_manager:
@@ -289,6 +294,7 @@ class RiskOrchestrator:
         account_info: Dict,
         position_info: Optional[Dict]
     ) -> List[RiskCheck]:
+        """
         checks = []
 
         if not self.risk_analytics:
@@ -320,6 +326,7 @@ class RiskOrchestrator:
         checks: List[RiskCheck],
         overall_risk: RiskLevel
     ) -> bool:
+        """
         if overall_risk == RiskLevel.CRITICAL:
             return False
 
@@ -340,6 +347,7 @@ class RiskOrchestrator:
         checks: List[RiskCheck],
         overall_risk: RiskLevel
     ) -> List[str]:
+        """
         recommendations = []
 
         failed_checks = [check for check in checks if not check.passed]
@@ -353,9 +361,9 @@ class RiskOrchestrator:
                 recommendations.append("즉시 청산을 고려하세요")
 
         if overall_risk == RiskLevel.CRITICAL:
-            recommendations.append("⚠️ 긴급: 모든 거래를 중단하고 포지션을 정리하세요")
+            recommendations.append("WARNING: 긴급: 모든 거래를 중단하고 포지션을 정리하세요")
         elif overall_risk == RiskLevel.HIGH:
-            recommendations.append("⚠️ 주의: 신규 진입을 자제하고 보수적으로 거래하세요")
+            recommendations.append("WARNING: 주의: 신규 진입을 자제하고 보수적으로 거래하세요")
         elif overall_risk == RiskLevel.MEDIUM:
             recommendations.append("주의: 리스크를 줄이고 신중하게 거래하세요")
 

@@ -15,7 +15,7 @@ class StockScanner:
     종목 스캐너
 
     Features:
-    - 3단계 스캔 파이프라인 (Fast → Deep → AI)
+    - 3단계 스캔 파이프라인 (Fast -> Deep -> AI)
     - 10가지 스코어링 시스템
     - AI 검토 및 승인
     """
@@ -62,17 +62,19 @@ class StockScanner:
             positions = portfolio_manager.get_positions()
 
             if not portfolio_manager.can_add_position():
-                logger.info("⚠️  최대 포지션 수 도달")
+                """
+                logger.info("WARNING:  최대 포지션 수 도달")
                 return []
 
             if not dynamic_risk_manager.should_open_position(len(positions)):
-                logger.info("⚠️  리스크 관리: 포지션 진입 불가")
+                """
+                logger.info("WARNING:  리스크 관리: 포지션 진입 불가")
                 return []
 
             final_candidates = self.strategy_manager.run_current_strategy()
 
             if not final_candidates:
-                logger.info("✅ 스캐닝 완료: 최종 후보 없음")
+                logger.info("[OK] 스캐닝 완료: 최종 후보 없음")
                 return []
 
             candidate_scores = self._score_candidates(
@@ -162,8 +164,9 @@ class StockScanner:
             for idx, c in enumerate(top_candidates)
         ]
 
-        logger.info(f"\n📊 상위 {top_n}개 후보:")
+        logger.info(f"\n 상위 {top_n}개 후보:")
         for rank, c in enumerate(top_candidates, 1):
+            """
             score_result = scores[c.code]
             logger.info(
                 f"   {rank}. {c.name} - {c.final_score:.0f}점 "
@@ -184,6 +187,7 @@ class StockScanner:
         portfolio_info = self._get_portfolio_info(portfolio_manager)
 
         for idx, candidate in enumerate(candidates, 1):
+            """
             self.scan_progress['reviewing'] = f"{candidate.name} ({idx}/{len(candidates)})"
 
             logger.info(f"\n🤖 [{idx}/{len(candidates)}] {candidate.name} AI 검토 중...")
@@ -236,7 +240,7 @@ class StockScanner:
             candidate.ai_reasons = ai_analysis.get('reasons', [])
             candidate.ai_confidence = ai_analysis.get('confidence', 0.5)
 
-            logger.info(f"   ✅ AI 결정: {ai_signal.upper()}")
+            logger.info(f"   [OK] AI 결정: {ai_signal.upper()}")
 
             buy_approved = (
                 (ai_signal == 'buy' and scoring_result.total_score >= 250) or
@@ -244,7 +248,7 @@ class StockScanner:
             )
 
             if buy_approved:
-                logger.info(f"✅ 매수 조건 충족")
+                logger.info(f"[OK] 매수 조건 충족")
                 approved.append(candidate)
 
                 self.scan_progress['approved'].append({
@@ -254,7 +258,7 @@ class StockScanner:
                 })
             else:
                 reason_text = f"AI={ai_signal}, 점수={scoring_result.total_score:.0f}"
-                logger.info(f"❌ 매수 조건 미충족 ({reason_text})")
+                logger.info(f"[ERROR] 매수 조건 미충족 ({reason_text})")
 
                 self.scan_progress['rejected'].append({
                     'name': candidate.name,

@@ -12,6 +12,7 @@ class TradeLogger:
     """거래 로거 - 모든 가상 거래 기록 및 분석"""
 
     def __init__(self, log_dir: str = "data/virtual_trading/logs"):
+        """
         self.log_dir = Path(log_dir)
         self.log_dir.mkdir(parents=True, exist_ok=True)
         self.trades: List[Dict] = []
@@ -32,6 +33,7 @@ class TradeLogger:
 
     def log_buy(self, strategy: str, stock_code: str, stock_name: str,
                 price: int, quantity: int, reason: str = ""):
+        """
         self.log_trade({
             'type': 'BUY',
             'strategy': strategy,
@@ -46,6 +48,7 @@ class TradeLogger:
     def log_sell(self, strategy: str, stock_code: str, stock_name: str,
                  price: int, quantity: int, realized_pnl: int,
                  pnl_rate: float, reason: str = ""):
+        """
         self.log_trade({
             'type': 'SELL',
             'strategy': strategy,
@@ -166,11 +169,11 @@ class TradeLogger:
         analysis = self.get_trade_analysis()
 
         if not analysis:
-            print("📊 거래 내역 없음")
+            print(" 거래 내역 없음")
             return
 
         print("\n" + "="*60)
-        print("📊 가상 거래 로그 요약")
+        print(" 가상 거래 로그 요약")
         print("="*60)
 
         print(f"\n총 거래: {analysis['total_buys']}회 매수, {analysis['total_sells']}회 매도")
@@ -201,10 +204,12 @@ class TradeLogger:
         loaded_count = 0
 
         for i in range(days):
+            """
             date = (today - timedelta(days=i)).strftime('%Y%m%d')
             log_file = self.log_dir / f"trades_{date}.jsonl"
 
             if log_file.exists():
+                """
                 with open(log_file, 'r', encoding='utf-8') as f:
                     for line in f:
                         try:

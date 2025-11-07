@@ -41,6 +41,7 @@ def get_performance():
 
         if not data:
             if _bot_instance and hasattr(_bot_instance, 'account_api'):
+                """
                 try:
                     deposit = _bot_instance.account_api.get_deposit()
                     holdings = _bot_instance.account_api.get_holdings()
@@ -78,12 +79,13 @@ def get_portfolio_optimization():
         from features.portfolio_optimizer import PortfolioOptimizer
 
         if _bot_instance and hasattr(_bot_instance, 'account_api'):
+            """
             holdings = _bot_instance.account_api.get_holdings(market_type="KRX+NXT")
 
             if not holdings:
                 return jsonify({
                     'success': True,
-                    'status': '✅ 정상',
+                    'status': '[OK] 정상',
                     'risk': 'low',
                     'score': 100,
                     'message': '보유 종목이 없습니다.',
@@ -115,7 +117,7 @@ def get_portfolio_optimization():
             if not positions:
                 return jsonify({
                     'success': True,
-                    'status': '✅ 정상',
+                    'status': '[OK] 정상',
                     'risk': 'low',
                     'score': 100,
                     'message': '보유 종목이 없습니다.',
@@ -140,6 +142,7 @@ def get_risk_analysis():
         from features.risk_analyzer import RiskAnalyzer
 
         if _bot_instance and hasattr(_bot_instance, 'account_api'):
+            """
             holdings = _bot_instance.account_api.get_holdings()
 
             positions = []

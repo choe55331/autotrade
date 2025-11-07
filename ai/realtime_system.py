@@ -22,7 +22,7 @@ try:
     WEBSOCKETS_AVAILABLE = True
 except ImportError:
     WEBSOCKETS_AVAILABLE = False
-    print("⚠️ websockets not available. Install with: pip install websockets")
+    print("WARNING: websockets not available. Install with: pip install websockets")
 
 
 @dataclass
@@ -39,6 +39,7 @@ class StreamingTick:
     spread: float
 
     def __post_init__(self):
+        """
         self.spread = self.ask - self.bid
 
 
@@ -79,6 +80,7 @@ class RealTimeDataStream:
     """
 
     def __init__(self, buffer_size: int = 10000):
+        """
         self.buffer_size = buffer_size
         self.tick_buffer: Dict[str, deque] = {}
         self.candle_buffer: Dict[str, deque] = {}
@@ -117,9 +119,9 @@ class RealTimeDataStream:
         try:
             self.websocket = await websockets.connect(ws_url)
             self.is_running = True
-            print(f"✅ Connected to {ws_url}")
+            print(f"[OK] Connected to {ws_url}")
         except Exception as e:
-            print(f"❌ Connection failed: {e}")
+            print(f"[ERROR] Connection failed: {e}")
             self.is_running = False
 
     async def stream_data(self, stock_codes: List[str]):
@@ -218,6 +220,7 @@ class RealTimeDataStream:
             candles = self.candle_buffer[candle_key]
 
             if not candles or self._should_new_candle(candles[-1], tick.timestamp, interval):
+                """
                 candle = StreamingCandle(
                     stock_code=tick.stock_code,
                     interval=interval,
@@ -259,6 +262,7 @@ class RealTimeDataStream:
     def _publish_event(self, event: StreamingEvent):
         """Publish event to subscribers"""
         for callback in self.subscribers.get(event.event_type, []):
+            """
             try:
                 callback(event)
             except Exception as e:
@@ -333,6 +337,7 @@ class EventDrivenTradingEngine:
     """
 
     def __init__(self, data_stream: RealTimeDataStream):
+        """
         self.data_stream = data_stream
         self.positions: Dict[str, Dict] = {}
         self.pending_orders: List[Dict] = []
@@ -480,6 +485,7 @@ class EventDrivenTradingEngine:
         """Get current portfolio value"""
         total = self.pnl
         for pos in self.positions.values():
+            """
             total += pos['current_price'] * pos['quantity']
         return total
 
@@ -518,10 +524,11 @@ if __name__ == '__main__':
     print("🔄 Real-time Trading System Test")
 
     async def test():
+        """
         stream = get_data_stream()
         engine = get_trading_engine()
 
         stream.is_running = True
         await stream._mock_stream(['005930', '000660'])
 
-    print("✅ Real-time system ready")
+    print("[OK] Real-time system ready")

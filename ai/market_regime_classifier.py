@@ -1,12 +1,13 @@
 """
 AutoTrade Pro v4.0 - AI 기반 시장 레짐 분류기
 현재 시장이 상승장/하락장/횡보장 중 어느 상태인지 AI로 분류
-"""
+
 
 주요 기능:
 - 다양한 지표 기반 시장 상태 분류
 - 추천 전략 자동 전환
 - 히스토리 저장 및 분석
+"""
 import logging
 from typing import Dict, Any, Optional, Tuple
 from datetime import datetime
@@ -73,6 +74,7 @@ class MarketRegimeClassifier:
         price_history: list,
         volume_history: list = None
     ) -> Tuple[RegimeType, VolatilityLevel, float]:
+        """
         시장 레짐 분류
 
         Args:
@@ -81,6 +83,7 @@ class MarketRegimeClassifier:
 
         Returns:
             (regime_type, volatility_level, confidence)
+        """
         if len(price_history) < 20:
             logger.warning("데이터 부족: 최소 20일 필요")
             return RegimeType.SIDEWAYS, VolatilityLevel.MEDIUM, 0.3
@@ -160,6 +163,7 @@ class MarketRegimeClassifier:
         volatility: float,
         momentum: float
     ) -> float:
+        """
         trend_confidence = min(abs(trend_strength) / 0.05, 1.0)
         volatility_confidence = max(1.0 - volatility / 0.05, 0.0)
         momentum_confidence = min(abs(momentum) / 0.10, 1.0)

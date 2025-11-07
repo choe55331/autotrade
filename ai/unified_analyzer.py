@@ -31,6 +31,7 @@ class GeminiProvider(AIProvider):
     """Gemini AI Provider - Primary and Only AI Provider"""
 
     def __init__(self, api_key: str):
+        """
         if not GEMINI_AVAILABLE:
             raise ImportError("google-generativeai not installed")
 
@@ -38,6 +39,7 @@ class GeminiProvider(AIProvider):
         self.model = genai.GenerativeModel('gemini-pro')
 
     async def analyze(self, prompt: str) -> str:
+        """
         response = await asyncio.to_thread(
             self.model.generate_content, prompt
         )
@@ -56,6 +58,7 @@ class UnifiedAnalyzer:
     """
 
     def __init__(self):
+        """
         self.providers: Dict[str, AIProvider] = {}
         self.default_provider = 'gemini'
         self._initialize_providers()
@@ -70,10 +73,10 @@ class UnifiedAnalyzer:
                 self.default_provider = 'gemini'
                 print("✓ Gemini AI initialized (Primary Provider)")
             except Exception as e:
-                print(f"⚠️ Gemini initialization failed: {e}")
-                print("⚠️ Falling back to Mock analyzer")
+                print(f"WARNING: Gemini initialization failed: {e}")
+                print("WARNING: Falling back to Mock analyzer")
         else:
-            print("⚠️ Gemini API key not found - using Mock analyzer")
+            print("WARNING: Gemini API key not found - using Mock analyzer")
 
     def _build_advanced_prompt(
         self,
@@ -120,6 +123,7 @@ class UnifiedAnalyzer:
 
             breakdown = score_info.get('breakdown', {})
             for criterion, score in breakdown.items():
+                """
                 if score > 0:
                     prompt += f"- {criterion}: {score:.0f}점\n"
 
@@ -186,6 +190,7 @@ JSON 형식을 정확히 지켜주세요.
         portfolio_info: Optional[str] = None,
         market_context: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
+        """
         종목 분석 (Gemini 전용)
 
         Args:
@@ -226,7 +231,7 @@ JSON 형식을 정확히 지켜주세요.
                 return self._fallback_parse(response_text, provider_name)
 
         except Exception as e:
-            print(f"❌ {provider_name} analysis failed: {e}")
+            print(f"[ERROR] {provider_name} analysis failed: {e}")
             return self._mock_analysis({}, None)
 
 

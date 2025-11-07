@@ -23,6 +23,7 @@ class BaseStrategy(ABC):
         client,
         config: Dict[str, Any] = None
     ):
+        """
         전략 초기화
         
         Args:
@@ -102,6 +103,7 @@ class BaseStrategy(ABC):
         current_price: int,
         available_cash: int
     ) -> int:
+        """
         포지션 크기 계산 (추상 메서드)
         
         Args:
@@ -132,6 +134,7 @@ class BaseStrategy(ABC):
         purchase_price: float,
         order_id: str = None
     ):
+        """
         포지션 추가
         
         Args:
@@ -170,6 +173,7 @@ class BaseStrategy(ABC):
         stock_code: str,
         current_price: float
     ):
+        """
         포지션 업데이트
         
         Args:
@@ -229,6 +233,7 @@ class BaseStrategy(ABC):
         price: float,
         profit_loss: float = 0.0
     ):
+        """
         거래 기록
         
         Args:
@@ -348,6 +353,7 @@ class BaseStrategy(ABC):
         }
     
     def __repr__(self):
+        """
         return f"<{self.__class__.__name__}(name='{self.name}', active={self.is_active}, positions={len(self.positions)})>"
 
 

@@ -38,6 +38,7 @@ def get_orderbook_api(stock_code: str):
         from features.order_book import OrderBookService
 
         if _bot_instance and hasattr(_bot_instance, 'market_api'):
+            """
             service = OrderBookService(_bot_instance.market_api)
             data = service.get_order_book_for_dashboard(stock_code)
             return jsonify(data)
@@ -56,6 +57,7 @@ def get_news_api(stock_code: str):
 
         stock_name = stock_code
         if _bot_instance and hasattr(_bot_instance, 'market_api'):
+            """
             pass
 
         service = NewsFeedService()
@@ -80,6 +82,7 @@ def search_stocks():
         results = []
 
         if _bot_instance and hasattr(_bot_instance, 'market_api'):
+            """
             try:
                 from research import DataFetcher
                 data_fetcher = DataFetcher(_bot_instance.client)
@@ -95,6 +98,7 @@ def search_stocks():
                         query_lower in name.lower() or
                         query in code or
                         query in name):
+                        """
                         results.append({
                             'code': code,
                             'name': name,
@@ -137,10 +141,10 @@ def get_chart_data(stock_code: str):
     """Get real chart data from Kiwoom API with timeframe support"""
     try:
         timeframe = request.args.get('timeframe', 'D')
-        print(f"\n📊 Chart request for {stock_code} (timeframe: {timeframe})")
+        print(f"\n Chart request for {stock_code} (timeframe: {timeframe})")
 
         if not _bot_instance:
-            print(f"❌ bot_instance is None")
+            print(f"[ERROR] bot_instance is None")
             return jsonify({
                 'success': False,
                 'error': 'Trading bot not initialized',
@@ -151,7 +155,8 @@ def get_chart_data(stock_code: str):
             })
 
         if not hasattr(_bot_instance, 'data_fetcher'):
-            print(f"❌ bot_instance has no data_fetcher")
+            """
+            print(f"[ERROR] bot_instance has no data_fetcher")
             return jsonify({
                 'success': False,
                 'error': 'Data fetcher not available',
@@ -186,7 +191,8 @@ def get_chart_data(stock_code: str):
             actual_timeframe = timeframe
 
             if timeframe.isdigit():
-                print(f"📊 Attempting to fetch {timeframe}-minute data")
+                """
+                print(f" Attempting to fetch {timeframe}-minute data")
 
                 realtime_data_available = False
                 if _realtime_chart_manager:
@@ -194,7 +200,7 @@ def get_chart_data(stock_code: str):
                         if stock_code in _realtime_chart_manager.charts:
                             candle_count = _realtime_chart_manager.charts[stock_code].get_candle_count()
                             if candle_count > 0:
-                                print(f"✅ Using real-time minute data ({candle_count} candles)")
+                                print(f"[OK] Using real-time minute data ({candle_count} candles)")
                                 minutes = int(timeframe) if timeframe == '1' else 60
                                 daily_data = _realtime_chart_manager.get_minute_data(stock_code, minutes=minutes)
                                 realtime_data_available = True
@@ -212,28 +218,29 @@ def get_chart_data(stock_code: str):
                                     _realtime_chart_manager.add_stock(stock_code)
                                 )
                                 if success:
-                                    print(f"✅ {stock_code} added to real-time tracking")
+                                    print(f"[OK] {stock_code} added to real-time tracking")
                                     minutes = int(timeframe) if timeframe == '1' else 60
                                     daily_data = _realtime_chart_manager.get_minute_data(stock_code, minutes=minutes)
                                     if daily_data and len(daily_data) > 0:
                                         realtime_data_available = True
                                         actual_timeframe = timeframe
                             except Exception as e:
-                                print(f"⚠️ Failed to add stock to real-time tracking: {e}")
+                                print(f"WARNING: Failed to add stock to real-time tracking: {e}")
                     except Exception as e:
-                        print(f"⚠️ Real-time data fetch failed: {e}")
+                        print(f"WARNING: Real-time data fetch failed: {e}")
 
                 if not realtime_data_available:
                     if hasattr(_bot_instance.data_fetcher, 'get_minute_price'):
+                        """
                         try:
-                            print(f"📊 Trying REST API minute data...")
+                            print(f" Trying REST API minute data...")
                             daily_data = _bot_instance.data_fetcher.get_minute_price(
                                 stock_code=stock_code,
                                 minute_type=timeframe
                             )
 
                             if not daily_data or len(daily_data) == 0:
-                                print(f"⚠️ {timeframe}-minute data not available (likely weekend/holiday), falling back to daily data")
+                                print(f"WARNING: {timeframe}-minute data not available (likely weekend/holiday), falling back to daily data")
                                 actual_timeframe = 'D'
                                 daily_data = _bot_instance.data_fetcher.get_daily_price(
                                     stock_code=stock_code,
@@ -241,7 +248,7 @@ def get_chart_data(stock_code: str):
                                     end_date=end_date_str
                                 )
                         except Exception as e:
-                            print(f"⚠️ Minute data fetch failed ({e}), falling back to daily data")
+                            print(f"WARNING: Minute data fetch failed ({e}), falling back to daily data")
                             actual_timeframe = 'D'
                             daily_data = _bot_instance.data_fetcher.get_daily_price(
                                 stock_code=stock_code,
@@ -249,7 +256,7 @@ def get_chart_data(stock_code: str):
                                 end_date=end_date_str
                             )
                     else:
-                        print(f"⚠️ Minute price method not available, using daily data")
+                        print(f"WARNING: Minute price method not available, using daily data")
                         actual_timeframe = 'D'
                         daily_data = _bot_instance.data_fetcher.get_daily_price(
                             stock_code=stock_code,
@@ -319,6 +326,7 @@ def get_chart_data(stock_code: str):
                 }
 
                 for idx, item in enumerate(recent_data):
+                    """
                     try:
                         date_str = item.get('date', item.get('stck_bsop_date', ''))
                         time_str = item.get('time', item.get('stck_cntg_hour', ''))
@@ -348,9 +356,11 @@ def get_chart_data(stock_code: str):
                             })
 
                             if not pd.isna(rsi_values.iloc[idx]):
+                                """
                                 indicators['rsi'].append({'time': time_value, 'value': float(rsi_values.iloc[idx])})
 
                             if not pd.isna(macd_line.iloc[idx]):
+                                """
                                 indicators['macd'].append({
                                     'time': time_value,
                                     'macd': float(macd_line.iloc[idx]),
@@ -365,30 +375,36 @@ def get_chart_data(stock_code: str):
                             })
 
                             if not pd.isna(sma_5.iloc[idx]):
+                                """
                                 indicators['ma5'].append({'time': time_value, 'value': float(sma_5.iloc[idx])})
                             if not pd.isna(sma_20.iloc[idx]):
+                                """
                                 indicators['ma20'].append({'time': time_value, 'value': float(sma_20.iloc[idx])})
                             if not pd.isna(sma_60.iloc[idx]):
+                                """
                                 indicators['ma60'].append({'time': time_value, 'value': float(sma_60.iloc[idx])})
                             if not pd.isna(ema_12.iloc[idx]):
+                                """
                                 indicators['ema12'].append({'time': time_value, 'value': float(ema_12.iloc[idx])})
                             if not pd.isna(ema_26.iloc[idx]):
+                                """
                                 indicators['ema26'].append({'time': time_value, 'value': float(ema_26.iloc[idx])})
 
                             if not pd.isna(bb_upper.iloc[idx]):
+                                """
                                 indicators['bb_upper'].append({'time': time_value, 'value': float(bb_upper.iloc[idx])})
                                 indicators['bb_middle'].append({'time': time_value, 'value': float(bb_middle.iloc[idx])})
                                 indicators['bb_lower'].append({'time': time_value, 'value': float(bb_lower.iloc[idx])})
 
                     except Exception as e:
-                        print(f"⚠️ Error parsing chart data item: {e}, item={item}")
+                        print(f"WARNING: Error parsing chart data item: {e}, item={item}")
                         continue
 
-                print(f"✅ Chart data ready: {len(chart_data)} points")
+                print(f"[OK] Chart data ready: {len(chart_data)} points")
                 if len(chart_data) > 0:
-                    print(f"📊 Date range: {chart_data[0]['time']} to {chart_data[-1]['time']}")
+                    print(f" Date range: {chart_data[0]['time']} to {chart_data[-1]['time']}")
             else:
-                print(f"⚠️ No daily data received from API")
+                print(f"WARNING: No daily data received from API")
 
             signals = []
 
@@ -405,7 +421,7 @@ def get_chart_data(stock_code: str):
 
         except Exception as e:
             error_msg = str(e)
-            print(f"❌ Chart data fetch error for {stock_code}: {error_msg}")
+            print(f"[ERROR] Chart data fetch error for {stock_code}: {error_msg}")
             import traceback
             traceback.print_exc()
 
@@ -426,7 +442,7 @@ def get_chart_data(stock_code: str):
             })
 
     except Exception as e:
-        print(f"📊 Chart API outer error: {e}")
+        print(f" Chart API outer error: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)})
@@ -532,7 +548,8 @@ def get_market_volume_rank():
             test_date = getattr(_bot_instance, 'test_date', None)
 
         if _bot_instance and hasattr(_bot_instance, 'data_fetcher'):
-            print(f"📊 거래량 순위 조회 요청 (market={market}, limit={limit}, test_mode={test_mode_active})")
+            """
+            print(f" 거래량 순위 조회 요청 (market={market}, limit={limit}, test_mode={test_mode_active})")
 
             rank_list = _bot_instance.data_fetcher.get_volume_rank(market, limit)
 
@@ -558,7 +575,7 @@ def get_market_volume_rank():
                 'data': []
             })
     except Exception as e:
-        print(f"❌ Volume rank API error: {e}")
+        print(f"[ERROR] Volume rank API error: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e), 'data': []})
@@ -579,7 +596,8 @@ def get_market_price_change_rank():
             test_date = getattr(_bot_instance, 'test_date', None)
 
         if _bot_instance and hasattr(_bot_instance, 'data_fetcher'):
-            print(f"📊 등락률 순위 조회 요청 (market={market}, sort={sort}, limit={limit}, test_mode={test_mode_active})")
+            """
+            print(f" 등락률 순위 조회 요청 (market={market}, sort={sort}, limit={limit}, test_mode={test_mode_active})")
 
             rank_list = _bot_instance.data_fetcher.get_price_change_rank(market, sort, limit)
 
@@ -605,7 +623,7 @@ def get_market_price_change_rank():
                 'data': []
             })
     except Exception as e:
-        print(f"❌ Price change rank API error: {e}")
+        print(f"[ERROR] Price change rank API error: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e), 'data': []})
@@ -625,7 +643,8 @@ def get_market_trading_value_rank():
             test_date = getattr(_bot_instance, 'test_date', None)
 
         if _bot_instance and hasattr(_bot_instance, 'data_fetcher'):
-            print(f"📊 거래대금 순위 조회 요청 (market={market}, limit={limit}, test_mode={test_mode_active})")
+            """
+            print(f" 거래대금 순위 조회 요청 (market={market}, limit={limit}, test_mode={test_mode_active})")
 
             rank_list = _bot_instance.data_fetcher.get_trading_value_rank(market, limit)
 
@@ -651,7 +670,7 @@ def get_market_trading_value_rank():
                 'data': []
             })
     except Exception as e:
-        print(f"❌ Trading value rank API error: {e}")
+        print(f"[ERROR] Trading value rank API error: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e), 'data': []})

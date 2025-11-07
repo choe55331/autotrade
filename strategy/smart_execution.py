@@ -98,6 +98,7 @@ class SmartOrderExecutor:
                      current_price: float,
                      market_data: Optional[List[MarketData]] = None,
                      params: Optional[Dict[str, Any]] = None) -> ExecutionResult:
+        """
         주문 실행
 
         Args:
@@ -114,6 +115,7 @@ class SmartOrderExecutor:
 
         Returns:
             ExecutionResult
+        """
         logger.info(f"Executing order: {order_id}, {stock_name}, "
                    f"{quantity} shares, {algorithm.value}, {duration_minutes}min")
 
@@ -223,6 +225,7 @@ class SmartOrderExecutor:
     def _generate_twap_slices(self, order_id: str, stock_code: str,
                               quantity: int, duration_minutes: int,
                               current_price: float) -> List[OrderSlice]:
+        """
         TWAP (Time-Weighted Average Price)
         균등하게 시간에 분산하여 주문
         num_slices = min(duration_minutes, 20)
@@ -233,6 +236,7 @@ class SmartOrderExecutor:
         now = datetime.now()
 
         for i in range(num_slices):
+            """
             qty = slice_quantity + (1 if i < remainder else 0)
 
             slice_time = now + timedelta(minutes=i * (duration_minutes / num_slices))
@@ -255,6 +259,7 @@ class SmartOrderExecutor:
                              quantity: int, duration_minutes: int,
                               current_price: float,
                               market_data: Optional[List[MarketData]]) -> List[OrderSlice]:
+        """
         VWAP (Volume-Weighted Average Price)
         거래량 패턴에 따라 주문 분산
         num_slices = min(duration_minutes, 20)
@@ -278,6 +283,7 @@ class SmartOrderExecutor:
         allocated = 0
 
         for i in range(num_slices):
+            """
             vol_weight = volumes[i] / total_volume if i < len(volumes) else 1.0 / num_slices
             slice_quantity = int(quantity * vol_weight)
 
@@ -305,6 +311,7 @@ class SmartOrderExecutor:
     def _generate_iceberg_slices(self, order_id: str, stock_code: str,
                                 quantity: int, current_price: float,
                                 visible_quantity: int) -> List[OrderSlice]:
+        """
         Iceberg Order
         큰 주문을 작은 조각으로 나누어 일부만 노출
         num_slices = max(1, quantity // visible_quantity)
@@ -313,6 +320,7 @@ class SmartOrderExecutor:
 
         remaining = quantity
         for i in range(num_slices):
+            """
             slice_qty = min(visible_quantity, remaining)
             remaining -= slice_qty
 
@@ -340,6 +348,7 @@ class SmartOrderExecutor:
                             quantity: int, duration_minutes: int,
                             current_price: float,
                             participation_rate: float) -> List[OrderSlice]:
+        """
         POV (Percentage of Volume)
         시장 거래량의 일정 비율로 주문
         num_slices = min(duration_minutes, 20)
@@ -352,6 +361,7 @@ class SmartOrderExecutor:
         allocated = 0
 
         for i in range(num_slices):
+            """
             slice_qty = int(market_volume_per_slice * participation_rate)
             slice_qty = min(slice_qty, quantity - allocated)
 
@@ -385,6 +395,7 @@ class SmartOrderExecutor:
     def _generate_is_slices(self, order_id: str, stock_code: str,
                            quantity: int, duration_minutes: int,
                            current_price: float, urgency: float) -> List[OrderSlice]:
+        """
         Implementation Shortfall
         시장 충격을 최소화하면서 빠르게 실행
 
@@ -402,6 +413,7 @@ class SmartOrderExecutor:
         allocated = 0
 
         for i in range(num_slices):
+            """
             if urgency > 0.5:
                 weight = 1.5 - (i / num_slices)
             else:
@@ -438,6 +450,7 @@ class SmartOrderExecutor:
                                  quantity: int, duration_minutes: int,
                                  current_price: float,
                                  market_data: Optional[List[MarketData]]) -> List[OrderSlice]:
+        """
         Adaptive Algorithm
         시장 상황에 따라 동적으로 조정
         if market_data and len(market_data) >= 10:
@@ -477,6 +490,7 @@ class SmartOrderExecutor:
                           total_quantity: int, slices: List[OrderSlice],
                           benchmark_price: float, side: str,
                           algorithm: ExecutionAlgorithm) -> ExecutionResult:
+        """
         주문 실행 시뮬레이션
 
         In production, this would interface with actual trading API
@@ -527,6 +541,7 @@ class SmartOrderExecutor:
 
     def _calculate_price_impact(self, slice_quantity: int,
                                total_quantity: int, side: str) -> float:
+        """
         가격 충격 계산
 
         Simplified model: impact proportional to sqrt(quantity)

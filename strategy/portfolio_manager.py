@@ -81,6 +81,7 @@ class PortfolioManager:
         self.total_assets = cash + stocks_value
         
         for stock_code, position in self.positions.items():
+            """
             if self.total_assets > 0:
                 position['weight'] = position['evaluation_amount'] / self.total_assets
             else:
@@ -95,6 +96,7 @@ class PortfolioManager:
         quantity: int,
         purchase_price: float
     ):
+        """
         포지션 추가
         
         Args:
@@ -179,6 +181,7 @@ class PortfolioManager:
         available_cash: int,
         target_weight: float = None
     ) -> int:
+        """
         포지션 크기 계산
         
         Args:
@@ -189,6 +192,7 @@ class PortfolioManager:
         
         Returns:
             매수 수량
+        """
         if current_price == 0:
             return 0
         
@@ -263,6 +267,7 @@ class PortfolioManager:
             return False
         
         for stock_code, target_weight in self.target_weights.items():
+            """
             position = self.get_position(stock_code)
             
             if position is None:
@@ -304,6 +309,7 @@ class PortfolioManager:
         orders = []
         
         for stock_code, target_weight in self.target_weights.items():
+            """
             position = self.get_position(stock_code)
             
             target_amount = self.total_assets * target_weight
@@ -326,14 +332,14 @@ class PortfolioManager:
                             'stock_code': stock_code,
                             'action': 'buy',
                             'target_amount': diff_amount,
-                            'reason': f'비중 상향 조정 ({position["weight"]*100:.1f}% → {target_weight*100:.1f}%)'
+                            'reason': f'비중 상향 조정 ({position["weight"]*100:.1f}% -> {target_weight*100:.1f}%)'
                         })
                     else:
                         orders.append({
                             'stock_code': stock_code,
                             'action': 'sell',
                             'target_amount': abs(diff_amount),
-                            'reason': f'비중 하향 조정 ({position["weight"]*100:.1f}% → {target_weight*100:.1f}%)'
+                            'reason': f'비중 하향 조정 ({position["weight"]*100:.1f}% -> {target_weight*100:.1f}%)'
                         })
         
         logger.info(f"리밸런싱 주문 {len(orders)}개 생성")
@@ -385,6 +391,7 @@ class PortfolioManager:
         positions = []
         
         for stock_code, position in self.positions.items():
+            """
             positions.append({
                 'stock_code': stock_code,
                 'stock_name': position['stock_name'],

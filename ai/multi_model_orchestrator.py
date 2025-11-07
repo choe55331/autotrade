@@ -61,6 +61,7 @@ class MultiModelOrchestrator:
     """
 
     def __init__(self):
+        """
         self.models: Dict[str, Any] = {}
         self.model_performance: Dict[str, Dict[str, float]] = {}
 
@@ -115,6 +116,7 @@ class MultiModelOrchestrator:
         model_names = []
 
         for name, model_info in enabled_models.items():
+            """
             task = self._analyze_with_model(
                 name,
                 model_info['analyzer'],
@@ -131,8 +133,10 @@ class MultiModelOrchestrator:
         valid_predictions = []
         for pred in predictions:
             if isinstance(pred, ModelPrediction):
+                """
                 valid_predictions.append(pred)
             elif isinstance(pred, Exception):
+                """
                 logger.error(f"Model prediction failed: {pred}")
 
         if not valid_predictions:
@@ -160,6 +164,7 @@ class MultiModelOrchestrator:
             self.model_performance[model_name]['total_calls'] += 1
 
             if hasattr(analyzer, 'analyze_stock_async'):
+                """
                 result = await analyzer.analyze_stock_async(
                     stock_data=stock_data,
                     technical_indicators=technical_indicators,
@@ -167,6 +172,7 @@ class MultiModelOrchestrator:
                     portfolio_info=portfolio_info
                 )
             elif hasattr(analyzer, 'analyze_stock'):
+                """
                 result = analyzer.analyze_stock(
                     stock_data=stock_data,
                     technical_indicators=technical_indicators,
@@ -260,6 +266,7 @@ class MultiModelOrchestrator:
         disagreement_factors = []
         if len(signal_votes) > 1:
             for signal, votes in signal_votes.items():
+                """
                 if signal != final_signal:
                     models_disagreeing = [
                         p.model_name for p in predictions if p.signal == signal
@@ -331,6 +338,7 @@ class MultiModelOrchestrator:
         performance_summary = {}
 
         for model_name, perf in self.model_performance.items():
+            """
             success_rate = (
                 perf['successful_calls'] / max(perf['total_calls'], 1) * 100
             )

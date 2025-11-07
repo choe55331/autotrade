@@ -64,6 +64,7 @@ class RiskManager:
         position_value: float,
         total_assets: float
     ) -> tuple[bool, str]:
+        """
         포지션 크기 검증
         
         Args:
@@ -72,6 +73,7 @@ class RiskManager:
         
         Returns:
             (검증 통과 여부, 메시지)
+        """
         if total_assets == 0:
             return False, "총 자산이 0입니다"
         
@@ -100,6 +102,7 @@ class RiskManager:
         purchase_price: float,
         current_price: float
     ) -> tuple[bool, str]:
+        """
         손절 여부 확인
         
         Args:
@@ -108,6 +111,7 @@ class RiskManager:
         
         Returns:
             (손절 여부, 메시지)
+        """
         if purchase_price == 0:
             return False, "매수가 정보 없음"
         
@@ -161,6 +165,7 @@ class RiskManager:
         profit_loss: float,
         is_win: bool
     ):
+        """
         손익 업데이트
         
         Args:
@@ -192,6 +197,7 @@ class RiskManager:
             return
         
         if now.date() > self.daily_reset_time.date():
+            """
             logger.info(f"일일 손익 리셋 (이전: {self.daily_profit_loss:+,.0f}원)")
             self.daily_profit_loss = 0.0
             self.daily_reset_time = now
@@ -260,6 +266,7 @@ class RiskManager:
         total_assets: float,
         position_count: int
     ) -> Dict[str, Any]:
+        """
         리스크 수준 평가
         
         Args:
@@ -269,6 +276,7 @@ class RiskManager:
         
         Returns:
             리스크 평가 결과
+        """
         risk_score = 0
         risk_factors = []
         
@@ -336,6 +344,7 @@ class RiskManager:
         price: float,
         profit_loss: float = 0.0
     ):
+        """
         거래 기록
         
         Args:

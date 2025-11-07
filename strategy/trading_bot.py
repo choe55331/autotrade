@@ -89,11 +89,13 @@ class TradingStrategy:
     """트레이딩 전략 베이스 클래스"""
 
     def __init__(self, name: str, params: Dict[str, Any]):
+        """
         self.name = name
         self.params = params
 
     def generate_signals(self, market_data: Dict[str, Any],
                         price_history: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
         시그널 생성
 
         Returns:
@@ -105,6 +107,7 @@ class MomentumStrategy(TradingStrategy):
     """모멘텀 전략"""
 
     def __init__(self, lookback_period: int = 20, threshold: float = 0.05):
+        """
         super().__init__("Momentum", {
             'lookback_period': lookback_period,
             'threshold': threshold
@@ -112,6 +115,7 @@ class MomentumStrategy(TradingStrategy):
 
     def generate_signals(self, market_data: Dict[str, Any],
                         price_history: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
         signals = []
 
         if len(price_history) < self.params['lookback_period']:
@@ -142,6 +146,7 @@ class MeanReversionStrategy(TradingStrategy):
     """평균 회귀 전략"""
 
     def __init__(self, lookback_period: int = 20, std_threshold: float = 2.0):
+        """
         super().__init__("MeanReversion", {
             'lookback_period': lookback_period,
             'std_threshold': std_threshold
@@ -149,6 +154,7 @@ class MeanReversionStrategy(TradingStrategy):
 
     def generate_signals(self, market_data: Dict[str, Any],
                         price_history: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
         signals = []
 
         if len(price_history) < self.params['lookback_period']:
@@ -183,6 +189,7 @@ class BreakoutStrategy(TradingStrategy):
     """돌파 전략"""
 
     def __init__(self, lookback_period: int = 20, breakout_threshold: float = 0.02):
+        """
         super().__init__("Breakout", {
             'lookback_period': lookback_period,
             'breakout_threshold': breakout_threshold
@@ -190,6 +197,7 @@ class BreakoutStrategy(TradingStrategy):
 
     def generate_signals(self, market_data: Dict[str, Any],
                         price_history: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
         signals = []
 
         if len(price_history) < self.params['lookback_period']:
@@ -202,6 +210,7 @@ class BreakoutStrategy(TradingStrategy):
         current_price = market_data.get('price', recent[-1]['close'])
 
         if current_price > resistance * (1 + self.params['breakout_threshold']):
+            """
             signals.append({
                 'action': 'buy',
                 'stock_code': market_data.get('stock_code'),
@@ -209,6 +218,7 @@ class BreakoutStrategy(TradingStrategy):
                 'reason': f"Upward breakout above {resistance:,.0f}"
             })
         elif current_price < support * (1 - self.params['breakout_threshold']):
+            """
             signals.append({
                 'action': 'sell',
                 'stock_code': market_data.get('stock_code'),
@@ -238,6 +248,7 @@ class AutomatedTradingBot:
                  stop_loss_pct: float = 0.05,
                  take_profit_pct: float = 0.10,
                  trading_mode: TradingMode = TradingMode.PAPER):
+        """
         Args:
             initial_capital: 초기 자본
             max_position_size: 최대 포지션 크기 (자본 대비 비율)
@@ -304,6 +315,7 @@ class AutomatedTradingBot:
     def execute_cycle(self,
                       market_data: Dict[str, Dict[str, Any]],
                       price_histories: Dict[str, List[Dict[str, Any]]]):
+        """
         트레이딩 사이클 실행
 
         Args:
@@ -319,6 +331,7 @@ class AutomatedTradingBot:
         self._update_positions(market_data)
 
         if self._check_emergency_stop():
+            """
             return
 
         self._check_exit_conditions(market_data)
@@ -354,6 +367,7 @@ class AutomatedTradingBot:
 
         closed_trades_pnl = []
         for i in range(0, len(self.trade_history), 2):
+            """
             if i + 1 < len(self.trade_history):
                 entry = self.trade_history[i]
                 exit_trade = self.trade_history[i + 1]
@@ -406,15 +420,18 @@ class AutomatedTradingBot:
         logger.critical("EMERGENCY STOP ACTIVATED")
 
         for position in list(self.positions.values()):
+            """
             self._close_position(position.stock_code, position.current_price, "Emergency stop")
 
 
     def _generate_all_signals(self,
                              market_data: Dict[str, Dict[str, Any]],
                              price_histories: Dict[str, List[Dict[str, Any]]]) -> List[Dict[str, Any]]:
+        """
         all_signals = []
 
         for stock_code, data in market_data.items():
+            """
             if stock_code not in price_histories:
                 continue
 
@@ -435,6 +452,7 @@ class AutomatedTradingBot:
 
     def _process_signals(self, signals: List[Dict[str, Any]],
                         market_data: Dict[str, Dict[str, Any]]):
+        """
         for signal in signals:
             stock_code = signal['stock_code']
 
@@ -471,6 +489,7 @@ class AutomatedTradingBot:
 
     def _execute_buy(self, stock_code: str, stock_name: str,
                     price: float, quantity: int, strategy_name: str):
+        """
         cost = price * quantity
 
         if cost > self.cash:
@@ -544,6 +563,7 @@ class AutomatedTradingBot:
     def _update_positions(self, market_data: Dict[str, Dict[str, Any]]):
         """포지션 업데이트"""
         for stock_code, position in self.positions.items():
+            """
             if stock_code in market_data:
                 current_price = market_data[stock_code].get('price', position.current_price)
                 position.current_price = current_price
@@ -556,6 +576,7 @@ class AutomatedTradingBot:
         to_close = []
 
         for stock_code, position in self.positions.items():
+            """
             if stock_code not in market_data:
                 continue
 

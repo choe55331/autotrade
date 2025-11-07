@@ -1,12 +1,13 @@
 """
 AutoTrade Pro v4.0 - 퀀트 팩터 스크리닝
 마법공식, 가치/모멘텀/퀄리티 팩터 스크리닝
-"""
+
 
 주요 기능:
 - 조엘 그린블랫 마법공식
 - 멀티 팩터 스크리닝
 - 팩터 점수 계산
+"""
 import logging
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
@@ -64,6 +65,7 @@ class QuantScreener:
         stocks: List[StockFactors],
         top_n: int = 30
     ) -> List[StockFactors]:
+        """
         마법공식 스크리닝 (조엘 그린블랫)
 
         Args:
@@ -72,6 +74,7 @@ class QuantScreener:
 
         Returns:
             스크리닝된 종목 리스트
+        """
         stocks_sorted_ey = sorted(stocks, key=lambda x: x.earnings_yield, reverse=True)
         ey_ranks = {stock.stock_code: rank for rank, stock in enumerate(stocks_sorted_ey, 1)}
 
@@ -92,6 +95,7 @@ class QuantScreener:
         weights: Dict[str, float] = None,
         top_n: int = 50
     ) -> List[StockFactors]:
+        """
         멀티 팩터 스크리닝
 
         Args:
@@ -101,6 +105,7 @@ class QuantScreener:
 
         Returns:
             스크리닝된 종목
+        """
         if weights is None:
             weights = {
                 'value': 0.30,
@@ -168,6 +173,7 @@ if __name__ == "__main__":
 
     stocks = []
     for i in range(100):
+        """
         stock = StockFactors(
             stock_code=f"{i:06d}",
             stock_name=f"Stock_{i}",

@@ -1,13 +1,14 @@
 """
 AutoTrade Pro v4.0 - 동적 손절/익절 관리자 (Trailing Stop with ATR)
 ATR 기반 변동성을 고려한 동적 손절/익절
-"""
+
 
 주요 기능:
 - ATR 기반 손절선 동적 조정
 - Trailing Stop (수익 증가 시 손절선 상향)
 - 종목별 개별 관리
 - 실시간 업데이트
+"""
 import logging
 from typing import Dict, Any, Optional
 from datetime import datetime
@@ -65,6 +66,7 @@ class TrailingStopManager:
         initial_stop_loss_pct: float = 0.05,
         initial_take_profit_pct: float = 0.10
     ):
+        """
         포지션 추가 및 초기 손절/익절 설정
 
         Args:

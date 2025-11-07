@@ -1,13 +1,14 @@
 """
 AutoTrade Pro v4.0 - 켈리 배팅 자금 관리
 Kelly Criterion 기반 최적 포지션 사이징
-"""
+
 
 공식: f* = (bp - q) / b
 - f*: 최적 베팅 비율
 - b: 승리 시 배당률 (평균 수익 / 평균 손실)
 - p: 승률
 - q: 패율 (1-p)
+"""
 import logging
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass
@@ -80,6 +81,7 @@ class KellyCriterion:
         params: KellyParameters,
         current_price: float
     ) -> int:
+        """
         포지션 크기 계산
 
         Args:
@@ -89,6 +91,7 @@ class KellyCriterion:
 
         Returns:
             매수 수량
+        """
         kelly_pct = self.calculate_kelly_percentage(params)
 
         investment_amount = total_capital * kelly_pct
@@ -106,6 +109,7 @@ class KellyCriterion:
         self,
         trade_history: List[Dict[str, Any]]
     ) -> KellyParameters:
+        """
         거래 이력에서 켈리 파라미터 계산
 
         Args:
@@ -114,6 +118,7 @@ class KellyCriterion:
 
         Returns:
             계산된 켈리 파라미터
+        """
         if not trade_history:
             return KellyParameters(
                 win_rate=0.5,

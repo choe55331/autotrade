@@ -28,6 +28,7 @@ def get_account():
 
     try:
         if _bot_instance and hasattr(_bot_instance, 'account_api'):
+            """
             deposit = _bot_instance.account_api.get_deposit()
 
             holdings = _bot_instance.account_api.get_holdings(market_type="KRX+NXT") or []
@@ -140,6 +141,7 @@ def get_positions():
             return jsonify([])
 
         if not hasattr(_bot_instance, 'account_api'):
+            """
             print("Error: bot_instance has no account_api")
             return jsonify([])
 
@@ -154,6 +156,7 @@ def get_positions():
             try:
                 code = str(h.get('stk_cd', '')).strip()
                 if code.startswith('A'):
+                    """
                     code = code[1:]
 
                 name = h.get('stk_nm', '')
@@ -220,6 +223,7 @@ def get_positions():
 
                 stop_loss_price = avg_price
                 if _bot_instance and hasattr(_bot_instance, 'dynamic_risk_manager'):
+                    """
                     try:
                         thresholds = _bot_instance.dynamic_risk_manager.get_exit_thresholds(avg_price)
                         stop_loss_price = thresholds.get('stop_loss', avg_price)
@@ -265,6 +269,7 @@ def get_real_holdings():
         holdings = []
 
         if not hasattr(_bot_instance, 'account_api'):
+            """
             print("Error: bot_instance has no account_api")
             return jsonify({
                 'success': False,
@@ -283,9 +288,11 @@ def get_real_holdings():
         print(f"[HOLDINGS] {len(raw_holdings)}개 종목 분석 중...")
 
         for idx, holding in enumerate(raw_holdings):
+            """
             try:
                 stock_code = str(holding.get('stk_cd', '')).strip()
                 if stock_code.startswith('A'):
+                    """
                     stock_code = stock_code[1:]
 
                 stock_name = holding.get('stk_nm', stock_code)
@@ -315,12 +322,14 @@ def get_real_holdings():
 
                 try:
                     if hasattr(_bot_instance, 'market_api'):
+                        """
                         print(f"  [{idx+1}/{len(raw_holdings)}] Fetching daily data for {stock_code}...")
                         daily_data = _bot_instance.market_api.get_daily_chart(stock_code, period=20)
 
                         if daily_data and len(daily_data) >= 14:
                             atr_values = []
                             for i in range(1, min(15, len(daily_data))):
+                                """
                                 high = daily_data[i].get('high', 0)
                                 low = daily_data[i].get('low', 0)
                                 prev_close = daily_data[i-1].get('close', 0)
@@ -345,6 +354,7 @@ def get_real_holdings():
 
                                 returns = []
                                 for j in range(1, len(daily_data)):
+                                    """
                                     close_today = daily_data[j-1].get('close', 0)
                                     close_yesterday = daily_data[j].get('close', 0)
                                     if close_yesterday > 0:
@@ -372,6 +382,7 @@ def get_real_holdings():
                                 gains = []
                                 losses = []
                                 for k in range(1, min(15, len(daily_data))):
+                                    """
                                     change = daily_data[k-1].get('close', 0) - daily_data[k].get('close', 0)
                                     if change > 0:
                                         gains.append(change)
@@ -400,7 +411,7 @@ def get_real_holdings():
                                 print(f"    ✓ ATR-based metrics calculated for {stock_code}")
 
                 except Exception as e:
-                    print(f"⚠️ Advanced metrics calculation failed ({stock_code}): {e}")
+                    print(f"WARNING: Advanced metrics calculation failed ({stock_code}): {e}")
 
                 distance_to_stop = ((stop_loss_price - current_price) / current_price * 100) if current_price > 0 else 0
                 distance_to_target = ((take_profit_price - current_price) / current_price * 100) if current_price > 0 else 0
@@ -430,7 +441,7 @@ def get_real_holdings():
                 print(f"  [{idx+1}/{len(raw_holdings)}] ✓ {stock_code} processed")
 
             except Exception as e:
-                print(f"  [{idx+1}/{len(raw_holdings)}] ❌ Error processing holding: {e}")
+                print(f"  [{idx+1}/{len(raw_holdings)}] [ERROR] Error processing holding: {e}")
                 continue
 
         print(f"Successfully processed {len(holdings)} holdings")
@@ -441,7 +452,7 @@ def get_real_holdings():
         })
 
     except Exception as e:
-        print(f"❌ 실제 보유 종목 조회 실패: {e}")
+        print(f"[ERROR] 실제 보유 종목 조회 실패: {e}")
         return jsonify({
             'success': False,
             'message': str(e)
@@ -458,6 +469,7 @@ def get_optimization_rules():
 
         rules_info = []
         for name, rule in optimizer.rules.items():
+            """
             rules_info.append({
                 'name': name,
                 'display_name': rule.name,
@@ -492,6 +504,7 @@ def get_optimization_summary():
         from features.profit_optimizer import get_profit_optimizer
 
         if not _bot_instance or not hasattr(_bot_instance, 'account_api'):
+            """
             return jsonify({
                 'success': False,
                 'message': 'Bot not initialized'

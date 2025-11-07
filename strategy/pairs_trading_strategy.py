@@ -1,12 +1,13 @@
 """
 AutoTrade Pro v4.0 - 페어 트레이딩 전략
 상관관계가 높은 두 종목의 스프레드 회귀를 이용한 통계적 차익거래
-"""
+
 
 전략 개요:
 - 두 종목의 가격 스프레드 계산
 - 스프레드가 평균에서 크게 이탈하면 매매
 - 스프레드 회귀 시 포지션 청산
+"""
 import logging
 from typing import Dict, Any, Optional, Tuple, List
 from datetime import datetime
@@ -86,6 +87,7 @@ class PairsTradingStrategy:
         price_a: float,
         price_b: float
     ):
+        """
         스프레드 업데이트
 
         Args:
@@ -248,6 +250,7 @@ if __name__ == "__main__":
     })
 
     for i in range(100):
+        """
         price_a = 70000 + np.random.normal(0, 1000)
         price_b = 120000 + np.random.normal(0, 2000)
 

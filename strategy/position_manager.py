@@ -1,9 +1,10 @@
 """
 AutoTrade Pro - 통합 포지션 관리자
 모든 전략에서 공통으로 사용하는 포지션 관리 로직
-"""
+
 
 v4.2 CRITICAL
+"""
 from datetime import datetime
 from typing import Dict, List, Optional, Any
 import logging
@@ -17,6 +18,7 @@ class PositionManager:
     """통합 포지션 관리자"""
 
     def __init__(self):
+        """
         self.positions: Dict[str, Position] = {}
         logger.info("포지션 관리자 초기화")
 
@@ -31,6 +33,7 @@ class PositionManager:
         take_profit_price: Optional[float] = None,
         **metadata
     ) -> Position:
+        """
         포지션 추가
 
         Args:
@@ -45,6 +48,7 @@ class PositionManager:
 
         Returns:
             추가된 Position 객체
+        """
         if stock_code in self.positions:
             logger.warning(f"[{stock_code}] 이미 포지션이 존재합니다. 기존 포지션을 업데이트합니다.")
             existing = self.positions[stock_code]

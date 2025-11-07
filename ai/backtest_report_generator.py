@@ -1,7 +1,7 @@
 """
 AutoTrade Pro v4.0 - 고급 백테스팅 리포트 생성기
 HTML/PDF 리포트 자동 생성 with 차트 및 통계
-"""
+
 
 주요 기능:
 - MDD, Sharpe Ratio, 승률 등 상세 지표
@@ -9,6 +9,7 @@ HTML/PDF 리포트 자동 생성 with 차트 및 통계
 - HTML 및 PDF 리포트 생성
 - 월별 수익률 히트맵
 - 거래 내역 상세 로그
+"""
 import json
 import logging
 from pathlib import Path
@@ -137,7 +138,7 @@ class BacktestReportGenerator:
 <body>
     <div class="container">
         <div class="header">
-            <h1>📊 백테스팅 리포트</h1>
+            <h1> 백테스팅 리포트</h1>
             <div class="subtitle">
                 전략: {{ result.strategy_name }} |
                 기간: {{ result.start_date }} ~ {{ result.end_date }} |
@@ -175,12 +176,12 @@ class BacktestReportGenerator:
         </div>
 
         <div class="chart-container">
-            <div class="chart-title">📈 자산 곡선 (Equity Curve)</div>
+            <div class="chart-title"> 자산 곡선 (Equity Curve)</div>
             <div id="equity-chart"></div>
         </div>
 
         <div class="chart-container">
-            <div class="chart-title">📉 Drawdown 차트</div>
+            <div class="chart-title"> Drawdown 차트</div>
             <div id="drawdown-chart"></div>
         </div>
 
@@ -262,6 +263,7 @@ class BacktestReportGenerator:
         backtest_result: Any,
         save_path: Optional[Path] = None
     ) -> Path:
+        """
         HTML 리포트 생성
 
         Args:
@@ -270,6 +272,7 @@ class BacktestReportGenerator:
 
         Returns:
             생성된 리포트 파일 경로
+        """
         if save_path is None:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             save_path = self.output_dir / f"backtest_{timestamp}.html"
@@ -297,6 +300,7 @@ class BacktestReportGenerator:
     def _create_equity_curve_chart(self, result: Any) -> str:
         """자산 곡선 차트 데이터 생성"""
         if not PLOTLY_AVAILABLE or not hasattr(result, 'equity_curve'):
+            """
             return "{}"
 
         equity_curve = result.equity_curve
@@ -323,6 +327,7 @@ class BacktestReportGenerator:
     def _create_drawdown_chart(self, result: Any) -> str:
         """Drawdown 차트 데이터 생성"""
         if not PLOTLY_AVAILABLE or not hasattr(result, 'equity_curve'):
+            """
             return "{}"
 
         equity_curve = np.array(result.equity_curve)
@@ -352,6 +357,7 @@ class BacktestReportGenerator:
     def _create_monthly_returns_chart(self, result: Any) -> str:
         """월별 수익률 차트 데이터 생성"""
         if not PLOTLY_AVAILABLE or not hasattr(result, 'daily_returns'):
+            """
             return "{}"
 
         monthly_returns = [5.2, -2.1, 3.8, 7.5, -1.3, 4.2, 2.9, -0.5, 6.1, 3.4, -2.8, 5.7]

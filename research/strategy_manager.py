@@ -49,11 +49,12 @@ class StrategyManager:
         self.current_strategy_index = 0
         self.cycle_count = 0
 
-        logger.info(f"✅ StrategyManager 초기화 완료 - {len(self.strategies)}개 전략 등록")
+        logger.info(f"[OK] StrategyManager 초기화 완료 - {len(self.strategies)}개 전략 등록")
         print(f"\n{'='*60}")
         print(f"🎯 스캔 전략 매니저 초기화 완료")
         print(f"{'='*60}")
         for idx, strategy in enumerate(self.strategies, 1):
+            """
             print(f"  {idx}. {strategy.get_name()}")
         print(f"{'='*60}\n")
 

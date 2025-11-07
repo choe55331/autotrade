@@ -1,7 +1,7 @@
 """
 ML Price Predictor
 Advanced machine learning models for price prediction
-"""
+
 
 Features:
 - Multiple ML models (Random Forest, XGBoost, LSTM)
@@ -10,6 +10,7 @@ Features:
 - Model performance tracking
 - Online learning (continuous model updates)
 - Confidence intervals
+"""
 import json
 import numpy as np
 import pandas as pd
@@ -127,6 +128,7 @@ class MLPricePredictor:
             scaler_file = self.models_dir / f'{model_name}_scaler.pkl'
 
             if model_file.exists() and scaler_file.exists():
+                """
                 try:
                     with open(model_file, 'rb') as f:
                         self.models[model_name] = pickle.load(f)
@@ -274,6 +276,7 @@ class MLPricePredictor:
         stock_name: str,
         current_data: Dict[str, Any]
     ) -> PricePrediction:
+        """
         Predict future price using ensemble of models
 
         Args:
@@ -283,6 +286,7 @@ class MLPricePredictor:
 
         Returns:
             PricePrediction with ensemble prediction
+        """
         try:
             current_price = current_data.get('price', 0)
 
@@ -402,6 +406,7 @@ class MLPricePredictor:
         stock_name: str,
         data: Dict[str, Any]
     ) -> PricePrediction:
+        """
         current_price = data.get('price', 0)
         rsi = data.get('rsi', 50)
         volume_ratio = data.get('volume_ratio', 1.0)

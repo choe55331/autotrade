@@ -97,6 +97,7 @@ class VolumeBasedStrategy(ScanStrategy):
     """거래량 기반 스캔 전략"""
 
     def __init__(self, market_api, screener, config: Dict[str, Any] = None):
+        """
         super().__init__("거래량 급등", market_api, screener)
         self.config = config or {}
 
@@ -137,6 +138,7 @@ class VolumeBasedStrategy(ScanStrategy):
             etf_count = 0
             for stock in candidates[:40]:
                 if is_etf(stock['name'], stock['code']):
+                    """
                     etf_count += 1
                     continue
 
@@ -183,12 +185,13 @@ class VolumeBasedStrategy(ScanStrategy):
 
             stock_candidates.sort(key=lambda x: x.fast_scan_score, reverse=True)
 
-            print(f"✅ 후보 {len(stock_candidates)}개 선정 (ETF {etf_count}개 제외)")
+            print(f"[OK] 후보 {len(stock_candidates)}개 선정 (ETF {etf_count}개 제외)")
 
             print(f"\n🔬 Deep Scan 실행 중 (상위 {min(len(stock_candidates), 20)}개)...")
             top_candidates = stock_candidates[:20]
 
             for idx, candidate in enumerate(top_candidates, 1):
+                """
                 try:
                     print(f"   [{idx}/{len(top_candidates)}] {candidate.name} ({candidate.code})")
 
@@ -271,9 +274,9 @@ class VolumeBasedStrategy(ScanStrategy):
                                 if net_qty > 0:
                                     buy_count += 1
                                     total_net_buy += net_qty
-                                    print(f" ✅ 순매수")
+                                    print(f" [OK] 순매수")
                                 elif net_qty < 0:
-                                    print(f" ⚠️ 순매도")
+                                    print(f" WARNING: 순매도")
                                 else:
                                     print(f" - 변동없음")
                             else:
@@ -338,7 +341,7 @@ class VolumeBasedStrategy(ScanStrategy):
                     time.sleep(0.1)
 
                 except Exception as e:
-                    print(f"      ❌ Deep Scan 오류: {e}")
+                    print(f"      [ERROR] Deep Scan 오류: {e}")
                     logger.error(f"종목 {candidate.code} Deep Scan 실패: {e}", exc_info=True)
                     candidate.institutional_net_buy = 0
                     candidate.foreign_net_buy = 0
@@ -356,8 +359,8 @@ class VolumeBasedStrategy(ScanStrategy):
             return top_candidates
 
         except Exception as e:
-            logger.error(f"❌ [{self.name}] 스캔 실패: {e}", exc_info=True)
-            print(f"❌ [{self.name}] 스캔 실패: {e}")
+            logger.error(f"[ERROR] [{self.name}] 스캔 실패: {e}", exc_info=True)
+            print(f"[ERROR] [{self.name}] 스캔 실패: {e}")
             return []
 
 
@@ -365,6 +368,7 @@ class PriceChangeStrategy(ScanStrategy):
     """상승률 기반 스캔 전략"""
 
     def __init__(self, market_api, screener, config: Dict[str, Any] = None):
+        """
         super().__init__("상승률 순위", market_api, screener)
         self.config = config or {}
 
@@ -385,9 +389,9 @@ class PriceChangeStrategy(ScanStrategy):
         Returns:
             매수 후보 종목 리스트
         """
-        logger.info(f"📈 [{self.name}] 스캔 시작")
+        logger.info(f" [{self.name}] 스캔 시작")
         print(f"\n{'='*60}")
-        print(f"📈 전략 2: {self.name} 스캔")
+        print(f" 전략 2: {self.name} 스캔")
         print(f"{'='*60}")
 
         try:
@@ -400,7 +404,7 @@ class PriceChangeStrategy(ScanStrategy):
             )
 
             if not rank_list:
-                print(f"⚠️  [{self.name}] 데이터 없음 (주말/비거래시간)")
+                print(f"WARNING:  [{self.name}] 데이터 없음 (주말/비거래시간)")
                 return []
 
             conditions = self.get_filter_conditions()
@@ -409,14 +413,17 @@ class PriceChangeStrategy(ScanStrategy):
             etf_count = 0
             for stock in rank_list:
                 if is_etf(stock['name'], stock['code']):
+                    """
                     etf_count += 1
                     continue
 
                 if not (conditions['min_price'] <= stock['price'] <= conditions['max_price']):
+                    """
                     continue
                 if stock['volume'] < conditions['min_volume']:
                     continue
                 if not (conditions['min_rate'] <= stock['change_rate'] <= conditions['max_rate']):
+                    """
                     continue
 
                 candidate = StockCandidate(
@@ -451,8 +458,8 @@ class PriceChangeStrategy(ScanStrategy):
             stock_candidates.sort(key=lambda x: x.fast_scan_score, reverse=True)
 
             elapsed = time.time() - start_time
-            print(f"✅ [{self.name}] 스캔 완료: {len(stock_candidates)}개 후보 (소요: {elapsed:.2f}초)")
-            logger.info(f"✅ [{self.name}] 스캔 완료: {len(stock_candidates)}개 후보")
+            print(f"[OK] [{self.name}] 스캔 완료: {len(stock_candidates)}개 후보 (소요: {elapsed:.2f}초)")
+            logger.info(f"[OK] [{self.name}] 스캔 완료: {len(stock_candidates)}개 후보")
 
             if stock_candidates:
                 enrich_candidates_with_deep_scan(
@@ -468,8 +475,8 @@ class PriceChangeStrategy(ScanStrategy):
             return stock_candidates[:5]
 
         except Exception as e:
-            logger.error(f"❌ [{self.name}] 스캔 실패: {e}", exc_info=True)
-            print(f"❌ [{self.name}] 스캔 실패: {e}")
+            logger.error(f"[ERROR] [{self.name}] 스캔 실패: {e}", exc_info=True)
+            print(f"[ERROR] [{self.name}] 스캔 실패: {e}")
             return []
 
 
@@ -477,6 +484,7 @@ class AIDrivenStrategy(ScanStrategy):
     """AI 주도 스캔 전략"""
 
     def __init__(self, market_api, screener, ai_analyzer, config: Dict[str, Any] = None):
+        """
         super().__init__("AI 주도 탐색", market_api, screener, ai_analyzer)
         self.config = config or {}
 
@@ -529,6 +537,7 @@ class AIDrivenStrategy(ScanStrategy):
             etf_count = 0
             for stock in candidates[:40]:
                 if is_etf(stock['name'], stock['code']):
+                    """
                     etf_count += 1
                     continue
 
@@ -552,8 +561,8 @@ class AIDrivenStrategy(ScanStrategy):
                 print(f"   ℹ️  ETF/지수 {etf_count}개 제외됨")
 
             elapsed = time.time() - start_time
-            print(f"✅ [{self.name}] 스캔 완료: {len(stock_candidates)}개 후보 (소요: {elapsed:.2f}초)")
-            logger.info(f"✅ [{self.name}] 스캔 완료: {len(stock_candidates)}개 후보")
+            print(f"[OK] [{self.name}] 스캔 완료: {len(stock_candidates)}개 후보 (소요: {elapsed:.2f}초)")
+            logger.info(f"[OK] [{self.name}] 스캔 완료: {len(stock_candidates)}개 후보")
 
             if stock_candidates:
                 enrich_candidates_with_deep_scan(
@@ -569,6 +578,6 @@ class AIDrivenStrategy(ScanStrategy):
             return stock_candidates[:5]
 
         except Exception as e:
-            logger.error(f"❌ [{self.name}] 스캔 실패: {e}", exc_info=True)
-            print(f"❌ [{self.name}] 스캔 실패: {e}")
+            logger.error(f"[ERROR] [{self.name}] 스캔 실패: {e}", exc_info=True)
+            print(f"[ERROR] [{self.name}] 스캔 실패: {e}")
             return []

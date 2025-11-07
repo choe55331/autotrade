@@ -17,7 +17,7 @@ class GeminiAnalyzer(BaseAnalyzer):
     Google Gemini AI 분석기
 
     Gemini API를 사용한 종목/시장 분석
-    """
+    
 
     STOCK_ANALYSIS_PROMPT_TEMPLATE_SIMPLE = """
 
@@ -113,7 +113,7 @@ class GeminiAnalyzer(BaseAnalyzer):
 
 **예상 시나리오**:
 - 🐂 Bull Case (확률 ___%): [상승 시나리오]
-- 📊 Base Case (확률 ___%): [기본 시나리오]
+-  Base Case (확률 ___%): [기본 시나리오]
 - 🐻 Bear Case (확률 ___%): [하락 시나리오]
 
 **진입 전략**:
@@ -376,6 +376,7 @@ class GeminiAnalyzer(BaseAnalyzer):
         score_info: Dict[str, Any] = None,
         portfolio_info: str = None
     ) -> Dict[str, Any]:
+        """
         종목 분석
 
         Args:
@@ -386,8 +387,10 @@ class GeminiAnalyzer(BaseAnalyzer):
 
         Returns:
             분석 결과
+        """
         if not self.is_initialized:
             if not self.initialize():
+                """
                 return self._get_error_result("분석기 초기화 실패")
 
         is_valid, msg = self.validate_stock_data(stock_data)
@@ -479,9 +482,10 @@ class GeminiAnalyzer(BaseAnalyzer):
             if 'cross_check' in result:
                 cc = result['cross_check']
                 if cc.get('agreement'):
-                    print(f"   ✅ 크로스체크 일치: {result['signal']} (신뢰도: {result['confidence']})")
+                    """
+                    print(f"   [OK] 크로스체크 일치: {result['signal']} (신뢰도: {result['confidence']})")
                 else:
-                    print(f"   ⚠️ 크로스체크 불일치 → 보수적 선택: {result['signal']}")
+                    print(f"   WARNING: 크로스체크 불일치 -> 보수적 선택: {result['signal']}")
 
             logger.info(
                 f"크로스체크 분석 완료: {stock_code} "
@@ -494,6 +498,7 @@ class GeminiAnalyzer(BaseAnalyzer):
         retry_delay = 2
 
         for attempt in range(max_retries):
+            """
             try:
                 if score_info:
                     score = score_info.get('score', 0)
@@ -548,6 +553,7 @@ class GeminiAnalyzer(BaseAnalyzer):
                     raise ValueError(f"Gemini blocked: {reason_name}")
 
                 if not hasattr(response, 'text'):
+                    """
                     raise ValueError("Gemini API response has no 'text' attribute")
 
                 response_text = response.text
@@ -579,12 +585,12 @@ class GeminiAnalyzer(BaseAnalyzer):
 
                 if attempt < max_retries - 1:
                     logger.warning(f"AI 분석 실패 (시도 {attempt+1}/{max_retries}), {retry_delay}초 후 재시도: {error_msg}")
-                    print(f"   ⚠️ AI 응답 지연 또는 에러 (시도 {attempt+1}/{max_retries}), {retry_delay}초 후 재시도...")
+                    print(f"   WARNING: AI 응답 지연 또는 에러 (시도 {attempt+1}/{max_retries}), {retry_delay}초 후 재시도...")
                     time.sleep(retry_delay)
                     retry_delay *= 2
                 else:
                     logger.error(f"AI 분석 최종 실패 ({max_retries}회 시도): {error_msg}")
-                    print(f"   ❌ AI 분석 최종 실패: {error_msg}")
+                    print(f"   [ERROR] AI 분석 최종 실패: {error_msg}")
                     self.update_statistics(False)
                     return self._get_error_result(f"AI 분석 실패: {error_msg}")
     
@@ -600,6 +606,7 @@ class GeminiAnalyzer(BaseAnalyzer):
         """
         if not self.is_initialized:
             if not self.initialize():
+                """
                 return self._get_error_result("분석기 초기화 실패")
         
         start_time = time.time()
@@ -635,6 +642,7 @@ class GeminiAnalyzer(BaseAnalyzer):
         """
         if not self.is_initialized:
             if not self.initialize():
+                """
                 return self._get_error_result("분석기 초기화 실패")
         
         start_time = time.time()
@@ -728,6 +736,7 @@ class GeminiAnalyzer(BaseAnalyzer):
                 if json_match:
                     potential_json = json_match.group(1).strip()
                     if potential_json.startswith('{'):
+                        """
                         json_str = potential_json
                         logger.debug("Found JSON in generic code block")
 
@@ -747,6 +756,7 @@ class GeminiAnalyzer(BaseAnalyzer):
 
             if not json_str:
                 if cleaned_text.startswith('{'):
+                    """
                     json_str = cleaned_text
                     logger.debug("Entire response appears to be JSON")
 
@@ -774,10 +784,12 @@ class GeminiAnalyzer(BaseAnalyzer):
                     if 'detailed_reasoning' in data:
                         reasons.append(data['detailed_reasoning'])
                     if 'key_insights' in data and isinstance(data.get('key_insights'), list):
+                        """
                         reasons.extend(data['key_insights'])
 
                     warnings = data.get('warnings', [])
                     if isinstance(warnings, str):
+                        """
                         warnings = [warnings]
 
                     trading_plan = data.get('trading_plan', {})
@@ -796,7 +808,7 @@ class GeminiAnalyzer(BaseAnalyzer):
                         'analysis_text': cleaned_text,
                     }
 
-                    logger.info(f"✅ JSON 응답 파싱 성공: {signal}")
+                    logger.info(f"[OK] JSON 응답 파싱 성공: {signal}")
                     return result
 
                 except json.JSONDecodeError as e:
@@ -932,6 +944,7 @@ class GeminiAnalyzer(BaseAnalyzer):
         prompt: str,
         stock_data: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
+        """
         단일 모델로 분석 수행
 
         Args:
@@ -942,6 +955,7 @@ class GeminiAnalyzer(BaseAnalyzer):
 
         Returns:
             분석 결과 또는 None (실패시)
+        """
         try:
             logger.info(f"[{model_name}] 분석 시작")
 
@@ -964,6 +978,7 @@ class GeminiAnalyzer(BaseAnalyzer):
                 return None
 
             if not hasattr(response, 'text'):
+                """
                 logger.warning(f"[{model_name}] No text attribute")
                 return None
 
@@ -987,6 +1002,7 @@ class GeminiAnalyzer(BaseAnalyzer):
         result_2_0: Optional[Dict[str, Any]],
         result_2_5: Optional[Dict[str, Any]]
     ) -> Dict[str, Any]:
+        """
         두 모델의 결과를 크로스 체크하여 최종 결과 생성
 
         Args:
@@ -995,6 +1011,7 @@ class GeminiAnalyzer(BaseAnalyzer):
 
         Returns:
             통합 분석 결과
+        """
         if not result_2_0 and not result_2_5:
             logger.error("크로스체크: 모든 모델 실패")
             return self._get_error_result("모든 모델 분석 실패")
@@ -1027,7 +1044,7 @@ class GeminiAnalyzer(BaseAnalyzer):
         signals_match = (signal_2_0 == signal_2_5)
 
         if signals_match:
-            logger.info(f"✅ 크로스체크 일치: {signal_2_0}")
+            logger.info(f"[OK] 크로스체크 일치: {signal_2_0}")
             final_result = result_2_5.copy()
 
             confidence_map = {
@@ -1049,7 +1066,7 @@ class GeminiAnalyzer(BaseAnalyzer):
             }
 
         else:
-            logger.warning(f"⚠️ 크로스체크 불일치: 2.0={signal_2_0}, 2.5={signal_2_5}")
+            logger.warning(f"WARNING: 크로스체크 불일치: 2.0={signal_2_0}, 2.5={signal_2_5}")
 
             signal_priority = {'sell': 0, 'hold': 1, 'buy': 2}
             priority_2_0 = signal_priority.get(signal_2_0, 1)
@@ -1074,8 +1091,10 @@ class GeminiAnalyzer(BaseAnalyzer):
 
             reasons_combined = []
             if result_2_0.get('reasons'):
+                """
                 reasons_combined.append(f"[2.0] " + "; ".join(result_2_0['reasons'][:2]))
             if result_2_5.get('reasons'):
+                """
                 reasons_combined.append(f"[2.5] " + "; ".join(result_2_5['reasons'][:2]))
             final_result['reasons'] = reasons_combined
 
