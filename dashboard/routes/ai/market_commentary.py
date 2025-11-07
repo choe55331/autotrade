@@ -67,13 +67,21 @@ def get_market_commentary():
                 market_summary_parts.append(f"📊 포트폴리오가 {profit_loss_pct:+.1f}% 변동 중입니다. 안정적인 상태입니다.")
 
         current_hour = datetime.now().hour
+        current_minute = datetime.now().minute
+        is_market_hours = (9 <= current_hour < 15) or (current_hour == 15 and current_minute < 30)
+        is_after_hours = current_hour >= 15 and (current_hour < 20 or (current_hour == 15 and current_minute >= 30))
+        is_pre_market = 8 <= current_hour < 9
 
         if 9 <= current_hour < 10:
             market_summary_parts.append("🔔 장 시작 시간입니다. 시가 변동성에 주의하세요.")
         elif 14 <= current_hour < 15:
             market_summary_parts.append("⏰ 장 마감이 가까워집니다. 포지션 정리를 검토하세요.")
-        elif current_hour >= 15 or current_hour < 9:
-            market_summary_parts.append("🌙 시간외 거래 시간입니다. 다음 장을 준비하세요.")
+        elif is_after_hours:
+            market_summary_parts.append("🌙 애프터마켓 시간입니다. 오늘 거래를 복기하고 내일 전략을 준비하세요.")
+        elif is_pre_market:
+            market_summary_parts.append("🌅 프리마켓 시간입니다. 오늘 장 시작 전 포트폴리오를 점검하세요.")
+        elif current_hour >= 20 or current_hour < 8:
+            market_summary_parts.append("🌃 장 마감 후 시간입니다. 포트폴리오 분석 및 다음 거래일 전략을 수립하세요.")
         else:
             market_summary_parts.append("📊 정규 장 거래 시간입니다.")
 
@@ -140,10 +148,75 @@ def get_market_commentary():
         else:
             commentary['expected_volatility'] = 'Medium'
 
+        # 장외 시간 특별 분석
+        if not is_market_hours:
+            # 장외 시간에는 포트폴리오 복기 및 다음 전략 제공
+            if portfolio_info and len(portfolio_info) > 0:
+                # 오늘 수익률 상위/하위 종목
+                sorted_by_pl = sorted(portfolio_info, key=lambda x: x.get('profit_loss_percent', 0), reverse=True)
+
+                if len(sorted_by_pl) > 0:
+                    best_stock = sorted_by_pl[0]
+                    worst_stock = sorted_by_pl[-1]
+
+                    best_pl = best_stock.get('profit_loss_percent', 0)
+                    worst_pl = worst_stock.get('profit_loss_percent', 0)
+
+                    if best_pl > 0:
+                        commentary['opportunities'].append(
+                            f"📊 오늘 최고 수익: {best_stock.get('name', '종목')} ({best_pl:+.1f}%) - 내일 추가 상승 여력 확인 필요"
+                        )
+
+                    if worst_pl < -2:
+                        commentary['risks'].append(
+                            f"⚠️ 오늘 최대 손실: {worst_stock.get('name', '종목')} ({worst_pl:.1f}%) - 내일 반등 가능성 또는 손절 검토"
+                        )
+
+                # 포트폴리오 균형 분석
+                avg_pl = sum(p.get('profit_loss_percent', 0) for p in portfolio_info) / len(portfolio_info)
+                if abs(avg_pl) < 1:
+                    commentary['opportunities'].append(
+                        "✅ 포트폴리오가 안정적입니다. 내일 신규 기회를 발굴하세요."
+                    )
+
+                # 다음 거래일 전략
+                if is_after_hours or current_hour >= 20:
+                    commentary['strategy_recommendation'] = (
+                        "📋 내일 전략: "
+                        "1) 오늘 수익 종목의 모멘텀 지속 여부 확인 "
+                        "2) 손실 종목의 반등 신호 관찰 "
+                        "3) 신규 진입 기회 탐색"
+                    )
+                elif is_pre_market:
+                    commentary['strategy_recommendation'] = (
+                        "🌅 오늘 전략: "
+                        "1) 어제 시장 흐름 복기 "
+                        "2) 보유 종목 뉴스 체크 "
+                        "3) 장 시작 후 초반 30분 관망"
+                    )
+                else:
+                    commentary['strategy_recommendation'] = (
+                        "🌃 다음 거래일 준비: "
+                        "1) 포트폴리오 리밸런싱 검토 "
+                        "2) 관심 종목 리스트 업데이트 "
+                        "3) 시장 뉴스 및 공시 확인"
+                    )
+            else:
+                # 포트폴리오 없을 때
+                commentary['opportunities'].append(
+                    "💡 다음 거래일을 위한 종목 발굴이 필요합니다. 시장 동향과 섹터 분석을 시작하세요."
+                )
+                commentary['strategy_recommendation'] = (
+                    "📚 다음 거래일 준비: "
+                    "1) 최근 강세 섹터 분석 "
+                    "2) 상승 모멘텀 종목 발굴 "
+                    "3) 진입 타이밍 및 목표가 설정"
+                )
+
         # v5.8: Enhanced market analysis
         try:
             # Market trend analysis
-            if bot_instance and hasattr(bot_instance, 'market_api'):
+            if bot_instance and hasattr(bot_instance, 'market_api') and is_market_hours:
                 # Get market leaders
                 volume_leaders = bot_instance.market_api.get_volume_rank(limit=50)
                 gainers_list = bot_instance.market_api.get_price_change_rank(market='ALL', sort='rise', limit=20)
