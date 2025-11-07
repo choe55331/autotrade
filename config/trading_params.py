@@ -11,9 +11,9 @@ POSITION_CONFIG = {
 
 PROFIT_LOSS_CONFIG = {
     'TAKE_PROFIT_RATIO': 0.10,
-    'STOP_LOSS_RATIO': -0."05",
+    'STOP_LOSS_RATIO': -0.05,
     'TRAILING_STOP_ENABLED': False,
-    'TRAILING_STOP_RATIO': 0."03",
+    'TRAILING_STOP_RATIO': 0.03,
 }
 
 FILTER_CONFIG = {
@@ -84,24 +84,22 @@ def validate_trading_params() -> tuple[bool, list[str]]:
 def get_trading_params_summary() -> str:
     """매매 파라미터 요약 문자열 반환"""
     return f"""
-    """
     === 매매 파라미터 ===
     최대 포지션: {POSITION_CONFIG['MAX_OPEN_POSITIONS']}개
     거래당 리스크: {POSITION_CONFIG['RISK_PER_TRADE_RATIO']*100:.1f}%
     목표 수익률: {PROFIT_LOSS_CONFIG['TAKE_PROFIT_RATIO']*100:.1f}%
     손절 비율: {PROFIT_LOSS_CONFIG['STOP_LOSS_RATIO']*100:.1f}%
-    
+
     필터링:
     - 주가: {FILTER_CONFIG['FILTER_MIN_PRICE']:,}원 ~ {FILTER_CONFIG['FILTER_MAX_PRICE']:,}원
     - 거래량: {FILTER_CONFIG['FILTER_MIN_VOLUME']:,}주 이상
     - 등락률: {FILTER_CONFIG['FILTER_MIN_RATE']:.1f}% ~ {FILTER_CONFIG['FILTER_MAX_RATE']:.1f}%
-    
+
     AI 분석: {'활성' if AI_CONFIG['AI_ANALYSIS_ENABLED'] else '비활성'}
     - 최소 점수: {AI_CONFIG['AI_MIN_ANALYSIS_SCORE']:.1f}점
     - 신뢰도: {AI_CONFIG['AI_CONFIDENCE_THRESHOLD']}
     """
 
-"""
 __all__ = [
     'TRADING_PARAMS',
     'POSITION_CONFIG',
