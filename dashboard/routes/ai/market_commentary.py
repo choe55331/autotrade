@@ -60,28 +60,71 @@ def get_market_commentary():
                 market_summary_parts.append(f"[CHART] 포트폴리오가 {profit_loss_pct:+.1f}% 변동 중입니다. 안정적인 상태입니다.")
 
         current_hour = datetime.now().hour
+        current_minute = datetime.now().minute
         is_market_closed = current_hour >= 15 or current_hour < 9
 
-        if 9 <= current_hour < 10:
-            market_summary_parts.append("🔔 장 시작 시간입니다. 시가 변동성에 주의하세요.")
-        elif 14 <= current_hour < 15:
-            market_summary_parts.append("⏰ 장 마감이 가까워집니다. 포지션 정리를 검토하세요.")
-        elif is_market_closed:
+        # NXT 거래 시간 확인
+        is_nxt_premarket = current_hour == 8  # 08:00-09:00
+        is_nxt_aftermarket = (current_hour == 15 and current_minute >= 30) or (16 <= current_hour < 20)  # 15:30-20:00
+
+        if is_nxt_premarket:
+            market_summary_parts.append("🌅 NXT 프리마켓 거래 시간입니다 (08:00-09:00). 장 시작 전 종목 동향을 파악하세요.")
+            commentary['key_issues'].append("💡 프리마켓 체크사항: 전일 미국 증시, 아시아 증시 동향, 주요 뉴스 확인")
+            commentary['strategy_recommendation'] = "프리마켓에서 큰 변동이 있는 종목은 정규장 시가 갭 가능성이 높습니다."
+            commentary['expected_volatility'] = 'Medium-High'
+
+        elif is_nxt_aftermarket:
+            market_summary_parts.append("🌆 NXT 애프터마켓 거래 시간입니다 (15:30-20:00). 장 마감 후 추가 거래가 가능합니다.")
+
+            # 장외 시간 포트폴리오 분석
             if portfolio_info and len(portfolio_info) > 0:
                 avg_pl = sum(p.get('profit_loss_percent', 0) for p in portfolio_info) / len(portfolio_info)
                 if avg_pl > 3:
-                    market_summary_parts.append(f"✨ 장 종료. 오늘 평균 {avg_pl:.1f}% 수익을 기록했습니다. 좋은 하루였습니다!")
+                    market_summary_parts.append(f"✨ 오늘 평균 {avg_pl:.1f}% 수익을 기록했습니다. NXT 거래로 포지션 조정을 검토하세요.")
+                    commentary['strategy_recommendation'] = "수익 실현 기회 - NXT 시간외 거래로 일부 익절 가능"
                 elif avg_pl > 1:
-                    market_summary_parts.append(f"[UP] 장 종료. 오늘 평균 {avg_pl:.1f}% 상승으로 마감했습니다.")
+                    market_summary_parts.append(f"[UP] 오늘 평균 {avg_pl:.1f}% 상승으로 마감했습니다.")
+                    commentary['strategy_recommendation'] = "안정적 수익 유지 - 내일 시장 동향 확인 후 전략 수립"
                 elif avg_pl < -3:
-                    market_summary_parts.append(f"[DOWN] 장 종료. 오늘 평균 {avg_pl:.1f}% 하락했습니다. 내일 반등 기회를 노려보세요.")
+                    market_summary_parts.append(f"[DOWN] 오늘 평균 {avg_pl:.1f}% 하락했습니다. NXT 거래 또는 내일 반등 기회를 노려보세요.")
+                    commentary['strategy_recommendation'] = "손실 관리 필요 - NXT 시간외 거래로 손절 또는 내일 반등 대기"
                 else:
-                    market_summary_parts.append(f"[CHART] 장 종료. 오늘 평균 {avg_pl:+.1f}% 변동으로 마감했습니다.")
+                    market_summary_parts.append(f"[CHART] 오늘 평균 {avg_pl:+.1f}% 변동으로 마감했습니다.")
+                    commentary['strategy_recommendation'] = "관망 유지 - 내일 장 전략 수립"
 
-            commentary['key_issues'].append("💡 내일 주요 체크사항: 해외 증시 동향, 환율 변동, 국내외 뉴스")
-            commentary['strategy_recommendation'] = "내일 장 전략을 수립하세요. 오늘의 거래를 복기하고 개선점을 찾아보세요."
+            commentary['key_issues'].append("💡 애프터마켓 체크사항: 미국 증시 오프닝, 환율 변동, 기업 실적 발표")
+            commentary['expected_volatility'] = 'Medium'
+
+        elif 9 <= current_hour < 10:
+            market_summary_parts.append("🔔 장 시작 시간입니다. 시가 변동성에 주의하세요.")
+            commentary['expected_volatility'] = 'High'
+
+        elif 14 <= current_hour < 15:
+            market_summary_parts.append("⏰ 장 마감이 가까워집니다. 포지션 정리를 검토하세요.")
+            commentary['expected_volatility'] = 'Medium-High'
+
+        elif is_market_closed and not is_nxt_premarket and not is_nxt_aftermarket:
+            # 완전한 장외 시간 (20:00 이후 또는 08:00 이전)
+            market_summary_parts.append("🌙 시장 종료 시간입니다. 내일 거래 준비를 시작하세요.")
+
+            if portfolio_info and len(portfolio_info) > 0:
+                avg_pl = sum(p.get('profit_loss_percent', 0) for p in portfolio_info) / len(portfolio_info)
+                if avg_pl > 3:
+                    market_summary_parts.append(f"✨ 오늘 평균 {avg_pl:.1f}% 수익을 기록했습니다. 좋은 하루였습니다!")
+                elif avg_pl > 1:
+                    market_summary_parts.append(f"[UP] 오늘 평균 {avg_pl:.1f}% 상승으로 마감했습니다.")
+                elif avg_pl < -3:
+                    market_summary_parts.append(f"[DOWN] 오늘 평균 {avg_pl:.1f}% 하락했습니다. 내일 반등 기회를 노려보세요.")
+                else:
+                    market_summary_parts.append(f"[CHART] 오늘 평균 {avg_pl:+.1f}% 변동으로 마감했습니다.")
+
+            commentary['key_issues'].append("💡 내일 주요 체크사항: 해외 증시 동향, 환율 변동, 국내외 뉴스, 기업 공시")
+            commentary['strategy_recommendation'] = "오늘의 거래를 복기하고 내일 장 전략을 수립하세요. 해외 증시 동향을 주시하세요."
+            commentary['expected_volatility'] = 'N/A'
+
         else:
             market_summary_parts.append("[CHART] 정규 장 거래 시간입니다.")
+            commentary['expected_volatility'] = 'Medium'
 
         commentary['market_summary'] = ' '.join(market_summary_parts)
 

@@ -515,29 +515,42 @@ def get_stock_recommendations():
 
                     score = 0
 
-                    if change_rate >= 10:
-                        score += 60
+                    # 상승률 점수 (최대 100점)
+                    if change_rate >= 15:
+                        score += 100
+                    elif change_rate >= 10:
+                        score += 80
                     elif change_rate >= 7:
-                        score += 51
+                        score += 65
                     elif change_rate >= 5:
-                        score += 42
+                        score += 50
                     elif change_rate >= 3:
-                        score += 33
+                        score += 35
                     elif change_rate >= 1:
-                        score += 15
+                        score += 20
+                    else:
+                        score += 10
 
-                    if volume >= 5_000_000:
-                        score += 48
+                    # 거래량 점수 (최대 100점)
+                    if volume >= 10_000_000:
+                        score += 100
+                    elif volume >= 5_000_000:
+                        score += 80
                     elif volume >= 2_000_000:
-                        score += 36
+                        score += 60
                     elif volume >= 1_000_000:
-                        score += 24
+                        score += 40
                     elif volume >= 500_000:
-                        score += 12
+                        score += 25
+                    elif volume >= 100_000:
+                        score += 15
+                    else:
+                        score += 5
 
-                    score += 50
+                    # 기본 점수 제거 (너무 높은 기본 점수로 인해 모든 종목이 비슷한 점수를 받음)
+                    # score += 50  # 제거됨
 
-                    max_score = 440
+                    max_score = 200  # 상승률 100 + 거래량 100
                     percentage = (score / max_score) * 100
 
                     if percentage >= 90:
