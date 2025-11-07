@@ -12,18 +12,18 @@ logger = logging.getLogger(__name__)
 class Analyzer:
     """
     데이터 분석 클래스
-    
+
     주요 기능:
     - AI 분석용 데이터 수집
     - 매수 가능 수량 계산
     - 기술적 지표 계산
     - 장 운영 시간 확인
     """
-    
+
     def __init__(self, client):
         """
         Analyzer 초기화
-        
+
         Args:
             client: KiwoomRESTClient 인스턴스
         """
@@ -287,7 +287,6 @@ class Analyzer:
         
         changes = []
         for i in range(period):
-            """
             if i + 1 < len(closes):
                 change = closes[i] - closes[i + 1]
                 changes.append(change)
@@ -370,7 +369,6 @@ class Analyzer:
 
         else:
             if time(8, 0) <= current_time < time(8, 50):
-                """
                 is_trading_hours = True
                 market_type = 'NXT 프리마켓'
                 market_status = 'NXT 프리마켓 운영 중 (지정가만)'
@@ -378,14 +376,12 @@ class Analyzer:
                 order_type_limit = 'limit_only'
 
             elif time(8, 50) <= current_time < time(9, 0):
-                """
                 is_trading_hours = False
                 market_type = 'NXT 프리마켓 종료'
                 market_status = 'NXT 메인마켓 시작 대기'
                 is_test_mode = False
 
             elif time(9, 0) <= current_time < time(15, 20):
-                """
                 is_trading_hours = True
                 market_type = 'NXT 메인마켓'
                 market_status = 'NXT 메인마켓 운영 중'
@@ -393,7 +389,6 @@ class Analyzer:
                 order_type_limit = 'all'
 
             elif time(15, 20) <= current_time < time(15, 30):
-                """
                 is_trading_hours = True
                 market_type = 'KRX 종가 결정'
                 market_status = 'KRX 종가 결정 시간 (취소만 가능)'
@@ -401,14 +396,12 @@ class Analyzer:
                 can_cancel_only = True
 
             elif time(15, 30) <= current_time < time(15, 40):
-                """
                 is_trading_hours = False
                 market_type = 'NXT 일시 중단'
                 market_status = 'NXT 애프터마켓 시작 대기'
                 is_test_mode = False
 
             elif time(15, 40) <= current_time < time(20, 0):
-                """
                 is_trading_hours = True
                 market_type = 'NXT 애프터마켓'
                 market_status = 'NXT 애프터마켓 운영 중 (지정가만)'
@@ -420,10 +413,8 @@ class Analyzer:
                 is_test_mode = True
                 market_type = '테스트 모드'
                 if current_time < time(8, 0):
-                    """
                     market_status = '장 시작 전 (종가 테스트 모드)'
                 elif current_time >= time(20, 0):
-                    """
                     market_status = '장 종료 후 (종가 테스트 모드)'
 
         next_open = self._calculate_next_market_open(now)
@@ -447,7 +438,6 @@ class Analyzer:
         weekday = now.weekday()
 
         if weekday < 5 and current_time < time(8, 0):
-            """
             return datetime.combine(now.date(), time(8, 0))
 
         if weekday < 4:
