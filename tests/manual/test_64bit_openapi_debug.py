@@ -182,14 +182,33 @@ def test_commconnect(ocx):
             print("✅ CommConnect 호출 성공")
             print("   로그인창이 나타나면 수동으로 로그인하세요.")
 
-            # 이벤트 대기
-            print("\n   이벤트 대기 중 (20초)...")
-            for i in range(20):
+            # 이벤트 대기 (더 많은 메시지 처리)
+            print("\n   이벤트 대기 중 (30초)...")
+            for i in range(300):  # 0.1초 * 300 = 30초
                 pythoncom.PumpWaitingMessages()
-                time.sleep(1)
-                if i % 5 == 0:
-                    state = ocx.GetConnectState()
-                    print(f"   [{i}초] 연결 상태: {state}")
+                time.sleep(0.1)
+
+                if i % 50 == 0:  # 5초마다
+                    try:
+                        state = ocx.GetConnectState()
+                        print(f"   [{i//10}초] 연결 상태: {state}")
+                        if state == 1:
+                            print("   ✅ 로그인 성공 확인!")
+                            return True
+                    except:
+                        pass
+
+            # 최종 상태 확인
+            try:
+                final_state = ocx.GetConnectState()
+                if final_state == 1:
+                    print("\n✅ 로그인 성공!")
+                    return True
+                else:
+                    print(f"\n⚠️ 연결 상태: {final_state} (0=미연결, 1=연결)")
+                    return False
+            except:
+                pass
 
             return True
         else:
@@ -204,9 +223,9 @@ def test_commconnect(ocx):
         # 오류 코드 해석
         error_code = e.args[0] & 0xFFFFFFFF
 
-        if error_code == 0x800401FF:
+        if error_code == 0x8000FFFF:
             print("\n💡 오류 분석:")
-            print("   0x800401FF = CO_E_NOTINITIALIZED 또는 일반적인 COM 호출 실패")
+            print("   0x8000FFFF = E_UNEXPECTED (예기치 않은 오류)")
             print()
             print("   가능한 원인:")
             print("   1. 다른 Kiwoom 프로세스와 충돌 (가장 유력)")
@@ -214,12 +233,22 @@ def test_commconnect(ocx):
             print("   2. OCX 파일이 손상되었거나 권한 문제")
             print("   3. 로그인 서버 연결 실패")
             print("   4. 방화벽/백신 프로그램 차단")
+            print("   5. 64비트 OCX와 32비트 프로세스 충돌")
             print()
             print("   해결 방법:")
             print("   1. 모든 Kiwoom 관련 프로그램 종료")
             print("   2. 키움증권 HTS(영웅문) 종료")
             print("   3. 작업 관리자에서 KH로 시작하는 프로세스 모두 종료")
-            print("   4. Python 프로세스 모두 종료 후 재시도")
+            print("   4. Python 인터프리터 재시작 (64비트인지 확인)")
+            print("   5. 관리자 권한으로 실행")
+            print("   6. 재부팅 후 재시도")
+        elif error_code == 0x800401FF:
+            print("\n💡 오류 분석:")
+            print("   0x800401FF = CO_E_NOTINITIALIZED")
+            print()
+            print("   해결 방법:")
+            print("   1. COM 초기화 문제 - Python 재시작")
+            print("   2. 관리자 권한으로 실행")
 
         return False
 
