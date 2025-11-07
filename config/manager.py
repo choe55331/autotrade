@@ -32,28 +32,11 @@ class ConfigManager:
     - Dot notation access: get('risk_management.max_position_size')
 
     Usage:
-    """
         from config import get_config, get_setting, set_setting
-
-        # Get full config
         config = get_config()
         max_pos = config.risk_management.max_position_size
-
-        # Get with dot notation
-        max_pos = get_setting('risk_management.max_position_size')
-
-        # Set value with event notification
-        set_setting('risk_management.max_position_size', 0.25)
-
-        # Register change listener
-        def on_risk_change(path, old, new):
-            print(f"Risk setting changed: {path} = {new}")
-
-        manager = ConfigManager()
-        manager.register_change_listener('risk_management', on_risk_change)
     """
 
-"""
     _instance: Optional['ConfigManager'] = None
     _config: Optional[AutoTradeConfig] = None
     _change_listeners: Dict[str, List[Callable]] = {}
@@ -229,12 +212,9 @@ class ConfigManager:
             callback: 콜백 함수 (path, old_value, new_value)
 
         Example:
-        """
             def on_risk_change(path, old, new):
                 print(f"Risk changed: {path} = {new}")
-
             manager.register_change_listener('risk_management', on_risk_change)
-        """
         """
         if key_path not in self._change_listeners:
             self._change_listeners[key_path] = []
@@ -317,10 +297,8 @@ def get_setting(path: str, default=None) -> Any:
         설정 값
 
     Example:
-    """
         max_pos = get_setting('risk_management.max_position_size')
         ai_threshold = get_setting('ai.confidence_threshold', 0.7)
-    """
     """
     return _get_manager().get(path, default)
 

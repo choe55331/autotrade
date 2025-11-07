@@ -4,9 +4,7 @@ YAML 기반 설정 관리 시스템 (Backward Compatibility Layer)
 
 DEPRECATED: 이 파일은 backward compatibility를 위해 유지됩니다.
 새 코드에서는 config.manager를 사용하세요:
-"""
     from config.manager import get_config, get_setting, set_setting
-"""
 """
 from typing import Dict, Any, Optional
 from pathlib import Path
@@ -196,7 +194,7 @@ class Config:
         최대 포지션: {pos.get('max_open_positions', 5)}개
         거래당 리스크: {pos.get('risk_per_trade_ratio', 0.20)*100:.1f}%
         목표 수익률: {pl.get('take_profit_ratio', 0.10)*100:.1f}%
-        손절 비율: {pl.get('stop_loss_ratio', -0."05")*100:.1f}%
+        손절 비율: {pl.get('stop_loss_ratio', -0.05)*100:.1f}%
 
         AI 분석: {'활성' if config.ai_analysis.enabled else '비활성'}
         - 신뢰도: {config.ai_analysis.confidence_threshold:.2f}
