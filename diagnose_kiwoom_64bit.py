@@ -58,10 +58,44 @@ def check_kiwoom_processes():
         print(f"⚠️  프로세스 확인 실패: {e}")
         return True
 
+def find_ocx_file():
+    """OCX 파일 경로 찾기"""
+    possible_paths = [
+        Path("C:/OpenApi/KHOpenAPI64.ocx"),
+        Path("C:/OpenAPI/KHOpenAPI64.ocx"),
+        Path("C:/Program Files/Kiwoom/OpenAPI/KHOpenAPI64.ocx"),
+        Path("C:/Program Files (x86)/Kiwoom/OpenAPI/KHOpenAPI64.ocx"),
+    ]
+
+    for path in possible_paths:
+        if path.exists():
+            return path
+
+    return None
+
 def check_ocx_registration():
     """OCX 등록 상태 확인"""
     print("\n📌 Step 2: OCX 등록 상태 확인\n")
 
+    # 먼저 OCX 파일 존재 여부 확인
+    print("🔍 OCX 파일 검색 중...")
+    ocx_path = find_ocx_file()
+
+    if ocx_path:
+        print(f"✅ OCX 파일 발견: {ocx_path}")
+        print(f"   파일 크기: {ocx_path.stat().st_size:,} bytes")
+    else:
+        print("❌ OCX 파일을 찾을 수 없습니다!")
+        print("\n🔧 해결 방법:")
+        print("   1. 64bit-kiwoom-openapi 설치:")
+        print("      https://github.com/teranum/64bit-kiwoom-openapi")
+        print("   2. OCX 파일이 다음 경로 중 하나에 있어야 합니다:")
+        print("      - C:\\OpenApi\\KHOpenAPI64.ocx")
+        print("      - C:\\OpenAPI\\KHOpenAPI64.ocx")
+        return False
+
+    # ProgID 레지스트리 확인
+    print("\n🔍 레지스트리 확인 중...")
     try:
         # ProgID 확인
         key = winreg.OpenKey(
@@ -88,13 +122,16 @@ def check_ocx_registration():
                 winreg.KEY_READ
             )
 
-            ocx_path = winreg.QueryValue(clsid_key, "")
-            print(f"   OCX 경로: {ocx_path}")
+            registered_ocx_path = winreg.QueryValue(clsid_key, "")
+            print(f"   등록된 OCX 경로: {registered_ocx_path}")
 
-            if Path(ocx_path).exists():
-                print(f"   ✅ OCX 파일 존재 확인")
+            if Path(registered_ocx_path).exists():
+                print(f"   ✅ 등록된 OCX 파일 존재 확인")
             else:
-                print(f"   ⚠️  OCX 파일이 존재하지 않습니다!")
+                print(f"   ⚠️  등록된 OCX 파일이 존재하지 않습니다!")
+                print(f"\n   현재 발견된 OCX: {ocx_path}")
+                print(f"   등록된 경로: {registered_ocx_path}")
+                print("\n   → OCX 재등록이 필요합니다!")
 
             winreg.CloseKey(clsid_key)
 
@@ -105,16 +142,59 @@ def check_ocx_registration():
 
     except FileNotFoundError:
         print("❌ ProgID가 등록되지 않았습니다!")
-        print("\n🔧 해결 방법:")
+        print("\n🔧 자동 등록 시도 가능:")
+        print("   이 스크립트를 관리자 권한으로 실행하면 자동으로 OCX를 등록할 수 있습니다.")
+        print("\n🔧 수동 등록 방법:")
         print("   1. 관리자 권한으로 명령 프롬프트 실행")
-        print("   2. 다음 명령 실행:")
-        print("      regsvr32 C:\\OpenApi\\KHOpenAPI64.ocx")
-        print("\n   또는:")
-        print("      C:\\OpenApi\\register.bat 실행")
+        print(f"   2. 다음 명령 실행:")
+        print(f"      regsvr32 \"{ocx_path}\"")
+
+        # 관리자 권한 확인
+        import ctypes
+        try:
+            is_admin = ctypes.windll.shell32.IsUserAnAdmin()
+            if is_admin:
+                print("\n✅ 관리자 권한 감지!")
+                print("   자동으로 OCX 등록을 시도하시겠습니까? (y/n): ", end="")
+                choice = input().strip().lower()
+
+                if choice == 'y':
+                    return register_ocx(ocx_path)
+            else:
+                print("\n⚠️  관리자 권한이 필요합니다.")
+                print("   이 스크립트를 마우스 오른쪽 버튼 → '관리자 권한으로 실행'으로 다시 실행하세요.")
+        except:
+            pass
+
         return False
 
     except Exception as e:
         print(f"❌ 레지스트리 확인 실패: {e}")
+        return False
+
+def register_ocx(ocx_path):
+    """OCX 등록 시도"""
+    print(f"\n🔧 OCX 등록 시도 중: {ocx_path}")
+
+    try:
+        result = subprocess.run(
+            ['regsvr32', '/s', str(ocx_path)],
+            capture_output=True,
+            text=True
+        )
+
+        if result.returncode == 0:
+            print("✅ OCX 등록 성공!")
+            print("   이제 테스트를 다시 실행해보세요.")
+            return True
+        else:
+            print(f"❌ OCX 등록 실패 (return code: {result.returncode})")
+            print(f"   stdout: {result.stdout}")
+            print(f"   stderr: {result.stderr}")
+            return False
+
+    except Exception as e:
+        print(f"❌ OCX 등록 중 오류: {e}")
         return False
 
 def check_firewall():
@@ -196,7 +276,50 @@ def test_activex_creation():
         print("   2. PC 재부팅")
         return False
 
-def print_solution_summary():
+def create_register_batch(ocx_path):
+    """OCX 등록 배치 파일 생성"""
+    try:
+        batch_content = f"""@echo off
+echo ============================================
+echo Kiwoom 64-bit OpenAPI OCX 등록 스크립트
+echo ============================================
+echo.
+
+echo OCX 파일: {ocx_path}
+echo.
+
+echo 기존 등록 해제 중...
+regsvr32 /u /s "{ocx_path}"
+
+echo 새로 등록 중...
+regsvr32 /s "{ocx_path}"
+
+if %errorlevel% equ 0 (
+    echo.
+    echo ✅ OCX 등록 성공!
+    echo.
+) else (
+    echo.
+    echo ❌ OCX 등록 실패!
+    echo 관리자 권한으로 실행했는지 확인하세요.
+    echo.
+)
+
+pause
+"""
+        batch_file = Path(__file__).parent / "register_kiwoom_ocx.bat"
+        with open(batch_file, 'w', encoding='cp949') as f:
+            f.write(batch_content)
+
+        print(f"\n💾 배치 파일 생성 완료: {batch_file}")
+        print("   이 파일을 마우스 오른쪽 버튼 → '관리자 권한으로 실행'하세요.")
+        return batch_file
+
+    except Exception as e:
+        print(f"❌ 배치 파일 생성 실패: {e}")
+        return None
+
+def print_solution_summary(ocx_path=None):
     """종합 해결 방법"""
     print_header("💡 종합 해결 방법")
 
@@ -210,24 +333,32 @@ def print_solution_summary():
     print("     taskkill /F /IM OpSysMsg.exe")
     print()
 
-    print("2️⃣  PC 재부팅 (권장)")
+    print("2️⃣  OCX 등록 (관리자 권한)")
+    if ocx_path:
+        print(f"   수동 등록:")
+        print(f"     regsvr32 \"{ocx_path}\"")
+        print()
+        print("   또는 생성된 배치 파일 사용:")
+        batch_file = create_register_batch(ocx_path)
+        if batch_file:
+            print(f"     {batch_file}")
+    else:
+        print("   regsvr32 C:\\OpenApi\\KHOpenAPI64.ocx")
+    print()
+
+    print("3️⃣  PC 재부팅 (권장)")
     print("   - 완전한 프로세스 종료")
     print("   - COM 객체 정리")
     print()
 
-    print("3️⃣  관리자 권한으로 실행")
+    print("4️⃣  관리자 권한으로 실행")
     print("   - 명령 프롬프트를 관리자 권한으로 실행")
     print("   - python test_samsung_1year_minute_data.py")
     print()
 
-    print("4️⃣  방화벽/백신 일시 중지")
+    print("5️⃣  방화벽/백신 일시 중지")
     print("   - Windows Defender 실시간 보호 일시 중지")
     print("   - 백신 프로그램 일시 중지")
-    print()
-
-    print("5️⃣  OCX 재등록 (관리자 권한)")
-    print("   regsvr32 /u C:\\OpenApi\\KHOpenAPI64.ocx")
-    print("   regsvr32 C:\\OpenApi\\KHOpenAPI64.ocx")
     print()
 
 def main():
@@ -244,6 +375,9 @@ def main():
 """)
 
     print_header("🚀 진단 시작")
+
+    # OCX 파일 경로 저장 (솔루션 요약에서 사용)
+    ocx_file_path = find_ocx_file()
 
     results = {
         "프로세스 확인": check_kiwoom_processes(),
@@ -275,7 +409,7 @@ def main():
         print("\n⚠️  일부 진단 항목 실패")
         print("위의 해결 방법을 참고하여 문제를 해결하세요.")
 
-    print_solution_summary()
+    print_solution_summary(ocx_file_path)
 
     print("\n" + "="*100)
 
