@@ -20,6 +20,35 @@ def print_header(title):
     print(f"  {title}")
     print(f"{'='*100}\n")
 
+def kill_kiwoom_processes():
+    """Kiwoom 프로세스 강제 종료"""
+    print("\n🔧 Kiwoom 프로세스 강제 종료 시도 중...")
+
+    processes = ["KHOpenAPI.exe", "KHOpenAPICtrl.exe", "OpSysMsg.exe", "KHOpenApi64.exe"]
+    killed_any = False
+
+    for proc in processes:
+        try:
+            result = subprocess.run(
+                ['taskkill', '/F', '/IM', proc],
+                capture_output=True,
+                text=True,
+                encoding='cp949'
+            )
+            if result.returncode == 0:
+                print(f"   ✅ {proc} 종료 완료")
+                killed_any = True
+            else:
+                print(f"   ℹ️  {proc} 실행 중이 아님")
+        except Exception as e:
+            print(f"   ⚠️  {proc} 종료 실패: {e}")
+
+    if killed_any:
+        print("\n💡 프로세스 종료 후 1초 대기 중...")
+        time.sleep(1)
+
+    return killed_any
+
 def check_kiwoom_processes():
     """실행 중인 Kiwoom 프로세스 확인"""
     print("📌 Step 1: Kiwoom 관련 프로세스 확인\n")
@@ -39,19 +68,30 @@ def check_kiwoom_processes():
             return True
         else:
             print("⚠️  다음 Kiwoom 프로세스가 실행 중입니다:\n")
+            processes_found = []
             for line in lines[1:]:
                 if line.strip():
                     parts = line.split(',')
                     if len(parts) > 0:
                         process_name = parts[0].strip('"')
                         print(f"   - {process_name}")
+                        processes_found.append(process_name)
 
             print("\n🔧 해결 방법:")
             print("   1. 키움증권 HTS (영웅문) 종료")
             print("   2. 다른 Open API 기반 프로그램 종료")
             print("   3. 작업 관리자에서 모든 KH* 프로세스 강제 종료")
-            print("\n   명령어: taskkill /F /IM KHOpenAPI.exe")
-            print("   명령어: taskkill /F /IM OpSysMsg.exe")
+            print("\n   또는 자동으로 종료하시겠습니까? (y/n): ", end="")
+
+            try:
+                choice = input().strip().lower()
+                if choice == 'y':
+                    if kill_kiwoom_processes():
+                        print("\n✅ 프로세스 종료 완료! 계속 진행합니다...")
+                        return True
+            except:
+                pass
+
             return False
 
     except Exception as e:
@@ -276,10 +316,13 @@ def test_activex_creation():
         print("   2. PC 재부팅")
         return False
 
-def create_register_batch(ocx_path):
-    """OCX 등록 배치 파일 생성"""
+def create_helper_scripts(ocx_path):
+    """헬퍼 배치 파일들 생성"""
+    scripts_created = []
+
+    # 1. OCX 등록 스크립트
     try:
-        batch_content = f"""@echo off
+        register_batch = f"""@echo off
 echo ============================================
 echo Kiwoom 64-bit OpenAPI OCX 등록 스크립트
 echo ============================================
@@ -309,15 +352,81 @@ pause
 """
         batch_file = Path(__file__).parent / "register_kiwoom_ocx.bat"
         with open(batch_file, 'w', encoding='cp949') as f:
-            f.write(batch_content)
-
-        print(f"\n💾 배치 파일 생성 완료: {batch_file}")
-        print("   이 파일을 마우스 오른쪽 버튼 → '관리자 권한으로 실행'하세요.")
-        return batch_file
+            f.write(register_batch)
+        scripts_created.append(batch_file)
+        print(f"\n💾 OCX 등록 스크립트 생성: {batch_file}")
 
     except Exception as e:
-        print(f"❌ 배치 파일 생성 실패: {e}")
-        return None
+        print(f"❌ OCX 등록 스크립트 생성 실패: {e}")
+
+    # 2. 프로세스 종료 스크립트
+    try:
+        kill_batch = """@echo off
+echo ============================================
+echo Kiwoom 프로세스 강제 종료 스크립트
+echo ============================================
+echo.
+
+echo 실행 중인 Kiwoom 프로세스를 확인합니다...
+echo.
+
+tasklist | findstr /I "KH"
+
+echo.
+echo 위의 프로세스들을 강제 종료합니다...
+echo.
+
+taskkill /F /IM KHOpenAPI.exe 2>nul
+if %errorlevel% equ 0 (
+    echo ✅ KHOpenAPI.exe 종료 완료
+) else (
+    echo ℹ️  KHOpenAPI.exe 실행 중이 아님
+)
+
+taskkill /F /IM KHOpenAPICtrl.exe 2>nul
+if %errorlevel% equ 0 (
+    echo ✅ KHOpenAPICtrl.exe 종료 완료
+) else (
+    echo ℹ️  KHOpenAPICtrl.exe 실행 중이 아님
+)
+
+taskkill /F /IM OpSysMsg.exe 2>nul
+if %errorlevel% equ 0 (
+    echo ✅ OpSysMsg.exe 종료 완료
+) else (
+    echo ℹ️  OpSysMsg.exe 실행 중이 아님
+)
+
+taskkill /F /IM KHOpenApi64.exe 2>nul
+if %errorlevel% equ 0 (
+    echo ✅ KHOpenApi64.exe 종료 완료
+) else (
+    echo ℹ️  KHOpenApi64.exe 실행 중이 아님
+)
+
+echo.
+echo ============================================
+echo 프로세스 종료 완료!
+echo ============================================
+echo.
+
+pause
+"""
+        kill_file = Path(__file__).parent / "kill_kiwoom_processes.bat"
+        with open(kill_file, 'w', encoding='cp949') as f:
+            f.write(kill_batch)
+        scripts_created.append(kill_file)
+        print(f"💾 프로세스 종료 스크립트 생성: {kill_file}")
+
+    except Exception as e:
+        print(f"❌ 프로세스 종료 스크립트 생성 실패: {e}")
+
+    if scripts_created:
+        print("\n   생성된 헬퍼 스크립트:")
+        for script in scripts_created:
+            print(f"   - {script.name}")
+
+    return scripts_created
 
 def print_solution_summary(ocx_path=None):
     """종합 해결 방법"""
@@ -338,10 +447,8 @@ def print_solution_summary(ocx_path=None):
         print(f"   수동 등록:")
         print(f"     regsvr32 \"{ocx_path}\"")
         print()
-        print("   또는 생성된 배치 파일 사용:")
-        batch_file = create_register_batch(ocx_path)
-        if batch_file:
-            print(f"     {batch_file}")
+        print("   또는 생성된 헬퍼 스크립트 사용:")
+        scripts = create_helper_scripts(ocx_path)
     else:
         print("   regsvr32 C:\\OpenApi\\KHOpenAPI64.ocx")
     print()
