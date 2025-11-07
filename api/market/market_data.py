@@ -32,9 +32,10 @@ class MarketDataAPI:
         """
         종목 체결정보 조회 (키움증권 API ka10003)
 
-        ⚠️ 중요 (v5.15 테스트 결과):
-        - NXT 시간대에도 _NX 접미사 사용하면 실패 (0% 성공률)
-        - 기본 코드로 조회하면 정상 작동 (100% 성공률)
+        ⚠️ 중요 (v6.0 실제 테스트 결과 - 2025-11-07):
+        - NXT 시간대에 _NX 접미사 사용 시 일부 종목 성공 (70% 성공률)
+        - 호가 API (_NX)가 더 안정적 (90% 성공률)
+        - NXT 시간대에는 _NX 접미사 시도 후 기본 코드로 fallback
 
         Args:
             stock_code: 종목코드
@@ -45,12 +46,48 @@ class MarketDataAPI:
         """
         from utils.trading_date import is_nxt_hours
 
-        # _NX 접미사 제거 (테스트 결과: 기본 코드만 작동)
+        is_nxt = is_nxt_hours()
+
+        # _NX 접미사 제거 (기본 코드 추출)
         base_code = stock_code[:-3] if stock_code.endswith("_NX") else stock_code
 
-        body = {
-            "stk_cd": base_code
-        }
+        # NXT 시간대 처리
+        if is_nxt:
+            # 먼저 _NX 접미사로 시도
+            nx_code = f"{base_code}_NX"
+
+            body_nx = {"stk_cd": nx_code}
+            response_nx = self.client.request(
+                api_id="ka10003",
+                body=body_nx,
+                path="stkinfo"
+            )
+
+            if response_nx and response_nx.get('return_code') == 0:
+                cntr_infr = response_nx.get('cntr_infr', [])
+                if cntr_infr and len(cntr_infr) > 0:
+                    latest = cntr_infr[0]
+                    cur_prc_str = latest.get('cur_prc', '0')
+                    current_price = abs(int(cur_prc_str.replace('+', '').replace('-', '')))
+
+                    if current_price > 0:
+                        price_info = {
+                            'current_price': current_price,
+                            'cur_prc': current_price,
+                            'change': latest.get('pred_pre', '0'),
+                            'change_rate': latest.get('pre_rt', '0'),
+                            'volume': latest.get('cntr_trde_qty', '0'),
+                            'acc_volume': latest.get('acc_trde_qty', '0'),
+                            'acc_trading_value': latest.get('acc_trde_prica', '0'),
+                            'time': latest.get('tm', ''),
+                            'stex_tp': latest.get('stex_tp', 'NXT'),
+                            'source': 'nxt_realtime',
+                        }
+                        logger.info(f"{nx_code} NXT 현재가: {current_price:,}원 (stex_tp={price_info['stex_tp']})")
+                        return price_info
+
+        # 기본 코드로 조회 (일반 시간 또는 NXT fallback)
+        body = {"stk_cd": base_code}
 
         response = self.client.request(
             api_id="ka10003",
@@ -81,7 +118,7 @@ class MarketDataAPI:
                     'acc_trading_value': latest.get('acc_trde_prica', '0'),
                     'time': latest.get('tm', ''),
                     'stex_tp': latest.get('stex_tp', ''),
-                    'source': 'nxt_realtime' if is_nxt_hours() else 'regular_market',
+                    'source': 'nxt_realtime' if is_nxt else 'regular_market',
                 }
 
                 logger.info(f"{base_code} 현재가: {current_price:,}원 (출처: {price_info['source']})")
@@ -146,9 +183,9 @@ class MarketDataAPI:
         """
         호가 조회 (키움증권 API ka10004)
 
-        ⚠️ 중요 (v5.15 테스트 결과):
-        - NXT 시간대에도 _NX 접미사 사용하면 실패
-        - 기본 코드로 조회하면 정상 작동
+        ⚠️ 중요 (v6.0 실제 테스트 결과 - 2025-11-07):
+        - NXT 시간대에 _NX 접미사 사용 시 90% 성공률 (최고 성공률!)
+        - NXT 시간대에는 _NX 접미사 우선 시도
 
         Args:
             stock_code: 종목코드
@@ -164,12 +201,64 @@ class MarketDataAPI:
                 ...
             }
         """
-        # _NX 접미사 제거 (테스트 결과: 기본 코드만 작동)
+        from utils.trading_date import is_nxt_hours
+
+        is_nxt = is_nxt_hours()
+
+        # _NX 접미사 제거 (기본 코드 추출)
         base_code = stock_code[:-3] if stock_code.endswith("_NX") else stock_code
 
-        body = {
-            "stk_cd": base_code
-        }
+        # NXT 시간대 처리 - _NX 접미사 우선
+        if is_nxt:
+            nx_code = f"{base_code}_NX"
+            body_nx = {"stk_cd": nx_code}
+
+            response_nx = self.client.request(
+                api_id="ka10004",
+                body=body_nx,
+                path="mrkcond"
+            )
+
+            if response_nx and response_nx.get('return_code') == 0:
+                # NXT 호가 성공 - 파싱 시도
+                sel_fpr_bid = response_nx.get('sel_fpr_bid', '0').replace('+', '').replace('-', '')
+                buy_fpr_bid = response_nx.get('buy_fpr_bid', '0').replace('+', '').replace('-', '')
+
+                if sel_fpr_bid and buy_fpr_bid and sel_fpr_bid != '' and buy_fpr_bid != '':
+                    try:
+                        sell_price = abs(int(sel_fpr_bid)) if sel_fpr_bid != '0' else 0
+                        buy_price = abs(int(buy_fpr_bid)) if buy_fpr_bid != '0' else 0
+
+                        if sell_price > 0 or buy_price > 0:
+                            # NXT 호가 데이터 처리
+                            orderbook = response_nx
+                            orderbook['sell_price'] = sell_price
+                            orderbook['buy_price'] = buy_price
+
+                            # 총잔량 파싱
+                            tot_sel_req = orderbook.get('tot_sel_req', '0').replace('+', '').replace('-', '')
+                            tot_buy_req = orderbook.get('tot_buy_req', '0').replace('+', '').replace('-', '')
+
+                            orderbook['매도_총잔량'] = abs(int(tot_sel_req)) if tot_sel_req and tot_sel_req != '0' else 0
+                            orderbook['매수_총잔량'] = abs(int(tot_buy_req)) if tot_buy_req and tot_buy_req != '0' else 0
+
+                            # 중간가 계산
+                            if sell_price > 0 and buy_price > 0:
+                                orderbook['mid_price'] = (sell_price + buy_price) // 2
+                            elif sell_price > 0:
+                                orderbook['mid_price'] = sell_price
+                            else:
+                                orderbook['mid_price'] = buy_price
+
+                            orderbook['현재가'] = orderbook['mid_price']
+
+                            logger.info(f"{nx_code} NXT 호가 조회 완료: 매도1={sell_price:,}, 매수1={buy_price:,}")
+                            return orderbook
+                    except (ValueError, TypeError) as e:
+                        logger.warning(f"{nx_code} NXT 호가 파싱 실패: {e}, fallback to 기본 코드")
+
+        # 기본 코드로 조회 (일반 시간 또는 NXT fallback)
+        body = {"stk_cd": base_code}
 
         response = self.client.request(
             api_id="ka10004",
