@@ -116,48 +116,92 @@ def test_off_market_minute_chart():
 
         for interval in intervals:
             try:
-                # 핵심: base_date 파라미터 사용!
-                minute_data = market_api.get_minute_chart(
-                    stock_code=stock_code,
-                    interval=interval,
-                    count=10,  # 최근 10개만
-                    adjusted=True,
-                    base_date=target_date  # 👈 여기가 핵심!
+                # 직접 API 호출로 응답 확인
+                body = {
+                    "stk_cd": stock_code,
+                    "tic_scope": str(interval),
+                    "upd_stkpc_tp": "1",  # 수정주가
+                    "base_dt": target_date  # 기준일
+                }
+
+                print(f"🔍 {interval}분봉 요청: {body}")
+
+                response = client.request(
+                    api_id="ka10080",
+                    body=body,
+                    path="chart"
                 )
 
-                if minute_data and len(minute_data) > 0:
-                    print(f"✅ {interval}분봉: {len(minute_data)}개 조회 성공")
+                print(f"📥 API 응답:")
+                print(f"   - return_code: {response.get('return_code') if response else 'No response'}")
+                print(f"   - return_msg: {response.get('return_msg') if response else 'N/A'}")
 
-                    # 첫 번째 데이터 출력
-                    first = minute_data[0]
-                    print(f"   최신 데이터:")
-                    print(f"   - 시간: {first.get('time', 'N/A')}")
-                    print(f"   - 시가: {first.get('open', 0):,}원")
-                    print(f"   - 고가: {first.get('high', 0):,}원")
-                    print(f"   - 저가: {first.get('low', 0):,}원")
-                    print(f"   - 종가: {first.get('close', 0):,}원")
-                    print(f"   - 거래량: {first.get('volume', 0):,}주")
+                if response and response.get('return_code') == 0:
+                    minute_data = response.get('stk_tic_pole_chart_qry', [])
+                    print(f"   - 데이터 배열 길이: {len(minute_data)}")
+
+                    if minute_data and len(minute_data) > 0:
+                        print(f"✅ {interval}분봉: {len(minute_data)}개 조회 성공")
+
+                        # 첫 번째 데이터 출력
+                        first = minute_data[0]
+                        print(f"   최신 데이터:")
+                        print(f"   - 날짜: {first.get('dt', 'N/A')}")
+                        print(f"   - 시간: {first.get('tm', 'N/A')}")
+                        print(f"   - 시가: {first.get('open_pric', 'N/A')}")
+                        print(f"   - 고가: {first.get('high_pric', 'N/A')}")
+                        print(f"   - 저가: {first.get('low_pric', 'N/A')}")
+                        print(f"   - 종가: {first.get('cur_prc', 'N/A')}")
+                        print(f"   - 거래량: {first.get('trde_qty', 'N/A')}")
+                    else:
+                        print(f"⚠️ {interval}분봉: API 응답 성공했지만 데이터 배열이 비어있음")
+                        print(f"   💡 원인: base_dt 파라미터가 장외시간에는 작동하지 않을 수 있음")
                 else:
-                    print(f"⚠️ {interval}분봉: 데이터 없음")
+                    print(f"❌ {interval}분봉: API 오류")
 
             except Exception as e:
                 print(f"❌ {interval}분봉 조회 실패: {e}")
+                import traceback
+                traceback.print_exc()
 
         print()  # 종목 사이 공백
 
-    print_section("✅ 테스트 완료")
+    print_section("📊 테스트 결과 분석")
 
     if is_off_market:
-        print("💡 장외시간에 과거 데이터를 성공적으로 조회했습니다!")
-        print(f"   조회된 날짜: {target_date}")
+        print("⏰ 테스트 환경: 장외시간 (20:00-08:00)")
+        print(f"📅 조회 시도 날짜: {target_date}")
+        print()
+        print("❓ 예상 결과:")
+        print("   - base_dt 파라미터로 과거 영업일 분봉 조회")
+        print("   - 오늘(또는 마지막 영업일) 장 종료 후 데이터 반환")
+        print()
+        print("🔍 실제 결과 분석:")
+        print("   위의 API 응답을 확인하세요.")
+        print()
+        print("💡 만약 모든 데이터가 비어있다면:")
+        print("   → base_dt 파라미터는 지원되지만, 장외시간에는 작동하지 않을 수 있음")
+        print("   → REST API의 한계: 장중에만 분봉 데이터 제공")
+        print("   → 대안: 아이디어 2 (캐싱) 또는 아이디어 3 (Open API) 필요")
     else:
-        print("💡 거래 시간에 실시간 데이터를 성공적으로 조회했습니다!")
-        print(f"   조회된 날짜: {target_date}")
+        print("⏰ 테스트 환경: 거래 시간 중")
+        print(f"📅 조회 날짜: {target_date}")
+        print()
+        print("✅ 거래 시간에는 base_dt 없이도 당일 데이터 조회 가능")
 
-    print("\n📌 핵심:")
-    print("   ✅ base_date 파라미터를 사용하면 과거 분봉 조회 가능")
-    print("   ✅ 장외시간에도 마지막 영업일 데이터를 자동으로 가져올 수 있음")
-    print("   ✅ 추가 개발 없이 기존 API만으로 해결!")
+    print()
+    print("━" * 80)
+    print()
+    print("📌 결론:")
+    print()
+    print("아이디어 1 (REST API base_dt 파라미터) 검증 결과:")
+    print("   ❓ 파라미터는 지원되나, 장외시간 작동 여부는 API 응답에 따라 달라짐")
+    print("   ❓ 위의 실제 API 응답을 확인하여 판단 필요")
+    print()
+    print("대안:")
+    print("   💡 아이디어 2: 거래 시간 중 분봉 캐싱 → 장외시간에 캐시 조회")
+    print("   💡 아이디어 3: Kiwoom Open API 활용 (과거 데이터에 강력)")
+    print()
 
 
 if __name__ == '__main__':
