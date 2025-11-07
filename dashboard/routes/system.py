@@ -310,12 +310,16 @@ def get_candidates():
         for cand in approved:
             try:
                 # v5.3.2: 안전한 필드 접근
+                # v5.8: AI 확신도 정규화 (0-440 점수를 0-100% 범위로 변환)
+                raw_score = cand.get('score', 0)
+                normalized_score = min(100, round((raw_score / 440) * 100))  # 최대 100%로 제한
+
                 candidates.append({
                     'code': cand.get('stock_code', ''),
                     'name': cand.get('stock_name', ''),
                     'price': cand.get('current_price', 0),
                     'change_rate': cand.get('change_rate', 0),
-                    'ai_score': cand.get('score', 0),
+                    'ai_score': normalized_score,
                     'signal': 'BUY',
                     'split_strategy': cand.get('split_strategy', ''),
                     'reason': cand.get('ai_reason', ''),

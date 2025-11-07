@@ -5163,50 +5163,71 @@
 
         async function loadRiskHeatmap() {
             try {
-                // Fetch real portfolio data
-                const accountResponse = await fetch('/api/account');
-                const accountData = await accountResponse.json();
+                // v6.0.5: Use real risk analysis API
+                const riskResponse = await fetch('/api/risk/analysis');
+                const riskResult = await riskResponse.json();
 
                 let riskData = [];
 
-                // Get holdings from account data
-                if (accountData && accountData.holdings && accountData.holdings.length > 0) {
-                    riskData = accountData.holdings.map(holding => {
-                        const profitRate = parseFloat(holding.profit_pct || 0);
+                // Use actual risk analysis if available
+                if (riskResult && riskResult.success && riskResult.data) {
+                    const stockRisks = riskResult.data.stock_risks || [];
 
-                        // Calculate risk score based on:
-                        // 1. Volatility (profit/loss %)
-                        // 2. Position size
-                        const volatility = Math.abs(profitRate);
-                        const baseRisk = Math.min(volatility * 2, 50); // Cap at 50
-
-                        // Add random factor for demonstration (in production, use actual volatility metrics)
-                        const risk = Math.round(baseRisk + (Math.random() * 15));
-
-                        return {
-                            name: holding.stock_name || holding.code,
-                            risk: Math.min(100, Math.max(0, risk)),
-                            profitRate: profitRate,
-                            quantity: holding.quantity || 0
-                        };
-                    });
-                } else {
-                    // If no holdings, show AI candidates as potential risks
-                    const candidatesResponse = await fetch('/api/candidates');
-                    const candidates = await candidatesResponse.json();
-
-                    if (candidates && candidates.length > 0) {
-                        riskData = candidates.slice(0, 12).map(candidate => {
-                            // Calculate risk from AI score (inverse relationship)
-                            const aiScore = candidate.ai_score || 50;
-                            const risk = Math.round(100 - aiScore);
+                    if (stockRisks.length > 0) {
+                        riskData = stockRisks.map(stock => {
+                            // Use volatility as main risk metric
+                            const volatilityRisk = Math.min(100, Math.round(stock.volatility));
+                            // Also consider VaR (Value at Risk)
+                            const varRisk = Math.min(100, Math.round(Math.abs(stock.var_1day) * 5));
+                            // Combine metrics
+                            const combinedRisk = Math.round((volatilityRisk * 0.6) + (varRisk * 0.4));
 
                             return {
-                                name: candidate.name || candidate.code,
-                                risk: Math.min(100, Math.max(0, risk)),
-                                isCandidate: true
+                                name: stock.name || stock.code,
+                                risk: Math.min(100, Math.max(5, combinedRisk)),
+                                riskLevel: stock.risk_level,
+                                volatility: stock.volatility
                             };
                         });
+                    }
+                }
+
+                // Fallback 1: Use holdings with better calculation
+                if (riskData.length === 0) {
+                    const accountResponse = await fetch('/api/account');
+                    const accountData = await accountResponse.json();
+
+                    if (accountData && accountData.holdings && accountData.holdings.length > 0) {
+                        riskData = accountData.holdings.map(holding => {
+                            const profitRate = parseFloat(holding.profit_pct || 0);
+                            // Better risk calculation
+                            const volatility = Math.abs(profitRate);
+                            const baseRisk = Math.min(volatility * 4, 80);
+                            const risk = Math.max(10, Math.round(baseRisk + 10));
+
+                            return {
+                                name: holding.stock_name || holding.code,
+                                risk: Math.min(100, risk),
+                                profitRate: profitRate
+                            };
+                        });
+                    } else {
+                        // Fallback 2: Show AI candidates
+                        const candidatesResponse = await fetch('/api/candidates');
+                        const candidates = await candidatesResponse.json();
+
+                        if (candidates && candidates.length > 0) {
+                            riskData = candidates.slice(0, 12).map(candidate => {
+                                const aiScore = candidate.ai_score || 50;
+                                const risk = Math.round(100 - aiScore);
+
+                                return {
+                                    name: candidate.name || candidate.code,
+                                    risk: Math.min(100, Math.max(10, risk)),
+                                    isCandidate: true
+                                };
+                            });
+                        }
                     }
                 }
 
