@@ -202,7 +202,7 @@ class ChartDataAPI:
                         logger.info(f"✅ {nx_code} NXT {interval}분봉 {len(standardized_data)}개 조회 성공!")
                         return standardized_data[:count] if count else standardized_data
                     else:
-                        logger.warning(f"⚠️ {nx_code} NXT {interval}분봉 응답은 성공했지만 데이터 없음")
+                        logger.warning(f"⚠️ {nx_code} NXT {interval}분봉 응답은 성공했지만 데이터 없음 (분봉 API는 _NX 미지원 추정)")
                 else:
                     error_msg = response_nx.get('return_msg', 'Unknown error') if response_nx else 'No response'
                     logger.warning(f"⚠️ {nx_code} NXT {interval}분봉 조회 실패: {error_msg}")
