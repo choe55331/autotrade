@@ -318,8 +318,13 @@ def main():
 
         bot = TradingBotV2()
 
-        if not bot.client or not bot.client.is_connected:
-            print(f"{RED}❌ API 연결 실패{RESET}")
+        if not bot.client:
+            print(f"{RED}❌ API 클라이언트 초기화 실패{RESET}")
+            return
+
+        # Check if client has a valid token
+        if not hasattr(bot.client, 'token') or not bot.client.token:
+            print(f"{RED}❌ API 인증 실패{RESET}")
             return
 
         print(f"{GREEN}✅ API 연결 성공{RESET}")
