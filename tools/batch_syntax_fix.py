@@ -80,6 +80,7 @@ def wrap_header_in_docstring(file_path: Path) -> bool:
         first_line = lines[start_idx].strip()
 
         if first_line.startswith(('"""', "'''", 'import', 'from', 'def ', 'class ', '__', '@')):
+        """
             return False
 
         code_keywords = ['=', 'return', 'raise', 'if ', 'for ', 'while ', 'try:', 'except', 'with ']
@@ -149,6 +150,7 @@ def fix_unterminated_triple_quotes(file_path: Path) -> bool:
 
         for i, line in enumerate(lines):
             for match in re.finditer(r'("""|\'\'\')', line):
+            """
                 quote = match.group(0)
                 if quote_stack and quote_stack[-1] == quote:
                     quote_stack.pop()
@@ -218,7 +220,7 @@ def main():
                 pass
 
     print("=" * 70)
-    print(f"✅ {fixed_count}개 파일 수정 완료")
+    print(f"[OK] {fixed_count}개 파일 수정 완료")
 
     remaining_errors = 0
     for py_file in error_files:
@@ -227,7 +229,7 @@ def main():
         except:
             remaining_errors += 1
 
-    print(f"📊 남은 오류: {remaining_errors}개 파일")
+    print(f"[CHART] 남은 오류: {remaining_errors}개 파일")
 
 
 if __name__ == '__main__':

@@ -25,6 +25,7 @@ def remove_comments_from_file(file_path: Path) -> tuple[str, int]:
             continue
 
         if stripped.startswith('"""') or stripped.startswith("'''"):
+        """
             docstring_char = '"""' if stripped.startswith('"""') else "'''"
             if prev_line_def or (i > 0 and ('def ' in lines[i-1] or 'class ' in lines[i-1])):
                 new_lines.append(line)
@@ -68,12 +69,12 @@ def process_directory(directory: Path, extensions: list = ['.py']):
                     with open(file_path, 'w', encoding='utf-8') as f:
                         f.write(new_content)
 
-                    print(f"✅ {file_path.relative_to(directory)}: {removed}개 주석 제거")
+                    print(f"[OK] {file_path.relative_to(directory)}: {removed}개 주석 제거")
                     total_removed += removed
                     files_processed += 1
 
             except Exception as e:
-                print(f"❌ {file_path}: {e}")
+                print(f"[X] {file_path}: {e}")
 
     return files_processed, total_removed
 
@@ -86,4 +87,4 @@ if __name__ == '__main__':
     files, comments = process_directory(root)
 
     print("="*60)
-    print(f"✅ 완료: {files}개 파일, {comments}개 주석 제거")
+    print(f"[OK] 완료: {files}개 파일, {comments}개 주석 제거")

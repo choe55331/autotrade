@@ -12,13 +12,13 @@ from datetime import datetime, time
 from typing import Dict, Optional, List
 from collections import defaultdict
 
-GREEN = '\033[92m'
-RED = '\033[91m'
-YELLOW = '\033[93m'
-BLUE = '\033[94m'
-CYAN = '\033[96m'
-MAGENTA = '\033[95m'
-RESET = '\033[0m'
+GREEN = '\"033"[92m'
+RED = '\"033"[91m'
+YELLOW = '\"033"[93m'
+BLUE = '\"033"[94m'
+CYAN = '\"033"[96m'
+MAGENTA = '\"033"[95m'
+RESET = '\"033"[0m'
 
 
 class ComprehensiveNXTTest:
@@ -339,7 +339,7 @@ class ComprehensiveNXTTest:
         print(f"  시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print(f"  NXT 거래시간: {GREEN if is_nxt else RED}{'예' if is_nxt else '아니오'}{RESET}")
         if not is_nxt:
-            print(f"  {YELLOW}⚠️  NXT 거래 시간이 아닙니다 (오전 08:00-09:00, 오후 15:30-20:00){RESET}")
+            print(f"  {YELLOW}[WARNING]️  NXT 거래 시간이 아닙니다 (오전 "08":"00"-"09":"00", 오후 15:30-20:"00"){RESET}")
 
     async def run_all_tests(self):
         """모든 테스트 실행"""
@@ -362,16 +362,16 @@ async def main():
         bot = TradingBotV2()
 
         if not bot.client:
-            print(f"{RED}❌ 클라이언트 초기화 실패{RESET}")
+            print(f"{RED}[X] 클라이언트 초기화 실패{RESET}")
             return
 
-        print(f"{GREEN}✅ 초기화 완료{RESET}")
+        print(f"{GREEN}[OK] 초기화 완료{RESET}")
 
         tester = ComprehensiveNXTTest(bot)
         await tester.run_all_tests()
 
     except Exception as e:
-        print(f"\n{RED}❌ 오류: {e}{RESET}")
+        print(f"\n{RED}[X] 오류: {e}{RESET}")
         import traceback
         traceback.print_exc()
 

@@ -32,6 +32,7 @@ class GeminiProvider(AIProvider):
 
     def __init__(self, api_key: str):
         """
+        """
         if not GEMINI_AVAILABLE:
             raise ImportError("google-generativeai not installed")
 
@@ -39,6 +40,7 @@ class GeminiProvider(AIProvider):
         self.model = genai.GenerativeModel('gemini-pro')
 
     async def analyze(self, prompt: str) -> str:
+        """
         """
         response = await asyncio.to_thread(
             self.model.generate_content, prompt
@@ -58,6 +60,7 @@ class UnifiedAnalyzer:
     """
 
     def __init__(self):
+        """
         """
         self.providers: Dict[str, AIProvider] = {}
         self.default_provider = 'gemini'
@@ -101,6 +104,7 @@ class UnifiedAnalyzer:
 - 거래량: {volume:,}주
 
 
+"""
         inst_buy = stock_data.get('institutional_net_buy', 0)
         foreign_buy = stock_data.get('foreign_net_buy', 0)
         if inst_buy or foreign_buy:
@@ -108,11 +112,13 @@ class UnifiedAnalyzer:
 - 기관 순매수: {inst_buy:,}원
 - 외국인 순매수: {foreign_buy:,}원
 
+"""
         bid_ask_ratio = stock_data.get('bid_ask_ratio', 0)
         if bid_ask_ratio:
             prompt += f"""
 - 매수/매도 호가 비율: {bid_ask_ratio:.2f}
 
+"""
         if score_info:
             total_score = score_info.get('score', 0)
             max_score = score_info.get('max_score', 440)
@@ -121,16 +127,18 @@ class UnifiedAnalyzer:
             prompt += f"""
 - 총점: {total_score:.0f}점 / {max_score}점 ({percentage:.1f}%)
 
+"""
             breakdown = score_info.get('breakdown', {})
             for criterion, score in breakdown.items():
-                """
                 if score > 0:
+                """
                     prompt += f"- {criterion}: {score:.0f}점\n"
 
         if portfolio_info and portfolio_info != "No positions":
             prompt += f"""
 {portfolio_info}
 
+"""
         if market_context:
             kospi = market_context.get('kospi', 0)
             market_trend = market_context.get('trend', 'neutral')
@@ -141,6 +149,7 @@ class UnifiedAnalyzer:
 - 시장 추세: {market_trend}
 - 변동성: {volatility}
 
+"""
         prompt += """
 
 
@@ -181,6 +190,7 @@ class UnifiedAnalyzer:
 
 JSON 형식을 정확히 지켜주세요.
 
+"""
         return prompt
 
     async def analyze_stock(
@@ -202,6 +212,7 @@ JSON 형식을 정확히 지켜주세요.
         Returns:
             분석 결과
 
+"""
         if not self.providers:
             return self._mock_analysis(stock_data, score_info)
 

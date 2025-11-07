@@ -14,7 +14,7 @@ def fix_api_file(filepath):
 
     # 1. 파일 헤더의 emoji 제거 및 docstring 닫기
     content = re.sub(
-        r'("""\n.*?)\n    ⚠️(.*?\n)("""\n)',
+        r'("""\n.*?)\n    [WARNING]️(.*?\n)("""\n)',
         r'\1\n    WARNING:\2\3',
         content,
         flags=re.DOTALL
@@ -60,12 +60,14 @@ def fix_api_file(filepath):
                         not next_line.strip().startswith('self.')):
 
                         # 설명이 시작되는 부분 찾기
+                        """
                         if re.match(r'\s+[가-힣a-zA-Z]', next_line):
                             # docstring 시작 추가
                             indent = len(next_line) - len(next_line.lstrip())
                             fixed_lines.append(' ' * indent + '"""')
 
                             # docstring 내용 추가하면서 끝나는 지점 찾기
+                            """
                             while j < len(lines):
                                 fixed_lines.append(lines[j])
                                 j += 1
@@ -87,6 +89,7 @@ def fix_api_file(filepath):
                                         fixed_lines.append(' ' * indent + '"""')
                                         break
 
+"""
                             i = j - 1
                         else:
                             i = j - 1
@@ -102,6 +105,7 @@ def fix_api_file(filepath):
     content = '\n'.join(fixed_lines)
 
     # 3. 중복된 """ 제거
+    """
     content = re.sub(r'(\s+""")\n\s+"""', r'\1', content)
 
     if content != original:

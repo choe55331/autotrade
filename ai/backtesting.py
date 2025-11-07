@@ -87,8 +87,8 @@ class BacktestResult:
 class BacktestConfig:
     """Backtest configuration"""
     initial_capital: float = 10000000
-    commission_rate: float = 0.00015
-    slippage_pct: float = 0.0005
+    commission_rate: float = 0."00015"
+    slippage_pct: float = 0."0005"
     position_size_limit: float = 0.3
     stop_loss_pct: Optional[float] = None
     take_profit_pct: Optional[float] = None
@@ -109,6 +109,7 @@ class BacktestEngine:
     """
 
     def __init__(self, config: BacktestConfig = None):
+        """
         """
         self.config = config or BacktestConfig()
 
@@ -131,7 +132,7 @@ class BacktestEngine:
         Args:
             historical_data: List of historical price data
                 Each item: {
-                    'date': '2024-01-01',
+                    'date': '2024-"01"-01',
                     'stock_code': '005930',
                     'open': 73000,
                     'high': 74000,
@@ -145,6 +146,7 @@ class BacktestEngine:
 
         Returns:
             Backtest result with performance metrics
+            """
         print("\n" + "="*80)
         print(f"🔄 Backtesting: {strategy_name}")
         print("="*80)
@@ -164,9 +166,9 @@ class BacktestEngine:
         prev_equity = self.config.initial_capital
 
         for i, data in enumerate(historical_data):
-            """
             current_date = data.get('date', '')
 
+"""
             self._update_positions(data)
 
             portfolio = self._get_portfolio_state()
@@ -175,9 +177,9 @@ class BacktestEngine:
                 action = strategy_fn(data, portfolio)
 
                 if action and isinstance(action, dict):
-                    """
                     self._execute_action(action, data)
             except Exception as e:
+            """
                 print(f"Strategy error on {current_date}: {e}")
                 continue
 
@@ -354,6 +356,7 @@ class BacktestEngine:
     def _calculate_metrics(self, strategy_name: str, start_date: str,
                           end_date: str, final_equity: float) -> BacktestResult:
         """
+        """
         initial_capital = self.config.initial_capital
         total_return = final_equity - initial_capital
         total_return_pct = total_return / initial_capital * 100
@@ -426,10 +429,11 @@ class BacktestEngine:
     def _is_winning_trade(self, trade: BacktestTrade) -> bool:
         """Check if trade was profitable"""
         for t in reversed(self.trades):
-            """
             if (t.stock_code == trade.stock_code and
+            """
                 t.action == 'buy' and
                 t.timestamp < trade.timestamp):
+                """
                 """
                 return trade.price > t.price
         return False
@@ -437,10 +441,11 @@ class BacktestEngine:
     def _get_trade_pnl(self, sell_trade: BacktestTrade) -> float:
         """Get P&L for a sell trade"""
         for buy_trade in reversed(self.trades):
-            """
             if (buy_trade.stock_code == sell_trade.stock_code and
+            """
                 buy_trade.action == 'buy' and
                 buy_trade.timestamp < sell_trade.timestamp):
+                """
                 """
                 pnl = (sell_trade.price - buy_trade.price) * sell_trade.quantity
                 pnl -= (sell_trade.commission + buy_trade.commission)
@@ -518,15 +523,15 @@ if __name__ == '__main__':
     historical_data = []
     base_price = 73000
     for i in range(100):
+        price_change = np.random.uniform(-0."03", 0."03")
         """
-        price_change = np.random.uniform(-0.03, 0.03)
         close_price = base_price * (1 + price_change)
 
         historical_data.append({
             'date': (datetime.now() - timedelta(days=100-i)).isoformat(),
             'stock_code': '005930',
             'open': base_price,
-            'high': close_price * 1.02,
+            'high': close_price * 1."02",
             'low': close_price * 0.98,
             'close': close_price,
             'volume': int(np.random.uniform(500000, 2000000)),

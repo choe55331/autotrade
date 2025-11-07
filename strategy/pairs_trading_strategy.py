@@ -95,6 +95,7 @@ class PairsTradingStrategy:
             stock_b: 종목B 코드
             price_a: 종목A 가격
             price_b: 종목B 가격
+            """
         pair_name = f"{stock_a}-{stock_b}"
 
         if pair_name not in self.spread_history:
@@ -250,8 +251,8 @@ if __name__ == "__main__":
     })
 
     for i in range(100):
-        """
         price_a = 70000 + np.random.normal(0, 1000)
+        """
         price_b = 120000 + np.random.normal(0, 2000)
 
         strategy.update_spread('005930', '000660', price_a, price_b)

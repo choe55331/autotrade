@@ -12,10 +12,10 @@ def fix_file(filepath):
         original = content
         
         # 1. emoji 제거
-        content = content.replace('⚠️', 'WARNING:')
-        content = content.replace('→', '->')
-        content = content.replace('✅', '[OK]')
-        content = content.replace('❌', '[ERROR]')
+        content = content.replace('[WARNING]️', 'WARNING:')
+        content = content.replace('->', '->')
+        content = content.replace('[OK]', '[OK]')
+        content = content.replace('[X]', '[ERROR]')
         
         # 2. 파일 헤더에서 docstring 밖의 텍스트 찾아서 안으로 이동
         # 간단한 방법: 첫 """ """ 쌍 다음에 바로 텍스트가 있으면 그것도 docstring에 포함
@@ -28,6 +28,7 @@ def fix_file(filepath):
         
         for i, line in enumerate(lines[:30]):
             quote_count += line.count('"""')
+            """
             if quote_count >= 2:
                 first_docstring_end = i
                 break
@@ -45,9 +46,11 @@ def fix_file(filepath):
                 if (next_line.strip() and
                     not next_line.strip().startswith(('import ', 'from ', 'def ', 'class ', '#'))):
                     # 이전 docstring의 """ 제거하고 나중에 추가
+                    """
                     lines[first_docstring_end] = lines[first_docstring_end].replace('"""', '', 1)
                     
                     # import나 def를 찾을 때까지 진행
+                    """
                     j = next_idx
                     while j < len(lines) and j < 50:
                         if lines[j].strip().startswith(('import ', 'from ', 'def ', 'class ')):
@@ -65,6 +68,7 @@ def fix_file(filepath):
             content
         )
         
+        """
         content = re.sub(
             r'(\):\n)(    )([가-힣][^\n]+\n\n    Args:)',
             r'\1\2"""\n\2\3',
@@ -78,6 +82,7 @@ def fix_file(filepath):
             content
         )
         
+        """
         if content != original:
             with open(filepath, 'w', encoding='utf-8') as f:
                 f.write(content)

@@ -98,7 +98,7 @@ class Position(Base):
 
     def to_core_position(self):
         """
-        ORM Position → Core Position 변환
+        ORM Position -> Core Position 변환
 
         Returns:
             core.Position instance
@@ -124,7 +124,7 @@ class Position(Base):
     @classmethod
     def from_core_position(cls, pos, session=None):
         """
-        Core Position → ORM Position 변환
+        Core Position -> ORM Position 변환
 
         Args:
             pos: core.Position instance

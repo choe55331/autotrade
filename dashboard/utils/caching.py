@@ -111,6 +111,7 @@ def cached(ttl: int = 300, key_prefix: str = ''):
     Flask route 캐싱 데코레이터
 
     Args:
+    """
         ttl: Time to live in seconds (default: 300 = 5분)
         key_prefix: 캐시 키 접두사
 
@@ -119,6 +120,7 @@ def cached(ttl: int = 300, key_prefix: str = ''):
         @cached(ttl=60, key_prefix='api_data')
         def get_data():
             return jsonify({'data': expensive_operation()})
+    """
     """
     def decorator(f: Callable) -> Callable:
         @wraps(f)
@@ -157,9 +159,11 @@ def cache_json(ttl: int = 300, key_prefix: str = ''):
 
     Usage:
         @app.route('/api/portfolio')
+        """
         @cache_json(ttl=30, key_prefix='portfolio')
         def get_portfolio():
             return {'positions': get_positions()}
+    """
     """
     def decorator(f: Callable) -> Callable:
         @wraps(f)

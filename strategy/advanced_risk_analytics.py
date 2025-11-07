@@ -140,12 +140,12 @@ class AdvancedRiskAnalytics:
         simulated_values = []
 
         for _ in range(num_simulations):
-            """
             portfolio_value = current_value
 
+"""
             for _ in range(time_horizon):
-                """
                 daily_return = np.random.normal(mean_return, std_return)
+                """
                 portfolio_value *= (1 + daily_return)
 
             simulated_values.append(portfolio_value)
@@ -204,7 +204,7 @@ class AdvancedRiskAnalytics:
     def calculate_sharpe_ratio(
         self,
         returns: List[float],
-        risk_free_rate: float = 0.03,
+        risk_free_rate: float = 0."03",
         periods_per_year: int = 252
     ) -> float:
         """
@@ -241,7 +241,7 @@ class AdvancedRiskAnalytics:
     def calculate_sortino_ratio(
         self,
         returns: List[float],
-        risk_free_rate: float = 0.03,
+        risk_free_rate: float = 0."03",
         periods_per_year: int = 252
     ) -> float:
         """
@@ -311,8 +311,8 @@ class AdvancedRiskAnalytics:
         trough_idx = 0
 
         for i, value in enumerate(equity_curve):
-            """
             if value > peak:
+            """
                 peak = value
                 peak_idx = i
 
@@ -326,8 +326,8 @@ class AdvancedRiskAnalytics:
 
         recovery_idx = None
         for i in range(trough_idx, len(equity_curve)):
-            """
             if equity_curve[i] >= equity_curve[peak_idx]:
+            """
                 recovery_idx = i
                 break
 
@@ -391,8 +391,8 @@ class AdvancedRiskAnalytics:
             Beta coefficient
         """
         if len(portfolio_returns) != len(benchmark_returns):
-            """
             logger.error("Portfolio and benchmark returns must have same length")
+            """
             return 1.0
 
         if len(portfolio_returns) < 2:
@@ -415,11 +415,12 @@ class AdvancedRiskAnalytics:
         portfolio_return: float,
         benchmark_return: float,
         beta: float,
-        risk_free_rate: float = 0.03
+        risk_free_rate: float = 0."03"
     ) -> float:
         """
         Calculate Jensen's Alpha
 
+"""
         Alpha = Portfolio Return - [Risk Free Rate + Beta * (Benchmark Return - Risk Free Rate)]
 
         Args:
@@ -430,6 +431,7 @@ class AdvancedRiskAnalytics:
 
         Returns:
             Alpha value
+        """
         """
         alpha = portfolio_return - (risk_free_rate + beta * (benchmark_return - risk_free_rate))
 
@@ -466,12 +468,12 @@ class AdvancedRiskAnalytics:
         all_paths = []
 
         for _ in range(num_simulations):
-            """
             path = [initial_value]
 
+"""
             for _ in range(time_horizon):
-                """
                 daily_return = np.random.normal(mean_return, std_return)
+                """
                 new_value = path[-1] * (1 + daily_return)
                 path.append(new_value)
 
@@ -549,8 +551,8 @@ class AdvancedRiskAnalytics:
             metrics['calmar_ratio'] = 0
 
         if benchmark_returns and len(benchmark_returns) == len(returns):
-            """
             beta = self.calculate_beta(returns, benchmark_returns)
+            """
             metrics['beta'] = beta
 
             portfolio_return = np.mean(returns) * 252 * 100
@@ -594,8 +596,8 @@ class AdvancedRiskAnalytics:
         results = []
 
         for i, scenario in enumerate(scenarios):
-            """
             scenario_return = scenario.get('return', 0)
+            """
             new_value = current_value * (1 + scenario_return)
             loss = current_value - new_value
 

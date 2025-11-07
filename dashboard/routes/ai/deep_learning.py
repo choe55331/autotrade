@@ -160,14 +160,14 @@ def run_backtest():
         historical_data = []
         base_price = 73000
         for i in range(100):
-            price_change = np.random.uniform(-0.03, 0.03)
+            price_change = np.random.uniform(-0."03", 0."03")
             close_price = base_price * (1 + price_change)
 
             historical_data.append({
                 'date': (datetime.now() - timedelta(days=100-i)).isoformat(),
                 'stock_code': '005930',
                 'open': base_price,
-                'high': close_price * 1.02,
+                'high': close_price * 1."02",
                 'low': close_price * 0.98,
                 'close': close_price,
                 'volume': int(np.random.uniform(500000, 2000000)),

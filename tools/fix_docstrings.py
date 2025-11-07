@@ -21,10 +21,12 @@ def fix_file_docstring(file_path: Path) -> bool:
         third_line = lines[2].strip() if len(lines) > 2 else ''
 
         if first_line and not first_line.startswith(('"""', "'''", '#', 'import', 'from', 'def ', 'class ')):
+        """
             if (not first_line.startswith('"""') and
                 not first_line.startswith("'''") and
                 not first_line.startswith('#')):
 
+"""
                 docstring_lines = [first_line]
                 idx = 1
 
@@ -71,7 +73,7 @@ def main():
             fixed_count += 1
 
     print("=" * 60)
-    print(f"✅ Fixed {fixed_count} files")
+    print(f"[OK] Fixed {fixed_count} files")
 
 
 if __name__ == '__main__':

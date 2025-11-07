@@ -3,14 +3,14 @@ WebSocket 전용 테스트
 다양한 WebSocket 구독 조건을 테스트하여 정답을 찾습니다.
 """
 
-🎯 테스트 목표:
+[TARGET] 테스트 목표:
   1. 다양한 실시간 데이터 구독 패턴 테스트
   2. 로그인/인증 방식 검증
   3. grp_no, refresh 파라미터 조합 테스트
   4. 복수 종목 구독 테스트
 
-✅ 검증된 WebSocket 패턴:
-  - 주문체결 (type=00): 내 주문 체결 정보
+[OK] 검증된 WebSocket 패턴:
+  - 주문체결 (type="00"): 내 주문 체결 정보
   - 주식체결 (type=0B): 실시간 종목 체결가
   - 주식호가 (type=0D): 실시간 호가 정보
   - 주식기세 (type=0A): 체결강도 등 시세 정보
@@ -125,7 +125,7 @@ class WebSocketTester:
                 ping_timeout=10
             ) as websocket:
                 result['connected'] = True
-                print(f"✅ WebSocket 연결 성공")
+                print(f"[OK] WebSocket 연결 성공")
 
                 if login_request:
                     login_json = json.dumps(login_request)
@@ -146,13 +146,13 @@ class WebSocketTester:
 
                         if login_data.get('return_code') == 0:
                             result['login_success'] = True
-                            print(f"✅ 로그인 성공: {login_data.get('return_msg', '')}")
+                            print(f"[OK] 로그인 성공: {login_data.get('return_msg', '')}")
                         else:
-                            print(f"⚠️  로그인 응답 - 코드 {login_data.get('return_code')}: {login_data.get('return_msg', '')}")
+                            print(f"[WARNING]️  로그인 응답 - 코드 {login_data.get('return_code')}: {login_data.get('return_msg', '')}")
                     except asyncio.TimeoutError:
-                        print(f"⚠️  로그인 응답 없음 (타임아웃)")
+                        print(f"[WARNING]️  로그인 응답 없음 (타임아웃)")
                     except Exception as e:
-                        print(f"⚠️  로그인 응답 처리 오류: {e}")
+                        print(f"[WARNING]️  로그인 응답 처리 오류: {e}")
 
                 subscribe_json = json.dumps(subscribe_request)
                 await websocket.send(subscribe_json)
@@ -166,7 +166,7 @@ class WebSocketTester:
                         try:
                             data = json.loads(message)
                         except json.JSONDecodeError:
-                            print(f"⚠️  JSON 파싱 실패: {message[:100]}...")
+                            print(f"[WARNING]️  JSON 파싱 실패: {message[:100]}...")
                             continue
 
                         result['messages_received'] += 1
@@ -182,9 +182,9 @@ class WebSocketTester:
                             return_code = data.get('return_code')
                             if return_code == 0:
                                 result['subscription_success'] = True
-                                print(f"✅ 구독 성공 (REG): {data.get('return_msg', '')}")
+                                print(f"[OK] 구독 성공 (REG): {data.get('return_msg', '')}")
                             else:
-                                print(f"⚠️  구독 응답 (REG) - 코드 {return_code}: {data.get('return_msg', '')}")
+                                print(f"[WARNING]️  구독 응답 (REG) - 코드 {return_code}: {data.get('return_msg', '')}")
 
                         elif msg_type == 'REAL':
                             if result['messages_received'] == 1 or result['messages_received'] % 10 == 0:
@@ -198,7 +198,7 @@ class WebSocketTester:
                     except asyncio.TimeoutError:
                         continue
                     except Exception as e:
-                        print(f"⚠️  메시지 수신 오류: {str(e)}")
+                        print(f"[WARNING]️  메시지 수신 오류: {str(e)}")
                         break
 
                 if login_request:
@@ -212,14 +212,14 @@ class WebSocketTester:
 
                 print(f"\n{'─'*80}")
                 if result['success']:
-                    print(f"✅ 테스트 성공")
+                    print(f"[OK] 테스트 성공")
                 else:
-                    print(f"⚠️  테스트 부분 성공")
+                    print(f"[WARNING]️  테스트 부분 성공")
 
-                print(f"   연결: {'✅' if result['connected'] else '❌'}")
+                print(f"   연결: {'[OK]' if result['connected'] else '[X]'}")
                 if login_request:
-                    print(f"   로그인: {'✅' if result['login_success'] else '❌'}")
-                print(f"   구독 성공: {'✅' if result['subscription_success'] else '❌'}")
+                    print(f"   로그인: {'[OK]' if result['login_success'] else '[X]'}")
+                print(f"   구독 성공: {'[OK]' if result['subscription_success'] else '[X]'}")
                 print(f"   수신 메시지: {result['messages_received']}개")
                 print(f"   응답 타입: {', '.join(result['response_types'])}")
                 print(f"{'─'*80}")
@@ -227,7 +227,7 @@ class WebSocketTester:
         except Exception as e:
             result['error'] = str(e)
             print(f"\n{'─'*80}")
-            print(f"❌ 테스트 실패: {str(e)}")
+            print(f"[X] 테스트 실패: {str(e)}")
             print(f"{'─'*80}")
 
         self.test_results['websocket_tests'].append(result)
@@ -275,7 +275,7 @@ class WebSocketTester:
         print(f"{'='*80}")
 
         await self.test_websocket(
-            test_name="Case 1-1: 주문체결 구독 (type=00, refresh=1)",
+            test_name="Case 1-1: 주문체결 구독 (type="00", refresh=1)",
             subscribe_request={
                 "trnm": "REG",
                 "grp_no": "1",
@@ -290,7 +290,7 @@ class WebSocketTester:
         )
 
         await self.test_websocket(
-            test_name="Case 1-2: 잔고 구독 (type=04)",
+            test_name="Case 1-2: 잔고 구독 (type="04")",
             subscribe_request={
                 "trnm": "REG",
                 "grp_no": "1",
@@ -539,12 +539,12 @@ class WebSocketTester:
         print(f"총 수신 메시지: {total_messages}개")
 
         print(f"\n{'─'*80}")
-        print(f"✅ 성공한 케이스:")
+        print(f"[OK] 성공한 케이스:")
         print(f"{'─'*80}")
         success_cases = [r for r in self.test_results['websocket_tests'] if r.get('success', False)]
         if success_cases:
             for result in success_cases:
-                print(f"\n  ✅ {result['test_name']}")
+                print(f"\n  [OK] {result['test_name']}")
                 print(f"     구독 요청: {json.dumps(result['subscribe_request'], ensure_ascii=False)}")
                 print(f"     수신: {result['messages_received']}개 메시지")
                 print(f"     응답 타입: {', '.join(result['response_types'])}")
@@ -552,16 +552,16 @@ class WebSocketTester:
             print("  없음")
 
         print(f"\n{'─'*80}")
-        print(f"❌ 실패한 케이스:")
+        print(f"[X] 실패한 케이스:")
         print(f"{'─'*80}")
         failed_cases = [r for r in self.test_results['websocket_tests'] if not r.get('success', False)]
         if failed_cases:
             for result in failed_cases:
-                print(f"\n  ❌ {result['test_name']}")
-                print(f"     연결: {'✅' if result['connected'] else '❌'}")
+                print(f"\n  [X] {result['test_name']}")
+                print(f"     연결: {'[OK]' if result['connected'] else '[X]'}")
                 if result.get('login_request'):
-                    print(f"     로그인: {'✅' if result['login_success'] else '❌'}")
-                print(f"     구독: {'✅' if result['subscription_success'] else '❌'}")
+                    print(f"     로그인: {'[OK]' if result['login_success'] else '[X]'}")
+                print(f"     구독: {'[OK]' if result['subscription_success'] else '[X]'}")
                 print(f"     수신: {result['messages_received']}개")
                 if result.get('error'):
                     print(f"     오류: {result['error']}")
@@ -596,11 +596,11 @@ async def main():
         print(f"{'='*80}\n")
 
     except KeyboardInterrupt:
-        print("\n\n⚠️ 사용자에 의해 테스트가 중단되었습니다.")
+        print("\n\n[WARNING]️ 사용자에 의해 테스트가 중단되었습니다.")
         tester.save_results()
         tester.print_summary()
     except Exception as e:
-        print(f"\n\n❌ 예외 발생: {str(e)}")
+        print(f"\n\n[X] 예외 발생: {str(e)}")
         import traceback
         traceback.print_exc()
         tester.save_results()

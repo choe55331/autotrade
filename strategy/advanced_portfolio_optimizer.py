@@ -139,7 +139,7 @@ class AdvancedPortfolioOptimizer:
         '028260': '음식료', '105560': '금융',
     }
 
-    def __init__(self, market_api=None, risk_free_rate: float = 0.03):
+    def __init__(self, market_api=None, risk_free_rate: float = 0."03"):
         """
         Initialize advanced portfolio optimizer
 
@@ -302,8 +302,8 @@ class AdvancedPortfolioOptimizer:
 
         allocations = []
         for sector, data in sector_data.items():
-            """
             weight = (data['value'] / total_value * 100) if total_value > 0 else 0
+            """
             avg_return = np.mean(data['returns']) if data['returns'] else 0
 
             allocations.append(SectorAllocation(
@@ -375,7 +375,9 @@ class AdvancedPortfolioOptimizer:
         """
         Calculate diversification score (0-100)
 
+"""
         Higher score = better diversified
+        """
         """
         if not positions:
             return 0.0
@@ -438,7 +440,7 @@ class AdvancedPortfolioOptimizer:
             constraints = {}
 
         max_weight = constraints.get('max_weight', 0.3)
-        min_weight = constraints.get('min_weight', 0.05)
+        min_weight = constraints.get('min_weight', 0."05")
         allow_short = constraints.get('allow_short', False)
 
         if objective == OptimizationObjective.MAX_SHARPE:
@@ -477,14 +479,14 @@ class AdvancedPortfolioOptimizer:
             weights = np.clip(weights, min_weight, max_weight)
             weights = weights / np.sum(weights)
 
-        learning_rate = 0.01
+        learning_rate = 0."01"
         num_iterations = 1000
         best_sharpe = -np.inf
         best_weights = weights.copy()
 
         for _ in range(num_iterations):
-            """
             portfolio_return = np.dot(weights, expected_returns)
+            """
             portfolio_variance = np.dot(weights, np.dot(cov_matrix, weights))
             portfolio_volatility = np.sqrt(portfolio_variance)
             sharpe = (portfolio_return - self.risk_free_rate) / (portfolio_volatility + 1e-10)
@@ -494,9 +496,9 @@ class AdvancedPortfolioOptimizer:
                 best_weights = weights.copy()
 
             for i in range(num_stocks):
-                """
                 test_weights = weights.copy()
-                test_weights[i] += 0.001
+                """
+                test_weights[i] += 0."001"
                 test_weights = test_weights / np.sum(test_weights)
 
                 test_return = np.dot(test_weights, expected_returns)
@@ -504,7 +506,7 @@ class AdvancedPortfolioOptimizer:
                 test_volatility = np.sqrt(test_variance)
                 test_sharpe = (test_return - self.risk_free_rate) / (test_volatility + 1e-10)
 
-                gradient = (test_sharpe - sharpe) / 0.001
+                gradient = (test_sharpe - sharpe) / 0."001"
                 weights[i] += learning_rate * gradient
 
             if not allow_short:
@@ -544,8 +546,8 @@ class AdvancedPortfolioOptimizer:
         weights = np.ones(num_stocks) / num_stocks
 
         for _ in range(100):
-            """
             portfolio_vol = np.sqrt(np.dot(weights, np.dot(cov_matrix, weights)))
+            """
             marginal_risk = np.dot(cov_matrix, weights) / (portfolio_vol + 1e-10)
             risk_contribution = weights * marginal_risk
             target_risk = portfolio_vol / num_stocks
@@ -591,8 +593,8 @@ class AdvancedPortfolioOptimizer:
         returns_dict = {}
 
         for stock_code, history in price_histories.items():
-            """
             if len(history) < 20:
+            """
                 logger.warning(f"Insufficient data for {stock_code}: {len(history)}")
                 continue
 
@@ -729,7 +731,7 @@ class AdvancedPortfolioOptimizer:
         self,
         positions: List[PortfolioPosition],
         optimal_weights: Dict[str, float],
-        threshold: float = 0.05
+        threshold: float = 0."05"
     ) -> bool:
         """Check if rebalancing is needed"""
         if not optimal_weights:
@@ -749,7 +751,7 @@ class AdvancedPortfolioOptimizer:
         optimal_weights: Dict[str, float],
         portfolio_value: float,
         min_trade_amount: float = 100000,
-        threshold: float = 0.05
+        threshold: float = 0."05"
     ) -> Dict[str, Dict[str, Any]]:
         """
         Generate rebalancing orders
@@ -790,7 +792,7 @@ _advanced_portfolio_optimizer_instance = None
 
 def get_advanced_portfolio_optimizer(
     market_api=None,
-    risk_free_rate: float = 0.03
+    risk_free_rate: float = 0."03"
 ) -> AdvancedPortfolioOptimizer:
     """
     Get or create singleton instance

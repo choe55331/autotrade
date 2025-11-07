@@ -253,7 +253,7 @@ class AIAgent:
                 avg_profit=4.8,
                 risk_level='High',
                 parameters={
-                    'breakout_threshold': 0.03,
+                    'breakout_threshold': 0."03",
                     'volume_surge': 2.0,
                     'trend_strength': 'strong',
                     'stop_loss': -2.5,
@@ -575,7 +575,7 @@ class AIAgent:
             self.performance.last_learning_time = datetime.now().isoformat()
 
             self._save_ai_state()
-            logger.info(f"✅ AI optimization complete (iteration {self.performance.learning_iterations})")
+            logger.info(f"[OK] AI optimization complete (iteration {self.performance.learning_iterations})")
 
         except Exception as e:
             logger.error(f"Error during AI optimization: {e}")
@@ -621,12 +621,12 @@ class AIAgent:
                         strategy_name = decision.parameters_used.get('strategy', '')
                         for strategy in self.strategies:
                             if strategy.name == strategy_name:
-                                strategy.performance_score = min(100, strategy.performance_score * 1.05)
+                                strategy.performance_score = min(100, strategy.performance_score * 1."05")
                                 logger.info(f"AI Learning: Increased {strategy_name} score to {strategy.performance_score:.1f}")
                                 break
 
             self._save_ai_state()
-            logger.info(f"AI learned from trade: {'✅ Success' if was_successful else '❌ Failure'} (Profit: {profit:+.0f}원)")
+            logger.info(f"AI learned from trade: {'[OK] Success' if was_successful else '[X] Failure'} (Profit: {profit:+.0f}원)")
 
         except Exception as e:
             logger.error(f"Error during AI learning: {e}")

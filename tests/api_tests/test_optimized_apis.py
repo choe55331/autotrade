@@ -11,11 +11,11 @@ from collections import defaultdict
 try:
     from core.rest_client import KiwoomRESTClient
 except ImportError:
-    print("❌ core 모듈을 찾을 수 없습니다. core/rest_client.py 파일이 있는지 확인하세요.")
+    print("[X] core 모듈을 찾을 수 없습니다. core/rest_client.py 파일이 있는지 확인하세요.")
     sys.exit(1)
 
 def check_time_allowed():
-    """실행 가능 시간 확인 (8:00-20:00)"""
+    """실행 가능 시간 확인 (8:"00"-20:"00")"""
     now = datetime.now().time()
     start_time = time(8, 0)
     end_time = time(20, 0)
@@ -132,18 +132,18 @@ def run_comprehensive_test(force=False):
     print("="*80)
 
     allowed, current_time = check_time_allowed()
-    print(f"\n⏰ 실행 가능 시간: 08:00~20:00 (현재: {current_time.strftime('%H:%M')})")
+    print(f"\n⏰ 실행 가능 시간: "08":"00"~20:"00" (현재: {current_time.strftime('%H:%M')})")
 
     if not allowed and not force:
-        print("❌ 현재는 테스트 실행 시간이 아닙니다.")
+        print("[X] 현재는 테스트 실행 시간이 아닙니다.")
         print("   프로그램은 오전 8시부터 오후 8시까지 실행 가능합니다.")
         print("\n💡 강제 실행하려면: python3 test_optimized_apis.py --force")
         return
 
     if not allowed and force:
-        print("⚠️  시간대를 벗어났지만 강제 실행 모드로 진행합니다.")
+        print("[WARNING]️  시간대를 벗어났지만 강제 실행 모드로 진행합니다.")
 
-    print("✅ 테스트 시작\n")
+    print("[OK] 테스트 시작\n")
 
     print("[1] 데이터 로드 중...")
     optimized, all_apis = load_test_data()
@@ -152,16 +152,16 @@ def run_comprehensive_test(force=False):
     total_success_apis = len(success_apis)
     total_failed_apis = len(failed_api_info)
 
-    print(f"  ✅ 최적화된 API: {total_success_apis}개")
-    print(f"  ❌ 실패 API: {total_failed_apis}개")
-    print(f"  📊 총 테스트: {total_success_apis + total_failed_apis}개")
+    print(f"  [OK] 최적화된 API: {total_success_apis}개")
+    print(f"  [X] 실패 API: {total_failed_apis}개")
+    print(f"  [CHART] 총 테스트: {total_success_apis + total_failed_apis}개")
 
     print("\n[2] Kiwoom API 클라이언트 초기화...")
     try:
         client = KiwoomRESTClient()
-        print("  ✅ 초기화 완료")
+        print("  [OK] 초기화 완료")
     except Exception as e:
-        print(f"  ❌ 초기화 실패: {e}")
+        print(f"  [X] 초기화 실패: {e}")
         return
 
     results = {
@@ -209,13 +209,13 @@ def run_comprehensive_test(force=False):
             results['success_api_results'].append(result_entry)
 
             if test_result['status'] == 'success':
-                print(f"✅ SUCCESS ({test_result['data_items']}개)")
+                print(f"[OK] SUCCESS ({test_result['data_items']}개)")
                 success_stats['still_success'] += 1
             elif test_result['status'] == 'no_data':
-                print(f"⚠️  NO_DATA")
+                print(f"[WARNING]️  NO_DATA")
                 success_stats['changed_to_no_data'] += 1
             else:
-                print(f"❌ ERROR: {test_result.get('return_msg', 'Unknown')}")
+                print(f"[X] ERROR: {test_result.get('return_msg', 'Unknown')}")
                 success_stats['changed_to_error'] += 1
 
     print("\n[4] 실패 API 재시도 및 원인 분석...")
@@ -258,13 +258,13 @@ def run_comprehensive_test(force=False):
             results['failed_api_results'].append(result_entry)
 
             if test_result['status'] == 'success':
-                print(f"✅ SUCCESS! ({test_result['data_items']}개) - 상태 개선!")
+                print(f"[OK] SUCCESS! ({test_result['data_items']}개) - 상태 개선!")
                 failed_stats['now_success'] += 1
             elif test_result['status'] == 'no_data':
-                print(f"⚠️  NO_DATA - {test_result.get('return_msg', '')}")
+                print(f"[WARNING]️  NO_DATA - {test_result.get('return_msg', '')}")
                 failed_stats['now_no_data'] += 1
             else:
-                print(f"❌ {test_result.get('return_msg', test_result.get('error', 'Unknown'))}")
+                print(f"[X] {test_result.get('return_msg', test_result.get('error', 'Unknown'))}")
                 failed_stats['still_failed'] += 1
 
             if test_result['status'] != 'success':
@@ -275,15 +275,15 @@ def run_comprehensive_test(force=False):
                     print(f"       Data Keys: {test_result.get('data_keys', [])}")
 
     print("\n" + "="*80)
-    print("📊 테스트 결과 통계")
+    print("[CHART] 테스트 결과 통계")
     print("="*80)
 
-    print(f"\n✅ 최적화된 API 재검증 ({success_stats['total_variants']}개 variant)")
+    print(f"\n[OK] 최적화된 API 재검증 ({success_stats['total_variants']}개 variant)")
     print(f"  - 여전히 성공: {success_stats['still_success']}개 ({success_stats['still_success']/success_stats['total_variants']*100:.1f}%)")
     print(f"  - no_data로 변경: {success_stats['changed_to_no_data']}개")
     print(f"  - 오류로 변경: {success_stats['changed_to_error']}개")
 
-    print(f"\n❌ 실패 API 재시도 ({failed_stats['total_variants']}개 variant)")
+    print(f"\n[X] 실패 API 재시도 ({failed_stats['total_variants']}개 variant)")
     print(f"  - 성공으로 개선: {failed_stats['now_success']}개")
     print(f"  - no_data: {failed_stats['now_no_data']}개")
     print(f"  - 여전히 실패: {failed_stats['still_failed']}개")
@@ -296,7 +296,7 @@ def run_comprehensive_test(force=False):
     patterns = analyze_failure_patterns(results['failed_api_results'])
 
     print("\n" + "="*80)
-    print("🔍 실패 원인 분석")
+    print("[SEARCH] 실패 원인 분석")
     print("="*80)
 
     print("\n📂 Path별 실패 분포:")

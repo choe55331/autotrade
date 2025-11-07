@@ -5,7 +5,7 @@ AutoTrade Pro - Core Type Definitions
 
 """
 CRITICAL 개선:
-- 4개의 Position 클래스 통합 → 단일 표준 Position
+- 4개의 Position 클래스 통합 -> 단일 표준 Position
 - 모든 모듈에서 이 타입 사용
 - Type safety 향상
 """

@@ -90,12 +90,12 @@ def check_all_imports_from_main():
     print("=" * 70)
 
     if errors:
-        print(f"\n❌ {len(errors)}개 파일에 문법 오류:")
+        print(f"\n[X] {len(errors)}개 파일에 문법 오류:")
         for path, error in errors[:20]:
             print(f"  - {path}")
         return False
     else:
-        print(f"\n✅ 모든 파일 문법 정상 ({len(checked)}개 검사)")
+        print(f"\n[OK] 모든 파일 문법 정상 ({len(checked)}개 검사)")
         return True
 
 if __name__ == '__main__':

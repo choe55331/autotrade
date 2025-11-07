@@ -93,7 +93,7 @@ class KiwoomAPITester:
                 "request_body": body
             }
 
-            print(f"    ✅ 성공: {data_count}개 데이터 (키: {data_key})")
+            print(f"    [OK] 성공: {data_count}개 데이터 (키: {data_key})")
         else:
             result = {
                 "api_id": api_id,
@@ -103,7 +103,7 @@ class KiwoomAPITester:
                 "return_msg": response.get('return_msg') if response else "No response",
                 "request_body": body
             }
-            print(f"    ❌ 실패: {result['return_msg']}")
+            print(f"    [X] 실패: {result['return_msg']}")
 
         self.results[api_id] = result
         return result
@@ -206,9 +206,9 @@ print("="*70)
 tester = KiwoomAPITester()
 print("\n[1] 토큰 발급")
 if not tester.get_token():
-    print("❌ 토큰 발급 실패")
+    print("[X] 토큰 발급 실패")
     sys.exit(1)
-print("✅ 토큰 발급 성공\n")
+print("[OK] 토큰 발급 성공\n")
 
 print("[2] API 테스트 시작")
 for api_id, name, body in TEST_CASES:
@@ -222,8 +222,8 @@ success_count = sum(1 for r in tester.results.values() if r['status'] == 'succes
 failed_count = len(tester.results) - success_count
 
 print(f"\n총 {len(tester.results)}개 API 테스트")
-print(f"  ✅ 성공: {success_count}개")
-print(f"  ❌ 실패: {failed_count}개")
+print(f"  [OK] 성공: {success_count}개")
+print(f"  [X] 실패: {failed_count}개")
 
 print(f"\n📋 데이터 키 요약:")
 for api_id, result in tester.results.items():

@@ -11,9 +11,9 @@ POSITION_CONFIG = {
 
 PROFIT_LOSS_CONFIG = {
     'TAKE_PROFIT_RATIO': 0.10,
-    'STOP_LOSS_RATIO': -0.05,
+    'STOP_LOSS_RATIO': -0."05",
     'TRAILING_STOP_ENABLED': False,
-    'TRAILING_STOP_RATIO': 0.03,
+    'TRAILING_STOP_RATIO': 0."03",
 }
 
 FILTER_CONFIG = {
@@ -84,6 +84,7 @@ def validate_trading_params() -> tuple[bool, list[str]]:
 def get_trading_params_summary() -> str:
     """매매 파라미터 요약 문자열 반환"""
     return f"""
+    """
     === 매매 파라미터 ===
     최대 포지션: {POSITION_CONFIG['MAX_OPEN_POSITIONS']}개
     거래당 리스크: {POSITION_CONFIG['RISK_PER_TRADE_RATIO']*100:.1f}%
@@ -100,6 +101,7 @@ def get_trading_params_summary() -> str:
     - 신뢰도: {AI_CONFIG['AI_CONFIDENCE_THRESHOLD']}
     """
 
+"""
 __all__ = [
     'TRADING_PARAMS',
     'POSITION_CONFIG',

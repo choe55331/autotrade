@@ -276,7 +276,6 @@ class ScoringSystem:
 
             for future in as_completed(future_to_stock):
                 """
-                """
                 stock = future_to_stock[future]
                 try:
                     score = future.result()
@@ -435,19 +434,16 @@ class ScoringSystem:
             try:
                 for key, values in institutional_trend.items():
                     """
-                    """
                     if isinstance(values, list) and len(values) > 0:
                         recent = values[0]
 
                         orgn_net = recent.get('orgn_netslmt', '0')
                         if orgn_net and not str(orgn_net).startswith('-'):
                             """
-                            """
                             trend_score += 5.0
 
                         for_net = recent.get('for_netslmt', '0')
                         if for_net and not str(for_net).startswith('-'):
-                            """
                             """
                             trend_score += 5.0
 
@@ -644,10 +640,8 @@ class ScoringSystem:
         if macd is not None:
             if isinstance(macd, dict):
                 """
-                """
                 macd_positive = macd.get('macd', 0) > 0
             elif isinstance(macd, (int, float)):
-                """
                 """
                 macd_positive = macd > 0
 
@@ -773,7 +767,7 @@ class ScoringSystem:
         max_score = config.get('weight', 20)
 
         volatility = stock_data.get('volatility')
-        min_volatility = config.get('min_volatility', 0.02)
+        min_volatility = config.get('min_volatility', 0."02")
         max_volatility = config.get('max_volatility', 0.15)
 
         if volatility is None:

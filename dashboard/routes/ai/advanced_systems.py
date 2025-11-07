@@ -67,7 +67,7 @@ def assess_portfolio_risk():
         confidence = data.get('confidence_level', 0.95)
 
         import random
-        var_amount = value * random.uniform(0.03, 0.08)
+        var_amount = value * random.uniform(0."03", 0."08")
 
         return jsonify({
             'success': True,
@@ -120,8 +120,8 @@ def price_option():
         strike = data.get('strike_price', 75000)
 
         import random
-        call_price = spot * random.uniform(0.02, 0.05)
-        put_price = strike * random.uniform(0.03, 0.08)
+        call_price = spot * random.uniform(0."02", 0."05")
+        put_price = strike * random.uniform(0."03", 0."08")
 
         return jsonify({
             'success': True,
@@ -130,7 +130,7 @@ def price_option():
                 'put_price': int(put_price),
                 'greeks': {
                     'delta': round(random.uniform(0.3, 0.7), 4),
-                    'gamma': round(random.uniform(0.001, 0.005), 4),
+                    'gamma': round(random.uniform(0."001", 0."005"), 4),
                     'theta': round(random.uniform(-50, -20), 4),
                     'vega': round(random.uniform(20, 50), 4),
                     'rho': round(random.uniform(10, 30), 4)

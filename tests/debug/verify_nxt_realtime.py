@@ -10,12 +10,12 @@ import time
 from datetime import datetime
 from core.rest_client import KiwoomRESTClient
 
-GREEN = '\033[92m'
-RED = '\033[91m'
-YELLOW = '\033[93m'
-BLUE = '\033[94m'
-CYAN = '\033[96m'
-RESET = '\033[0m'
+GREEN = '\"033"[92m'
+RED = '\"033"[91m'
+YELLOW = '\"033"[93m'
+BLUE = '\"033"[94m'
+CYAN = '\"033"[96m'
+RESET = '\"033"[0m'
 
 
 def get_price(client, stock_code: str):
@@ -92,9 +92,9 @@ def main():
         print(f"변동폭: {max_price - min_price:,}원")
 
         if max_price > min_price:
-            print(f"\n{GREEN}✅ 실시간 가격 변동 확인됨!{RESET}")
+            print(f"\n{GREEN}[OK] 실시간 가격 변동 확인됨!{RESET}")
         else:
-            print(f"\n{YELLOW}⚠️  가격 변동 없음 (거래 없거나 종가 고정){RESET}")
+            print(f"\n{YELLOW}[WARNING]️  가격 변동 없음 (거래 없거나 종가 고정){RESET}")
 
     print(f"\n{BLUE}{'='*80}{RESET}\n")
 

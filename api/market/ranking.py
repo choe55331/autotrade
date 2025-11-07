@@ -124,17 +124,17 @@ class RankingAPI:
                         'change_sign': item.get('pred_pre_sig', ''),
                     })
 
-                logger.info(f"✅ 거래량 순위 {len(normalized_list)}개 조회 완료")
+                logger.info(f"[OK] 거래량 순위 {len(normalized_list)}개 조회 완료")
                 return normalized_list
             else:
                 error_msg = response.get('return_msg', 'Unknown error') if response else 'No response'
-                logger.error(f"❌ 거래량 순위 조회 실패: {error_msg}")
+                logger.error(f"[X] 거래량 순위 조회 실패: {error_msg}")
                 logger.error(f"Response code: {response.get('return_code') if response else 'N/A'}")
                 logger.debug(f"Full response: {response}")
                 return []
 
         except Exception as e:
-            logger.error(f"❌ 거래량 순위 조회 중 예외 발생: {e}")
+            logger.error(f"[X] 거래량 순위 조회 중 예외 발생: {e}")
             import traceback
             traceback.print_exc()
             return []
@@ -209,17 +209,17 @@ class RankingAPI:
                         'change_sign': item.get('pred_pre_sig', ''),
                     })
 
-                logger.info(f"✅ {sort_name} 순위 {len(normalized_list)}개 조회 완료")
+                logger.info(f"[OK] {sort_name} 순위 {len(normalized_list)}개 조회 완료")
                 return normalized_list
             else:
                 error_msg = response.get('return_msg', 'Unknown error') if response else 'No response'
-                logger.error(f"❌ 등락률 순위 조회 실패: {error_msg}")
+                logger.error(f"[X] 등락률 순위 조회 실패: {error_msg}")
                 logger.error(f"Response code: {response.get('return_code') if response else 'N/A'}")
                 logger.debug(f"Full response: {response}")
                 return []
 
         except Exception as e:
-            logger.error(f"❌ 등락률 순위 조회 중 예외 발생: {e}")
+            logger.error(f"[X] 등락률 순위 조회 중 예외 발생: {e}")
             import traceback
             traceback.print_exc()
             return []
@@ -289,17 +289,17 @@ class RankingAPI:
                         'change_sign': item.get('pred_pre_sig', ''),
                     })
 
-                logger.info(f"✅ 거래대금 순위 {len(normalized_list)}개 조회 완료")
+                logger.info(f"[OK] 거래대금 순위 {len(normalized_list)}개 조회 완료")
                 return normalized_list
             else:
                 error_msg = response.get('return_msg', 'Unknown error') if response else 'No response'
-                logger.error(f"❌ 거래대금 순위 조회 실패: {error_msg}")
+                logger.error(f"[X] 거래대금 순위 조회 실패: {error_msg}")
                 logger.error(f"Response code: {response.get('return_code') if response else 'N/A'}")
                 logger.debug(f"Full response: {response}")
                 return []
 
         except Exception as e:
-            logger.error(f"❌ 거래대금 순위 조회 중 예외 발생: {e}")
+            logger.error(f"[X] 거래대금 순위 조회 중 예외 발생: {e}")
             import traceback
             traceback.print_exc()
             return []
@@ -581,8 +581,10 @@ class RankingAPI:
 
         Returns:
             외국인/기관 매매 순위 (현재가 없음)
+            """
         from utils.trading_date import get_last_trading_date
 
+        """
         """
         market_map = {'KOSPI': '001', 'KOSDAQ': '101'}
         mrkt_tp = market_map.get(market.upper(), '001')

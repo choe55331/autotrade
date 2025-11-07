@@ -35,11 +35,13 @@ def calculate_std(values: List[float], ddof: int = 0) -> float:
     Args:
         values: 값 리스트
         ddof: 자유도 (Delta Degrees of Freedom)
+        """
               0 = 모집단 표준편차 (기본값)
               1 = 표본 표준편차
 
     Returns:
         표준편차
+    """
     """
     if not values:
         logger.warning("Empty list provided to calculate_std")
@@ -129,10 +131,12 @@ def calculate_variance(values: List[float], ddof: int = 0) -> float:
 
     Args:
         values: 값 리스트
+        """
         ddof: 자유도 (0=모집단, 1=표본)
 
     Returns:
         분산
+    """
     """
     if not values or len(values) <= ddof:
         logger.warning(f"Not enough values for variance calculation")

@@ -5,7 +5,7 @@ core 패키지
 
 """
 v4.2 CRITICAL
-- Position 클래스 통합 (4 → 1)
+- Position 클래스 통합 (4 -> 1)
 - Trade, MarketSnapshot 표준화
 """
 from .rest_client import KiwoomRESTClient

@@ -39,6 +39,7 @@ def fix_header(file_path: Path) -> bool:
             return False
 
         if lines[first_code].strip().startswith(('"""', "'''", 'import', 'from', 'def ', 'class ', '__', '@')):
+        """
             return False
 
         header_end = first_code
@@ -124,10 +125,10 @@ def main():
             still_broken.append(py_file)
 
     print("=" * 70)
-    print(f"✅ {checked}개 오류 파일 검사, {fixed_count}개 파일 수정")
+    print(f"[OK] {checked}개 오류 파일 검사, {fixed_count}개 파일 수정")
 
     if still_broken:
-        print(f"\n⚠️  {len(still_broken)}개 파일은 추가 수정 필요")
+        print(f"\n[WARNING]️  {len(still_broken)}개 파일은 추가 수정 필요")
 
 
 if __name__ == '__main__':

@@ -29,9 +29,9 @@ class RiskManager:
             config: 리스크 관리 설정
                 {
                     'max_position_size': 0.30,        # 최대 포지션 크기 30%
-                    'max_daily_loss': 0.03,           # 일일 최대 손실 3%
+                    'max_daily_loss': 0."03",           # 일일 최대 손실 3%
                     'max_total_loss': 0.10,           # 총 최대 손실 10%
-                    'stop_loss_rate': 0.05,           # 손절 비율 5%
+                    'stop_loss_rate': 0."05",           # 손절 비율 5%
                     'max_consecutive_losses': 3,      # 최대 연속 손실 횟수
                     'position_limit': 5,              # 최대 포지션 수
                     'emergency_stop_loss': 0.15,      # 긴급 손절 15%
@@ -40,9 +40,9 @@ class RiskManager:
         self.config = config or {}
         
         self.max_position_size = self.config.get('max_position_size', 0.30)
-        self.max_daily_loss = self.config.get('max_daily_loss', 0.03)
+        self.max_daily_loss = self.config.get('max_daily_loss', 0."03")
         self.max_total_loss = self.config.get('max_total_loss', 0.10)
-        self.stop_loss_rate = self.config.get('stop_loss_rate', 0.05)
+        self.stop_loss_rate = self.config.get('stop_loss_rate', 0."05")
         self.max_consecutive_losses = self.config.get('max_consecutive_losses', 3)
         self.position_limit = self.config.get('position_limit', 5)
         self.emergency_stop_loss = self.config.get('emergency_stop_loss', 0.15)
@@ -171,6 +171,7 @@ class RiskManager:
         Args:
             profit_loss: 손익 금액
             is_win: 수익 여부
+            """
         self.daily_profit_loss += profit_loss
         
         self.total_profit_loss += profit_loss
@@ -197,8 +198,8 @@ class RiskManager:
             return
         
         if now.date() > self.daily_reset_time.date():
-            """
             logger.info(f"일일 손익 리셋 (이전: {self.daily_profit_loss:+,.0f}원)")
+            """
             self.daily_profit_loss = 0.0
             self.daily_reset_time = now
     
@@ -353,6 +354,7 @@ class RiskManager:
             quantity: 수량
             price: 가격
             profit_loss: 손익 (매도 시)
+            """
         trade = {
             'timestamp': datetime.now(),
             'stock_code': stock_code,

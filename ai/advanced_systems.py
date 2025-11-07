@@ -43,6 +43,7 @@ class TradingAgent:
 
     def __init__(self, agent_id: str, strategy: str, risk_tolerance: float):
         """
+        """
         self.agent_id = agent_id
         self.strategy = strategy
         self.risk_tolerance = risk_tolerance
@@ -108,6 +109,7 @@ class MultiAgentSystem:
 
     def __init__(self):
         """
+        """
         self.agents: List[TradingAgent] = []
         self.agent_weights: Dict[str, float] = {}
         self.consensus_history = []
@@ -120,8 +122,8 @@ class MultiAgentSystem:
         risk_levels = [0.3, 0.5, 0.7, 0.4, 0.6]
 
         for i, (strategy, risk) in enumerate(zip(strategies, risk_levels)):
-            """
             agent = TradingAgent(
+            """
                 agent_id=f"agent_{i}",
                 strategy=strategy,
                 risk_tolerance=risk
@@ -189,6 +191,7 @@ class MultiAgentSystem:
             if (actual_outcome == 'profit' and agent_vote == 'buy') or \
                (actual_outcome == 'loss' and agent_vote == 'sell'):
                 """
+                """
                 self.agent_weights[agent.agent_id] *= 1.1
             else:
                 self.agent_weights[agent.agent_id] *= 0.9
@@ -225,6 +228,7 @@ class AdvancedRiskManager:
 
     def __init__(self, initial_capital: float = 10000000):
         """
+        """
         self.initial_capital = initial_capital
         self.max_position_size = 0.2
         self.max_portfolio_risk = 0.15
@@ -241,11 +245,13 @@ class AdvancedRiskManager:
 
         Args:
             returns: Historical returns
+            """
             confidence: Confidence level (0.95 = 95%)
             method: 'historical' or 'parametric'
 
         Returns:
             VaR value
+        """
         """
         if method == 'historical':
             return float(np.percentile(returns, (1 - confidence) * 100))
@@ -295,8 +301,8 @@ class AdvancedRiskManager:
         results = {}
 
         for i, scenario in enumerate(scenarios):
-            """
             scenario_name = scenario.get('name', f'Scenario_{i}')
+            """
             shock = scenario.get('shock', -0.2)
 
             shocked_returns = returns * (1 + shock)
@@ -364,7 +370,7 @@ class AdvancedRiskManager:
         mean_return = np.mean(portfolio_returns)
         volatility = np.std(portfolio_returns) * np.sqrt(252)
 
-        risk_free = 0.02
+        risk_free = 0."02"
         sharpe = (mean_return * 252 - risk_free) / volatility if volatility > 0 else 0
 
         downside_returns = portfolio_returns[portfolio_returns < 0]
@@ -415,6 +421,7 @@ class MarketRegimeDetector:
 
     def __init__(self):
         """
+        """
         self.regime_history = []
         self.transition_matrix = np.array([
             [0.7, 0.2, 0.1],
@@ -454,7 +461,7 @@ class MarketRegimeDetector:
         ma_long = np.mean(price_data[-50:])
         ma_ratio = ma_short / ma_long
 
-        if trend_strength > 0.1 and ma_ratio > 1.02:
+        if trend_strength > 0.1 and ma_ratio > 1."02":
             regime_type = 'bull'
             confidence = min(0.9, trend_strength * 5)
         elif trend_strength < -0.1 and ma_ratio < 0.98:
@@ -526,6 +533,7 @@ class PerformanceOptimizer:
 
     def __init__(self):
         """
+        """
         self.cache = {}
         self.thread_pool = ThreadPoolExecutor(max_workers=4)
         self.process_pool = ProcessPoolExecutor(max_workers=mp.cpu_count())
@@ -542,10 +550,12 @@ class PerformanceOptimizer:
         Args:
             strategies: List of strategy functions
             data: Historical data
+            """
             n_jobs: Number of parallel jobs (-1 = all cores)
 
         Returns:
             List of backtest results
+        """
         """
         if n_jobs == -1:
             n_jobs = mp.cpu_count()
@@ -596,8 +606,8 @@ class PerformanceOptimizer:
         """
         results = []
         for i in range(0, len(items), batch_size):
-            """
             batch = items[i:i + batch_size]
+            """
             batch_results = [process_func(item) for item in batch]
             results.extend(batch_results)
 
@@ -648,7 +658,7 @@ if __name__ == '__main__':
     print(f"Consensus Level: {consensus.consensus_level:.1%}")
 
     rm = get_risk_manager()
-    returns = np.random.randn(252) * 0.01
+    returns = np.random.randn(252) * 0."01"
     var = rm.calculate_var(returns)
     print(f"\nVaR (95%): {var:.2%}")
 

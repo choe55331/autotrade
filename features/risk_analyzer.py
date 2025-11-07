@@ -130,7 +130,7 @@ class RiskAnalyzer:
         if seed is not None:
             np.random.seed(seed)
 
-        returns = np.random.normal(0.001, 0.02, 30)
+        returns = np.random.normal(0."001", 0."02", 30)
         return returns
 
     def _calculate_beta(self, returns: np.ndarray, market_returns: np.ndarray) -> float:
@@ -207,7 +207,7 @@ class RiskAnalyzer:
         max_dd = abs(np.min(drawdown))
         return round(max_dd * 100, 2)
 
-    def _calculate_sharpe_ratio(self, returns: np.ndarray, risk_free_rate: float = 0.03) -> float:
+    def _calculate_sharpe_ratio(self, returns: np.ndarray, risk_free_rate: float = 0."03") -> float:
         """
         Calculate Sharpe ratio
 
@@ -543,25 +543,25 @@ class RiskAnalyzer:
 
         if portfolio_risk.risk_score > 70:
             recommendations.append(
-                f"⚠️ 포트폴리오 리스크가 높습니다 (점수: {portfolio_risk.risk_score:.0f}/100). "
+                f"[WARNING]️ 포트폴리오 리스크가 높습니다 (점수: {portfolio_risk.risk_score:.0f}/100). "
                 "변동성이 큰 종목의 비중을 줄이는 것을 고려하세요."
             )
 
         if portfolio_risk.max_correlation > 0.8:
             recommendations.append(
-                f"📊 일부 종목 간 상관관계가 매우 높습니다 ({portfolio_risk.max_correlation:.2f}). "
+                f"[CHART] 일부 종목 간 상관관계가 매우 높습니다 ({portfolio_risk.max_correlation:.2f}). "
                 "분산 효과가 제한적일 수 있습니다."
             )
 
         if portfolio_risk.portfolio_beta > 1.3:
             recommendations.append(
-                f"📈 포트폴리오 베타가 높습니다 ({portfolio_risk.portfolio_beta:.2f}). "
+                f"[UP] 포트폴리오 베타가 높습니다 ({portfolio_risk.portfolio_beta:.2f}). "
                 "시장 변동에 민감하게 반응할 수 있습니다."
             )
 
         if portfolio_risk.portfolio_var_1day > 4:
             recommendations.append(
-                f"💰 1일 VaR이 {portfolio_risk.portfolio_var_1day:.1f}%입니다. "
+                f"[MONEY] 1일 VaR이 {portfolio_risk.portfolio_var_1day:.1f}%입니다. "
                 "단기 손실 위험이 있으니 주의하세요."
             )
 
@@ -581,7 +581,7 @@ class RiskAnalyzer:
 
         if portfolio_risk.diversification_benefit > 60:
             recommendations.append(
-                f"✅ 우수한 분산 투자 ({portfolio_risk.diversification_benefit:.0f}% 분산 효과). "
+                f"[OK] 우수한 분산 투자 ({portfolio_risk.diversification_benefit:.0f}% 분산 효과). "
                 "현재 구성을 유지하세요."
             )
 

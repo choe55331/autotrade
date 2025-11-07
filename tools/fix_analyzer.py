@@ -27,6 +27,7 @@ def fix_analyzer():
     )
 
     # 패턴 3: Returns 섹션 후 닫는 """ 추가 (코드가 바로 시작하는 경우)
+    """
     content = re.sub(
         r'(Returns:\n(?:        [^\n]+\n)+)(    )([a-z_]+\s*=)',
         r'\1    """\n\2\3',
@@ -34,6 +35,7 @@ def fix_analyzer():
     )
 
     # 패턴 4: Args 섹션만 있고 바로 코드 시작하는 경우
+    """
     content = re.sub(
         r'(Args:\n(?:        [^\n]+\n)+)(    )([a-z_]+\s*=)',
         r'\1    """\n\2\3',
@@ -41,6 +43,7 @@ def fix_analyzer():
     )
 
     # 패턴 5: 단순 docstring (Args/Returns 없이 바로 코드)
+    """
     content = re.sub(
         r'(def [^:]+:\n)(    )([가-힣][^\n]+)\n(    )([a-z_]+\s*=)',
         r'\1\2"""\3"""\n\4\5',

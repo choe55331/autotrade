@@ -3,9 +3,9 @@ NXT 주문 테스트 (키움증권 API 문서 기반)
 """
 
 공식 문서의 정확한 trde_tp 코드 사용:
-- 61: 장시작전시간외 (프리마켓 08:00-09:00)
+- 61: 장시작전시간외 (프리마켓 "08":"00"-"09":"00")
 - 62: 시간외단일가 (NXT 시간)
-- 81: 장마감후시간외 (애프터마켓 15:30-20:00)
+- 81: 장마감후시간외 (애프터마켓 15:30-20:"00")
 
 사용법:
     python test_nxt_orders_correct.py
@@ -105,19 +105,19 @@ class NXTOrderCorrectTest:
             }
 
             if success:
-                logger.info(f"✅ 성공! 주문번호: {ord_no}")
+                logger.info(f"[OK] 성공! 주문번호: {ord_no}")
                 self.results['successful_combinations'].append({
                     'dmst_stex_tp': dmst_stex_tp,
                     'trde_tp': trde_tp,
                     'description': desc
                 })
             else:
-                logger.warning(f"❌ 실패: [{return_code}] {return_msg}")
+                logger.warning(f"[X] 실패: [{return_code}] {return_msg}")
 
             return result
 
         except Exception as e:
-            logger.error(f"❌ 오류: {e}")
+            logger.error(f"[X] 오류: {e}")
             return {
                 'description': desc,
                 'dmst_stex_tp': dmst_stex_tp,
@@ -132,7 +132,7 @@ class NXTOrderCorrectTest:
         period = self.get_trading_period()
 
         logger.info("\n" + "="*80)
-        logger.info("🎯 키움증권 API 문서 기반 NXT 주문 테스트")
+        logger.info("[TARGET] 키움증권 API 문서 기반 NXT 주문 테스트")
         logger.info("="*80)
         logger.info(f"현재 시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         logger.info(f"거래 시간대: {period}")
@@ -142,7 +142,7 @@ class NXTOrderCorrectTest:
         test_cases = []
 
         if period == '프리마켓':
-            logger.info("\n📌 프리마켓 테스트 (08:00-09:00)")
+            logger.info("\n📌 프리마켓 테스트 ("08":"00"-"09":"00")")
             test_cases = [
                 ('KRX', '61', '📘 문서: KRX + 장시작전시간외(61)'),
                 ('NXT', '61', '📘 문서: NXT + 장시작전시간외(61)'),
@@ -153,7 +153,7 @@ class NXTOrderCorrectTest:
             ]
 
         elif period == '애프터마켓':
-            logger.info("\n📌 애프터마켓 테스트 (15:30-20:00)")
+            logger.info("\n📌 애프터마켓 테스트 (15:30-20:"00")")
             test_cases = [
                 ('KRX', '81', '📘 문서: KRX + 장마감후시간외(81)'),
                 ('NXT', '81', '📘 문서: NXT + 장마감후시간외(81)'),
@@ -164,7 +164,7 @@ class NXTOrderCorrectTest:
             ]
 
         elif period == '정규장':
-            logger.info("\n📌 정규장 테스트 (09:00-15:30)")
+            logger.info("\n📌 정규장 테스트 ("09":"00"-15:30)")
             test_cases = [
                 ('KRX', '0', '📘 문서: KRX + 보통(0)'),
                 ('KRX', '3', '📘 문서: KRX + 시장가(3)'),
@@ -172,7 +172,7 @@ class NXTOrderCorrectTest:
             ]
 
         else:
-            logger.warning("⚠️  장외 시간입니다.")
+            logger.warning("[WARNING]️  장외 시간입니다.")
             logger.info("애프터마켓 조합으로 테스트합니다...")
             test_cases = [
                 ('KRX', '81', '📘 문서: KRX + 장마감후시간외(81)'),
@@ -182,10 +182,10 @@ class NXTOrderCorrectTest:
             ]
 
         logger.info("\n" + "="*80)
-        logger.info("⚠️  실제 주문이 발생합니다!")
+        logger.info("[WARNING]️  실제 주문이 발생합니다!")
         logger.info("="*80)
         logger.info(f"테스트 수: {len(test_cases)}개")
-        logger.info(f"종목: 삼성전자 (005930)")
+        logger.info(f"종목: 삼성전자 ("005930")")
         logger.info(f"수량: 1주 × {len(test_cases)}회")
         logger.info(f"예상 금액: 약 {50000 * len(test_cases):,}원\n")
 
@@ -204,7 +204,7 @@ class NXTOrderCorrectTest:
     def print_summary(self):
         """결과 요약"""
         logger.info("\n" + "="*80)
-        logger.info("📊 테스트 결과")
+        logger.info("[CHART] 테스트 결과")
         logger.info("="*80)
 
         tests = self.results['tests']
@@ -213,9 +213,9 @@ class NXTOrderCorrectTest:
         logger.info(f"\n총 {len(tests)}개 테스트 중 {len(success_tests)}개 성공")
 
         if success_tests:
-            logger.info("\n✅ 성공한 조합:")
+            logger.info("\n[OK] 성공한 조합:")
             for test in success_tests:
-                logger.info(f"\n   🎯 {test['description']}")
+                logger.info(f"\n   [TARGET] {test['description']}")
                 logger.info(f"      dmst_stex_tp={test['dmst_stex_tp']}")
                 logger.info(f"      trde_tp={test['trde_tp']}")
                 logger.info(f"      주문번호: {test['ord_no']}")
@@ -229,19 +229,22 @@ class NXTOrderCorrectTest:
 
             if period == '프리마켓':
                 logger.info(f"""
+                """
 dmst_stex_tp = "{best['dmst_stex_tp']}"
 trde_tp = "{best['trde_tp']}"
             elif period == '애프터마켓':
                 logger.info(f"""
+                """
 dmst_stex_tp = "{best['dmst_stex_tp']}"
 trde_tp = "{best['trde_tp']}"
             else:
                 logger.info(f"""
+                """
 dmst_stex_tp = "{best['dmst_stex_tp']}"
 trde_tp = "{best['trde_tp']}"
 
         else:
-            logger.warning("\n❌ 성공한 조합이 없습니다.")
+            logger.warning("\n[X] 성공한 조합이 없습니다.")
 
             error_msgs = {}
             for test in tests:
@@ -252,7 +255,7 @@ trde_tp = "{best['trde_tp']}"
 
             logger.info("\n오류 메시지:")
             for msg, descs in error_msgs.items():
-                logger.info(f"\n   ❌ {msg}")
+                logger.info(f"\n   [X] {msg}")
                 for desc in descs:
                     logger.info(f"      - {desc}")
 
@@ -272,11 +275,11 @@ def main():
     print("\n" + "="*80)
     print("📘 키움증권 API 문서 기반 NXT 주문 테스트")
     print("="*80)
-    print("\n✅ 공식 문서의 정확한 trde_tp 코드 사용:")
+    print("\n[OK] 공식 문서의 정확한 trde_tp 코드 사용:")
     print("   61: 장시작전시간외 (프리마켓)")
     print("   62: 시간외단일가 (NXT)")
     print("   81: 장마감후시간외 (애프터마켓)")
-    print("\n⚠️  이전 테스트에서 사용하지 않은 코드들입니다!")
+    print("\n[WARNING]️  이전 테스트에서 사용하지 않은 코드들입니다!")
     print("="*80 + "\n")
 
     tester = NXTOrderCorrectTest()

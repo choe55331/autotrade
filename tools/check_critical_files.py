@@ -43,7 +43,7 @@ def check_and_fix_critical_files():
         file_path = base_dir / rel_path
 
         if not file_path.exists():
-            print(f"⚠️  {rel_path} - 파일 없음 (스킵)")
+            print(f"[WARNING]️  {rel_path} - 파일 없음 (스킵)")
             continue
 
         try:
@@ -57,12 +57,12 @@ def check_and_fix_critical_files():
     print("=" * 70)
 
     if errors:
-        print(f"\n❌ {len(errors)}개 파일에 문법 오류 발견:")
+        print(f"\n[X] {len(errors)}개 파일에 문법 오류 발견:")
         for path, error in errors:
             print(f"  - {path}")
         return False
     else:
-        print(f"\n✅ 모든 핵심 파일 문법 정상 ({len(critical_paths)}개)")
+        print(f"\n[OK] 모든 핵심 파일 문법 정상 ({len(critical_paths)}개)")
         return True
 
 if __name__ == '__main__':

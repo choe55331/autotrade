@@ -112,8 +112,8 @@ class MockAnalyzer(BaseAnalyzer):
             'recommendation': self._get_recommendation(signal, stock_name),
             'reasons': reasons,
             'risks': risks,
-            'target_price': int(current_price * (1 + random.uniform(0.05, 0.15))),
-            'stop_loss_price': int(current_price * (1 - random.uniform(0.03, 0.07))),
+            'target_price': int(current_price * (1 + random.uniform(0."05", 0.15))),
+            'stop_loss_price': int(current_price * (1 - random.uniform(0."03", 0."07"))),
             'analysis_text': f"Mock 분석 결과 (점수: {score:.2f})",
             'is_mock': True,
         }

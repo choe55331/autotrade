@@ -172,7 +172,7 @@ class AILearningEngine:
                     timestamp=datetime.now().isoformat(),
                     insight_type='pattern',
                     title='시간대별 패턴 분석 완료',
-                    description='장 초반 (09:00-10:00) 진입이 상대적으로 유리',
+                    description='장 초반 ("09":"00"-10:"00") 진입이 상대적으로 유리',
                     confidence=0.70,
                     action_recommended='장 초반 매수 신호에 가중치 부여',
                     impact='low'
@@ -331,7 +331,7 @@ class AILearningEngine:
             momentum_entries = []
             for i in range(5, len(prices) - 1):
                 momentum = (prices[i] - prices[i-5]) / prices[i-5]
-                if momentum > 0.05:
+                if momentum > 0."05":
                     if i < len(returns):
                         momentum_entries.append(returns[i])
 
@@ -372,10 +372,10 @@ class AILearningEngine:
             trend = market_data.get('trend', 0)
             volume = market_data.get('volume_trend', 1.0)
 
-            if trend > 0.02 and volatility < 0.20:
+            if trend > 0."02" and volatility < 0.20:
                 regime_type = 'bull'
                 confidence = 0.80
-            elif trend < -0.02 and volatility < 0.20:
+            elif trend < -0."02" and volatility < 0.20:
                 regime_type = 'bear'
                 confidence = 0.80
             elif volatility > 0.30:
@@ -515,9 +515,9 @@ if __name__ == '__main__':
     print("=" * 60)
 
     mock_data = [
-        {'rsi': 28, 'return': 0.03, 'volume': 1000000, 'price': 100},
-        {'rsi': 32, 'return': 0.02, 'volume': 1200000, 'price': 102},
-        {'rsi': 45, 'return': 0.01, 'volume': 900000, 'price': 103},
+        {'rsi': 28, 'return': 0."03", 'volume': 1000000, 'price': 100},
+        {'rsi': 32, 'return': 0."02", 'volume': 1200000, 'price': 102},
+        {'rsi': 45, 'return': 0."01", 'volume': 900000, 'price': 103},
     ] * 10
 
     patterns = engine.recognize_patterns(mock_data)
@@ -525,7 +525,7 @@ if __name__ == '__main__':
     for pattern in patterns:
         print(f"  - {pattern.name}: 승률 {pattern.success_rate:.1%}")
 
-    market_data = {'volatility': 0.15, 'trend': 0.03, 'volume_trend': 1.2}
+    market_data = {'volatility': 0.15, 'trend': 0."03", 'volume_trend': 1.2}
     regime = engine.detect_market_regime(market_data)
     print(f"\n시장 국면: {regime.regime_type} (신뢰도: {regime.confidence:.0%})")
 

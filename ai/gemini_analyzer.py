@@ -19,6 +19,7 @@ class GeminiAnalyzer(BaseAnalyzer):
     Gemini API를 사용한 종목/시장 분석
     
 
+"""
     STOCK_ANALYSIS_PROMPT_TEMPLATE_SIMPLE = """
 
 당신은 전문 트레이더입니다. 다음 종목을 분석하여 **반드시 JSON 형식으로만** 응답하세요.
@@ -79,6 +80,7 @@ class GeminiAnalyzer(BaseAnalyzer):
 **매수호가 강도**: {bid_ask_ratio:.2f}
 
 **투자자 흐름 해석**:
+"""
 - 외국인+기관 동시 순매수 = 강력한 상승 신호
 - 외국인 순매도 + 개인 순매수 = 경고 신호
 - 매수호가강도 > 1.5 = 강한 매수세
@@ -292,6 +294,7 @@ class GeminiAnalyzer(BaseAnalyzer):
 
 **특히 중요**: 점수가 높다고 무조건 매수 추천하지 말 것. 스마트머니 흐름과 가격 액션을 종합적으로 고려할 것."""
 
+"""
     def __init__(self, api_key: str = None, model_name: str = None, enable_cross_check: bool = False):
         """
         Gemini 분석기 초기화
@@ -390,9 +393,9 @@ class GeminiAnalyzer(BaseAnalyzer):
         """
         if not self.is_initialized:
             if not self.initialize():
-                """
                 return self._get_error_result("분석기 초기화 실패")
 
+"""
         is_valid, msg = self.validate_stock_data(stock_data)
         if not is_valid:
             return self._get_error_result(msg)
@@ -482,9 +485,9 @@ class GeminiAnalyzer(BaseAnalyzer):
             if 'cross_check' in result:
                 cc = result['cross_check']
                 if cc.get('agreement'):
-                    """
                     print(f"   [OK] 크로스체크 일치: {result['signal']} (신뢰도: {result['confidence']})")
                 else:
+                """
                     print(f"   WARNING: 크로스체크 불일치 -> 보수적 선택: {result['signal']}")
 
             logger.info(
@@ -498,8 +501,8 @@ class GeminiAnalyzer(BaseAnalyzer):
         retry_delay = 2
 
         for attempt in range(max_retries):
-            """
             try:
+            """
                 if score_info:
                     score = score_info.get('score', 0)
                     percentage = score_info.get('percentage', 0)
@@ -553,9 +556,9 @@ class GeminiAnalyzer(BaseAnalyzer):
                     raise ValueError(f"Gemini blocked: {reason_name}")
 
                 if not hasattr(response, 'text'):
-                    """
                     raise ValueError("Gemini API response has no 'text' attribute")
 
+"""
                 response_text = response.text
                 if not response_text or len(response_text.strip()) == 0:
                     raise ValueError("Gemini API returned empty response")
@@ -606,9 +609,9 @@ class GeminiAnalyzer(BaseAnalyzer):
         """
         if not self.is_initialized:
             if not self.initialize():
-                """
                 return self._get_error_result("분석기 초기화 실패")
         
+        """
         start_time = time.time()
         
         try:
@@ -642,9 +645,9 @@ class GeminiAnalyzer(BaseAnalyzer):
         """
         if not self.is_initialized:
             if not self.initialize():
-                """
                 return self._get_error_result("분석기 초기화 실패")
         
+        """
         start_time = time.time()
         
         try:
@@ -683,6 +686,7 @@ class GeminiAnalyzer(BaseAnalyzer):
 분석: [시장 상황 분석 3-5줄]
 추천: [투자 전략 추천 2-3가지]
         
+        """
         return prompt
     
     def _create_portfolio_analysis_prompt(self, portfolio_data: Dict[str, Any]) -> str:
@@ -702,6 +706,7 @@ class GeminiAnalyzer(BaseAnalyzer):
 **분석 요청:**
 포트폴리오의 강점, 약점, 개선사항을 분석해주세요.
         
+        """
         return prompt
     
     
@@ -736,8 +741,8 @@ class GeminiAnalyzer(BaseAnalyzer):
                 if json_match:
                     potential_json = json_match.group(1).strip()
                     if potential_json.startswith('{'):
-                        """
                         json_str = potential_json
+                        """
                         logger.debug("Found JSON in generic code block")
 
             if not json_str:
@@ -756,8 +761,8 @@ class GeminiAnalyzer(BaseAnalyzer):
 
             if not json_str:
                 if cleaned_text.startswith('{'):
-                    """
                     json_str = cleaned_text
+                    """
                     logger.debug("Entire response appears to be JSON")
 
             if json_str:
@@ -784,14 +789,14 @@ class GeminiAnalyzer(BaseAnalyzer):
                     if 'detailed_reasoning' in data:
                         reasons.append(data['detailed_reasoning'])
                     if 'key_insights' in data and isinstance(data.get('key_insights'), list):
-                        """
                         reasons.extend(data['key_insights'])
 
+"""
                     warnings = data.get('warnings', [])
                     if isinstance(warnings, str):
-                        """
                         warnings = [warnings]
 
+"""
                     trading_plan = data.get('trading_plan', {})
                     entry_strategy = trading_plan.get('entry_strategy', '') if isinstance(trading_plan, dict) else ''
 
@@ -899,6 +904,7 @@ class GeminiAnalyzer(BaseAnalyzer):
 - RSI(14): {technical.get('rsi', 50):.1f}
 - 가격 위치: {technical.get('price_position', 0.5)*100:.1f}%
     
+    """
     def _format_investor_data(self, investor: Dict[str, Any]) -> str:
         """투자자 동향 포맷팅"""
         if not investor:
@@ -908,6 +914,7 @@ class GeminiAnalyzer(BaseAnalyzer):
 - 외국인 순매수: {investor.get('foreign_net', 0):,}주
 - 기관 순매수: {investor.get('institution_net', 0):,}주
     
+    """
     def _format_market_data(self, market_data: Dict[str, Any]) -> str:
         """시장 데이터 포맷팅"""
         return str(market_data)
@@ -978,8 +985,8 @@ class GeminiAnalyzer(BaseAnalyzer):
                 return None
 
             if not hasattr(response, 'text'):
-                """
                 logger.warning(f"[{model_name}] No text attribute")
+                """
                 return None
 
             response_text = response.text
@@ -1091,11 +1098,11 @@ class GeminiAnalyzer(BaseAnalyzer):
 
             reasons_combined = []
             if result_2_0.get('reasons'):
-                """
                 reasons_combined.append(f"[2.0] " + "; ".join(result_2_0['reasons'][:2]))
-            if result_2_5.get('reasons'):
                 """
+            if result_2_5.get('reasons'):
                 reasons_combined.append(f"[2.5] " + "; ".join(result_2_5['reasons'][:2]))
+                """
             final_result['reasons'] = reasons_combined
 
             final_result['cross_check'] = {

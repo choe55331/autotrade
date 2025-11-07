@@ -108,9 +108,11 @@ def rate_limit_log(rate_limit_seconds: float = 1.0):
     함수 데코레이터: 함수 내부 로깅을 rate limit
 
     Usage:
+    """
         @rate_limit_log(rate_limit_seconds=5.0)
         def my_function():
             logger.info("This will be rate limited")
+    """
     """
     def decorator(func):
         last_log = {}

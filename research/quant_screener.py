@@ -130,7 +130,7 @@ class QuantScreener:
             quality_score = quality_score / 2.0 * 10
 
             momentum_score = 0
-            if stock.return_3m > 0.05:
+            if stock.return_3m > 0."05":
                 momentum_score += 1
             if stock.return_6m > 0.10:
                 momentum_score += 1
@@ -173,7 +173,6 @@ if __name__ == "__main__":
 
     stocks = []
     for i in range(100):
-        """
         stock = StockFactors(
             stock_code=f"{i:06d}",
             stock_name=f"Stock_{i}",
@@ -190,7 +189,7 @@ if __name__ == "__main__":
             return_6m=random.uniform(-0.30, 0.30),
             return_12m=random.uniform(-0.40, 0.40),
             volatility=random.uniform(0.10, 0.30),
-            earnings_yield=random.uniform(0.05, 0.20),
+            earnings_yield=random.uniform(0."05", 0.20),
             return_on_capital=random.uniform(0.10, 0.40)
         )
         stocks.append(stock)

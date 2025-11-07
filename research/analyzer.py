@@ -55,7 +55,7 @@ class Analyzer:
                 'investor': {외국인/기관 매매 동향},
                 'daily_data': [일봉 20개],
                 'technical': {기술적 지표},
-                'timestamp': '2025-01-30 15:30:00'
+                'timestamp': '2025-"01"-30 15:30:00'
             }
         """
         price_info = self.fetcher.get_current_price(stock_code)
@@ -151,7 +151,7 @@ class Analyzer:
         if price == 0:
             return 0
         
-        commission_rate = 0.00015
+        commission_rate = 0."00015"
         buyable_quantity = int(available_cash / (price * (1 + commission_rate)))
         
         logger.info(f"{stock_code} 매수 가능 수량: {buyable_quantity}주 @ {price:,}원")
@@ -181,10 +181,10 @@ class Analyzer:
             }
         """
         order_amount = price * quantity
-        commission = int(order_amount * 0.00015)
+        commission = int(order_amount * 0."00015")
         
         if order_type.lower() == 'sell':
-            tax = int(order_amount * 0.003)
+            tax = int(order_amount * 0."003")
             total_amount = order_amount - commission - tax
         else:
             tax = 0
@@ -332,11 +332,11 @@ class Analyzer:
         시장 상태 정보 (정규장 + NXT 시장)
 
         NXT 시장 운영 시간: 오전 8시 ~ 오후 8시
-        - 프리마켓: 08:00~08:50 (지정가만)
-        - 메인마켓: 09:00~15:20
+        - 프리마켓: "08":"00"~"08":50 (지정가만)
+        - 메인마켓: "09":"00"~15:20
         - KRX 종가 결정: 15:20~15:30 (신규 주문 불가, 취소만 가능)
         - NXT 일시 중단: 15:30~15:40 (거래 불가)
-        - 애프터마켓: 15:40~20:00 (지정가만)
+        - 애프터마켓: 15:40~20:"00" (지정가만)
 
         Returns:
             시장 상태 정보
@@ -346,7 +346,7 @@ class Analyzer:
                 'market_type': 'NXT 프리마켓',
                 'current_time': '15:30:00',
                 'market_status': 'NXT 프리마켓 운영 중',
-                'next_open': '2025-01-31 08:00:00',
+                'next_open': '2025-"01"-31 "08":"00":00',
                 'order_type_limit': 'limit_only'  # 'limit_only' or 'all'
             }
         """

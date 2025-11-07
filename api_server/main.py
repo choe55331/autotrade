@@ -364,7 +364,7 @@ async def search_stocks(query: str = "", limit: int = 20):
 
 @app.get("/api/market/stock/{stock_code}")
 async def get_stock_detail(stock_code: str):
-    """종목 상세 정보 (✅ v5.15: NXT 시간대 실시간 현재가 반영)"""
+    """종목 상세 정보 ([OK] v5.15: NXT 시간대 실시간 현재가 반영)"""
     try:
         if bot_instance is None or bot_instance.market_api is None:
             logger.warning("Bot instance not initialized")

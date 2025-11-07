@@ -17,6 +17,7 @@ content = re.sub(
 )
 
 # 2. Args:나 Returns: 섹션이 있는데 opening """ 없는 경우
+"""
 pattern2 = r'(\n    def [^\n]+:\n)(        )([가-힣A-Z][^\n]+\n(?:        [^\n]*\n)*?)(        )(Args:)'
 content = re.sub(
     pattern2,

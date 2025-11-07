@@ -30,7 +30,7 @@ def quick_test(bot_instance):
     market_api = bot_instance.market_api if hasattr(bot_instance, 'market_api') else None
     account_api = bot_instance.account_api if hasattr(bot_instance, 'account_api') else None
 
-    print("📊 1. 계좌 잔고 계산 테스트")
+    print("[CHART] 1. 계좌 잔고 계산 테스트")
     print("-" * 80)
 
     if account_api:
@@ -43,7 +43,7 @@ def quick_test(bot_instance):
             if deposit and holdings is not None:
                 result = AccountBalanceFix.approach_1_deposit_minus_purchase(deposit, holdings)
 
-                print(f"✅ 계좌 잔고 계산 성공")
+                print(f"[OK] 계좌 잔고 계산 성공")
                 print(f"   예수금: {result['_debug']['deposit_amount']:,}원")
                 print(f"   구매원가: {result['_debug']['total_purchase_cost']:,}원")
                 print(f"   실제 사용가능액: {result['cash']:,}원")
@@ -51,16 +51,16 @@ def quick_test(bot_instance):
                 print(f"   보유주식: {result['stock_value']:,}원")
                 print(f"   손익: {result['profit_loss']:,}원 ({result['profit_loss_percent']:.2f}%)")
             else:
-                print("⚠️  deposit 또는 holdings 조회 실패")
+                print("[WARNING]️  deposit 또는 holdings 조회 실패")
 
         except Exception as e:
-            print(f"❌ 계좌 잔고 테스트 실패: {e}")
+            print(f"[X] 계좌 잔고 테스트 실패: {e}")
     else:
-        print("⚠️  account_api 없음")
+        print("[WARNING]️  account_api 없음")
 
     print()
 
-    print("💰 2. NXT 시장가격 조회 테스트")
+    print("[MONEY] 2. NXT 시장가격 조회 테스트")
     print("-" * 80)
 
     if market_api:
@@ -77,19 +77,19 @@ def quick_test(bot_instance):
             price_info = market_api_ext.get_current_price_with_source(test_stock)
 
             if price_info['price'] > 0:
-                print(f"✅ 가격 조회 성공: {test_stock}")
+                print(f"[OK] 가격 조회 성공: {test_stock}")
                 print(f"   현재가: {price_info['price']:,}원")
                 print(f"   가격 소스: {price_info['source']}")
                 print(f"   시도한 소스: {price_info.get('sources_tried', [])}")
                 print(f"   NXT 시간: {price_info['is_nxt_time']}")
             else:
-                print(f"⚠️  가격 조회 실패: {test_stock}")
+                print(f"[WARNING]️  가격 조회 실패: {test_stock}")
                 print(f"   시도한 소스: {price_info.get('sources_tried', [])}")
 
         except Exception as e:
-            print(f"❌ NXT 가격 조회 테스트 실패: {e}")
+            print(f"[X] NXT 가격 조회 테스트 실패: {e}")
     else:
-        print("⚠️  market_api 없음")
+        print("[WARNING]️  market_api 없음")
 
     print()
 
@@ -101,7 +101,7 @@ def quick_test(bot_instance):
 
         scanning_info = get_scanning_info(bot_instance, method='combined')
 
-        print(f"✅ AI 스캐닝 정보 조회 성공")
+        print(f"[OK] AI 스캐닝 정보 조회 성공")
         print(f"   Fast Scan (스캐닝 종목): {scanning_info['fast_scan']['count']}개")
         print(f"     - 마지막 실행: {scanning_info['fast_scan']['last_run']}")
         print(f"     - 소스: {scanning_info['fast_scan'].get('source', 'N/A')}")
@@ -120,7 +120,7 @@ def quick_test(bot_instance):
                 print(f"     - {stock['name']} ({stock['code']}): {stock.get('score', 0):.1f}점")
 
     except Exception as e:
-        print(f"❌ AI 스캐닝 연동 테스트 실패: {e}")
+        print(f"[X] AI 스캐닝 연동 테스트 실패: {e}")
 
     print()
     print("=" * 80)
@@ -163,17 +163,17 @@ def apply_fixes(bot_instance):
 
     try:
         from tests.manual_tests.patches.fix_account_balance import AccountBalanceFix
-        print("✅ AccountBalanceFix 로드됨")
+        print("[OK] AccountBalanceFix 로드됨")
 
         from tests.manual_tests.patches.fix_nxt_price import MarketAPIExtended
         market_api_ext = MarketAPIExtended(
             bot_instance.market_api if hasattr(bot_instance, 'market_api') else None,
             bot_instance.account_api if hasattr(bot_instance, 'account_api') else None
         )
-        print("✅ MarketAPIExtended 생성됨")
+        print("[OK] MarketAPIExtended 생성됨")
 
         from tests.manual_tests.patches.fix_ai_scanning import get_scanning_info
-        print("✅ AIScanningFix 로드됨")
+        print("[OK] AIScanningFix 로드됨")
 
         print()
         print("수정 사항이 메모리에 로드되었습니다.")
@@ -189,14 +189,14 @@ def apply_fixes(bot_instance):
 
         bot_instance._fix_scanning_info = lambda: get_scanning_info(bot_instance, method='combined')
 
-        print("✅ 봇 인스턴스에 헬퍼 함수 추가됨:")
+        print("[OK] 봇 인스턴스에 헬퍼 함수 추가됨:")
         print("   - bot._fix_account_balance()")
         print("   - bot._fix_get_price(stock_code)")
         print("   - bot._fix_scanning_info()")
         print()
 
     except Exception as e:
-        print(f"❌ 수정 사항 적용 실패: {e}")
+        print(f"[X] 수정 사항 적용 실패: {e}")
         import traceback
         traceback.print_exc()
 

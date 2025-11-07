@@ -40,28 +40,28 @@ async def test_rest_api():
         manager = TestModeManager()
 
         if manager.check_and_activate_test_mode():
-            print(f"✅ 테스트 모드 활성화됨")
+            print(f"[OK] 테스트 모드 활성화됨")
             print(f"   사용할 데이터 날짜: {manager.test_date}")
             print()
 
             results = await manager.run_comprehensive_test()
 
-            print("\n📊 REST API 테스트 요약")
+            print("\n[CHART] REST API 테스트 요약")
             print("─" * 80)
 
             if results and "tests" in results:
                 for test_name, test_result in results["tests"].items():
-                    status = "✅" if test_result.get("success") else "❌"
+                    status = "[OK]" if test_result.get("success") else "[X]"
                     print(f"  {status} {test_name.replace('_', ' ').title()}")
 
             return True
         else:
-            print("⚠️  정규 장 시간입니다. 실시간 모드로 실행됩니다.")
+            print("[WARNING]️  정규 장 시간입니다. 실시간 모드로 실행됩니다.")
             print("   (테스트 모드는 주말 또는 장 마감 시간에만 활성화됩니다)")
             return False
 
     except Exception as e:
-        print(f"❌ REST API 테스트 실패: {e}")
+        print(f"[X] REST API 테스트 실패: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -86,24 +86,24 @@ async def test_websocket():
 
         async with asyncio.timeout(5):
             ws = await websockets.connect(ws_url)
-            print("✅ WebSocket 연결 성공")
+            print("[OK] WebSocket 연결 성공")
 
             await ws.ping()
-            print("✅ Ping 응답 성공")
+            print("[OK] Ping 응답 성공")
 
             await ws.close()
-            print("✅ WebSocket 연결 정상 종료")
+            print("[OK] WebSocket 연결 정상 종료")
 
-        print("\n⚠️  참고: 장 운영 시간이 아니므로 실시간 데이터는 수신되지 않을 수 있습니다.")
-        print("   실시간 데이터 테스트는 장 운영 시간(09:00-15:30)에 실행하세요.")
+        print("\n[WARNING]️  참고: 장 운영 시간이 아니므로 실시간 데이터는 수신되지 않을 수 있습니다.")
+        print("   실시간 데이터 테스트는 장 운영 시간("09":"00"-15:30)에 실행하세요.")
 
         return True
 
     except asyncio.TimeoutError:
-        print("❌ WebSocket 연결 타임아웃 (5초 초과)")
+        print("[X] WebSocket 연결 타임아웃 (5초 초과)")
         return False
     except Exception as e:
-        print(f"❌ WebSocket 테스트 실패: {e}")
+        print(f"[X] WebSocket 테스트 실패: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -132,11 +132,11 @@ async def test_trading_date_utils():
         for i, date in enumerate(recent_dates, 1):
             print(f"  {i}. {date}")
 
-        print("✅ 거래일 유틸리티 테스트 성공")
+        print("[OK] 거래일 유틸리티 테스트 성공")
         return True
 
     except Exception as e:
-        print(f"❌ 거래일 유틸리티 테스트 실패: {e}")
+        print(f"[X] 거래일 유틸리티 테스트 실패: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -152,8 +152,8 @@ async def run_full_websocket_test():
         from utils.trading_date import is_market_hours
 
         if not is_market_hours():
-            print("⚠️  현재 장 운영 시간이 아닙니다.")
-            print("   전체 WebSocket 기능 테스트는 장 운영 시간(09:00-15:30)에 실행하세요.")
+            print("[WARNING]️  현재 장 운영 시간이 아닙니다.")
+            print("   전체 WebSocket 기능 테스트는 장 운영 시간("09":"00"-15:30)에 실행하세요.")
             print("   현재는 연결 테스트만 수행했습니다.")
             return True
 
@@ -168,7 +168,7 @@ async def run_full_websocket_test():
         return True
 
     except Exception as e:
-        print(f"❌ 전체 WebSocket 테스트 실패: {e}")
+        print(f"[X] 전체 WebSocket 테스트 실패: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -194,11 +194,11 @@ async def main():
     results["websocket_full"] = await run_full_websocket_test()
 
     print("\n" + "=" * 80)
-    print("📊 최종 테스트 결과 요약")
+    print("[CHART] 최종 테스트 결과 요약")
     print("=" * 80)
 
     for test_name, success in results.items():
-        status = "✅" if success else "❌"
+        status = "[OK]" if success else "[X]"
         print(f"  {status} {test_name.replace('_', ' ').title()}")
 
     success_count = sum(results.values())
@@ -209,18 +209,18 @@ async def main():
     print("=" * 80)
 
     if success_count == total_count:
-        print("✅ 모든 테스트가 성공했습니다!")
+        print("[OK] 모든 테스트가 성공했습니다!")
     elif success_count > 0:
-        print("⚠️  일부 테스트가 실패했습니다. 로그를 확인하세요.")
+        print("[WARNING]️  일부 테스트가 실패했습니다. 로그를 확인하세요.")
     else:
-        print("❌ 모든 테스트가 실패했습니다. 설정을 확인하세요.")
+        print("[X] 모든 테스트가 실패했습니다. 설정을 확인하세요.")
 
     print()
 
 
 if __name__ == "__main__":
     try:
-        print("\n⚠️  중요: 이 테스트는 주말/장마감 후에도 실행 가능합니다.")
+        print("\n[WARNING]️  중요: 이 테스트는 주말/장마감 후에도 실행 가능합니다.")
         print("   - REST API: 가장 최근 영업일 데이터로 테스트")
         print("   - WebSocket: 연결 테스트만 수행 (장 운영 시간에는 실시간 데이터 수신)")
         print()
@@ -234,6 +234,6 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("\n\n테스트 중단됨")
     except Exception as e:
-        print(f"\n❌ 테스트 실행 중 오류: {e}")
+        print(f"\n[X] 테스트 실행 중 오류: {e}")
         import traceback
         traceback.print_exc()

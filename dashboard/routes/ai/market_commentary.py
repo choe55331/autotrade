@@ -49,15 +49,15 @@ def get_market_commentary():
             if profit_loss_pct > 5:
                 market_summary_parts.append(f"✨ 포트폴리오가 {profit_loss_pct:.1f}% 상승 중입니다. 수익 실현을 고려하세요.")
             elif profit_loss_pct > 2:
-                market_summary_parts.append(f"📈 포트폴리오가 {profit_loss_pct:.1f}% 상승했습니다. 안정적인 수익률을 유지하고 있습니다.")
+                market_summary_parts.append(f"[UP] 포트폴리오가 {profit_loss_pct:.1f}% 상승했습니다. 안정적인 수익률을 유지하고 있습니다.")
             elif profit_loss_pct < -5:
-                market_summary_parts.append(f"⚠️ 포트폴리오가 {abs(profit_loss_pct):.1f}% 하락했습니다. 손절 또는 추가 매수를 검토하세요.")
+                market_summary_parts.append(f"[WARNING]️ 포트폴리오가 {abs(profit_loss_pct):.1f}% 하락했습니다. 손절 또는 추가 매수를 검토하세요.")
                 commentary['speak'] = True
                 commentary['speak_text'] = f"경고: 포트폴리오가 {abs(profit_loss_pct):.1f}퍼센트 하락했습니다."
             elif profit_loss_pct < -2:
-                market_summary_parts.append(f"📉 포트폴리오가 {abs(profit_loss_pct):.1f}% 하락 중입니다. 주의가 필요합니다.")
+                market_summary_parts.append(f"[DOWN] 포트폴리오가 {abs(profit_loss_pct):.1f}% 하락 중입니다. 주의가 필요합니다.")
             else:
-                market_summary_parts.append(f"📊 포트폴리오가 {profit_loss_pct:+.1f}% 변동 중입니다. 안정적인 상태입니다.")
+                market_summary_parts.append(f"[CHART] 포트폴리오가 {profit_loss_pct:+.1f}% 변동 중입니다. 안정적인 상태입니다.")
 
         current_hour = datetime.now().hour
         is_market_closed = current_hour >= 15 or current_hour < 9
@@ -72,16 +72,16 @@ def get_market_commentary():
                 if avg_pl > 3:
                     market_summary_parts.append(f"✨ 장 종료. 오늘 평균 {avg_pl:.1f}% 수익을 기록했습니다. 좋은 하루였습니다!")
                 elif avg_pl > 1:
-                    market_summary_parts.append(f"📈 장 종료. 오늘 평균 {avg_pl:.1f}% 상승으로 마감했습니다.")
+                    market_summary_parts.append(f"[UP] 장 종료. 오늘 평균 {avg_pl:.1f}% 상승으로 마감했습니다.")
                 elif avg_pl < -3:
-                    market_summary_parts.append(f"📉 장 종료. 오늘 평균 {avg_pl:.1f}% 하락했습니다. 내일 반등 기회를 노려보세요.")
+                    market_summary_parts.append(f"[DOWN] 장 종료. 오늘 평균 {avg_pl:.1f}% 하락했습니다. 내일 반등 기회를 노려보세요.")
                 else:
-                    market_summary_parts.append(f"📊 장 종료. 오늘 평균 {avg_pl:+.1f}% 변동으로 마감했습니다.")
+                    market_summary_parts.append(f"[CHART] 장 종료. 오늘 평균 {avg_pl:+.1f}% 변동으로 마감했습니다.")
 
             commentary['key_issues'].append("💡 내일 주요 체크사항: 해외 증시 동향, 환율 변동, 국내외 뉴스")
             commentary['strategy_recommendation'] = "내일 장 전략을 수립하세요. 오늘의 거래를 복기하고 개선점을 찾아보세요."
         else:
-            market_summary_parts.append("📊 정규 장 거래 시간입니다.")
+            market_summary_parts.append("[CHART] 정규 장 거래 시간입니다.")
 
         commentary['market_summary'] = ' '.join(market_summary_parts)
 
@@ -120,7 +120,7 @@ def get_market_commentary():
                 name = stock.get('name', '종목')
 
                 if pl_pct < -7:
-                    commentary['risks'].append(f"⚠️ {name}: {pl_pct:.1f}% 손실. 즉시 손절을 검토하세요.")
+                    commentary['risks'].append(f"[WARNING]️ {name}: {pl_pct:.1f}% 손실. 즉시 손절을 검토하세요.")
                     if not commentary['speak']:
                         commentary['speak'] = True
                         commentary['speak_text'] = f"경고: {name} 종목이 {abs(pl_pct):.1f}퍼센트 손실입니다."
@@ -148,13 +148,13 @@ def get_market_commentary():
                     gainer_ratio = gainers / len(volume_leaders)
 
                     if gainer_ratio > 0.6:
-                        commentary['market_trend'] = f'📈 강세장 (상승종목 {gainers}개 vs 하락종목 {losers}개)'
+                        commentary['market_trend'] = f'[UP] 강세장 (상승종목 {gainers}개 vs 하락종목 {losers}개)'
                         commentary['trading_strategy'] = '적극적 매수 전략 - 모멘텀 종목 위주 투자'
                     elif gainer_ratio < 0.4:
-                        commentary['market_trend'] = f'📉 약세장 (하락종목 {losers}개 vs 상승종목 {gainers}개)'
+                        commentary['market_trend'] = f'[DOWN] 약세장 (하락종목 {losers}개 vs 상승종목 {gainers}개)'
                         commentary['trading_strategy'] = '방어적 전략 - 보유 종목 손절 검토, 신규 진입 자제'
                     else:
-                        commentary['market_trend'] = f'📊 중립장 (상승 {gainers}, 하락 {losers})'
+                        commentary['market_trend'] = f'[CHART] 중립장 (상승 {gainers}, 하락 {losers})'
                         commentary['trading_strategy'] = '선별적 투자 - 우량주 위주 투자, 리스크 관리 강화'
 
                     if gainers_list:
@@ -182,18 +182,18 @@ def get_market_commentary():
                     avg_profit = sum(p.get('profit_loss_percent', 0) for p in portfolio_info) / len(portfolio_info)
 
                     if avg_profit > 10:
-                        commentary['strategy_recommendation'] = '🎯 수익 실현 단계 - 일부 익절 후 재진입 타이밍 포착'
+                        commentary['strategy_recommendation'] = '[TARGET] 수익 실현 단계 - 일부 익절 후 재진입 타이밍 포착'
                     elif avg_profit > 5:
-                        commentary['strategy_recommendation'] = '📈 안정적 수익 유지 - 트레일링 스톱 설정으로 수익 보호'
+                        commentary['strategy_recommendation'] = '[UP] 안정적 수익 유지 - 트레일링 스톱 설정으로 수익 보호'
                     elif avg_profit < -5:
-                        commentary['strategy_recommendation'] = '⚠️ 손실 관리 필요 - 손절 또는 분할 매도 검토'
+                        commentary['strategy_recommendation'] = '[WARNING]️ 손실 관리 필요 - 손절 또는 분할 매도 검토'
                     elif avg_profit < -2:
-                        commentary['strategy_recommendation'] = '📊 관망 모드 - 신규 진입 자제, 보유 종목 모니터링 강화'
+                        commentary['strategy_recommendation'] = '[CHART] 관망 모드 - 신규 진입 자제, 보유 종목 모니터링 강화'
                     else:
                         commentary['strategy_recommendation'] = '🔄 리밸런싱 시기 - 수익 종목 일부 익절, 손실 종목 재검토'
                 else:
                     if gainer_ratio > 0.6:
-                        commentary['strategy_recommendation'] = '💰 진입 타이밍 - 강세장에서 우량 종목 발굴'
+                        commentary['strategy_recommendation'] = '[MONEY] 진입 타이밍 - 강세장에서 우량 종목 발굴'
                     else:
                         commentary['strategy_recommendation'] = '⏳ 관망 추천 - 시장 방향성 확인 후 진입'
 

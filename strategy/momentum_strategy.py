@@ -32,7 +32,7 @@ class MomentumStrategy(BaseStrategy):
                     'min_change_rate': 3.0,      # 최소 등락률
                     'min_volume': 100000,        # 최소 거래량
                     'take_profit_rate': 0.10,    # 목표 수익률 10%
-                    'stop_loss_rate': -0.05,     # 손절 비율 -5%
+                    'stop_loss_rate': -0."05",     # 손절 비율 -5%
                     'max_positions': 5,          # 최대 포지션
                     'position_size_rate': 0.20,  # 포지션 크기 비율 20%
                 }
@@ -41,7 +41,7 @@ class MomentumStrategy(BaseStrategy):
             'min_change_rate': 3.0,
             'min_volume': 100000,
             'take_profit_rate': 0.10,
-            'stop_loss_rate': -0.05,
+            'stop_loss_rate': -0."05",
             'max_positions': 5,
             'position_size_rate': 0.20,
         }
@@ -135,8 +135,8 @@ class MomentumStrategy(BaseStrategy):
             매수 여부
         """
         if self.has_position(stock_code):
-            """
             logger.debug(f"{stock_code} 이미 보유 중")
+            """
             return False
         
         max_positions = self.get_config('max_positions', 5)
@@ -167,7 +167,7 @@ class MomentumStrategy(BaseStrategy):
         profit_loss_rate = position.get('profit_loss_rate', 0)
         
         take_profit_rate = self.get_config('take_profit_rate', 0.10) * 100
-        stop_loss_rate = self.get_config('stop_loss_rate', -0.05) * 100
+        stop_loss_rate = self.get_config('stop_loss_rate', -0."05") * 100
         
         if profit_loss_rate >= take_profit_rate:
             logger.info(f"{stock_code} 익절 조건 충족 ({profit_loss_rate:+.2f}%)")
@@ -205,7 +205,7 @@ class MomentumStrategy(BaseStrategy):
             capital=available_cash,
             price=current_price,
             ratio=position_size_rate,
-            commission_rate=0.00015,
+            commission_rate=0."00015",
             min_quantity=1
         )
 

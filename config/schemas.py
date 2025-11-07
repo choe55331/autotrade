@@ -5,7 +5,7 @@ Pydantic 기반 통합 설정 스키마 (v5.6+ Comprehensive)
 
 """
 COMPREHENSIVE 개선:
-- 5개 설정 시스템 통합 → 단일 Pydantic 스키마
+- 5개 설정 시스템 통합 -> 단일 Pydantic 스키마
 - unified_settings.py의 모든 설정 포함
 - Type-safe configuration with validation
 - Dot notation access: config.get('risk_management.max_position_size')
@@ -47,7 +47,7 @@ class RiskManagementConfig(BaseModel):
     )
 
     stop_loss_pct: float = Field(
-        default=0.05,
+        default=0."05",
         ge=0.0,
         le=1.0,
         description="기본 손절 비율"
@@ -66,7 +66,7 @@ class RiskManagementConfig(BaseModel):
     )
 
     max_daily_loss: float = Field(
-        default=0.03,
+        default=0."03",
         ge=0.0,
         le=1.0,
         description="일일 최대 손실"
@@ -86,7 +86,7 @@ class RiskManagementConfig(BaseModel):
 
     enable_trailing_stop: bool = Field(default=True, description="트레일링 스톱 활성화")
     trailing_stop_pct: float = Field(
-        default=0.02,
+        default=0."02",
         ge=0.0,
         le=0.5,
         description="트레일링 스톱 비율"
@@ -98,7 +98,7 @@ class RiskManagementConfig(BaseModel):
         description="ATR 승수"
     )
     trailing_stop_activation_pct: float = Field(
-        default=0.03,
+        default=0."03",
         ge=0.0,
         le=0.5,
         description="활성화 수익률"
@@ -123,8 +123,8 @@ class TradingConfig(BaseModel):
     min_price: int = Field(default=1000, ge=0, description="최소 주문 가격")
     max_price: int = Field(default=1000000, ge=0, description="최대 주문 가격")
     min_volume: int = Field(default=10000, ge=0, description="최소 거래량")
-    commission_rate: float = Field(default=0.00015, ge=0.0, description="수수료율")
-    slippage_pct: float = Field(default=0.0005, ge=0.0, description="슬리피지 비율")
+    commission_rate: float = Field(default=0."00015", ge=0.0, description="수수료율")
+    slippage_pct: float = Field(default=0."0005", ge=0.0, description="슬리피지 비율")
     market_start_time: str = Field(default="09:00", description="장 시작 시간")
     market_end_time: str = Field(default="15:30", description="장 종료 시간")
 
@@ -237,8 +237,8 @@ class AIConfig(BaseModel):
 class BacktestingConfig(BaseModel):
     """백테스팅 설정"""
     default_initial_capital: int = Field(default=10000000, ge=0, description="초기 자본 (1천만원)")
-    commission_rate: float = Field(default=0.00015, ge=0.0, description="수수료율 (0.015%)")
-    slippage_pct: float = Field(default=0.0005, ge=0.0, description="슬리피지 (0.05%)")
+    commission_rate: float = Field(default=0."00015", ge=0.0, description="수수료율 (0."015"%)")
+    slippage_pct: float = Field(default=0."0005", ge=0.0, description="슬리피지 (0."05"%)")
     generate_report: bool = Field(default=True, description="리포트 생성")
     report_format: str = Field(default="html", description="리포트 형식 (html/pdf)")
     report_includes: Dict[str, bool] = Field(
@@ -278,9 +278,9 @@ class RebalancingConfig(BaseModel):
         description="방법 (time_based/threshold_based)"
     )
     frequency_days: int = Field(default=30, ge=1, le=365, description="시간 기반 주기 (일)")
-    threshold_pct: float = Field(default=0.05, ge=0.01, le=0.5, description="임계값 기반 (5% 이탈)")
+    threshold_pct: float = Field(default=0."05", ge=0."01", le=0.5, description="임계값 기반 (5% 이탈)")
     use_risk_parity: bool = Field(default=False, description="리스크 패리티 사용")
-    target_volatility: float = Field(default=0.15, ge=0.05, le=0.5, description="목표 변동성 (15%)")
+    target_volatility: float = Field(default=0.15, ge=0."05", le=0.5, description="목표 변동성 (15%)")
 
 
 
@@ -301,7 +301,7 @@ class QuantFactorQualityConfig(BaseModel):
 class QuantFactorMomentumConfig(BaseModel):
     """퀀트 팩터 - Momentum"""
     enabled: bool = Field(default=True, description="활성화")
-    return_1m_min: float = Field(default=0.05, ge=-1.0, le=1.0, description="최소 1개월 수익률")
+    return_1m_min: float = Field(default=0."05", ge=-1.0, le=1.0, description="최소 1개월 수익률")
     return_3m_min: float = Field(default=0.10, ge=-1.0, le=1.0, description="최소 3개월 수익률")
 
 
@@ -316,7 +316,7 @@ class ScreeningConfig(BaseModel):
         default={
             "value": {"enabled": True, "per_max": 15, "pbr_max": 1.5},
             "quality": {"enabled": True, "roe_min": 10, "debt_ratio_max": 100},
-            "momentum": {"enabled": True, "return_1m_min": 0.05, "return_3m_min": 0.10},
+            "momentum": {"enabled": True, "return_1m_min": 0."05", "return_3m_min": 0.10},
         },
         description="퀀트 팩터 설정"
     )

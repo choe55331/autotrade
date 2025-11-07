@@ -63,6 +63,7 @@ class StrategyOptimizer:
                 }
             method: 최적화 방법 ('grid', 'random', 'bayesian')
             n_trials: 시도 횟수
+            """
             n_jobs: 병렬 작업 수 (-1 = 모든 CPU)
         self.objective_function = objective_function
         self.param_ranges = param_ranges
@@ -133,11 +134,11 @@ class StrategyOptimizer:
 
         results = []
         for i in range(self.n_trials):
-            """
             params = {}
+            """
             for name, values in self.param_ranges.items():
-                """
                 if isinstance(values, list):
+                """
                     params[name] = np.random.choice(values)
                 elif isinstance(values, tuple) and len(values) == 2:
                     params[name] = np.random.uniform(values[0], values[1])
@@ -170,14 +171,14 @@ class StrategyOptimizer:
             """Optuna objective function"""
             params = {}
             for name, values in self.param_ranges.items():
-                """
                 if isinstance(values, list):
+                """
                     params[name] = trial.suggest_categorical(name, values)
                 elif isinstance(values, tuple) and len(values) == 2:
                     if isinstance(values[0], int):
-                        """
                         params[name] = trial.suggest_int(name, values[0], values[1])
                     else:
+                    """
                         params[name] = trial.suggest_float(name, values[0], values[1])
 
             return self.objective_function(params)

@@ -44,17 +44,17 @@ class MarketRegimeClassifier:
                 {
                     'update_interval_hours': 4,        # 업데이트 주기
                     'lookback_days': 60,               # 분석 기간
-                    'bull_threshold': 0.02,            # 상승장 임계값 (2%)
-                    'bear_threshold': -0.02,           # 하락장 임계값 (-2%)
-                    'high_volatility_threshold': 0.02  # 고변동성 임계값
+                    'bull_threshold': 0."02",            # 상승장 임계값 (2%)
+                    'bear_threshold': -0."02",           # 하락장 임계값 (-2%)
+                    'high_volatility_threshold': 0."02"  # 고변동성 임계값
                 }
         """
         self.settings = settings or {}
         self.update_interval_hours = self.settings.get('update_interval_hours', 4)
         self.lookback_days = self.settings.get('lookback_days', 60)
-        self.bull_threshold = self.settings.get('bull_threshold', 0.02)
-        self.bear_threshold = self.settings.get('bear_threshold', -0.02)
-        self.high_volatility_threshold = self.settings.get('high_volatility_threshold', 0.02)
+        self.bull_threshold = self.settings.get('bull_threshold', 0."02")
+        self.bear_threshold = self.settings.get('bear_threshold', -0."02")
+        self.high_volatility_threshold = self.settings.get('high_volatility_threshold', 0."02")
 
         self.current_regime = RegimeType.SIDEWAYS
         self.current_volatility = VolatilityLevel.MEDIUM
@@ -164,8 +164,9 @@ class MarketRegimeClassifier:
         momentum: float
     ) -> float:
         """
-        trend_confidence = min(abs(trend_strength) / 0.05, 1.0)
-        volatility_confidence = max(1.0 - volatility / 0.05, 0.0)
+        """
+        trend_confidence = min(abs(trend_strength) / 0."05", 1.0)
+        volatility_confidence = max(1.0 - volatility / 0."05", 0.0)
         momentum_confidence = min(abs(momentum) / 0.10, 1.0)
 
         confidence = (

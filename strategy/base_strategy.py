@@ -30,6 +30,7 @@ class BaseStrategy(ABC):
             name: 전략 이름
             client: KiwoomRESTClient 인스턴스
             config: 전략 설정
+            """
         self.name = name
         self.client = client
         self.config = config or {}
@@ -116,6 +117,7 @@ class BaseStrategy(ABC):
         pass
     
     
+    """
     def start(self):
         """전략 시작"""
         self.is_active = True
@@ -142,6 +144,7 @@ class BaseStrategy(ABC):
             quantity: 수량
             purchase_price: 매수가
             order_id: 주문번호
+            """
         self.positions[stock_code] = {
             'stock_code': stock_code,
             'quantity': quantity,
@@ -179,6 +182,7 @@ class BaseStrategy(ABC):
         Args:
             stock_code: 종목코드
             current_price: 현재가
+            """
         if stock_code not in self.positions:
             return
         
@@ -242,6 +246,7 @@ class BaseStrategy(ABC):
             quantity: 수량
             price: 가격
             profit_loss: 손익 (매도 시)
+            """
         self.stats['total_trades'] += 1
         self.stats['last_trade_time'] = datetime.now()
         
@@ -353,6 +358,7 @@ class BaseStrategy(ABC):
         }
     
     def __repr__(self):
+        """
         """
         return f"<{self.__class__.__name__}(name='{self.name}', active={self.is_active}, positions={len(self.positions)})>"
 

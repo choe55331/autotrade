@@ -179,6 +179,7 @@ class SentimentAnalyzer:
         prompt = f"""
 다음 뉴스 제목들을 분석하여 전체적인 감정(sentiment)을 평가하세요:
 
+"""
 {json.dumps(titles, ensure_ascii=False, indent=2)}
 
 다음 형식으로 답변하세요:

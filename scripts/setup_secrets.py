@@ -15,12 +15,12 @@ import os
 import sys
 from pathlib import Path
 
-GREEN = '\033[92m'
-YELLOW = '\033[93m'
-RED = '\033[91m'
-BLUE = '\033[94m'
-BOLD = '\033[1m'
-RESET = '\033[0m'
+GREEN = '\"033"[92m'
+YELLOW = '\"033"[93m'
+RED = '\"033"[91m'
+BLUE = '\"033"[94m'
+BOLD = '\"033"[1m'
+RESET = '\"033"[0m'
 
 PROJECT_ROOT = Path(__file__).parent
 SECRETS_DIR = PROJECT_ROOT / '_immutable' / 'credentials'
@@ -38,18 +38,18 @@ def print_header():
 def check_existing_file():
     """기존 파일 확인"""
     if SECRETS_FILE.exists():
-        print(f"{YELLOW}⚠️  secrets.json 파일이 이미 존재합니다.{RESET}")
+        print(f"{YELLOW}[WARNING]️  secrets.json 파일이 이미 존재합니다.{RESET}")
         response = input(f"{YELLOW}덮어쓰시겠습니까? (yes/no): {RESET}").strip().lower()
 
         if response not in ['yes', 'y']:
-            print(f"{RED}❌ 설정을 취소했습니다.{RESET}")
+            print(f"{RED}[X] 설정을 취소했습니다.{RESET}")
             sys.exit(0)
 
         try:
             os.chmod(SECRETS_FILE, 0o600)
-            print(f"{GREEN}✅ 기존 파일을 덮어쓸 수 있도록 권한을 변경했습니다.{RESET}\n")
+            print(f"{GREEN}[OK] 기존 파일을 덮어쓸 수 있도록 권한을 변경했습니다.{RESET}\n")
         except Exception as e:
-            print(f"{RED}❌ 권한 변경 실패: {e}{RESET}")
+            print(f"{RED}[X] 권한 변경 실패: {e}{RESET}")
             print(f"{YELLOW}💡 수동으로 실행하세요: chmod 600 {SECRETS_FILE}{RESET}")
             sys.exit(1)
 
@@ -69,7 +69,7 @@ def input_with_default(prompt, default="", required=True, mask=False):
             value = default
 
         if required and not value:
-            print(f"{RED}❌ 필수 항목입니다. 값을 입력해주세요.{RESET}")
+            print(f"{RED}[X] 필수 항목입니다. 값을 입력해주세요.{RESET}")
             continue
 
         return value
@@ -98,7 +98,7 @@ def collect_credentials():
             mask=True
         ),
         "account_number": input_with_default(
-            "계좌번호 (형식: 12345678-01)",
+            "계좌번호 (형식: 12345678-"01")",
             required=True,
             mask=False
         )
@@ -162,7 +162,7 @@ def save_secrets(secrets):
         with open(SECRETS_FILE, 'w', encoding='utf-8') as f:
             json.dump(secrets, f, indent=2, ensure_ascii=False)
 
-        print(f"\n{GREEN}✅ secrets.json 파일이 생성되었습니다.{RESET}")
+        print(f"\n{GREEN}[OK] secrets.json 파일이 생성되었습니다.{RESET}")
         print(f"{BLUE}📁 위치: {SECRETS_FILE}{RESET}")
 
         os.chmod(SECRETS_FILE, 0o400)
@@ -171,7 +171,7 @@ def save_secrets(secrets):
         return True
 
     except Exception as e:
-        print(f"{RED}❌ 파일 저장 실패: {e}{RESET}")
+        print(f"{RED}[X] 파일 저장 실패: {e}{RESET}")
         return False
 
 
@@ -182,7 +182,7 @@ def verify_secrets():
             secrets = json.load(f)
 
         print(f"\n{BOLD}{GREEN}{'='*80}{RESET}")
-        print(f"{BOLD}{GREEN}✅ 설정 완료!{RESET}")
+        print(f"{BOLD}{GREEN}[OK] 설정 완료!{RESET}")
         print(f"{BOLD}{GREEN}{'='*80}{RESET}\n")
 
         kiwoom = secrets.get('kiwoom_rest', {})
@@ -208,7 +208,7 @@ def verify_secrets():
         return True
 
     except Exception as e:
-        print(f"{RED}❌ 검증 실패: {e}{RESET}")
+        print(f"{RED}[X] 검증 실패: {e}{RESET}")
         return False
 
 
@@ -225,13 +225,13 @@ def main():
         secrets = collect_credentials()
 
         print(f"\n{BOLD}{YELLOW}{'='*80}{RESET}")
-        print(f"{BOLD}{YELLOW}⚠️  입력한 정보를 확인하세요{RESET}")
+        print(f"{BOLD}{YELLOW}[WARNING]️  입력한 정보를 확인하세요{RESET}")
         print(f"{BOLD}{YELLOW}{'='*80}{RESET}\n")
 
         response = input(f"{YELLOW}설정을 저장하시겠습니까? (yes/no): {RESET}").strip().lower()
 
         if response not in ['yes', 'y']:
-            print(f"{RED}❌ 설정을 취소했습니다.{RESET}")
+            print(f"{RED}[X] 설정을 취소했습니다.{RESET}")
             sys.exit(0)
 
         if save_secrets(secrets):
@@ -240,10 +240,10 @@ def main():
             sys.exit(1)
 
     except KeyboardInterrupt:
-        print(f"\n{RED}❌ 사용자가 취소했습니다.{RESET}")
+        print(f"\n{RED}[X] 사용자가 취소했습니다.{RESET}")
         sys.exit(1)
     except Exception as e:
-        print(f"\n{RED}❌ 오류 발생: {e}{RESET}")
+        print(f"\n{RED}[X] 오류 발생: {e}{RESET}")
         sys.exit(1)
 
 

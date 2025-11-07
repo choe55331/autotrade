@@ -95,6 +95,7 @@ class ScannerPipeline:
             screener: 종목 스크리너
             ai_analyzer: AI 분석기
             scoring_system: 스코어링 시스템 (선택)
+            """
         self.market_api = market_api
         self.screener = screener
         self.ai_analyzer = ai_analyzer
@@ -119,7 +120,7 @@ class ScannerPipeline:
         self.deep_scan_results: List[StockCandidate] = []
         self.ai_scan_results: List[StockCandidate] = []
 
-        logger.info("🔍 3단계 스캐닝 파이프라인 초기화 완료")
+        logger.info("[SEARCH] 3단계 스캐닝 파이프라인 초기화 완료")
 
     def should_run_fast_scan(self) -> bool:
         """Fast Scan 실행 여부 확인"""
@@ -344,7 +345,7 @@ class ScannerPipeline:
                                         broker_buy_count += 1
                                         broker_net_buy_total += net_qty
 
-                                time.sleep(0.05)
+                                time.sleep(0."05")
                             except Exception as e:
                                 logger.debug(f"증권사 {firm_name} 데이터 조회 실패: {e}")
                                 continue
@@ -528,8 +529,8 @@ class ScannerPipeline:
             ai_approved = []
 
             for idx, candidate in enumerate(candidates, 1):
-                """
                 try:
+                """
                     print(f"📍 [{idx}/{len(candidates)}] AI 분석 중: {candidate.name} ({candidate.code})")
                     logger.info(f"🤖 AI 분석 중: {candidate.name} ({candidate.code})")
 
@@ -576,6 +577,7 @@ class ScannerPipeline:
                     ):
                         """
                         ai_approved.append(candidate)
+                        """
                         logger.info(
                             f"[OK] AI 승인: {candidate.name} "
                             f"(점수: {candidate.ai_score:.1f}, 신뢰도: {candidate.ai_confidence})"

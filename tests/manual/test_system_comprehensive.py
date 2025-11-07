@@ -50,7 +50,7 @@ class SystemComprehensiveTester:
             self.market_api = MarketAPI(self.rest_client)
             self.client_initialized = True
         except Exception as e:
-            print(f"❌ 클라이언트 초기화 실패: {e}")
+            print(f"[X] 클라이언트 초기화 실패: {e}")
             self.client_initialized = False
 
         self.test_stock = "005930"
@@ -82,17 +82,17 @@ class SystemComprehensiveTester:
         self.print_header("카테고리 1: REST API - 계좌 (Account)")
 
         tests = [
-            ("kt00001 - 예수금 조회", lambda: self.account_api.get_deposit(), "✅"),
-            ("kt00004 - 계좌평가 조회", lambda: self.account_api.get_account_evaluation(), "✅"),
-            ("kt00005 - 주문체결 조회", lambda: self.account_api.get_order_execution(), "✅"),
-            ("kt00010 - 미체결 조회", lambda: self.account_api.get_unfilled_orders(), "✅"),
-            ("kt00018 - 보유종목 조회", lambda: self.account_api.get_holdings(), "✅"),
-            ("ka10085 - 일별손익조회", lambda: self.account_api.get_daily_profit_loss(date="20251101"), "✅"),
-            ("ka10074 - 손익통계", lambda: self.account_api.get_profit_statistics(), "❌"),
-            ("ka10073 - 기간별손익", lambda: self.account_api.get_period_profit_loss(start_date="20251001", end_date="20251104"), "❌"),
-            ("ka10077 - 매수가능종목", lambda: self.account_api.get_buyable_stocks(), "❌"),
-            ("ka10075 - 계좌요약", lambda: self.account_api.get_account_summary(), "❌"),
-            ("ka10076 - 계좌잔고", lambda: self.account_api.get_account_balance(), "❌"),
+            ("kt00001 - 예수금 조회", lambda: self.account_api.get_deposit(), "[OK]"),
+            ("kt00004 - 계좌평가 조회", lambda: self.account_api.get_account_evaluation(), "[OK]"),
+            ("kt00005 - 주문체결 조회", lambda: self.account_api.get_order_execution(), "[OK]"),
+            ("kt00010 - 미체결 조회", lambda: self.account_api.get_unfilled_orders(), "[OK]"),
+            ("kt00018 - 보유종목 조회", lambda: self.account_api.get_holdings(), "[OK]"),
+            ("ka10085 - 일별손익조회", lambda: self.account_api.get_daily_profit_loss(date="20251101"), "[OK]"),
+            ("ka10074 - 손익통계", lambda: self.account_api.get_profit_statistics(), "[X]"),
+            ("ka10073 - 기간별손익", lambda: self.account_api.get_period_profit_loss(start_date="20251001", end_date="20251104"), "[X]"),
+            ("ka10077 - 매수가능종목", lambda: self.account_api.get_buyable_stocks(), "[X]"),
+            ("ka10075 - 계좌요약", lambda: self.account_api.get_account_summary(), "[X]"),
+            ("ka10076 - 계좌잔고", lambda: self.account_api.get_account_balance(), "[X]"),
         ]
 
         for name, test_func, dashboard in tests:
@@ -100,45 +100,45 @@ class SystemComprehensiveTester:
                 print(f"\n🧪 테스트: {name}")
                 result = test_func()
                 if result:
-                    print(f"   ✅ 성공")
-                    self.add_result("1. 계좌 API", name, "✅ 작동", dashboard, "정상 작동")
+                    print(f"   [OK] 성공")
+                    self.add_result("1. 계좌 API", name, "[OK] 작동", dashboard, "정상 작동")
                 else:
-                    print(f"   ❌ 실패: 응답 없음")
-                    self.add_result("1. 계좌 API", name, "❌ 실패", dashboard, "응답 없음")
+                    print(f"   [X] 실패: 응답 없음")
+                    self.add_result("1. 계좌 API", name, "[X] 실패", dashboard, "응답 없음")
                 time.sleep(0.3)
             except Exception as e:
-                print(f"   ❌ 예외: {e}")
-                self.add_result("1. 계좌 API", name, "❌ 오류", dashboard, str(e)[:50])
+                print(f"   [X] 예외: {e}")
+                self.add_result("1. 계좌 API", name, "[X] 오류", dashboard, str(e)[:50])
 
     def test_category_2_market_api(self):
         """카테고리 2: 시장 API 테스트"""
         self.print_header("카테고리 2: REST API - 시장 (Market)")
 
         tests = [
-            ("ka10003 - 종목 체결정보", lambda: self.market_api.get_stock_price(self.test_stock), "✅"),
-            ("ka10004 - 호가 조회", lambda: self.market_api.get_orderbook(self.test_stock), "✅"),
+            ("ka10003 - 종목 체결정보", lambda: self.market_api.get_stock_price(self.test_stock), "[OK]"),
+            ("ka10004 - 호가 조회", lambda: self.market_api.get_orderbook(self.test_stock), "[OK]"),
 
-            ("ka10031 - 거래량 순위", lambda: self.market_api.get_volume_rank(market='KOSPI', limit=20), "✅"),
-            ("ka10027 - 등락률 순위", lambda: self.market_api.get_price_change_rank(market='KOSPI', sort='rise', limit=20), "✅"),
-            ("ka10032 - 거래대금 순위", lambda: self.market_api.get_trading_value_rank(market='KOSPI', limit=20), "❌"),
-            ("ka10023 - 거래량 급증", lambda: self.market_api.get_volume_surge_rank(market='KOSPI', limit=20), "✅"),
-            ("ka10028 - 시가대비 등락률", lambda: self.market_api.get_intraday_change_rank(market='KOSPI', sort='rise', limit=20), "❌"),
+            ("ka10031 - 거래량 순위", lambda: self.market_api.get_volume_rank(market='KOSPI', limit=20), "[OK]"),
+            ("ka10027 - 등락률 순위", lambda: self.market_api.get_price_change_rank(market='KOSPI', sort='rise', limit=20), "[OK]"),
+            ("ka10032 - 거래대금 순위", lambda: self.market_api.get_trading_value_rank(market='KOSPI', limit=20), "[X]"),
+            ("ka10023 - 거래량 급증", lambda: self.market_api.get_volume_surge_rank(market='KOSPI', limit=20), "[OK]"),
+            ("ka10028 - 시가대비 등락률", lambda: self.market_api.get_intraday_change_rank(market='KOSPI', sort='rise', limit=20), "[X]"),
 
-            ("ka10034 - 외국인 기간별매매", lambda: self.market_api.get_foreign_period_trading_rank(market='KOSPI', trade_type='buy', period_days=5), "❌"),
-            ("ka10035 - 외국인 연속매매", lambda: self.market_api.get_foreign_continuous_trading_rank(market='KOSPI', trade_type='buy'), "❌"),
-            ("ka90009 - 외국인/기관 매매상위", lambda: self.market_api.get_foreign_institution_trading_rank(market='KOSPI', investor_type='foreign_buy'), "✅"),
-            ("ka10063 - 장중 투자자별매매", lambda: self.market_api.get_intraday_investor_trading_market(market='KOSPI', investor_type='institution'), "❌"),
-            ("ka10065 - 투자자별 매매상위", lambda: self.market_api.get_investor_intraday_trading_rank(market='KOSPI', investor_type='foreign'), "❌"),
-            ("ka10066 - 장마감후 투자자별매매", lambda: self.market_api.get_postmarket_investor_trading_market(market='KOSPI'), "❌"),
+            ("ka10034 - 외국인 기간별매매", lambda: self.market_api.get_foreign_period_trading_rank(market='KOSPI', trade_type='buy', period_days=5), "[X]"),
+            ("ka10035 - 외국인 연속매매", lambda: self.market_api.get_foreign_continuous_trading_rank(market='KOSPI', trade_type='buy'), "[X]"),
+            ("ka90009 - 외국인/기관 매매상위", lambda: self.market_api.get_foreign_institution_trading_rank(market='KOSPI', investor_type='foreign_buy'), "[OK]"),
+            ("ka10063 - 장중 투자자별매매", lambda: self.market_api.get_intraday_investor_trading_market(market='KOSPI', investor_type='institution'), "[X]"),
+            ("ka10065 - 투자자별 매매상위", lambda: self.market_api.get_investor_intraday_trading_rank(market='KOSPI', investor_type='foreign'), "[X]"),
+            ("ka10066 - 장마감후 투자자별매매", lambda: self.market_api.get_postmarket_investor_trading_market(market='KOSPI'), "[X]"),
 
-            ("ka10033 - 신용비율 순위", lambda: self.market_api.get_credit_ratio_rank(market='KOSPI'), "❌"),
+            ("ka10033 - 신용비율 순위", lambda: self.market_api.get_credit_ratio_rank(market='KOSPI'), "[X]"),
 
-            ("ka10059 - 투자자별 매매동향", lambda: self.market_api.get_investor_trading(self.test_stock), "✅"),
-            ("ka10045 - 기관매매추이", lambda: self.market_api.get_institutional_trading_trend(self.test_stock, days=5), "✅"),
-            ("ka10078 - 증권사별 매매동향", lambda: self.market_api.get_securities_firm_trading("003", self.test_stock, days=3), "✅"),
-            ("ka10047 - 체결강도", lambda: self.market_api.get_execution_intensity(self.test_stock), "✅"),
-            ("ka90013 - 프로그램매매", lambda: self.market_api.get_program_trading(self.test_stock), "✅"),
-            ("ka10081 - 일봉차트", lambda: self.market_api.get_daily_chart(self.test_stock, period=20), "✅"),
+            ("ka10059 - 투자자별 매매동향", lambda: self.market_api.get_investor_trading(self.test_stock), "[OK]"),
+            ("ka10045 - 기관매매추이", lambda: self.market_api.get_institutional_trading_trend(self.test_stock, days=5), "[OK]"),
+            ("ka10078 - 증권사별 매매동향", lambda: self.market_api.get_securities_firm_trading("003", self.test_stock, days=3), "[OK]"),
+            ("ka10047 - 체결강도", lambda: self.market_api.get_execution_intensity(self.test_stock), "[OK]"),
+            ("ka90013 - 프로그램매매", lambda: self.market_api.get_program_trading(self.test_stock), "[OK]"),
+            ("ka10081 - 일봉차트", lambda: self.market_api.get_daily_chart(self.test_stock, period=20), "[OK]"),
         ]
 
         for name, test_func, dashboard in tests:
@@ -146,31 +146,31 @@ class SystemComprehensiveTester:
                 print(f"\n🧪 테스트: {name}")
                 result = test_func()
                 if result and (isinstance(result, list) and len(result) > 0 or isinstance(result, dict)):
-                    print(f"   ✅ 성공")
-                    self.add_result("2. 시장 API", name, "✅ 작동", dashboard, "정상 작동")
+                    print(f"   [OK] 성공")
+                    self.add_result("2. 시장 API", name, "[OK] 작동", dashboard, "정상 작동")
                 else:
-                    print(f"   ⚠️  응답 없음 (장 마감/주말 가능)")
-                    self.add_result("2. 시장 API", name, "⚠️  데이터없음", dashboard, "장 마감시간")
+                    print(f"   [WARNING]️  응답 없음 (장 마감/주말 가능)")
+                    self.add_result("2. 시장 API", name, "[WARNING]️  데이터없음", dashboard, "장 마감시간")
                 time.sleep(0.3)
             except Exception as e:
-                print(f"   ❌ 예외: {e}")
-                self.add_result("2. 시장 API", name, "❌ 오류", dashboard, str(e)[:50])
+                print(f"   [X] 예외: {e}")
+                self.add_result("2. 시장 API", name, "[X] 오류", dashboard, str(e)[:50])
 
     def test_category_3_websocket(self):
         """카테고리 3: WebSocket 기능"""
         self.print_header("카테고리 3: WebSocket - 실시간 시세")
 
         features = [
-            ("WebSocketManager 클래스", "✅ 구현", "✅", "core/websocket_manager.py"),
-            ("WebSocket 연결", "✅ 구현", "✅", "LOGIN 메시지 지원"),
-            ("주문체결 구독 (type=00)", "✅ 구현", "✅", "main.py 통합"),
-            ("주식체결 구독 (type=0B)", "✅ 구현", "✅", "실시간 현재가"),
-            ("주식호가 구독 (type=0D)", "✅ 구현", "✅", "실시간 호가"),
-            ("잔고 구독 (type=04)", "✅ 구현", "❌", ""),
-            ("주식기세 구독 (type=0A)", "✅ 구현", "❌", ""),
-            ("콜백 시스템", "✅ 구현", "✅", "타입별 콜백"),
-            ("자동 재연결", "✅ 구현", "✅", "최대 5회"),
-            ("main.py 통합", "✅ 완료", "✅", "L201-270"),
+            ("WebSocketManager 클래스", "[OK] 구현", "[OK]", "core/websocket_manager.py"),
+            ("WebSocket 연결", "[OK] 구현", "[OK]", "LOGIN 메시지 지원"),
+            ("주문체결 구독 (type="00")", "[OK] 구현", "[OK]", "main.py 통합"),
+            ("주식체결 구독 (type=0B)", "[OK] 구현", "[OK]", "실시간 현재가"),
+            ("주식호가 구독 (type=0D)", "[OK] 구현", "[OK]", "실시간 호가"),
+            ("잔고 구독 (type="04")", "[OK] 구현", "[X]", ""),
+            ("주식기세 구독 (type=0A)", "[OK] 구현", "[X]", ""),
+            ("콜백 시스템", "[OK] 구현", "[OK]", "타입별 콜백"),
+            ("자동 재연결", "[OK] 구현", "[OK]", "최대 5회"),
+            ("main.py 통합", "[OK] 완료", "[OK]", "L201-270"),
         ]
 
         for feature, status, dashboard, notes in features:
@@ -182,13 +182,13 @@ class SystemComprehensiveTester:
         self.print_header("카테고리 4: AI 분석")
 
         features = [
-            ("Gemini AI 통합", "✅ 구현", "✅", "ai/gemini_analyzer.py"),
-            ("GPT-4 통합", "✅ 구현", "❌", "ai/gpt4_analyzer.py"),
-            ("Claude AI 통합", "✅ 구현", "❌", "ai/claude_analyzer.py"),
-            ("포트폴리오 분석", "✅ 구현", "✅", "대시보드 AI 탭"),
-            ("감정 분석", "✅ 구현", "✅", "뉴스/소셜미디어"),
-            ("리스크 평가", "✅ 구현", "✅", "대시보드 표시"),
-            ("종목 추천", "✅ 구현", "✅", "AI 스캔 결과"),
+            ("Gemini AI 통합", "[OK] 구현", "[OK]", "ai/gemini_analyzer.py"),
+            ("GPT-4 통합", "[OK] 구현", "[X]", "ai/gpt4_analyzer.py"),
+            ("Claude AI 통합", "[OK] 구현", "[X]", "ai/claude_analyzer.py"),
+            ("포트폴리오 분석", "[OK] 구현", "[OK]", "대시보드 AI 탭"),
+            ("감정 분석", "[OK] 구현", "[OK]", "뉴스/소셜미디어"),
+            ("리스크 평가", "[OK] 구현", "[OK]", "대시보드 표시"),
+            ("종목 추천", "[OK] 구현", "[OK]", "AI 스캔 결과"),
         ]
 
         for feature, status, dashboard, notes in features:
@@ -200,14 +200,14 @@ class SystemComprehensiveTester:
         self.print_header("카테고리 5: 스캐너 (Fast/Deep/AI Scan)")
 
         features = [
-            ("Fast Scan - 거래량 급등", "✅ 구현", "✅", "research/scanner_pipeline.py"),
-            ("Deep Scan - 투자자 분석", "✅ 구현", "✅", "기관/외국인 순매수"),
-            ("Deep Scan - 증권사 분석", "✅ 구현", "✅", "5대 증권사 매매"),
-            ("Deep Scan - 체결강도", "✅ 구현", "✅", "매수세 확인"),
-            ("Deep Scan - 프로그램매매", "✅ 구현", "✅", "기관 순매수"),
-            ("AI Scan - 종목 평가", "✅ 구현", "⚠️ ", "대시보드 연동 확인 필요"),
-            ("AI Scan - 매수 추천", "✅ 구현", "⚠️ ", "대시보드 표시 확인 필요"),
-            ("스캐너 파이프라인", "✅ 구현", "✅", "3단계 스캔"),
+            ("Fast Scan - 거래량 급등", "[OK] 구현", "[OK]", "research/scanner_pipeline.py"),
+            ("Deep Scan - 투자자 분석", "[OK] 구현", "[OK]", "기관/외국인 순매수"),
+            ("Deep Scan - 증권사 분석", "[OK] 구현", "[OK]", "5대 증권사 매매"),
+            ("Deep Scan - 체결강도", "[OK] 구현", "[OK]", "매수세 확인"),
+            ("Deep Scan - 프로그램매매", "[OK] 구현", "[OK]", "기관 순매수"),
+            ("AI Scan - 종목 평가", "[OK] 구현", "[WARNING]️ ", "대시보드 연동 확인 필요"),
+            ("AI Scan - 매수 추천", "[OK] 구현", "[WARNING]️ ", "대시보드 표시 확인 필요"),
+            ("스캐너 파이프라인", "[OK] 구현", "[OK]", "3단계 스캔"),
         ]
 
         for feature, status, dashboard, notes in features:
@@ -219,15 +219,15 @@ class SystemComprehensiveTester:
         self.print_header("카테고리 6: 전략 및 스코어링")
 
         features = [
-            ("스코어링 시스템", "✅ 구현", "✅", "strategy/scoring_system.py"),
-            ("거래량 분석", "✅ 구현", "✅", "평균거래량 대비"),
-            ("변동성 분석", "✅ 구현", "✅", "20일 표준편차"),
-            ("체결강도 분석", "✅ 구현", "✅", "매수세 평가"),
-            ("프로그램매매 분석", "✅ 구현", "✅", "기관 매수 확인"),
-            ("증권사 매매 분석", "✅ 구현", "✅", "5개사 순매수"),
-            ("투자자 매매 분석", "✅ 구현", "✅", "기관/외국인"),
-            ("호가 분석", "✅ 구현", "✅", "매수/매도 비율"),
-            ("종합 점수 계산", "✅ 구현", "✅", "0-100점"),
+            ("스코어링 시스템", "[OK] 구현", "[OK]", "strategy/scoring_system.py"),
+            ("거래량 분석", "[OK] 구현", "[OK]", "평균거래량 대비"),
+            ("변동성 분석", "[OK] 구현", "[OK]", "20일 표준편차"),
+            ("체결강도 분석", "[OK] 구현", "[OK]", "매수세 평가"),
+            ("프로그램매매 분석", "[OK] 구현", "[OK]", "기관 매수 확인"),
+            ("증권사 매매 분석", "[OK] 구현", "[OK]", "5개사 순매수"),
+            ("투자자 매매 분석", "[OK] 구현", "[OK]", "기관/외국인"),
+            ("호가 분석", "[OK] 구현", "[OK]", "매수/매도 비율"),
+            ("종합 점수 계산", "[OK] 구현", "[OK]", "0-100점"),
         ]
 
         for feature, status, dashboard, notes in features:
@@ -239,17 +239,17 @@ class SystemComprehensiveTester:
         self.print_header("카테고리 7: 대시보드 통합")
 
         features = [
-            ("Flask 대시보드", "✅ 구현", "✅", "dashboard/app_apple.py"),
-            ("계좌 정보 표시", "✅ 구현", "✅", "예수금/평가금액"),
-            ("보유종목 표시", "✅ 구현", "✅", "실시간 업데이트"),
-            ("실시간 매매내역", "✅ 구현", "✅", "체결 내역"),
-            ("AI 매수 후보", "✅ 구현", "⚠️ ", "연동 확인 필요"),
-            ("실시간 차트", "✅ 구현", "✅", "LightweightCharts"),
-            ("종목 검색", "✅ 구현", "✅", "자동완성"),
-            ("AI 분석 탭", "✅ 구현", "✅", "포트폴리오/감정/리스크"),
-            ("포트폴리오 최적화", "✅ 구현", "✅", "Markowitz/Black-Litterman"),
-            ("백테스팅", "✅ 구현", "✅", "과거 데이터 검증"),
-            ("설정 페이지", "✅ 구현", "✅", "통합 설정"),
+            ("Flask 대시보드", "[OK] 구현", "[OK]", "dashboard/app_apple.py"),
+            ("계좌 정보 표시", "[OK] 구현", "[OK]", "예수금/평가금액"),
+            ("보유종목 표시", "[OK] 구현", "[OK]", "실시간 업데이트"),
+            ("실시간 매매내역", "[OK] 구현", "[OK]", "체결 내역"),
+            ("AI 매수 후보", "[OK] 구현", "[WARNING]️ ", "연동 확인 필요"),
+            ("실시간 차트", "[OK] 구현", "[OK]", "LightweightCharts"),
+            ("종목 검색", "[OK] 구현", "[OK]", "자동완성"),
+            ("AI 분석 탭", "[OK] 구현", "[OK]", "포트폴리오/감정/리스크"),
+            ("포트폴리오 최적화", "[OK] 구현", "[OK]", "Markowitz/Black-Litterman"),
+            ("백테스팅", "[OK] 구현", "[OK]", "과거 데이터 검증"),
+            ("설정 페이지", "[OK] 구현", "[OK]", "통합 설정"),
         ]
 
         for feature, status, dashboard, notes in features:
@@ -261,14 +261,14 @@ class SystemComprehensiveTester:
         self.print_header("카테고리 8: 유틸리티 및 기타")
 
         features = [
-            ("로깅 시스템", "✅ 구현", "✅", "utils/logger_new.py"),
-            ("거래일 계산", "✅ 구현", "✅", "utils/trading_date.py"),
-            ("데이터베이스", "✅ 구현", "✅", "SQLAlchemy"),
-            ("설정 관리", "✅ 구현", "✅", "config/unified_settings.py"),
-            ("토큰 관리", "✅ 구현", "✅", "자동 갱신"),
-            ("API 속도 제한", "✅ 구현", "✅", "0.3초 간격"),
-            ("자동 재시도", "✅ 구현", "✅", "3회 재시도"),
-            ("오류 처리", "✅ 구현", "✅", "예외 계층 구조"),
+            ("로깅 시스템", "[OK] 구현", "[OK]", "utils/logger_new.py"),
+            ("거래일 계산", "[OK] 구현", "[OK]", "utils/trading_date.py"),
+            ("데이터베이스", "[OK] 구현", "[OK]", "SQLAlchemy"),
+            ("설정 관리", "[OK] 구현", "[OK]", "config/unified_settings.py"),
+            ("토큰 관리", "[OK] 구현", "[OK]", "자동 갱신"),
+            ("API 속도 제한", "[OK] 구현", "[OK]", "0.3초 간격"),
+            ("자동 재시도", "[OK] 구현", "[OK]", "3회 재시도"),
+            ("오류 처리", "[OK] 구현", "[OK]", "예외 계층 구조"),
         ]
 
         for feature, status, dashboard, notes in features:
@@ -277,7 +277,7 @@ class SystemComprehensiveTester:
 
     def generate_table(self):
         """테이블 형식 출력"""
-        self.print_header("📊 종합 테스트 결과")
+        self.print_header("[CHART] 종합 테스트 결과")
 
         print(f"{'카테고리':<25} {'기능':<45} {'상태':<12} {'대시보드':<10} {'비고':<30}")
         print("=" * 130)
@@ -302,7 +302,7 @@ class SystemComprehensiveTester:
             writer.writeheader()
             writer.writerows(self.test_results)
 
-        print(f"\n✅ CSV 파일 생성: {filename}")
+        print(f"\n[OK] CSV 파일 생성: {filename}")
         return filename
 
     def generate_html(self):
@@ -311,6 +311,7 @@ class SystemComprehensiveTester:
 
         html = f"""
 <!DOCTYPE html>
+"""
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -391,11 +392,11 @@ class SystemComprehensiveTester:
             <div class="summary-label">전체 기능</div>
         </div>
         <div class="summary-item">
-            <div class="summary-value">{sum(1 for r in self.test_results if '✅' in r['상태'])}</div>
+            <div class="summary-value">{sum(1 for r in self.test_results if '[OK]' in r['상태'])}</div>
             <div class="summary-label">정상 작동</div>
         </div>
         <div class="summary-item">
-            <div class="summary-value">{sum(1 for r in self.test_results if '✅' in r['대시보드_연동'])}</div>
+            <div class="summary-value">{sum(1 for r in self.test_results if '[OK]' in r['대시보드_연동'])}</div>
             <div class="summary-label">대시보드 연동</div>
         </div>
     </div>
@@ -413,13 +414,14 @@ class SystemComprehensiveTester:
         <tbody>
 
         for result in self.test_results:
-            status_class = "status-ok" if "✅" in result['상태'] else ("status-warn" if "⚠️" in result['상태'] else "status-fail")
-            dashboard_class = "dashboard-yes" if "✅" in result['대시보드_연동'] else "dashboard-no"
+            status_class = "status-ok" if "[OK]" in result['상태'] else ("status-warn" if "[WARNING]️" in result['상태'] else "status-fail")
+            dashboard_class = "dashboard-yes" if "[OK]" in result['대시보드_연동'] else "dashboard-no"
 
             html += f"""
             <tr>
                 <td>{result['카테고리']}</td>
                 <td>{result['기능']}</td>
+                """
                 <td class="{status_class}">{result['상태']}</td>
                 <td class="{dashboard_class}">{result['대시보드_연동']}</td>
                 <td>{result['비고']}</td>
@@ -431,10 +433,11 @@ class SystemComprehensiveTester:
 </body>
 </html>
 
+"""
         with open(filename, 'w', encoding='utf-8') as f:
             f.write(html)
 
-        print(f"✅ HTML 보고서 생성: {filename}")
+        print(f"[OK] HTML 보고서 생성: {filename}")
         return filename
 
     def run_all_tests(self):
@@ -446,7 +449,7 @@ class SystemComprehensiveTester:
         print("=" * 100 + "\n")
 
         if not self.client_initialized:
-            print("❌ 클라이언트 초기화 실패 - 일부 테스트 건너뜀")
+            print("[X] 클라이언트 초기화 실패 - 일부 테스트 건너뜀")
 
         if self.client_initialized:
             self.test_category_1_account_api()
@@ -465,17 +468,17 @@ class SystemComprehensiveTester:
         html_file = self.generate_html()
 
         total = len(self.test_results)
-        success = sum(1 for r in self.test_results if '✅' in r['상태'])
-        dashboard = sum(1 for r in self.test_results if '✅' in r['대시보드_연동'])
+        success = sum(1 for r in self.test_results if '[OK]' in r['상태'])
+        dashboard = sum(1 for r in self.test_results if '[OK]' in r['대시보드_연동'])
 
         print("\n" + "=" * 100)
-        print("  📊 테스트 요약")
+        print("  [CHART] 테스트 요약")
         print("=" * 100)
         print(f"  전체 기능: {total}개")
         print(f"  정상 작동: {success}개 ({success/total*100:.1f}%)")
         print(f"  대시보드 연동: {dashboard}개 ({dashboard/total*100:.1f}%)")
         print("=" * 100)
-        print(f"\n✅ 테스트 완료!")
+        print(f"\n[OK] 테스트 완료!")
         print(f"   📄 CSV: {csv_file}")
         print(f"   🌐 HTML: {html_file}")
         print()

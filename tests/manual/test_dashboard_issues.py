@@ -3,7 +3,7 @@
 3가지 문제를 다양한 접근법으로 테스트
 """
 
-1. 계좌 잔고 계산 (인출가능액 → 실제 사용가능액)
+1. 계좌 잔고 계산 (인출가능액 -> 실제 사용가능액)
 2. NXT 시장가격 조회
 3. AI 스캐닝 종목 연동
 
@@ -312,8 +312,8 @@ class NXTPriceChecker:
         접근법 4: 시간대별 가격 조회 전략
 
         현재 시간을 확인하고 적절한 API 사용
-        - 09:00-15:30: 정규시장 현재가
-        - 16:00-18:00: NXT 시장가
+        - "09":"00"-15:30: 정규시장 현재가
+        - 16:"00"-18:"00": NXT 시장가
         - 기타: 전일 종가
         """
         try:
@@ -576,10 +576,10 @@ class AIScanningIntegrator:
 
             pipeline = self.bot_instance.scanner_pipeline
 
-            print("🔍 강제 Fast Scan 실행...")
+            print("[SEARCH] 강제 Fast Scan 실행...")
             fast_results = pipeline.run_fast_scan()
 
-            print("🔍 강제 Deep Scan 실행...")
+            print("[SEARCH] 강제 Deep Scan 실행...")
             deep_results = pipeline.run_deep_scan(fast_results[:20])
 
 
@@ -672,13 +672,13 @@ def run_all_tests(bot_instance=None, market_api=None, account_api=None):
                 print_result(result4)
 
             else:
-                print("⚠️  deposit 또는 holdings 조회 실패")
+                print("[WARNING]️  deposit 또는 holdings 조회 실패")
 
         except Exception as e:
-            print(f"❌ 계좌 잔고 테스트 실패: {e}")
+            print(f"[X] 계좌 잔고 테스트 실패: {e}")
             traceback.print_exc()
     else:
-        print("⚠️  account_api not available")
+        print("[WARNING]️  account_api not available")
 
     print("\n" + "=" * 80)
     print("테스트 2: NXT 시장가격 조회 (4가지 접근법)")
@@ -713,7 +713,7 @@ def run_all_tests(bot_instance=None, market_api=None, account_api=None):
             results['nxt_price'].append(result4)
             print_result(result4)
     else:
-        print("⚠️  market_api and account_api not available")
+        print("[WARNING]️  market_api and account_api not available")
 
     print("\n" + "=" * 80)
     print("테스트 3: AI 스캐닝 종목 연동 (4가지 접근법)")
@@ -742,7 +742,7 @@ def run_all_tests(bot_instance=None, market_api=None, account_api=None):
 
 
     else:
-        print("⚠️  bot_instance not available")
+        print("[WARNING]️  bot_instance not available")
 
     print("\n" + "=" * 80)
     print("테스트 결과 요약")
@@ -750,17 +750,17 @@ def run_all_tests(bot_instance=None, market_api=None, account_api=None):
 
     print("\n[계좌 잔고 계산]")
     for r in results['account_balance']:
-        status = "✅ 성공" if r.get('success') else "❌ 실패"
+        status = "[OK] 성공" if r.get('success') else "[X] 실패"
         print(f"  {status}: {r.get('method')}")
 
     print("\n[NXT 시장가격 조회]")
     for r in results['nxt_price']:
-        status = "✅ 성공" if r.get('success') else "❌ 실패"
+        status = "[OK] 성공" if r.get('success') else "[X] 실패"
         print(f"  {status}: {r.get('method')}")
 
     print("\n[AI 스캐닝 연동]")
     for r in results['ai_scanning']:
-        status = "✅ 성공" if r.get('success') else "❌ 실패"
+        status = "[OK] 성공" if r.get('success') else "[X] 실패"
         print(f"  {status}: {r.get('method')}")
 
     print("\n" + "=" * 80)
@@ -775,11 +775,11 @@ def print_result(result: Dict[str, Any]):
     import json
 
     if result.get('success'):
-        print("✅ 성공")
+        print("[OK] 성공")
         display_result = {k: v for k, v in result.items() if k not in ['traceback', 'error']}
         print(json.dumps(display_result, indent=2, ensure_ascii=False))
     else:
-        print("❌ 실패")
+        print("[X] 실패")
         print(f"Error: {result.get('error')}")
         if result.get('traceback'):
             print(f"\nTraceback:\n{result.get('traceback')}")
@@ -790,7 +790,7 @@ if __name__ == "__main__":
     print("대시보드 이슈 테스트")
     print()
     print("이 스크립트는 다음 3가지 문제를 다양한 방법으로 테스트합니다:")
-    print("1. 계좌 잔고 계산 (인출가능액 → 실제 사용가능액)")
+    print("1. 계좌 잔고 계산 (인출가능액 -> 실제 사용가능액)")
     print("2. NXT 시장가격 조회")
     print("3. AI 스캐닝 종목 연동")
     print()

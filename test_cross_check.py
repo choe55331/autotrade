@@ -26,11 +26,11 @@ def test_cross_check():
         from config import GEMINI_API_KEY
         api_key = GEMINI_API_KEY
     except Exception as e:
-        print(f"❌ API 키 로드 실패: {e}")
+        print(f"[X] API 키 로드 실패: {e}")
         return
 
     if not api_key:
-        print("❌ GEMINI_API_KEY가 설정되지 않았습니다")
+        print("[X] GEMINI_API_KEY가 설정되지 않았습니다")
         return
 
     test_stock = {
@@ -63,7 +63,7 @@ def test_cross_check():
 
     portfolio_info = "삼성전자 100주 보유 중 (+5.2%)"
 
-    print(f"📊 테스트 종목: {test_stock['stock_name']} ({test_stock['stock_code']})")
+    print(f"[CHART] 테스트 종목: {test_stock['stock_name']} ({test_stock['stock_code']})")
     print(f"현재가: {test_stock['current_price']:,}원")
     print(f"등락률: {test_stock['change_rate']:+.2f}%")
     print(f"종합 점수: {score_info['score']}/440점 ({score_info['percentage']:.1f}%)")
@@ -75,7 +75,7 @@ def test_cross_check():
     analyzer_normal = GeminiAnalyzer(api_key=api_key, enable_cross_check=False)
 
     if not analyzer_normal.initialize():
-        print("❌ 분석기 초기화 실패")
+        print("[X] 분석기 초기화 실패")
         return
 
     print("분석 시작...")
@@ -97,7 +97,7 @@ def test_cross_check():
     analyzer_cross = GeminiAnalyzer(api_key=api_key, enable_cross_check=True)
 
     if not analyzer_cross.initialize():
-        print("❌ 분석기 초기화 실패")
+        print("[X] 분석기 초기화 실패")
         return
 
     print("분석 시작...")
@@ -113,10 +113,10 @@ def test_cross_check():
 
     if 'cross_check' in result_cross:
         cc = result_cross['cross_check']
-        print(f"\n🔍 크로스 체크 상세:")
+        print(f"\n[SEARCH] 크로스 체크 상세:")
         print(f"  - 2.0 모델 신호: {cc.get('model_2_0_signal', 'N/A')}")
         print(f"  - 2.5 모델 신호: {cc.get('model_2_5_signal', 'N/A')}")
-        print(f"  - 신호 일치: {'✅ 예' if cc.get('agreement') else '⚠️ 아니오'}")
+        print(f"  - 신호 일치: {'[OK] 예' if cc.get('agreement') else '[WARNING]️ 아니오'}")
 
         if cc.get('agreement'):
             print(f"  - 원래 신뢰도: {cc.get('original_confidence', 'N/A')}")
@@ -129,16 +129,16 @@ def test_cross_check():
         print(f"    {i}. {reason[:150]}...")
 
     print_separator()
-    print("📊 결과 비교")
+    print("[CHART] 결과 비교")
     print_separator()
 
     print(f"일반 모드:       신호={result_normal.get('signal')}, 신뢰도={result_normal.get('confidence')}")
     print(f"크로스 체크 모드: 신호={result_cross.get('signal')}, 신뢰도={result_cross.get('confidence')}")
 
     if 'cross_check' in result_cross and result_cross['cross_check'].get('agreement'):
-        print(f"\n✅ 두 모델이 일치하여 신뢰도가 상향되었습니다!")
+        print(f"\n[OK] 두 모델이 일치하여 신뢰도가 상향되었습니다!")
     elif 'cross_check' in result_cross:
-        print(f"\n⚠️ 두 모델이 불일치하여 보수적으로 선택되었습니다.")
+        print(f"\n[WARNING]️ 두 모델이 불일치하여 보수적으로 선택되었습니다.")
 
     results = {
         'normal_mode': result_normal,
@@ -159,8 +159,8 @@ if __name__ == '__main__':
     try:
         test_cross_check()
     except KeyboardInterrupt:
-        print("\n\n⚠️ 테스트 중단됨")
+        print("\n\n[WARNING]️ 테스트 중단됨")
     except Exception as e:
-        print(f"\n❌ 테스트 실패: {e}")
+        print(f"\n[X] 테스트 실패: {e}")
         import traceback
         traceback.print_exc()

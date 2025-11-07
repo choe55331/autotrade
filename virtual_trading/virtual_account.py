@@ -118,9 +118,9 @@ class VirtualAccount:
         required_cash = price * quantity
 
         if not self.can_buy(price, quantity):
-            """
             return False
 
+"""
         self.cash -= required_cash
 
         if stock_code in self.positions:
@@ -226,10 +226,10 @@ class VirtualAccount:
             price_data: {stock_code: current_price}
         """
         for stock_code, position in self.positions.items():
-            """
             if stock_code in price_data:
                 position.update_price(price_data[stock_code])
 
+"""
     def get_position(self, stock_code: str) -> Optional[VirtualPosition]:
         """포지션 조회"""
         return self.positions.get(stock_code)
@@ -272,9 +272,9 @@ class VirtualAccount:
     def load_state(self, filepath: str):
         """계좌 상태 로드"""
         if not Path(filepath).exists():
-            """
             return
 
+"""
         with open(filepath, 'r', encoding='utf-8') as f:
             state = json.load(f)
 

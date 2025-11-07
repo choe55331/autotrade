@@ -57,11 +57,11 @@ def test_chart_pattern_analyzer():
             print(f"  - Upper: {bb_analysis['upper_band']}, Lower: {bb_analysis['lower_band']}")
             print(f"  - Signal: {bb_analysis['signal']}")
 
-        print("\n✅ Chart Pattern Analyzer: PASS")
+        print("\n[OK] Chart Pattern Analyzer: PASS")
         return True
 
     except Exception as e:
-        print(f"\n❌ Chart Pattern Analyzer: FAIL - {e}")
+        print(f"\n[X] Chart Pattern Analyzer: FAIL - {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -135,11 +135,11 @@ def test_realtime_alert_system():
         critical_alerts = alert_system.get_active_alerts(priority_filter=AlertPriority.CRITICAL)
         print(f"✓ Critical alerts: {len(critical_alerts)}")
 
-        print("\n✅ Realtime Alert System: PASS")
+        print("\n[OK] Realtime Alert System: PASS")
         return True
 
     except Exception as e:
-        print(f"\n❌ Realtime Alert System: FAIL - {e}")
+        print(f"\n[X] Realtime Alert System: FAIL - {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -199,7 +199,7 @@ def test_auto_rebalancer():
         for action in actions:
             if action.action != 'hold':
                 print(f"  - {action.action.upper()} {action.stock_name}: "
-                      f"{action.current_weight:.1f}% → {action.target_weight:.1f}%")
+                      f"{action.current_weight:.1f}% -> {action.target_weight:.1f}%")
 
         summary = rebalancer.get_rebalance_summary(actions)
         print(f"✓ Summary:")
@@ -212,11 +212,11 @@ def test_auto_rebalancer():
         print(f"✓ Rebalance executed (dry run): {result['success']}")
         print(f"  - {result['message']}")
 
-        print("\n✅ Auto Rebalancer: PASS")
+        print("\n[OK] Auto Rebalancer: PASS")
         return True
 
     except Exception as e:
-        print(f"\n❌ Auto Rebalancer: FAIL - {e}")
+        print(f"\n[X] Auto Rebalancer: FAIL - {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -252,11 +252,11 @@ def test_ai_analyzers():
         print("  - Trading strategy")
         print("  - Probability assessment")
 
-        print("\n✅ AI Analyzers: PASS")
+        print("\n[OK] AI Analyzers: PASS")
         return True
 
     except Exception as e:
-        print(f"\n❌ AI Analyzers: FAIL - {e}")
+        print(f"\n[X] AI Analyzers: FAIL - {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -283,7 +283,7 @@ def main():
     print("=" * 80)
 
     for name, result in results:
-        status = "✅ PASS" if result else "❌ FAIL"
+        status = "[OK] PASS" if result else "[X] FAIL"
         print(f"{name:.<50} {status}")
 
     all_passed = all(r[1] for r in results)
@@ -292,7 +292,7 @@ def main():
     if all_passed:
         print(" " * 25 + "🎉 ALL TESTS PASSED! 🎉")
     else:
-        print(" " * 25 + "⚠️  SOME TESTS FAILED  ⚠️")
+        print(" " * 25 + "[WARNING]️  SOME TESTS FAILED  [WARNING]️")
     print("=" * 80)
 
     return all_passed
@@ -303,10 +303,10 @@ if __name__ == "__main__":
         success = main()
         sys.exit(0 if success else 1)
     except KeyboardInterrupt:
-        print("\n\n⚠️ Tests interrupted")
+        print("\n\n[WARNING]️ Tests interrupted")
         sys.exit(1)
     except Exception as e:
-        print(f"\n❌ Test execution error: {e}")
+        print(f"\n[X] Test execution error: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

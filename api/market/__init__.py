@@ -31,6 +31,7 @@ class MarketAPI:
     - StockInfoAPI: 종목/업종/테마 정보
 
     Usage:
+    """
         from api.market import MarketAPI
 
         market_api = MarketAPI(client)
@@ -45,6 +46,7 @@ class MarketAPI:
         daily_chart = market_api.get_daily_chart('005930', period=20)
     """
 
+"""
     def __init__(self, client):
         """
         MarketAPI 초기화

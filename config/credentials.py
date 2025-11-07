@@ -33,7 +33,7 @@ class Credentials:
         if not secrets:
             raise FileNotFoundError(
                 f"\n{'='*80}\n"
-                f"❌ secrets.json 파일이 없습니다!\n"
+                f"[X] secrets.json 파일이 없습니다!\n"
                 f"{'='*80}\n"
                 f"다음 명령어를 실행하여 API 키를 설정하세요:\n\n"
                 f"  python setup_secrets.py\n\n"
@@ -73,7 +73,7 @@ class Credentials:
             with open(SECRETS_FILE, 'r', encoding='utf-8') as f:
                 return json.load(f)
         except (json.JSONDecodeError, IOError) as e:
-            print(f"⚠️ secrets.json 로드 실패, 환경변수 사용: {e}")
+            print(f"[WARNING]️ secrets.json 로드 실패, 환경변수 사용: {e}")
             return {}
     
     def _parse_account_number(self):

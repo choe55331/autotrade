@@ -61,15 +61,15 @@ class APITesterCLI:
             self.api_client = KiwoomRESTClient()
 
             if self.api_client.token and self.api_client.last_error_msg is None:
-                logger.info("✅ API 클라이언트 준비 완료")
+                logger.info("[OK] API 클라이언트 준비 완료")
                 self.client_init_success = True
                 return True
             else:
                 err_msg = getattr(self.api_client, 'last_error_msg', "알 수 없는 토큰 오류")
-                logger.error(f"❌ API 클라이언트 초기화 실패: {err_msg}")
+                logger.error(f"[X] API 클라이언트 초기화 실패: {err_msg}")
                 return False
         except Exception as e:
-            logger.critical(f"❌ API 클라이언트 초기화 중 치명적 오류: {e}")
+            logger.critical(f"[X] API 클라이언트 초기화 중 치명적 오류: {e}")
             logger.debug(traceback.format_exc())
             return False
 
@@ -104,11 +104,11 @@ class APITesterCLI:
                 return [{"api_id": api_id, "status": "skipped", "reason": "빈 정의 (WS/실시간 등)"}]
 
             if not isinstance(variants, list):
-                logger.error(f"❌ '{api_id}' Variants가 리스트가 아님")
+                logger.error(f"[X] '{api_id}' Variants가 리스트가 아님")
                 return [{"api_id": api_id, "status": "error", "reason": "Variants 타입 오류"}]
 
         except Exception as e:
-            logger.error(f"❌ '{api_id}' Variant 생성 오류: {e}")
+            logger.error(f"[X] '{api_id}' Variant 생성 오류: {e}")
             return [{"api_id": api_id, "status": "error", "reason": f"Variant 생성 오류: {e}"}]
 
         logger.info(f"  -> '{api_id}' 테스트 시작 ({len(variants)} variants)")
@@ -153,28 +153,28 @@ class APITesterCLI:
                     if rc == 0:
                         if result["data_count"] > 0 or any(response.get(k) for k in data_keys):
                             result["status"] = "success"
-                            logger.info(f"    ✅ Var {variant_idx}/{len(variants)} 성공 (데이터: {result['data_count']})")
+                            logger.info(f"    [OK] Var {variant_idx}/{len(variants)} 성공 (데이터: {result['data_count']})")
                         else:
                             result["status"] = "no_data"
-                            logger.warning(f"    ⚠️ Var {variant_idx}/{len(variants)} 성공 (데이터 없음)")
+                            logger.warning(f"    [WARNING]️ Var {variant_idx}/{len(variants)} 성공 (데이터 없음)")
                     elif rc == 20:
                         result["status"] = "no_data"
-                        logger.warning(f"    ⚠️ Var {variant_idx}/{len(variants)} 데이터 없음: {rm}")
+                        logger.warning(f"    [WARNING]️ Var {variant_idx}/{len(variants)} 데이터 없음: {rm}")
                     else:
                         result["status"] = "api_error"
-                        logger.error(f"    ❌ Var {variant_idx}/{len(variants)} API 오류 (Code {rc}): {rm}")
+                        logger.error(f"    [X] Var {variant_idx}/{len(variants)} API 오류 (Code {rc}): {rm}")
                 else:
                     result["status"] = "error"
                     result["return_msg"] = f"예상치 못한 응답 타입: {type(response)}"
-                    logger.error(f"    ❌ Var {variant_idx}/{len(variants)} 응답 타입 오류")
+                    logger.error(f"    [X] Var {variant_idx}/{len(variants)} 응답 타입 오류")
 
             except Exception as e:
                 result["status"] = "exception"
                 result["return_msg"] = f"예외 발생: {e}"
-                logger.error(f"    ❌ Var {variant_idx}/{len(variants)} 예외: {e}")
+                logger.error(f"    [X] Var {variant_idx}/{len(variants)} 예외: {e}")
 
             results.append(result)
-            time.sleep(0.05)
+            time.sleep(0."05")
 
         return results
 
@@ -213,7 +213,7 @@ class APITesterCLI:
                 time.sleep(0.1)
 
         logger.info("\n" + "="*80)
-        logger.info("✅ 모든 테스트 완료")
+        logger.info("[OK] 모든 테스트 완료")
         logger.info("="*80)
 
     def generate_summary(self) -> Dict:
@@ -277,16 +277,16 @@ class APITesterCLI:
         summary = self.generate_summary()
 
         logger.info("\n" + "="*80)
-        logger.info("📊 테스트 결과 요약")
+        logger.info("[CHART] 테스트 결과 요약")
         logger.info("="*80)
         logger.info(f"총 API 수: {summary['total_apis']}")
         logger.info(f"총 Variant 수: {summary['total_variants']}")
         logger.info(f"\n상태별:")
-        logger.info(f"  ✅ 성공 (데이터 확인): {summary['stats']['success']}")
-        logger.info(f"  ⚠️  성공 (데이터 없음): {summary['stats']['no_data']}")
-        logger.info(f"  ❌ API 오류: {summary['stats']['api_error']}")
-        logger.info(f"  ❌ 예외 발생: {summary['stats']['exception']}")
-        logger.info(f"  ❌ 기타 오류: {summary['stats']['error']}")
+        logger.info(f"  [OK] 성공 (데이터 확인): {summary['stats']['success']}")
+        logger.info(f"  [WARNING]️  성공 (데이터 없음): {summary['stats']['no_data']}")
+        logger.info(f"  [X] API 오류: {summary['stats']['api_error']}")
+        logger.info(f"  [X] 예외 발생: {summary['stats']['exception']}")
+        logger.info(f"  [X] 기타 오류: {summary['stats']['error']}")
         logger.info(f"  ⚪ 건너뜀: {summary['stats']['skipped']}")
 
         logger.info(f"\n카테고리별:")
@@ -315,7 +315,7 @@ def main():
     output_file = f"api_test_results_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
     tester.save_results(output_file)
 
-    logger.info("\n✅ 모든 작업 완료!")
+    logger.info("\n[OK] 모든 작업 완료!")
 
 
 if __name__ == "__main__":

@@ -36,7 +36,7 @@ class ShortSellingAPI:
         공매도 추이 조회 (ka10014)
         
         Args:
-            stk_cd: 종목코드 (예: 005930, 039490_NX, 039490_AL)
+            stk_cd: 종목코드 (예: "005930", 039490_NX, 039490_AL)
             strt_dt: 시작일자 (YYYYMMDD)
             end_dt: 종료일자 (YYYYMMDD)
             tm_tp: 시간구분 (0:시작일, 1:기간)
@@ -85,8 +85,10 @@ class ShortSellingAPI:
         
         Returns:
             공매도 분석 결과
+            """
         trends = self.get_short_selling_trend(stk_cd, strt_dt, end_dt)
         
+        """
         """
         if not trends:
             return {}

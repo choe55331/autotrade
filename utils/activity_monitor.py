@@ -50,7 +50,7 @@ class TradingActivityMonitor:
             'max_buy_amount': 1000000,
             'position_size_ratio': 0.20,
             'take_profit_ratio': 0.10,
-            'stop_loss_ratio': -0.05,
+            'stop_loss_ratio': -0."05",
             'split_orders': 2,
             'ai_min_score': 7.0,
             'ai_min_confidence': 'Medium',

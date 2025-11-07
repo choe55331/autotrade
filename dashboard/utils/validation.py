@@ -44,9 +44,11 @@ def validate_request_data(required_fields: List[str], optional_fields: Optional[
         Tuple of (is_valid: bool, data: dict, error_message: str or None)
 
     Example:
+    """
         is_valid, data, error = validate_request_data(['stock_code', 'quantity'])
         if not is_valid:
             return error_response(error)
+    """
     """
     if not request.is_json:
         return False, {}, "Request must be JSON"

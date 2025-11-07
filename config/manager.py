@@ -32,6 +32,7 @@ class ConfigManager:
     - Dot notation access: get('risk_management.max_position_size')
 
     Usage:
+    """
         from config import get_config, get_setting, set_setting
 
         # Get full config
@@ -52,6 +53,7 @@ class ConfigManager:
         manager.register_change_listener('risk_management', on_risk_change)
     """
 
+"""
     _instance: Optional['ConfigManager'] = None
     _config: Optional[AutoTradeConfig] = None
     _change_listeners: Dict[str, List[Callable]] = {}
@@ -76,7 +78,7 @@ class ConfigManager:
                 self._config = AutoTradeConfig.from_yaml(str(config_path))
                 logger.info(f"✓ 설정 로드 완료: {config_path}")
             except Exception as e:
-                logger.warning(f"⚠️ 설정 로드 실패: {e}, 기본값 사용")
+                logger.warning(f"[WARNING]️ 설정 로드 실패: {e}, 기본값 사용")
                 self._config = AutoTradeConfig()
         else:
             self._config = AutoTradeConfig()
@@ -196,7 +198,7 @@ class ConfigManager:
             logger.info(f"✓ JSON 설정 내보내기 완료: {file_path}")
             return True
         except Exception as e:
-            logger.error(f"❌ JSON 내보내기 실패: {e}")
+            logger.error(f"[X] JSON 내보내기 실패: {e}")
             return False
 
     def import_from_json(self, file_path: str) -> bool:
@@ -215,7 +217,7 @@ class ConfigManager:
             logger.info(f"✓ JSON 설정 가져오기 완료: {file_path}")
             return True
         except Exception as e:
-            logger.error(f"❌ JSON 가져오기 실패: {e}")
+            logger.error(f"[X] JSON 가져오기 실패: {e}")
             return False
 
     def register_change_listener(self, key_path: str, callback: Callable):
@@ -227,10 +229,12 @@ class ConfigManager:
             callback: 콜백 함수 (path, old_value, new_value)
 
         Example:
+        """
             def on_risk_change(path, old, new):
                 print(f"Risk changed: {path} = {new}")
 
             manager.register_change_listener('risk_management', on_risk_change)
+        """
         """
         if key_path not in self._change_listeners:
             self._change_listeners[key_path] = []
@@ -266,7 +270,7 @@ class ConfigManager:
                 try:
                     callback(key_path, old_value, new_value)
                 except Exception as e:
-                    logger.error(f"❌ 리스너 실행 실패: {e}")
+                    logger.error(f"[X] 리스너 실행 실패: {e}")
 
         parts = key_path.split('.')
         for i in range(len(parts)):
@@ -276,7 +280,7 @@ class ConfigManager:
                     try:
                         callback(key_path, old_value, new_value)
                     except Exception as e:
-                        logger.error(f"❌ 리스너 실행 실패 ({prefix}): {e}")
+                        logger.error(f"[X] 리스너 실행 실패 ({prefix}): {e}")
 
 
 
@@ -313,8 +317,10 @@ def get_setting(path: str, default=None) -> Any:
         설정 값
 
     Example:
+    """
         max_pos = get_setting('risk_management.max_position_size')
         ai_threshold = get_setting('ai.confidence_threshold', 0.7)
+    """
     """
     return _get_manager().get(path, default)
 
@@ -330,11 +336,13 @@ def set_setting(path: str, value: Any, save: bool = True):
 
     Example:
         set_setting('risk_management.max_position_size', 0.25)
+        """
         set_setting('ai.enabled', False, save=True)
     """
     _get_manager().set(path, value, save)
 
 
+"""
 def save_config():
     """현재 설정을 파일에 저장"""
     _get_manager().save()

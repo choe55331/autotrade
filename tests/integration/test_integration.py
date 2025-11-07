@@ -38,11 +38,11 @@ def test_imports():
         from strategy.dynamic_risk_manager import DynamicRiskManager
         print("✓ 동적 리스크 관리")
 
-        print("\n✅ 모든 모듈 import 성공!")
+        print("\n[OK] 모든 모듈 import 성공!")
         return True
 
     except Exception as e:
-        print(f"\n❌ Import 실패: {e}")
+        print(f"\n[X] Import 실패: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -72,11 +72,11 @@ def test_config():
         print(f"  - Aggressive 최대 포지션: {risk.get('aggressive', {}).get('max_open_positions')}")
         print(f"  - Normal 최대 포지션: {risk.get('normal', {}).get('max_open_positions')}")
 
-        print("\n✅ 설정 시스템 정상!")
+        print("\n[OK] 설정 시스템 정상!")
         return True
 
     except Exception as e:
-        print(f"\n❌ 설정 테스트 실패: {e}")
+        print(f"\n[X] 설정 테스트 실패: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -102,11 +102,11 @@ def test_database():
 
         session.close()
 
-        print("\n✅ 데이터베이스 정상!")
+        print("\n[OK] 데이터베이스 정상!")
         return True
 
     except Exception as e:
-        print(f"\n❌ 데이터베이스 테스트 실패: {e}")
+        print(f"\n[X] 데이터베이스 테스트 실패: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -125,11 +125,11 @@ def test_logging():
         logger.warning("테스트 WARNING 로그")
         logger.success("테스트 SUCCESS 로그")
 
-        print("✅ 로깅 시스템 정상!")
+        print("[OK] 로깅 시스템 정상!")
         return True
 
     except Exception as e:
-        print(f"\n❌ 로깅 테스트 실패: {e}")
+        print(f"\n[X] 로깅 테스트 실패: {e}")
         return False
 
 
@@ -152,7 +152,7 @@ def main():
     print("="*60)
 
     for name, result in results:
-        status = "✅ 성공" if result else "❌ 실패"
+        status = "[OK] 성공" if result else "[X] 실패"
         print(f"{name}: {status}")
 
     all_passed = all(r for _, r in results)
@@ -165,7 +165,7 @@ def main():
         print("  python main.py")
         return 0
     else:
-        print("\n⚠️  일부 테스트 실패")
+        print("\n[WARNING]️  일부 테스트 실패")
         return 1
 
 

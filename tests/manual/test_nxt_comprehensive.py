@@ -439,7 +439,7 @@ class NXTComprehensiveTest:
     def run_all_price_tests(self):
         """모든 현재가 조회 테스트 실행"""
         logger.info("\n" + "="*80)
-        logger.info("🔍 현재가 조회 테스트 시작 (10가지 접근법)")
+        logger.info("[SEARCH] 현재가 조회 테스트 시작 (10가지 접근법)")
         logger.info("="*80)
 
         price_test_methods = [
@@ -465,9 +465,9 @@ class NXTComprehensiveTest:
                 self.results['price_tests'].append(result)
 
                 if result.get('success'):
-                    logger.info(f"✅ {result['approach']}: {result['price']:,}원 (출처: {result['source']})")
+                    logger.info(f"[OK] {result['approach']}: {result['price']:,}원 (출처: {result['source']})")
                 else:
-                    logger.warning(f"❌ {result['approach']}: {result.get('error', 'Failed')}")
+                    logger.warning(f"[X] {result['approach']}: {result.get('error', 'Failed')}")
 
     def run_all_order_tests(self):
         """모든 주문 파라미터 조합 테스트"""
@@ -487,23 +487,23 @@ class NXTComprehensiveTest:
                 self.results['order_tests'].append(result)
 
                 if result.get('success'):
-                    logger.info(f"✅ {result['combination']}: 주문번호 {result['ord_no']}")
+                    logger.info(f"[OK] {result['combination']}: 주문번호 {result['ord_no']}")
                 else:
-                    logger.warning(f"❌ {result['combination']}: {result.get('return_msg', result.get('error', 'Failed'))}")
+                    logger.warning(f"[X] {result['combination']}: {result.get('return_msg', result.get('error', 'Failed'))}")
 
     def generate_summary(self):
         """테스트 결과 요약"""
         logger.info("\n" + "="*80)
-        logger.info("📊 테스트 결과 요약")
+        logger.info("[CHART] 테스트 결과 요약")
         logger.info("="*80)
 
         price_success = [r for r in self.results['price_tests'] if r.get('success')]
         price_total = len(self.results['price_tests'])
 
-        logger.info(f"\n🔍 현재가 조회: {len(price_success)}/{price_total} 성공")
+        logger.info(f"\n[SEARCH] 현재가 조회: {len(price_success)}/{price_total} 성공")
 
         if price_success:
-            logger.info("\n✅ 성공한 접근법:")
+            logger.info("\n[OK] 성공한 접근법:")
             for r in price_success:
                 logger.info(f"   - {r['approach']} ({r['stock_code']}): {r['price']:,}원 via {r['source']}")
 
@@ -513,7 +513,7 @@ class NXTComprehensiveTest:
         logger.info(f"\n📋 주문 테스트: {len(order_success)}/{order_total} 성공")
 
         if order_success:
-            logger.info("\n✅ 성공한 주문 조합:")
+            logger.info("\n[OK] 성공한 주문 조합:")
             for r in order_success:
                 logger.info(f"   - {r['combination']}: 주문번호 {r['ord_no']}")
 
@@ -554,7 +554,7 @@ class NXTComprehensiveTest:
 
         self.run_all_price_tests()
 
-        logger.info("\n⚠️  주문 테스트를 실행하시겠습니까?")
+        logger.info("\n[WARNING]️  주문 테스트를 실행하시겠습니까?")
         logger.info("   (실제 주문이 발생할 수 있습니다. 최소 금액으로 테스트합니다)")
         user_input = input("   계속하려면 'yes' 입력: ")
 
@@ -568,7 +568,7 @@ class NXTComprehensiveTest:
         filename = self.save_results()
 
         logger.info("\n" + "="*80)
-        logger.info("✅ 테스트 완료!")
+        logger.info("[OK] 테스트 완료!")
         logger.info("="*80)
         logger.info(f"결과 파일: {filename}")
 
@@ -576,13 +576,13 @@ class NXTComprehensiveTest:
         order_success = [r for r in self.results['order_tests'] if r.get('success')]
 
         if price_success:
-            logger.info("\n🎯 권장 현재가 조회 방법:")
+            logger.info("\n[TARGET] 권장 현재가 조회 방법:")
             best = price_success[0]
             logger.info(f"   접근법: {best['approach']}")
             logger.info(f"   출처: {best['source']}")
 
         if order_success:
-            logger.info("\n🎯 권장 주문 파라미터:")
+            logger.info("\n[TARGET] 권장 주문 파라미터:")
             best = order_success[0]
             logger.info(f"   조합: {best['combination']}")
 

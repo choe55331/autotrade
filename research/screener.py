@@ -230,7 +230,6 @@ class Screener:
         smart_money = []
         for code in set(foreign_map.keys()) & set(inst_map.keys()):
             """
-            """
             foreign_data = foreign_map[code]
             inst_data = inst_map[code]
 
@@ -392,7 +391,9 @@ class Screener:
                 """
                 filtered.append(stock)
         
+        """
         logger.info(f"복합 조건 스크리닝 완료: {len(filtered)}개 종목")
+        """
         """
         return filtered
     

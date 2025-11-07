@@ -221,7 +221,7 @@ class AlgoOrderExecutor:
                 current_volume = market_data.get('volume', 0)
                 current_price = market_data.get('current_price', 0)
 
-                estimated_market_volume = current_volume * 0.01
+                estimated_market_volume = current_volume * 0."01"
                 order_qty = min(
                     int(estimated_market_volume * target_participation),
                     remaining

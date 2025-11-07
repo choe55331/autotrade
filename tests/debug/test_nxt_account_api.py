@@ -17,14 +17,14 @@ import time
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-GREEN = '\033[92m'
-RED = '\033[91m'
-BLUE = '\033[94m'
-YELLOW = '\033[93m'
-CYAN = '\033[96m'
-MAGENTA = '\033[95m'
-WHITE = '\033[97m'
-RESET = '\033[0m'
+GREEN = '\"033"[92m'
+RED = '\"033"[91m'
+BLUE = '\"033"[94m'
+YELLOW = '\"033"[93m'
+CYAN = '\"033"[96m'
+MAGENTA = '\"033"[95m'
+WHITE = '\"033"[97m'
+RESET = '\"033"[0m'
 
 
 def is_nxt_hours():
@@ -54,7 +54,7 @@ def test_nxt_holdings_monitoring(account_api, rounds=10, interval=5):
         interval: 조회 간격 (초)
     """
     print(f"\n{BLUE}{'='*100}{RESET}")
-    print(f"{BLUE}🔍 NXT 계좌 API 실시간 가격 모니터링{RESET}")
+    print(f"{BLUE}[SEARCH] NXT 계좌 API 실시간 가격 모니터링{RESET}")
     print(f"{BLUE}{'='*100}{RESET}")
     print(f"{CYAN}조회 횟수: {rounds}회{RESET}")
     print(f"{CYAN}조회 간격: {interval}초{RESET}")
@@ -70,7 +70,7 @@ def test_nxt_holdings_monitoring(account_api, rounds=10, interval=5):
         holdings = account_api.get_holdings(market_type="NXT")
 
         if holdings:
-            print(f"{GREEN}✅ NXT 보유 종목: {len(holdings)}개{RESET}\n")
+            print(f"{GREEN}[OK] NXT 보유 종목: {len(holdings)}개{RESET}\n")
 
             for holding in holdings:
                 stk_cd = holding.get('stk_cd', '')
@@ -112,9 +112,9 @@ def test_nxt_holdings_monitoring(account_api, rounds=10, interval=5):
                     if cur_prc:
                         diff = cur_prc - prev_price
                         if diff > 0:
-                            change_symbol = f" 📈 +{diff:,}원"
+                            change_symbol = f" [UP] +{diff:,}원"
                         elif diff < 0:
-                            change_symbol = f" 📉 {diff:,}원"
+                            change_symbol = f" [DOWN] {diff:,}원"
                         else:
                             change_symbol = " ➡️  변동없음"
 
@@ -128,23 +128,23 @@ def test_nxt_holdings_monitoring(account_api, rounds=10, interval=5):
                         evlt_amt_int = int(str(evlt_amt).replace(',', ''))
                         rmnd_qty_int = int(str(rmnd_qty).replace(',', ''))
                         calculated_price = evlt_amt_int // rmnd_qty_int
-                        print(f"      평가금액: {evlt_amt_int:,}원, 보유수량: {rmnd_qty_int:,}주 → 역산 현재가: {calculated_price:,}원")
+                        print(f"      평가금액: {evlt_amt_int:,}원, 보유수량: {rmnd_qty_int:,}주 -> 역산 현재가: {calculated_price:,}원")
                     except:
                         pass
 
         else:
-            print(f"{YELLOW}⚠️  NXT 보유 종목 없음{RESET}")
+            print(f"{YELLOW}[WARNING]️  NXT 보유 종목 없음{RESET}")
 
         if round_num < rounds:
             print(f"\n  {CYAN}⏳ {interval}초 대기 중...{RESET}")
             time.sleep(interval)
 
     print(f"\n{BLUE}{'='*100}{RESET}")
-    print(f"{BLUE}📊 최종 결과 분석{RESET}")
+    print(f"{BLUE}[CHART] 최종 결과 분석{RESET}")
     print(f"{BLUE}{'='*100}{RESET}")
 
     if not price_history:
-        print(f"\n{RED}❌ NXT 보유 종목이 없어서 테스트 불가{RESET}")
+        print(f"\n{RED}[X] NXT 보유 종목이 없어서 테스트 불가{RESET}")
         print(f"{YELLOW}💡 NXT 종목을 먼저 매수한 후 테스트하세요{RESET}")
         return
 
@@ -168,14 +168,14 @@ def test_nxt_holdings_monitoring(account_api, rounds=10, interval=5):
         max_price = max(prices)
         price_range = max_price - min_price
 
-        change_icon = "✅" if has_change else "❌"
+        change_icon = "[OK]" if has_change else "[X]"
 
         print(f"\n{WHITE}{name} ({stk_cd}){RESET}")
         print(f"  {change_icon} 가격 변동: {'있음' if has_change else '없음'} (최소: {min_price:,}원, 최대: {max_price:,}원, 범위: {price_range:,}원)")
-        print(f"  📊 조회 횟수: {len(prices)}회")
+        print(f"  [CHART] 조회 횟수: {len(prices)}회")
 
     print(f"\n{MAGENTA}{'='*100}{RESET}")
-    print(f"{MAGENTA}🎯 최종 결론{RESET}")
+    print(f"{MAGENTA}[TARGET] 최종 결론{RESET}")
     print(f"{MAGENTA}{'='*100}{RESET}")
 
     print(f"\n{CYAN}종목 통계:{RESET}")
@@ -184,12 +184,12 @@ def test_nxt_holdings_monitoring(account_api, rounds=10, interval=5):
     print(f"  • 가격 변동 없음: {total_stocks - stocks_with_change}개 ({(total_stocks - stocks_with_change)/total_stocks*100:.1f}%)")
 
     if stocks_with_change > 0:
-        print(f"\n{GREEN}✅ NXT 계좌 API로 실시간 가격 조회 성공!{RESET}")
-        print(f"{GREEN}   → get_holdings(market_type='NXT')로 실시간 현재가 조회 가능{RESET}")
-        print(f"{GREEN}   → 이 방법을 사용하여 보유 NXT 종목의 현재가를 가져올 수 있습니다!{RESET}")
+        print(f"\n{GREEN}[OK] NXT 계좌 API로 실시간 가격 조회 성공!{RESET}")
+        print(f"{GREEN}   -> get_holdings(market_type='NXT')로 실시간 현재가 조회 가능{RESET}")
+        print(f"{GREEN}   -> 이 방법을 사용하여 보유 NXT 종목의 현재가를 가져올 수 있습니다!{RESET}")
     else:
-        print(f"\n{YELLOW}⚠️  가격 변동 없음{RESET}")
-        print(f"{YELLOW}   → 실시간 가격이 아니거나, 테스트 기간 동안 가격 변동이 없었을 수 있음{RESET}")
+        print(f"\n{YELLOW}[WARNING]️  가격 변동 없음{RESET}")
+        print(f"{YELLOW}   -> 실시간 가격이 아니거나, 테스트 기간 동안 가격 변동이 없었을 수 있음{RESET}")
 
 
 def main():
@@ -203,16 +203,16 @@ def main():
 
     print(f"\n{CYAN}📅 현재 시간 정보{RESET}")
     print(f"  시간: {now.strftime('%Y-%m-%d %H:%M:%S')}")
-    print(f"  NXT 거래 시간: {'✅ 예' if in_nxt_hours else '❌ 아니오'}")
+    print(f"  NXT 거래 시간: {'[OK] 예' if in_nxt_hours else '[X] 아니오'}")
 
     if not in_nxt_hours:
-        print(f"\n{YELLOW}⚠️  경고: 현재 NXT 거래 시간이 아닙니다!{RESET}")
-        print(f"  NXT 거래 시간: 08:00-09:00, 15:30-20:00")
+        print(f"\n{YELLOW}[WARNING]️  경고: 현재 NXT 거래 시간이 아닙니다!{RESET}")
+        print(f"  NXT 거래 시간: "08":"00"-"09":"00", 15:30-20:00")
         response = input("\n  계속 진행하시겠습니까? (y/n): ")
         if response.lower() != 'y':
             return
 
-    print(f"\n{GREEN}✅ 테스트를 시작합니다.{RESET}")
+    print(f"\n{GREEN}[OK] 테스트를 시작합니다.{RESET}")
 
     try:
         from core.rest_client import KiwoomRESTClient
@@ -222,10 +222,10 @@ def main():
         account_api = AccountAPI(client)
 
         if not client.token:
-            print(f"{RED}❌ API 연결 실패{RESET}")
+            print(f"{RED}[X] API 연결 실패{RESET}")
             return
 
-        print(f"{GREEN}✅ API 연결 성공{RESET}")
+        print(f"{GREEN}[OK] API 연결 성공{RESET}")
 
         test_nxt_holdings_monitoring(
             account_api=account_api,
@@ -234,7 +234,7 @@ def main():
         )
 
     except Exception as e:
-        print(f"{RED}❌ 오류 발생: {e}{RESET}")
+        print(f"{RED}[X] 오류 발생: {e}{RESET}")
         import traceback
         traceback.print_exc()
 

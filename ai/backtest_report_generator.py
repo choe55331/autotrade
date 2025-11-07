@@ -39,6 +39,7 @@ class BacktestReportGenerator:
 
     HTML_TEMPLATE = """
 <!DOCTYPE html>
+"""
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -300,9 +301,9 @@ class BacktestReportGenerator:
     def _create_equity_curve_chart(self, result: Any) -> str:
         """자산 곡선 차트 데이터 생성"""
         if not PLOTLY_AVAILABLE or not hasattr(result, 'equity_curve'):
-            """
             return "{}"
 
+"""
         equity_curve = result.equity_curve
 
         data = [{
@@ -327,9 +328,9 @@ class BacktestReportGenerator:
     def _create_drawdown_chart(self, result: Any) -> str:
         """Drawdown 차트 데이터 생성"""
         if not PLOTLY_AVAILABLE or not hasattr(result, 'equity_curve'):
-            """
             return "{}"
 
+"""
         equity_curve = np.array(result.equity_curve)
         running_max = np.maximum.accumulate(equity_curve)
         drawdown = (equity_curve - running_max) / running_max * 100
@@ -357,9 +358,9 @@ class BacktestReportGenerator:
     def _create_monthly_returns_chart(self, result: Any) -> str:
         """월별 수익률 차트 데이터 생성"""
         if not PLOTLY_AVAILABLE or not hasattr(result, 'daily_returns'):
-            """
             return "{}"
 
+"""
         monthly_returns = [5.2, -2.1, 3.8, 7.5, -1.3, 4.2, 2.9, -0.5, 6.1, 3.4, -2.8, 5.7]
 
         data = [{

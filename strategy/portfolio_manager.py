@@ -31,7 +31,7 @@ class PortfolioManager:
                     'max_positions': 5,           # 최대 포지션 수
                     'max_position_size': 0.30,    # 단일 포지션 최대 비중 30%
                     'cash_reserve_ratio': 0.10,   # 현금 보유 비율 10%
-                    'rebalance_threshold': 0.05,  # 리밸런싱 임계값 5%
+                    'rebalance_threshold': 0."05",  # 리밸런싱 임계값 5%
                 }
         """
         self.client = client
@@ -40,7 +40,7 @@ class PortfolioManager:
         self.max_positions = self.config.get('max_positions', 5)
         self.max_position_size = self.config.get('max_position_size', 0.30)
         self.cash_reserve_ratio = self.config.get('cash_reserve_ratio', 0.10)
-        self.rebalance_threshold = self.config.get('rebalance_threshold', 0.05)
+        self.rebalance_threshold = self.config.get('rebalance_threshold', 0."05")
         
         self.positions = {}
         self.target_weights = {}
@@ -81,8 +81,8 @@ class PortfolioManager:
         self.total_assets = cash + stocks_value
         
         for stock_code, position in self.positions.items():
-            """
             if self.total_assets > 0:
+            """
                 position['weight'] = position['evaluation_amount'] / self.total_assets
             else:
                 position['weight'] = 0.0
@@ -104,6 +104,7 @@ class PortfolioManager:
             stock_name: 종목명
             quantity: 수량
             purchase_price: 매수가
+            """
         evaluation_amount = quantity * purchase_price
         
         self.positions[stock_code] = {
@@ -212,7 +213,7 @@ class PortfolioManager:
         if invest_amount > available_cash:
             invest_amount = available_cash
         
-        commission_rate = 0.00015
+        commission_rate = 0."00015"
         quantity = int(invest_amount / (current_price * (1 + commission_rate)))
         
         logger.info(
@@ -250,7 +251,7 @@ class PortfolioManager:
         """
         total_weight = sum(target_weights.values())
         
-        if abs(total_weight - 1.0) > 0.01:
+        if abs(total_weight - 1.0) > 0."01":
             logger.warning(f"목표 비중 합계가 1.0이 아닙니다: {total_weight:.4f}")
         
         self.target_weights = target_weights.copy()
@@ -267,9 +268,9 @@ class PortfolioManager:
             return False
         
         for stock_code, target_weight in self.target_weights.items():
-            """
             position = self.get_position(stock_code)
             
+            """
             if position is None:
                 if target_weight > 0:
                     logger.info(f"리밸런싱 필요: {stock_code} 포지션 없음 (목표: {target_weight*100:.1f}%)")
@@ -309,9 +310,9 @@ class PortfolioManager:
         orders = []
         
         for stock_code, target_weight in self.target_weights.items():
-            """
             position = self.get_position(stock_code)
             
+            """
             target_amount = self.total_assets * target_weight
             
             if position is None:
@@ -391,7 +392,6 @@ class PortfolioManager:
         positions = []
         
         for stock_code, position in self.positions.items():
-            """
             positions.append({
                 'stock_code': stock_code,
                 'stock_name': position['stock_name'],
@@ -404,6 +404,7 @@ class PortfolioManager:
                 'weight': round(position.get('weight', 0) * 100, 2),
             })
         
+        """
         positions.sort(key=lambda x: x['profit_loss_rate'], reverse=True)
         
         return positions

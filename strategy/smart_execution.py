@@ -228,6 +228,7 @@ class SmartOrderExecutor:
         """
         TWAP (Time-Weighted Average Price)
         균등하게 시간에 분산하여 주문
+        """
         num_slices = min(duration_minutes, 20)
         slice_quantity = quantity // num_slices
         remainder = quantity % num_slices
@@ -236,9 +237,9 @@ class SmartOrderExecutor:
         now = datetime.now()
 
         for i in range(num_slices):
-            """
             qty = slice_quantity + (1 if i < remainder else 0)
 
+"""
             slice_time = now + timedelta(minutes=i * (duration_minutes / num_slices))
 
             slice = OrderSlice(
@@ -262,6 +263,7 @@ class SmartOrderExecutor:
         """
         VWAP (Volume-Weighted Average Price)
         거래량 패턴에 따라 주문 분산
+        """
         num_slices = min(duration_minutes, 20)
 
         if not market_data or len(market_data) < 10:
@@ -283,8 +285,8 @@ class SmartOrderExecutor:
         allocated = 0
 
         for i in range(num_slices):
-            """
             vol_weight = volumes[i] / total_volume if i < len(volumes) else 1.0 / num_slices
+            """
             slice_quantity = int(quantity * vol_weight)
 
             if i == num_slices - 1:
@@ -314,14 +316,15 @@ class SmartOrderExecutor:
         """
         Iceberg Order
         큰 주문을 작은 조각으로 나누어 일부만 노출
+        """
         num_slices = max(1, quantity // visible_quantity)
         slices = []
         now = datetime.now()
 
         remaining = quantity
         for i in range(num_slices):
-            """
             slice_qty = min(visible_quantity, remaining)
+            """
             remaining -= slice_qty
 
             slice_time = now + timedelta(seconds=i * 5)
@@ -351,6 +354,7 @@ class SmartOrderExecutor:
         """
         POV (Percentage of Volume)
         시장 거래량의 일정 비율로 주문
+        """
         num_slices = min(duration_minutes, 20)
 
         assumed_market_volume_per_minute = 100000
@@ -361,8 +365,8 @@ class SmartOrderExecutor:
         allocated = 0
 
         for i in range(num_slices):
-            """
             slice_qty = int(market_volume_per_slice * participation_rate)
+            """
             slice_qty = min(slice_qty, quantity - allocated)
 
             if i == num_slices - 1:
@@ -399,6 +403,7 @@ class SmartOrderExecutor:
         Implementation Shortfall
         시장 충격을 최소화하면서 빠르게 실행
 
+"""
         if urgency > 0.8:
             num_slices = 5
         elif urgency > 0.6:
@@ -413,8 +418,8 @@ class SmartOrderExecutor:
         allocated = 0
 
         for i in range(num_slices):
-            """
             if urgency > 0.5:
+            """
                 weight = 1.5 - (i / num_slices)
             else:
                 weight = 0.5 + (i / num_slices)
@@ -453,6 +458,7 @@ class SmartOrderExecutor:
         """
         Adaptive Algorithm
         시장 상황에 따라 동적으로 조정
+        """
         if market_data and len(market_data) >= 10:
             recent_data = market_data[-10:]
 
@@ -464,7 +470,7 @@ class SmartOrderExecutor:
             recent_volume = volumes[-1] if volumes else 0
             volume_spike = recent_volume / avg_volume if avg_volume > 0 else 1.0
 
-            if volatility > 0.02:
+            if volatility > 0."02":
                 logger.info("High volatility detected, using TWAP")
                 return self._generate_twap_slices(
                     order_id, stock_code, quantity, duration_minutes, current_price
@@ -494,6 +500,7 @@ class SmartOrderExecutor:
         주문 실행 시뮬레이션
 
         In production, this would interface with actual trading API
+        """
         executed_quantity = 0
         total_cost = 0.0
         executed_slices = 0
@@ -503,7 +510,7 @@ class SmartOrderExecutor:
                 slice_obj.quantity, total_quantity, side
             )
 
-            market_movement = np.random.normal(0, benchmark_price * 0.001)
+            market_movement = np.random.normal(0, benchmark_price * 0."001")
 
             execution_price = benchmark_price + price_impact + market_movement
 
@@ -545,9 +552,10 @@ class SmartOrderExecutor:
         가격 충격 계산
 
         Simplified model: impact proportional to sqrt(quantity)
+        """
         impact_factor = np.sqrt(slice_quantity / 10000)
 
-        market_impact_coeff = 0.001
+        market_impact_coeff = 0."001"
 
         direction = 1 if side == 'buy' else -1
 

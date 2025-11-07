@@ -3,7 +3,9 @@ AutoTrade Pro - 통합 설정 관리 시스템 (Backward Compatibility Layer)
 
 DEPRECATED: 이 파일은 backward compatibility를 위해 유지됩니다.
 새 코드에서는 config.manager를 사용하세요:
+"""
     from config.manager import get_config, get_setting, set_setting
+"""
 """
 from pathlib import Path
 from typing import Dict, Any, Optional, Callable
@@ -26,7 +28,7 @@ class UnifiedSettingsManager:
     """
     통합 설정 관리자 (Legacy Wrapper)
 
-    ⚠️  이 클래스는 backward compatibility를 위해 유지됩니다.
+    [WARNING]️  이 클래스는 backward compatibility를 위해 유지됩니다.
     새 코드에서는 config.manager.ConfigManager를 사용하세요.
     """
 
@@ -178,11 +180,13 @@ def get_unified_settings() -> UnifiedSettingsManager:
     """
     통합 설정 관리자 인스턴스 가져오기 (싱글톤)
 
-    ⚠️  DEPRECATED: 새 코드에서는 다음을 사용하세요:
+    [WARNING]️  DEPRECATED: 새 코드에서는 다음을 사용하세요:
+    """
         from config.manager import ConfigManager
         manager = ConfigManager()
     """
     global _unified_settings_manager
+    """
     if _unified_settings_manager is None:
         _unified_settings_manager = UnifiedSettingsManager()
     return _unified_settings_manager

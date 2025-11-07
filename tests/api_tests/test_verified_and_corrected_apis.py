@@ -5,10 +5,12 @@ test_verified_and_corrected_apis.py
 
 """
 test_all_394_calls.py처럼 실제 데이터 수신 여부를 확인:
+"""
 - return_code = 0
 - 데이터 키 존재 (return_code, return_msg 제외)
 - 데이터가 비어있지 않음
 - LIST는 실제 아이템 포함
+"""
 """
 import json
 import sys
@@ -19,11 +21,11 @@ from collections import defaultdict
 try:
     from core.rest_client import KiwoomRESTClient
 except ImportError:
-    print("❌ core.rest_client 모듈을 찾을 수 없습니다.")
+    print("[X] core.rest_client 모듈을 찾을 수 없습니다.")
     sys.exit(1)
 
 def check_time_allowed():
-    """실행 가능 시간 확인 (8:00-20:00)"""
+    """실행 가능 시간 확인 (8:"00"-20:"00")"""
     now = datetime.now().time()
     start_time = time(8, 0)
     end_time = time(20, 0)
@@ -33,6 +35,7 @@ def validate_data_strictly(result):
     """엄격한 데이터 검증
 
     진짜 성공 조건:
+    """
     1. return_code = 0
     2. 데이터 키가 있음 (return_code, return_msg 제외)
     3. 데이터가 비어있지 않음
@@ -49,6 +52,7 @@ def validate_data_strictly(result):
         }
     """
 
+"""
     if result is None:
         return {
             'is_real_success': False,
@@ -161,18 +165,18 @@ def run_verification_test(force=False):
     print("="*80)
 
     allowed, current_time = check_time_allowed()
-    print(f"\n⏰ 실행 가능 시간: 08:00~20:00 (현재: {current_time.strftime('%H:%M')})")
+    print(f"\n⏰ 실행 가능 시간: "08":"00"~20:"00" (현재: {current_time.strftime('%H:%M')})")
 
     if not allowed and not force:
-        print("❌ 현재는 테스트 실행 시간이 아닙니다.")
+        print("[X] 현재는 테스트 실행 시간이 아닙니다.")
         print("   프로그램은 오전 8시부터 오후 8시까지 실행 가능합니다.")
         print("\n💡 강제 실행하려면: python3 test_verified_and_corrected_apis.py --force")
         return
 
     if not allowed and force:
-        print("⚠️  시간대를 벗어났지만 강제 실행 모드로 진행합니다.")
+        print("[WARNING]️  시간대를 벗어났지만 강제 실행 모드로 진행합니다.")
 
-    print("✅ 테스트 시작\n")
+    print("[OK] 테스트 시작\n")
 
     print("[1] 데이터 로드...")
     with open('corrected_api_calls.json', 'r', encoding='utf-8') as f:
@@ -184,16 +188,16 @@ def run_verification_test(force=False):
     total_verified = corrected_data['metadata']['verified_variants']
     total_corrected = corrected_data['metadata']['corrections_made']
 
-    print(f"  ✅ 검증된 API: {len(verified_apis)}개 ({total_verified}개 variant)")
+    print(f"  [OK] 검증된 API: {len(verified_apis)}개 ({total_verified}개 variant)")
     print(f"  🔧 수정된 API: {len(corrected_apis)}개 ({total_corrected}개 variant)")
-    print(f"  📊 총 테스트: {total_verified + total_corrected}개 variant")
+    print(f"  [CHART] 총 테스트: {total_verified + total_corrected}개 variant")
 
     print("\n[2] Kiwoom API 클라이언트 초기화...")
     try:
         client = KiwoomRESTClient()
-        print("  ✅ 초기화 완료")
+        print("  [OK] 초기화 완료")
     except Exception as e:
-        print(f"  ❌ 초기화 실패: {e}")
+        print(f"  [X] 초기화 실패: {e}")
         return
 
     results = {
@@ -239,13 +243,13 @@ def run_verification_test(force=False):
             results['verified_results'].append(result_entry)
 
             if test_result['success']:
-                print(f"✅ SUCCESS ({test_result['data_items_count']}개)")
+                print(f"[OK] SUCCESS ({test_result['data_items_count']}개)")
                 stats['verified']['real_success'] += 1
             elif test_result.get('return_code') == 0:
-                print(f"⚠️  NO_DATA")
+                print(f"[WARNING]️  NO_DATA")
                 stats['verified']['no_data'] += 1
             else:
-                print(f"❌ ERROR: {test_result.get('return_msg', 'Unknown')[:50]}")
+                print(f"[X] ERROR: {test_result.get('return_msg', 'Unknown')[:50]}")
                 stats['verified']['error'] += 1
 
     print("\n[4] 수정된 API 테스트...")
@@ -283,24 +287,24 @@ def run_verification_test(force=False):
             results['corrected_results'].append(result_entry)
 
             if test_result['success']:
-                print(f"✅ SUCCESS! ({test_result['data_items_count']}개)")
+                print(f"[OK] SUCCESS! ({test_result['data_items_count']}개)")
                 stats['corrected']['real_success'] += 1
                 if original_status == 'total_fail':
                     stats['corrected']['improved_from_fail'] += 1
             elif test_result.get('return_code') == 0:
-                print(f"⚠️  NO_DATA")
+                print(f"[WARNING]️  NO_DATA")
                 stats['corrected']['no_data'] += 1
                 stats['corrected']['still_fail'] += 1
             else:
-                print(f"❌ ERROR")
+                print(f"[X] ERROR")
                 stats['corrected']['error'] += 1
                 stats['corrected']['still_fail'] += 1
 
     print("\n" + "="*80)
-    print("📊 테스트 결과 통계")
+    print("[CHART] 테스트 결과 통계")
     print("="*80)
 
-    print(f"\n✅ 검증된 API 재확인 ({stats['verified']['tested']}개 variant)")
+    print(f"\n[OK] 검증된 API 재확인 ({stats['verified']['tested']}개 variant)")
     print(f"  - 진짜 성공: {stats['verified']['real_success']}개 ({stats['verified']['real_success']/stats['verified']['tested']*100:.1f}%)")
     print(f"  - 데이터 없음: {stats['verified']['no_data']}개 ({stats['verified']['no_data']/stats['verified']['tested']*100:.1f}%)")
     print(f"  - 오류: {stats['verified']['error']}개 ({stats['verified']['error']/stats['verified']['tested']*100:.1f}%)")
@@ -309,8 +313,8 @@ def run_verification_test(force=False):
     print(f"  - 진짜 성공: {stats['corrected']['real_success']}개")
     print(f"  - 데이터 없음: {stats['corrected']['no_data']}개")
     print(f"  - 오류: {stats['corrected']['error']}개")
-    print(f"\n  🎉 실패→성공 개선: {stats['corrected']['improved_from_fail']}개")
-    print(f"  ❌ 여전히 실패: {stats['corrected']['still_fail']}개")
+    print(f"\n  🎉 실패->성공 개선: {stats['corrected']['improved_from_fail']}개")
+    print(f"  [X] 여전히 실패: {stats['corrected']['still_fail']}개")
 
     results['statistics'] = stats
 
@@ -346,12 +350,12 @@ def generate_detailed_report(results, stats):
             report_lines.append(f"\n[{r['api_id']}] {r['api_name']}")
             report_lines.append(f"  Variant {r['variant_idx']}")
             report_lines.append(f"  수정: {r['fix_reason']}")
-            report_lines.append(f"  결과: ✅ {r['data_items_count']}개 데이터 수신")
+            report_lines.append(f"  결과: [OK] {r['data_items_count']}개 데이터 수신")
             report_lines.append(f"  상세: {r['validation_details']}")
     else:
         report_lines.append("(없음)")
 
-    report_lines.append("\n\n❌ 파라미터 수정 후에도 실패")
+    report_lines.append("\n\n[X] 파라미터 수정 후에도 실패")
     report_lines.append("-"*80)
 
     still_fail = [r for r in results['corrected_results'] if not r['success']]

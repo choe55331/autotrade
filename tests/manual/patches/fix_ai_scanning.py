@@ -316,12 +316,12 @@ class AIScanningFix:
             pipeline = bot_instance.scanner_pipeline
 
             if force_scan or pipeline.should_run_fast_scan():
-                print("🔍 Fast Scan 실행...")
+                print("[SEARCH] Fast Scan 실행...")
                 pipeline.run_fast_scan()
 
             if force_scan or pipeline.should_run_deep_scan():
                 if len(pipeline.fast_scan_results) > 0:
-                    print("🔍 Deep Scan 실행...")
+                    print("[SEARCH] Deep Scan 실행...")
                     pipeline.run_deep_scan()
 
             fast_results = getattr(pipeline, 'fast_scan_results', [])

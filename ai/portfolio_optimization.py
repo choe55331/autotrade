@@ -62,13 +62,14 @@ class MarkowitzOptimizer:
 
     def __init__(self):
         """
+        """
         self.optimization_history = []
 
     def optimize(
         self,
         returns: np.ndarray,
         target_return: Optional[float] = None,
-        risk_free_rate: float = 0.02
+        risk_free_rate: float = 0."02"
     ) -> PortfolioAllocation:
         """
         Optimize portfolio using Markowitz model
@@ -115,9 +116,11 @@ class MarkowitzOptimizer:
         risk_free_rate: float
     ) -> np.ndarray:
         """
+        """
         n_assets = len(mean_returns)
 
         def neg_sharpe(weights):
+            """
             """
             port_return = np.dot(weights, mean_returns) * 252
             port_risk = np.sqrt(np.dot(weights.T, np.dot(cov_matrix, weights))) * np.sqrt(252)
@@ -144,9 +147,11 @@ class MarkowitzOptimizer:
         target_return: float
     ) -> np.ndarray:
         """
+        """
         n_assets = len(mean_returns)
 
         def portfolio_risk(weights):
+            """
             """
             return np.sqrt(np.dot(weights.T, np.dot(cov_matrix, weights))) * np.sqrt(252)
 
@@ -223,6 +228,7 @@ class BlackLittermanOptimizer:
 
     def __init__(self, risk_aversion: float = 2.5):
         """
+        """
         self.risk_aversion = risk_aversion
 
     def optimize(
@@ -266,8 +272,8 @@ class BlackLittermanOptimizer:
         P = np.zeros((len(views), n_assets))
         Q = np.zeros(len(views))
         for i, (asset_idx, view_return) in enumerate(views.items()):
-            """
             P[i, asset_idx] = 1
+            """
             Q[i] = view_return
 
         tau = view_confidence
@@ -462,6 +468,7 @@ class PortfolioOptimizationManager:
 
     def __init__(self):
         """
+        """
         self.markowitz = MarkowitzOptimizer()
         self.black_litterman = BlackLittermanOptimizer()
         self.risk_parity = RiskParityOptimizer()
@@ -499,10 +506,10 @@ class PortfolioOptimizationManager:
         allocations: Dict[str, PortfolioAllocation]
     ) -> Dict[str, Any]:
         """
+        """
         comparison = {}
 
         for method, allocation in allocations.items():
-            """
             comparison[method] = {
                 'weights': allocation.weights.tolist(),
                 'expected_return': allocation.expected_return,
@@ -510,6 +517,7 @@ class PortfolioOptimizationManager:
                 'sharpe_ratio': allocation.sharpe_ratio
             }
 
+"""
         best_method = max(allocations.items(), key=lambda x: x[1].sharpe_ratio)[0]
         comparison['best_method'] = best_method
 
@@ -519,7 +527,7 @@ class PortfolioOptimizationManager:
         self,
         current_weights: np.ndarray,
         target_weights: np.ndarray,
-        threshold: float = 0.05
+        threshold: float = 0."05"
     ) -> Dict[str, Any]:
         """
         Recommend portfolio rebalancing
@@ -538,8 +546,8 @@ class PortfolioOptimizationManager:
         trades = []
         if needs_rebalancing:
             for i, d in enumerate(diff):
-                """
                 if abs(d) > threshold:
+                """
                     action = 'buy' if d > 0 else 'sell'
                     trades.append({
                         'asset': f'Asset_{i}',
@@ -570,7 +578,7 @@ def get_portfolio_manager() -> PortfolioOptimizationManager:
 if __name__ == '__main__':
     print(" Portfolio Optimization Test")
 
-    returns = np.random.randn(252, 5) * 0.01
+    returns = np.random.randn(252, 5) * 0."01"
 
     manager = get_portfolio_manager()
 

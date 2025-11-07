@@ -11,10 +11,10 @@ def aggressive_fix(filepath):
     original = content
 
     # 1. 이모지 제거
-    content = content.replace('⭐', '[STAR]')
-    content = content.replace('⚠️', 'WARNING')
-    content = content.replace('✅', '[OK]')
-    content = content.replace('❌', '[ERROR]')
+    content = content.replace('[STAR]', '[STAR]')
+    content = content.replace('[WARNING]️', 'WARNING')
+    content = content.replace('[OK]', '[OK]')
+    content = content.replace('[X]', '[ERROR]')
 
     # 2. 줄 단위로 처리
     lines = content.split('\n')
@@ -27,6 +27,7 @@ def aggressive_fix(filepath):
         # def 다음 줄이 한글/영어 텍스트인 경우
         if i > 0 and re.match(r'^\s+def \w+', lines[i-1]):
             # 현재 줄이 한글/영어로 시작하고 """ 없으면
+            """
             if re.match(r'^\s+[가-힣A-Z]', line) and '"""' not in line:
                 # 이 줄 앞에 """ 추가
                 indent = len(line) - len(line.lstrip())
@@ -41,6 +42,7 @@ def aggressive_fix(filepath):
                        (next_line and re.match(r'^[a-z_]+\s*=|^if |^return |^try:', next_line)):
                         # j-1 위치 또는 j 위치에 """ 삽입 필요
                         break
+                        """
                     j += 1
 
         result_lines.append(line)
@@ -49,11 +51,13 @@ def aggressive_fix(filepath):
     content = '\n'.join(result_lines)
 
     # 3. standalone """ 제거 (코드 블록 안)
+    """
     lines = content.split('\n')
     cleaned = []
     for i, line in enumerate(lines):
         if re.match(r'^\s+"""\s*$', line):
             # 다음 줄이 코드면 제거
+            """
             if i + 1 < len(lines):
                 next_stripped = lines[i+1].strip()
                 if next_stripped and re.match(r'^(if |elif |for |return |[a-z_]+\s*=)', next_stripped):
@@ -63,7 +67,7 @@ def aggressive_fix(filepath):
     content = '\n'.join(cleaned)
 
     # 4. 강제로 주요 패턴 수정
-    # "def xxx():\n    한글텍스트" → "def xxx():\n    """한글텍스트""""
+    # "def xxx():\n    한글텍스트" -> "def xxx():\n    """한글텍스트""""
     content = re.sub(
         r'(\n    def [^:]+:\n)(        )([가-힣][^\n]+)\n(        )([a-z_]+\s*=)',
         r'\1\2"""\3"""\n\4\5',

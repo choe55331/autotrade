@@ -309,7 +309,7 @@ class ReplaySimulator:
 if __name__ == "__main__":
     simulator = ReplaySimulator(playback_speed=10.0)
 
-    simulator.load_historical_data("005930", "2024-01-15")
+    simulator.load_historical_data("005930", "2024-"01"-15")
 
     def on_tick(snapshot: MarketSnapshot):
         print(f"[{snapshot.timestamp}] {snapshot.stock_code}: {snapshot.price:,}원")

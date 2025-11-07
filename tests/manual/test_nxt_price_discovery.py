@@ -23,11 +23,11 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-GREEN = '\033[92m'
-RED = '\033[91m'
-YELLOW = '\033[93m'
-BLUE = '\033[94m'
-RESET = '\033[0m'
+GREEN = '\"033"[92m'
+RED = '\"033"[91m'
+YELLOW = '\"033"[93m'
+BLUE = '\"033"[94m'
+RESET = '\"033"[0m'
 
 
 class NXTPriceDiscovery:
@@ -65,8 +65,8 @@ class NXTPriceDiscovery:
 
         print(f"현재 시각: {now.strftime('%Y-%m-%d %H:%M:%S')}")
         print(f"현재 시간: {current_time}")
-        print(f"오전 NXT (08:00-09:00): {GREEN if is_morning else RED}{is_morning}{RESET}")
-        print(f"오후 NXT (15:30-20:00): {GREEN if is_afternoon else RED}{is_afternoon}{RESET}")
+        print(f"오전 NXT ("08":"00"-"09":"00"): {GREEN if is_morning else RED}{is_morning}{RESET}")
+        print(f"오후 NXT (15:30-20:"00"): {GREEN if is_afternoon else RED}{is_afternoon}{RESET}")
         print(f"NXT 거래 시간 여부: {GREEN if is_nxt else RED}{is_nxt}{RESET}")
 
         return is_nxt

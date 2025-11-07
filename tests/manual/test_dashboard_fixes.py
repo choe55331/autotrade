@@ -9,9 +9,9 @@
 4. 매수 수량 계산
 
 장 운영 시간:
-- 08:00-09:00: NXT 시장 (프리마켓)
-- 09:00-15:30: 일반 주식장
-- 15:30-20:00: NXT 시장 (애프터마켓)
+- "08":"00"-"09":"00": NXT 시장 (프리마켓)
+- "09":"00"-15:30: 일반 주식장
+- 15:30-20:"00": NXT 시장 (애프터마켓)
 
 import sys
 import os
@@ -34,12 +34,12 @@ def test_account_info():
         deposit = account_api.get_deposit()
 
         if not deposit:
-            print("❌ FAIL: 예수금 정보를 가져올 수 없습니다")
-            print("   → API 연결 상태를 확인하세요")
-            print("   → main.py를 먼저 실행하여 토큰을 발급받으세요")
+            print("[X] FAIL: 예수금 정보를 가져올 수 없습니다")
+            print("   -> API 연결 상태를 확인하세요")
+            print("   -> main.py를 먼저 실행하여 토큰을 발급받으세요")
             return False
 
-        print("\n✅ 예수금 정보 조회 성공")
+        print("\n[OK] 예수금 정보 조회 성공")
         print(f"   - entr (예수금): {deposit.get('entr', 'N/A')}")
         print(f"   - 100stk_ord_alow_amt (주문가능금액): {deposit.get('100stk_ord_alow_amt', 'N/A')}")
         print(f"   - ord_alow_amt (일반주문가능금액): {deposit.get('ord_alow_amt', 'N/A')}")
@@ -47,22 +47,22 @@ def test_account_info():
         entr = int(str(deposit.get('entr', '0')).replace(',', ''))
         orderable = int(str(deposit.get('100stk_ord_alow_amt', '0')).replace(',', ''))
 
-        print(f"\n💰 계산 결과:")
+        print(f"\n[MONEY] 계산 결과:")
         print(f"   - 예수금: {entr:,}원")
         print(f"   - 주문가능금액: {orderable:,}원")
 
         if entr > 0 or orderable > 0:
-            print("✅ PASS: API 필드가 정상적으로 작동합니다")
+            print("[OK] PASS: API 필드가 정상적으로 작동합니다")
             if orderable == 0:
-                print("   ⚠️  주문가능금액이 0원 (잔고 부족 또는 전액 투자)")
+                print("   [WARNING]️  주문가능금액이 0원 (잔고 부족 또는 전액 투자)")
             return True
         else:
-            print("⚠️  WARNING: 모든 금액이 0원입니다")
-            print("   → 하지만 API 연결은 정상입니다")
+            print("[WARNING]️  WARNING: 모든 금액이 0원입니다")
+            print("   -> 하지만 API 연결은 정상입니다")
             return True
 
     except Exception as e:
-        print(f"❌ FAIL: {e}")
+        print(f"[X] FAIL: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -84,11 +84,11 @@ def test_holdings():
         holdings = account_api.get_holdings()
 
         if not holdings or len(holdings) == 0:
-            print("✅ 보유 종목 없음 (정상)")
-            print("   → API는 정상 작동하지만 보유 주식이 없습니다")
+            print("[OK] 보유 종목 없음 (정상)")
+            print("   -> API는 정상 작동하지만 보유 주식이 없습니다")
             return True
 
-        print(f"\n✅ 보유 종목 {len(holdings)}개 조회 성공")
+        print(f"\n[OK] 보유 종목 {len(holdings)}개 조회 성공")
 
         for i, h in enumerate(holdings[:3], 1):
             code = str(h.get('stk_cd', '')).strip()
@@ -107,11 +107,11 @@ def test_holdings():
             print(f"   - 현재가: {cur_price:,}원")
             print(f"   - 평가금액: {eval_amt:,}원")
 
-        print("\n✅ PASS: 모든 필드가 정상적으로 파싱되었습니다")
+        print("\n[OK] PASS: 모든 필드가 정상적으로 파싱되었습니다")
         return True
 
     except Exception as e:
-        print(f"❌ FAIL: {e}")
+        print(f"[X] FAIL: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -128,14 +128,14 @@ def test_virtual_trading():
 
         virtual_trader = VirtualTrader(initial_cash=10_000_000)
 
-        print("\n✅ VirtualTrader 초기화 성공")
-        print(f"   - 초기 자본: 10,000,000원")
+        print("\n[OK] VirtualTrader 초기화 성공")
+        print(f"   - 초기 자본: 10,"000",000원")
         print(f"   - 전략 개수: {len(virtual_trader.accounts)}개")
 
         summaries = virtual_trader.get_all_summaries()
 
         for strategy_name, summary in summaries.items():
-            print(f"\n📊 {strategy_name}:")
+            print(f"\n[CHART] {strategy_name}:")
             print(f"   - 현금: {summary['current_cash']:,.0f}원")
             print(f"   - 총 자산: {summary['total_value']:,.0f}원")
             print(f"   - 수익률: {summary['total_pnl_rate']*100:+.2f}%")
@@ -145,11 +145,11 @@ def test_virtual_trading():
         best = virtual_trader.get_best_strategy()
         print(f"\n🏆 최고 성과 전략: {best}")
 
-        print("\n✅ PASS: 가상매매 시스템이 정상 작동합니다")
+        print("\n[OK] PASS: 가상매매 시스템이 정상 작동합니다")
         return True
 
     except Exception as e:
-        print(f"❌ FAIL: {e}")
+        print(f"[X] FAIL: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -175,7 +175,7 @@ def test_buy_calculation():
         deposit_total = int(str(deposit.get('entr', '0')).replace(',', '')) if deposit else 0
         available_cash = int(str(deposit.get('100stk_ord_alow_amt', '0')).replace(',', '')) if deposit else 0
 
-        print(f"\n💰 계좌 정보:")
+        print(f"\n[MONEY] 계좌 정보:")
         print(f"   - 예수금: {deposit_total:,}원")
         print(f"   - 주문가능금액: {available_cash:,}원")
 
@@ -187,7 +187,7 @@ def test_buy_calculation():
         initial_capital = deposit_total + holdings_value
         if initial_capital == 0:
             initial_capital = 10_000_000
-            print(f"   ⚠️  계좌 정보 없음, 기본값 사용")
+            print(f"   [WARNING]️  계좌 정보 없음, 기본값 사용")
 
         print(f"   - 보유주식 평가: {holdings_value:,}원")
         print(f"   - 총 자산: {initial_capital:,}원")
@@ -198,7 +198,7 @@ def test_buy_calculation():
 
         calc_cash = available_cash if available_cash > 0 else int(initial_capital * 0.2)
 
-        print(f"\n📊 매수 가능 수량 계산 (리스크 관리 적용):")
+        print(f"\n[CHART] 매수 가능 수량 계산 (리스크 관리 적용):")
         print(f"   계산 기준 금액: {calc_cash:,}원")
 
         for price in test_prices:
@@ -208,18 +208,18 @@ def test_buy_calculation():
             )
             print(f"   - 주가 {price:,}원: {qty}주 (총 {qty*price:,}원)")
 
-        print("\n✅ PASS: 매수 가능 금액이 정상적으로 계산되었습니다")
+        print("\n[OK] PASS: 매수 가능 금액이 정상적으로 계산되었습니다")
 
         print("\n⏰ 장 운영 시간 안내:")
-        print("   - 08:00-09:00: NXT 프리마켓 (장전)")
-        print("   - 09:00-15:30: 일반 주식장 (정규장)")
-        print("   - 15:30-20:00: NXT 애프터마켓 (장후)")
-        print("   → 위 시간대에 실제 주문을 테스트하세요")
+        print("   - "08":"00"-"09":"00": NXT 프리마켓 (장전)")
+        print("   - "09":"00"-15:30: 일반 주식장 (정규장)")
+        print("   - 15:30-20:"00": NXT 애프터마켓 (장후)")
+        print("   -> 위 시간대에 실제 주문을 테스트하세요")
 
         return True
 
     except Exception as e:
-        print(f"❌ FAIL: {e}")
+        print(f"[X] FAIL: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -230,8 +230,8 @@ def main():
     print("\n" + "="*60)
     print("🧪 대시보드 수정사항 종합 테스트")
     print("="*60)
-    print("\n⚠️  주의: 이 테스트는 main.py가 실행 중이어야 합니다!")
-    print("   → main.py로 토큰 발급 후 테스트하세요\n")
+    print("\n[WARNING]️  주의: 이 테스트는 main.py가 실행 중이어야 합니다!")
+    print("   -> main.py로 토큰 발급 후 테스트하세요\n")
 
     results = {
         "계좌 정보 API": test_account_info(),
@@ -241,11 +241,11 @@ def main():
     }
 
     print("\n" + "="*60)
-    print("📊 테스트 결과 요약")
+    print("[CHART] 테스트 결과 요약")
     print("="*60)
 
     for test_name, result in results.items():
-        status = "✅ PASS" if result else "❌ FAIL"
+        status = "[OK] PASS" if result else "[X] FAIL"
         print(f"{status} - {test_name}")
 
     total = len(results)
@@ -256,21 +256,21 @@ def main():
     if passed == total:
         print("\n🎉 모든 테스트 통과!")
         print("\n📌 다음 단계:")
-        print("   1. 대시보드 새로고침 (Ctrl+F5) → v5.0 확인")
+        print("   1. 대시보드 새로고침 (Ctrl+F5) -> v5.0 확인")
         print("   2. 장 운영 시간에 실제 매수 테스트")
-        print("      - 08:00-09:00 (NXT 프리마켓)")
-        print("      - 09:00-15:30 (일반 주식장)")
-        print("      - 15:30-20:00 (NXT 애프터마켓)")
+        print("      - "08":"00"-"09":"00" (NXT 프리마켓)")
+        print("      - "09":"00"-15:30 (일반 주식장)")
+        print("      - 15:30-20:"00" (NXT 애프터마켓)")
     elif passed >= total * 0.5:
-        print(f"\n✅ {passed}개 테스트 통과! (일부 실패는 정상일 수 있습니다)")
+        print(f"\n[OK] {passed}개 테스트 통과! (일부 실패는 정상일 수 있습니다)")
         print("\n💡 실패한 테스트:")
         for test_name, result in results.items():
             if not result:
                 print(f"   - {test_name}: 위 오류 메시지 참고")
     else:
-        print(f"\n⚠️  {total - passed}개 테스트 실패")
-        print("   → main.py가 실행 중인지 확인하세요")
-        print("   → 위 오류 메시지를 확인하세요")
+        print(f"\n[WARNING]️  {total - passed}개 테스트 실패")
+        print("   -> main.py가 실행 중인지 확인하세요")
+        print("   -> 위 오류 메시지를 확인하세요")
 
     return passed >= total * 0.5
 

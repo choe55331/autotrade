@@ -61,8 +61,8 @@ class MetaLearningEngine:
         """Load meta-knowledge"""
         try:
             if self.knowledge_file.exists():
-                """
                 with open(self.knowledge_file, 'r', encoding='utf-8') as f:
+                """
                     data = json.load(f)
                     self.meta_knowledge = [MetaKnowledge(**k) for k in data.get('knowledge', [])]
                 logger.info(f"Loaded {len(self.meta_knowledge)} meta-knowledge items")
@@ -97,6 +97,7 @@ class MetaLearningEngine:
             parameters: Parameters used
             outcome: 'success' or 'failure'
             profit: Profit/loss amount
+            """
         experience = {
             'timestamp': datetime.now().isoformat(),
             'market_conditions': market_conditions,
@@ -116,6 +117,7 @@ class MetaLearningEngine:
         parameters: Dict[str, Any],
         outcome: str
     ):
+        """
         """
         regime = conditions.get('regime', 'unknown')
         volatility = conditions.get('volatility', 'medium')

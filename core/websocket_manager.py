@@ -75,24 +75,24 @@ class WebSocketManager:
 
             self.is_connected = True
             self.reconnect_attempts = 0
-            print("✅ WebSocket 연결 성공")
-            logger.info("✅ WebSocket 연결 성공")
+            print("[OK] WebSocket 연결 성공")
+            logger.info("[OK] WebSocket 연결 성공")
 
             print("🔐 로그인 시도 중...")
             login_success = await self._login()
             if not login_success:
-                print("❌ 로그인 실패")
-                logger.error("❌ 로그인 실패")
+                print("[X] 로그인 실패")
+                logger.error("[X] 로그인 실패")
                 await self.disconnect()
                 return False
 
-            print("✅ WebSocket 로그인 성공")
-            logger.info("✅ WebSocket 로그인 성공")
+            print("[OK] WebSocket 로그인 성공")
+            logger.info("[OK] WebSocket 로그인 성공")
             return True
 
         except Exception as e:
-            print(f"❌ WebSocket 연결 실패: {e}")
-            logger.error(f"❌ WebSocket 연결 실패: {e}")
+            print(f"[X] WebSocket 연결 실패: {e}")
+            logger.error(f"[X] WebSocket 연결 실패: {e}")
             self.is_connected = False
             return False
 
@@ -124,21 +124,21 @@ class WebSocketManager:
 
             if login_data.get('return_code') == 0:
                 self.is_logged_in = True
-                print(f"✅ 로그인 성공: {login_data.get('return_msg', '')}")
-                logger.info(f"✅ 로그인 성공: {login_data.get('return_msg', '')}")
+                print(f"[OK] 로그인 성공: {login_data.get('return_msg', '')}")
+                logger.info(f"[OK] 로그인 성공: {login_data.get('return_msg', '')}")
                 return True
             else:
-                print(f"❌ 로그인 실패 (코드 {login_data.get('return_code')}): {login_data.get('return_msg')}")
-                logger.error(f"❌ 로그인 실패 (코드 {login_data.get('return_code')}): {login_data.get('return_msg')}")
+                print(f"[X] 로그인 실패 (코드 {login_data.get('return_code')}): {login_data.get('return_msg')}")
+                logger.error(f"[X] 로그인 실패 (코드 {login_data.get('return_code')}): {login_data.get('return_msg')}")
                 return False
 
         except asyncio.TimeoutError:
-            print("❌ 로그인 응답 타임아웃 (3초)")
-            logger.error("❌ 로그인 응답 타임아웃")
+            print("[X] 로그인 응답 타임아웃 (3초)")
+            logger.error("[X] 로그인 응답 타임아웃")
             return False
         except Exception as e:
-            print(f"❌ 로그인 중 오류: {e}")
-            logger.error(f"❌ 로그인 중 오류: {e}")
+            print(f"[X] 로그인 중 오류: {e}")
+            logger.error(f"[X] 로그인 중 오류: {e}")
             return False
 
     async def subscribe(
@@ -161,16 +161,16 @@ class WebSocketManager:
             구독 성공 여부
 
         구독 타입:
-            00: 주문체결
-            04: 잔고
+            "00": 주문체결
+            "04": 잔고
             0A: 주식기세
             0B: 주식체결
             0C: 주식우선호가
             0D: 주식호가잔량
         """
         if not self.is_connected or not self.is_logged_in:
-            print("❌ WebSocket 미연결 또는 미로그인")
-            logger.error("❌ WebSocket 미연결 또는 미로그인")
+            print("[X] WebSocket 미연결 또는 미로그인")
+            logger.error("[X] WebSocket 미연결 또는 미로그인")
             return False
 
         try:
@@ -204,17 +204,17 @@ class WebSocketManager:
                     'refresh': refresh,
                     'subscribed_at': datetime.now()
                 }
-                print(f"✅ 구독 성공: {subscribe_data.get('return_msg', '')}")
-                logger.info(f"✅ 구독 성공: {subscribe_data.get('return_msg', '')}")
+                print(f"[OK] 구독 성공: {subscribe_data.get('return_msg', '')}")
+                logger.info(f"[OK] 구독 성공: {subscribe_data.get('return_msg', '')}")
                 return True
             else:
-                print(f"❌ 구독 실패 (코드 {subscribe_data.get('return_code')}): {subscribe_data.get('return_msg')}")
-                logger.error(f"❌ 구독 실패 (코드 {subscribe_data.get('return_code')}): {subscribe_data.get('return_msg')}")
+                print(f"[X] 구독 실패 (코드 {subscribe_data.get('return_code')}): {subscribe_data.get('return_msg')}")
+                logger.error(f"[X] 구독 실패 (코드 {subscribe_data.get('return_code')}): {subscribe_data.get('return_msg')}")
                 return False
 
         except asyncio.TimeoutError:
-            print("⚠️ 구독 응답 타임아웃 (구독은 성공했을 수 있음)")
-            logger.warning("⚠️ 구독 응답 타임아웃 (구독은 성공했을 수 있음)")
+            print("[WARNING]️ 구독 응답 타임아웃 (구독은 성공했을 수 있음)")
+            logger.warning("[WARNING]️ 구독 응답 타임아웃 (구독은 성공했을 수 있음)")
             self.subscriptions[grp_no] = {
                 'stock_codes': stock_codes,
                 'types': types,
@@ -223,8 +223,8 @@ class WebSocketManager:
             }
             return True
         except Exception as e:
-            print(f"❌ 구독 중 오류: {e}")
-            logger.error(f"❌ 구독 중 오류: {e}")
+            print(f"[X] 구독 중 오류: {e}")
+            logger.error(f"[X] 구독 중 오류: {e}")
             return False
 
     def register_callback(self, data_type: str, callback: Callable[[Dict[str, Any]], None]):
@@ -245,8 +245,8 @@ class WebSocketManager:
         무한 루프로 실행되며, 데이터 수신 시 콜백 호출
         """
         if not self.is_connected or not self.is_logged_in:
-            print("❌ receive_loop: WebSocket 미연결 또는 미로그인")
-            logger.error("❌ WebSocket 미연결 또는 미로그인")
+            print("[X] receive_loop: WebSocket 미연결 또는 미로그인")
+            logger.error("[X] WebSocket 미연결 또는 미로그인")
             return
 
         print("🔄 실시간 데이터 수신 시작")
@@ -268,17 +268,17 @@ class WebSocketManager:
                     print(f"📩 메시지 {message_count}: trnm={trnm}")
 
                     if trnm == 'REAL':
-                        print(f"   📊 REAL 데이터: {json.dumps(data, ensure_ascii=False)[:200]}...")
+                        print(f"   [CHART] REAL 데이터: {json.dumps(data, ensure_ascii=False)[:200]}...")
                         await self._handle_real_data(data)
                     elif trnm == 'SYSTEM':
                         code = data.get('code', '')
                         msg = data.get('message', '')
-                        print(f"⚠️ 시스템 메시지 (코드 {code}): {msg}")
-                        logger.warning(f"⚠️ 시스템 메시지 (코드 {code}): {msg}")
+                        print(f"[WARNING]️ 시스템 메시지 (코드 {code}): {msg}")
+                        logger.warning(f"[WARNING]️ 시스템 메시지 (코드 {code}): {msg}")
 
                         if code == 'R10004':
-                            print("❌ 접속 종료됨, 재연결 시도...")
-                            logger.error("❌ 접속 종료됨, 재연결 시도...")
+                            print("[X] 접속 종료됨, 재연결 시도...")
+                            logger.error("[X] 접속 종료됨, 재연결 시도...")
                             await self.reconnect()
                     else:
                         print(f"   기타 메시지: {json.dumps(data, ensure_ascii=False)[:200]}...")
@@ -287,18 +287,18 @@ class WebSocketManager:
                 except asyncio.TimeoutError:
                     continue
                 except websockets.ConnectionClosed:
-                    print("❌ WebSocket 연결 끊김")
-                    logger.error("❌ WebSocket 연결 끊김")
+                    print("[X] WebSocket 연결 끊김")
+                    logger.error("[X] WebSocket 연결 끊김")
                     self.is_connected = False
                     await self.reconnect()
                     break
                 except Exception as e:
-                    print(f"❌ 메시지 수신 중 오류: {e}")
-                    logger.error(f"❌ 메시지 수신 중 오류: {e}")
+                    print(f"[X] 메시지 수신 중 오류: {e}")
+                    logger.error(f"[X] 메시지 수신 중 오류: {e}")
                     continue
 
         except Exception as e:
-            logger.error(f"❌ 수신 루프 중 오류: {e}")
+            logger.error(f"[X] 수신 루프 중 오류: {e}")
         finally:
             logger.info("🔄 실시간 데이터 수신 종료")
 
@@ -321,21 +321,21 @@ class WebSocketManager:
                     try:
                         await self.callbacks[data_type](item)
                     except Exception as e:
-                        logger.error(f"❌ 콜백 실행 오류 ({data_type}): {e}")
+                        logger.error(f"[X] 콜백 실행 오류 ({data_type}): {e}")
 
                 if 'ALL' in self.callbacks:
                     try:
                         await self.callbacks['ALL'](item)
                     except Exception as e:
-                        logger.error(f"❌ ALL 콜백 실행 오류: {e}")
+                        logger.error(f"[X] ALL 콜백 실행 오류: {e}")
 
         except Exception as e:
-            logger.error(f"❌ REAL 데이터 처리 중 오류: {e}")
+            logger.error(f"[X] REAL 데이터 처리 중 오류: {e}")
 
     async def reconnect(self):
         """WebSocket 재연결"""
         if self.reconnect_attempts >= self.max_reconnect_attempts:
-            logger.error(f"❌ 최대 재연결 시도 횟수 초과 ({self.max_reconnect_attempts})")
+            logger.error(f"[X] 최대 재연결 시도 횟수 초과 ({self.max_reconnect_attempts})")
             return
 
         self.reconnect_attempts += 1
@@ -379,7 +379,7 @@ class WebSocketManager:
             해지 성공 여부
         """
         if not self.is_connected or not self.is_logged_in:
-            logger.error("❌ WebSocket 미연결 또는 미로그인")
+            logger.error("[X] WebSocket 미연결 또는 미로그인")
             return False
 
         try:
@@ -397,7 +397,7 @@ class WebSocketManager:
             return True
 
         except Exception as e:
-            logger.error(f"❌ 구독 해지 중 오류: {e}")
+            logger.error(f"[X] 구독 해지 중 오류: {e}")
             return False
 
     def get_subscription_info(self) -> Dict[str, Any]:
@@ -435,7 +435,7 @@ async def test_websocket():
         stock_code = data.get('item', '')
         values = data.get('values', {})
         price = values.get('10', '0')
-        print(f"📈 체결: {stock_code} - 현재가 {price}원")
+        print(f"[UP] 체결: {stock_code} - 현재가 {price}원")
 
     async def on_orderbook_data(data):
         """호가 데이터 콜백"""
@@ -443,7 +443,7 @@ async def test_websocket():
         values = data.get('values', {})
         sell_price = values.get('27', '0')
         buy_price = values.get('28', '0')
-        print(f"📊 호가: {stock_code} - 매도 {sell_price}원 / 매수 {buy_price}원")
+        print(f"[CHART] 호가: {stock_code} - 매도 {sell_price}원 / 매수 {buy_price}원")
 
     ws_manager.register_callback('0B', on_price_data)
     ws_manager.register_callback('0D', on_orderbook_data)
@@ -451,7 +451,7 @@ async def test_websocket():
     try:
         success = await ws_manager.connect()
         if not success:
-            print("❌ 연결 실패")
+            print("[X] 연결 실패")
             return
 
         stock_codes = ["005930", "000660", "035720", "051910", "035420"]
@@ -461,11 +461,11 @@ async def test_websocket():
             grp_no="1"
         )
         if not success:
-            print("❌ 구독 실패")
+            print("[X] 구독 실패")
             return
 
-        print(f"\n✅ {len(stock_codes)}개 종목 구독 완료")
-        print("💡 팁: 장중(09:00-15:30)에 테스트하면 실시간 데이터를 받을 수 있습니다.")
+        print(f"\n[OK] {len(stock_codes)}개 종목 구독 완료")
+        print("💡 팁: 장중("09":"00"-15:30)에 테스트하면 실시간 데이터를 받을 수 있습니다.")
         print("     장외시간에는 체결/호가 데이터가 없어 메시지가 수신되지 않습니다.\n")
 
         print("실시간 데이터 수신 중 (30초)...")
@@ -474,7 +474,7 @@ async def test_websocket():
     except asyncio.TimeoutError:
         print("\n⏱️ 타임아웃 (정상)")
     except KeyboardInterrupt:
-        print("\n⚠️ 사용자 중단")
+        print("\n[WARNING]️ 사용자 중단")
     finally:
         await ws_manager.disconnect()
         print("WebSocket 테스트 종료")

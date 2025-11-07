@@ -140,8 +140,10 @@ class InvestorDataAPI:
                 '외국인_순매수': 5000,
                 ...
             }
+            """
         return self.get_investor_trading(stock_code, date)
 
+    """
     """
     def get_intraday_investor_trading_market(
         self,
@@ -404,6 +406,7 @@ class InvestorDataAPI:
         특정 증권사의 특정 종목에 대한 매매 동향을 조회합니다.
 
         Args:
+        """
             firm_code: 회원사코드 (예: '040'=KB증권, '039'=교보증권, '001'=한국투자증권)
             stock_code: 종목코드
             days: 조회 일수 (기본 3일)
@@ -420,6 +423,7 @@ class InvestorDataAPI:
                 },
                 ...
             ]
+        """
         """
         try:
             from datetime import datetime, timedelta

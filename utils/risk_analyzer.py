@@ -102,7 +102,7 @@ class RiskAnalyzer:
     포괄적인 리스크 분석 시스템
     """
 
-    def __init__(self, risk_free_rate: float = 0.03):
+    def __init__(self, risk_free_rate: float = 0."03"):
         """
         Args:
             risk_free_rate: 무위험 수익률 (연간)
@@ -183,7 +183,7 @@ class RiskAnalyzer:
         avg_return = np.mean(returns) * 252
         sharpe = self._sharpe_ratio(returns, self.risk_free_rate)
         sortino = self._sortino_ratio(returns, self.risk_free_rate)
-        calmar = avg_return / (dd_metrics['max_drawdown'] + 0.01)
+        calmar = avg_return / (dd_metrics['max_drawdown'] + 0."01")
         omega = self._omega_ratio(returns, self.risk_free_rate)
 
         stress_scenarios = self._run_stress_tests(closes[-1], historical_vol)
@@ -657,29 +657,29 @@ class RiskAnalyzer:
         recommendations = []
 
         if metrics.get('max_weight', 0) > 0.3:
-            recommendations.append("⚠️ 포지션 집중도 높음 - 분산 투자 권장")
+            recommendations.append("[WARNING]️ 포지션 집중도 높음 - 분산 투자 권장")
 
         herfindahl = metrics.get('concentration', 0.0)
         if herfindahl > 0.25:
-            recommendations.append("⚠️ 포트폴리오 집중도 높음 - 종목 수 확대 필요")
+            recommendations.append("[WARNING]️ 포트폴리오 집중도 높음 - 종목 수 확대 필요")
 
         if metrics.get('diversification_ratio', 1.0) < 0.7:
-            recommendations.append("✅ 우수한 분산 효과")
+            recommendations.append("[OK] 우수한 분산 효과")
         elif metrics.get('diversification_ratio', 1.0) > 0.9:
-            recommendations.append("⚠️ 분산 효과 미흡 - 상관관계 낮은 종목 추가")
+            recommendations.append("[WARNING]️ 분산 효과 미흡 - 상관관계 낮은 종목 추가")
 
         risk_score = metrics.get('risk_score', 0)
         if risk_score > 70:
             recommendations.append("🚨 높은 리스크 - 포지션 축소 검토")
         elif risk_score < 30:
-            recommendations.append("✅ 낮은 리스크 - 안정적 포트폴리오")
+            recommendations.append("[OK] 낮은 리스크 - 안정적 포트폴리오")
 
         max_dd = abs(metrics.get('max_drawdown', 0.0))
         if max_dd > 0.20:
-            recommendations.append("⚠️ 큰 낙폭 경험 - 손절 전략 강화 필요")
+            recommendations.append("[WARNING]️ 큰 낙폭 경험 - 손절 전략 강화 필요")
 
         if not recommendations:
-            recommendations.append("✅ 적정 리스크 수준")
+            recommendations.append("[OK] 적정 리스크 수준")
 
         return recommendations
 
@@ -757,5 +757,5 @@ def get_risk_analyzer() -> RiskAnalyzer:
     """Get risk analyzer singleton"""
     global _risk_analyzer
     if _risk_analyzer is None:
-        _risk_analyzer = RiskAnalyzer(risk_free_rate=0.03)
+        _risk_analyzer = RiskAnalyzer(risk_free_rate=0."03")
     return _risk_analyzer

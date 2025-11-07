@@ -4,9 +4,9 @@ test_all_394_calls.py
 """
 
 실행 시간: 오전 8시 ~ 오후 8시 (12시간)
-- 장 시작 전: 8:00-9:00 (일부 API 테스트 가능)
-- 장중: 9:00-15:30 (대부분 API 테스트 가능)
-- 장 마감 후: 15:30-20:00 (일부 API 테스트 가능)
+- 장 시작 전: 8:"00"-9:"00" (일부 API 테스트 가능)
+- 장중: 9:"00"-15:30 (대부분 API 테스트 가능)
+- 장 마감 후: 15:30-20:"00" (일부 API 테스트 가능)
 import os
 import sys
 import requests
@@ -116,7 +116,7 @@ class All394APITester:
         """394개 전체 API 호출 테스트"""
         api_file = Path("all_394_api_calls.json")
         if not api_file.exists():
-            print(f"❌ {api_file} 파일이 없습니다.")
+            print(f"[X] {api_file} 파일이 없습니다.")
             print("먼저 extract_all_394_variants.py를 실행하세요.")
             return
 
@@ -155,9 +155,9 @@ class All394APITester:
                 current_status = result["current_status"]
 
                 status_symbol = {
-                    "success": "✅",
-                    "no_data": "⚠️",
-                    "error": "❌"
+                    "success": "[OK]",
+                    "no_data": "[WARNING]️",
+                    "error": "[X]"
                 }.get(current_status, "❓")
 
                 data_info = ""
@@ -169,7 +169,7 @@ class All394APITester:
                         stayed_success += 1
                     else:
                         changed_to_success += 1
-                        data_info += f" [원래:{original_status}→성공!]"
+                        data_info += f" [원래:{original_status}->성공!]"
 
                 elif current_status == "no_data":
                     no_data_count += 1
@@ -179,11 +179,11 @@ class All394APITester:
 
                     if original_status == "success":
                         changed_to_error += 1
-                        data_info += " [원래:성공→실패]"
+                        data_info += " [원래:성공->실패]"
 
                 print(f"  {status_symbol} Var {variant_idx}: {current_status}{data_info}")
 
-                time_module.sleep(0.05)
+                time_module.sleep(0."05")
 
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         output_file = f"all_394_test_results_{timestamp}.json"
@@ -191,23 +191,23 @@ class All394APITester:
             json.dump(self.results, f, indent=2, ensure_ascii=False)
 
         print("\n" + "="*80)
-        print("📊 테스트 결과 요약")
+        print("[CHART] 테스트 결과 요약")
         print("="*80)
         print(f"총 테스트: {total_calls}개")
-        print(f"  ✅ 성공 (데이터 확인): {success_count}개 ({success_count/total_calls*100:.1f}%)")
-        print(f"  ⚠️  성공 (데이터 없음): {no_data_count}개 ({no_data_count/total_calls*100:.1f}%)")
-        print(f"  ❌ 실패: {error_count}개 ({error_count/total_calls*100:.1f}%)")
+        print(f"  [OK] 성공 (데이터 확인): {success_count}개 ({success_count/total_calls*100:.1f}%)")
+        print(f"  [WARNING]️  성공 (데이터 없음): {no_data_count}개 ({no_data_count/total_calls*100:.1f}%)")
+        print(f"  [X] 실패: {error_count}개 ({error_count/total_calls*100:.1f}%)")
         print()
         print("상태 변경:")
-        print(f"  ✅ 성공 유지: {stayed_success}개")
-        print(f"  🎉 실패→성공 변경: {changed_to_success}개")
-        print(f"  ⚠️  성공→실패 변경: {changed_to_error}개")
+        print(f"  [OK] 성공 유지: {stayed_success}개")
+        print(f"  🎉 실패->성공 변경: {changed_to_success}개")
+        print(f"  [WARNING]️  성공->실패 변경: {changed_to_error}개")
         print("="*80)
         print(f"\n💾 결과 저장: {output_file}")
 
 
 def check_time_allowed():
-    """현재 시간이 실행 가능 시간인지 확인 (8:00~20:00)"""
+    """현재 시간이 실행 가능 시간인지 확인 (8:"00"~20:"00")"""
     now = datetime.now().time()
     start_time = time(8, 0)
     end_time = time(20, 0)
@@ -215,7 +215,7 @@ def check_time_allowed():
     if start_time <= now <= end_time:
         return True, "실행 가능 시간대입니다."
     else:
-        return False, f"실행 가능 시간: 08:00~20:00 (현재: {now.strftime('%H:%M')})"
+        return False, f"실행 가능 시간: "08":"00"~20:"00" (현재: {now.strftime('%H:%M')})"
 
 
 def main():
@@ -235,13 +235,13 @@ def main():
 
     print("\n[1] 토큰 발급")
     if not tester.get_token():
-        print("❌ 토큰 발급 실패")
+        print("[X] 토큰 발급 실패")
         print("\n가능한 원인:")
         print("  - API 키/시크릿키 오류")
         print("  - 네트워크 연결 오류")
         print("  - 키움 API 서버 점검")
         sys.exit(1)
-    print("✅ 토큰 발급 성공")
+    print("[OK] 토큰 발급 성공")
 
     print("\n[2] 394개 API 호출 테스트 시작")
     print("(약 20분 소요 예상 - 394개 × 0.05초 간격)")
@@ -254,7 +254,7 @@ def main():
     print(f"\n⏱️  총 소요 시간: {elapsed:.1f}초 ({elapsed/60:.1f}분)")
 
     print("\n" + "="*80)
-    print("✅ 전체 테스트 완료!")
+    print("[OK] 전체 테스트 완료!")
     print("="*80)
 
 

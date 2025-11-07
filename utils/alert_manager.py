@@ -114,7 +114,7 @@ class AlertManager:
             self._create_alert(
                 alert_type=AlertType.PROFIT_TARGET,
                 level=AlertLevel.CRITICAL,
-                title=f"🎯 익절 목표 도달: {stock_name}",
+                title=f"[TARGET] 익절 목표 도달: {stock_name}",
                 message=f"{profit_loss_rate:+.2f}% 수익 달성! 익절을 고려하세요.",
                 stock_code=stock_code,
                 stock_name=stock_name,
@@ -127,7 +127,7 @@ class AlertManager:
             self._create_alert(
                 alert_type=AlertType.STOP_LOSS,
                 level=AlertLevel.CRITICAL,
-                title=f"⚠️ 손절 기준 도달: {stock_name}",
+                title=f"[WARNING]️ 손절 기준 도달: {stock_name}",
                 message=f"{profit_loss_rate:+.2f}% 손실 발생. 손절을 고려하세요.",
                 stock_code=stock_code,
                 stock_name=stock_name,
@@ -140,7 +140,7 @@ class AlertManager:
             self._create_alert(
                 alert_type=AlertType.BIG_PROFIT,
                 level=AlertLevel.WARNING,
-                title=f"📈 큰 수익: {stock_name}",
+                title=f"[UP] 큰 수익: {stock_name}",
                 message=f"{profit_loss_rate:+.2f}% 수익 중입니다.",
                 stock_code=stock_code,
                 stock_name=stock_name,
@@ -153,7 +153,7 @@ class AlertManager:
             self._create_alert(
                 alert_type=AlertType.BIG_LOSS,
                 level=AlertLevel.WARNING,
-                title=f"📉 손실 발생: {stock_name}",
+                title=f"[DOWN] 손실 발생: {stock_name}",
                 message=f"{profit_loss_rate:+.2f}% 손실 중입니다.",
                 stock_code=stock_code,
                 stock_name=stock_name,
@@ -167,7 +167,7 @@ class AlertManager:
         self._create_alert(
             alert_type=AlertType.POSITION_OPENED,
             level=AlertLevel.INFO,
-            title=f"✅ 신규 매수: {stock_name}",
+            title=f"[OK] 신규 매수: {stock_name}",
             message=f"{buy_price:,}원 × {quantity}주 매수 완료",
             stock_code=stock_code,
             stock_name=stock_name,
@@ -182,7 +182,7 @@ class AlertManager:
         self._create_alert(
             alert_type=AlertType.POSITION_CLOSED,
             level=level,
-            title=f"💰 매도 완료: {stock_name}",
+            title=f"[MONEY] 매도 완료: {stock_name}",
             message=f"{sell_price:,}원 매도 ({profit_loss_rate:+.2f}%) - {reason}",
             stock_code=stock_code,
             stock_name=stock_name,

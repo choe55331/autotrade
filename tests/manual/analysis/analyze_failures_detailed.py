@@ -100,7 +100,7 @@ def deep_analyze_total_failures(total_fail):
             priority = "중"
 
         if '주문체결현황' in api_name:
-            suspected_causes.append("📊 당일 주문 내역 없음")
+            suspected_causes.append("[CHART] 당일 주문 내역 없음")
             recommendations.append("당일 주문이 있을 때 테스트")
             priority = "중"
 
@@ -119,7 +119,7 @@ def deep_analyze_total_failures(total_fail):
             recommendations.append("다른 조건으로 재시도 또는 실제 데이터 생성 후 테스트")
 
         if api_error == info['total_variants']:
-            suspected_causes.append("❌ API 호출 자체 오류 (return_code≠0)")
+            suspected_causes.append("[X] API 호출 자체 오류 (return_code≠0)")
             recommendations.append("파라미터 검증, 문서 재확인, 또는 API 권한 확인")
             priority = "높음"
 
@@ -165,21 +165,21 @@ def deep_analyze_partial_failures(partial_fail):
 
         if has_date_params:
             insights.append("📅 실패한 variant들이 날짜 파라미터 포함")
-            insights.append("   → 조회 기간에 데이터가 없거나 과거 날짜 조회 제한 가능성")
+            insights.append("   -> 조회 기간에 데이터가 없거나 과거 날짜 조회 제한 가능성")
 
         if any('stk_cd' in params for params in failed_params):
             stock_codes = [params.get('stk_cd') for params in failed_params if 'stk_cd' in params]
             if stock_codes:
                 insights.append(f"🏢 실패한 종목코드: {', '.join(set(stock_codes))}")
-                insights.append("   → 해당 종목에 데이터가 없거나 종목코드 오류 가능성")
+                insights.append("   -> 해당 종목에 데이터가 없거나 종목코드 오류 가능성")
 
         success_variant_count = success
         if failed > success_variant_count:
             insights.append(f"⚖️  성공({success}) < 실패({failed}) - 대부분 variant 실패")
-            insights.append("   → 특정 조건만 데이터 존재, 파라미터 재검토 필요")
+            insights.append("   -> 특정 조건만 데이터 존재, 파라미터 재검토 필요")
         else:
             insights.append(f"⚖️  성공({success}) > 실패({failed}) - 일부 variant만 실패")
-            insights.append("   → 실패한 조건의 데이터가 없거나 파라미터 오류")
+            insights.append("   -> 실패한 조건의 데이터가 없거나 파라미터 오류")
 
         analyses[api_id] = {
             'name': api_name,
@@ -205,7 +205,7 @@ def generate_detailed_report():
     report.append("="*80)
     report.append("실패 API 집중 분석 보고서")
     report.append("="*80)
-    report.append("\n📊 분석 개요")
+    report.append("\n[CHART] 분석 개요")
     report.append("-"*80)
     report.append(f"전체 실패 API: {len(total_fail)}개 (모든 variant 실패)")
     report.append(f"부분 실패 API: {len(partial_fail)}개 (일부 variant 실패)")
@@ -226,10 +226,10 @@ def generate_detailed_report():
         report.append(f"┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
         report.append(f"  📍 Path: {', '.join(analysis['paths'])}")
-        report.append(f"  📊 Variants: {analysis['total_variants']}개 (no_data: {analysis['no_data_count']}, api_error: {analysis['api_error_count']})")
-        report.append(f"  🎯 우선순위: {analysis['priority']}")
+        report.append(f"  [CHART] Variants: {analysis['total_variants']}개 (no_data: {analysis['no_data_count']}, api_error: {analysis['api_error_count']})")
+        report.append(f"  [TARGET] 우선순위: {analysis['priority']}")
 
-        report.append(f"\n  🔍 추정 원인:")
+        report.append(f"\n  [SEARCH] 추정 원인:")
         for cause in analysis['suspected_causes']:
             report.append(f"     {cause}")
 
@@ -252,10 +252,10 @@ def generate_detailed_report():
         report.append(f"┃ [{api_id}] {analysis['name']}")
         report.append(f"┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
-        report.append(f"  ✅ 성공: {analysis['success_count']}개 variant")
-        report.append(f"  ❌ 실패: {analysis['failed_count']}개 variant")
+        report.append(f"  [OK] 성공: {analysis['success_count']}개 variant")
+        report.append(f"  [X] 실패: {analysis['failed_count']}개 variant")
 
-        report.append(f"\n  🔍 패턴 분석:")
+        report.append(f"\n  [SEARCH] 패턴 분석:")
         for insight in analysis['insights']:
             report.append(f"     {insight}")
 
@@ -287,7 +287,7 @@ def generate_detailed_report():
     report.append(f"\n  🔴 높음 ({len(high_priority)}개) - 즉시 처리 필요")
     for api_id in high_priority:
         report.append(f"     [{api_id}] {total_analyses[api_id]['name']}")
-        report.append(f"     → {total_analyses[api_id]['recommendations'][0]}")
+        report.append(f"     -> {total_analyses[api_id]['recommendations'][0]}")
 
     report.append(f"\n  🟡 중 ({len(medium_priority)}개) - 조건 충족 시 재테스트")
     for api_id in medium_priority:
@@ -301,10 +301,10 @@ def generate_detailed_report():
     report.append("5️⃣ 종합 권장 사항")
     report.append("="*80)
 
-    report.append("\n  ✅ 즉시 실행 가능:")
+    report.append("\n  [OK] 즉시 실행 가능:")
     report.append("     1. production_api_config.json의 검증된 347개 호출 사용")
     report.append("     2. 부분 실패 API는 성공한 variant만 사용")
-    report.append("     3. 8:00-20:00 시간대에만 API 호출")
+    report.append("     3. 8:"00"-20:"00" 시간대에만 API 호출")
 
     report.append("\n  🔧 추가 조치 필요:")
     report.append("     1. 업종프로그램요청 (ka10010): 파라미터 재검토 필요 [우선순위: 높음]")
@@ -317,7 +317,7 @@ def generate_detailed_report():
     report.append("     3. 부분 실패 API는 성공 패턴을 기반으로 파라미터 최적화")
 
     report.append("\n  ⏰ 테스트 가이드:")
-    report.append("     1. 전체 테스트: 장 시작 전 (8:00-9:00) 또는 장 마감 후 (15:30-20:00)")
+    report.append("     1. 전체 테스트: 장 시작 전 (8:"00"-9:"00") 또는 장 마감 후 (15:30-20:"00")")
     report.append("     2. 주문 관련 API: 실제 주문 후 즉시 테스트")
     report.append("     3. 일별 데이터 API: 전일 데이터가 있는 시점 테스트")
 

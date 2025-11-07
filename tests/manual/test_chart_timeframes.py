@@ -49,7 +49,7 @@ class ChartTimeframesTester:
             response = self.client.request(api_id=api_id, body=body, path=path)
 
             if response:
-                print(f"✅ API 호출 성공!")
+                print(f"[OK] API 호출 성공!")
                 print(f"응답 키: {list(response.keys())}")
 
                 has_data = False
@@ -64,12 +64,12 @@ class ChartTimeframesTester:
                             print(f"      첫 번째 항목 키: {list(value[0].keys())}")
                             print(f"      첫 번째 항목 샘플: {json.dumps(value[0], ensure_ascii=False, indent=8)}")
                         else:
-                            print(f"      ⚠️ 데이터가 비어있음 (빈 배열)")
+                            print(f"      [WARNING]️ 데이터가 비어있음 (빈 배열)")
                     else:
                         print(f"   - {key}: {value}")
 
                 if has_data:
-                    print(f"✅ 실제 데이터 있음: {data_count}개")
+                    print(f"[OK] 실제 데이터 있음: {data_count}개")
                     self.success_results.append({
                         'test_name': test_name,
                         'api_id': api_id,
@@ -80,7 +80,7 @@ class ChartTimeframesTester:
                     })
                     return True
                 else:
-                    print(f"❌ API 호출은 성공했지만 데이터가 없음")
+                    print(f"[X] API 호출은 성공했지만 데이터가 없음")
                     self.failed_results.append({
                         'test_name': test_name,
                         'api_id': api_id,
@@ -90,7 +90,7 @@ class ChartTimeframesTester:
                     })
                     return False
             else:
-                print(f"❌ 실패: 응답 없음")
+                print(f"[X] 실패: 응답 없음")
                 self.failed_results.append({
                     'test_name': test_name,
                     'api_id': api_id,
@@ -101,7 +101,7 @@ class ChartTimeframesTester:
                 return False
 
         except Exception as e:
-            print(f"❌ 실패: {e}")
+            print(f"[X] 실패: {e}")
             self.failed_results.append({
                 'test_name': test_name,
                 'api_id': api_id,
@@ -258,12 +258,12 @@ class ChartTimeframesTester:
         success_rate = len(self.success_results) / total * 100 if total > 0 else 0
 
         print(f"\n전체: {total}개")
-        print(f"✅ 성공: {len(self.success_results)}개 ({success_rate:.1f}%)")
-        print(f"❌ 실패: {len(self.failed_results)}개")
+        print(f"[OK] 성공: {len(self.success_results)}개 ({success_rate:.1f}%)")
+        print(f"[X] 실패: {len(self.failed_results)}개")
 
         if self.success_results:
             print(f"\n{'='*80}")
-            print(f"✅ 성공한 API 목록")
+            print(f"[OK] 성공한 API 목록")
             print(f"{'='*80}")
             for result in self.success_results:
                 print(f"\n[{result['test_name']}]")
@@ -276,7 +276,7 @@ class ChartTimeframesTester:
             output_file = BASE_DIR / "tests" / "manual_tests" / "successful_chart_apis.json"
             with open(output_file, 'w', encoding='utf-8') as f:
                 json.dump(self.success_results, f, ensure_ascii=False, indent=2)
-            print(f"\n✅ 성공 결과 저장: {output_file}")
+            print(f"\n[OK] 성공 결과 저장: {output_file}")
 
 
 def main():

@@ -51,7 +51,8 @@ class BlackScholesModel:
     - Implied volatility
     """
 
-    def __init__(self, risk_free_rate: float = 0.02):
+    def __init__(self, risk_free_rate: float = 0."02"):
+        """
         """
         self.risk_free_rate = risk_free_rate
 
@@ -115,7 +116,7 @@ class BlackScholesModel:
             return OptionGreeks(
                 delta=0.5 if option_type == 'call' else -0.5,
                 gamma=0.1,
-                theta=-0.05,
+                theta=-0."05",
                 vega=0.2,
                 rho=0.1
             )
@@ -179,11 +180,11 @@ class BlackScholesModel:
         volatility = 0.3
 
         for _ in range(100):
-            """
             price = self.price_option(spot_price, strike_price, time_to_expiry, volatility, option_type)
+            """
             diff = option_price - price
 
-            if abs(diff) < 0.001:
+            if abs(diff) < 0."001":
                 return volatility
 
             greeks = self.calculate_greeks(spot_price, strike_price, time_to_expiry, volatility, option_type)
@@ -194,7 +195,7 @@ class BlackScholesModel:
 
             volatility += diff / vega
 
-            volatility = max(0.001, min(3.0, volatility))
+            volatility = max(0."001", min(3.0, volatility))
 
         return float(volatility)
 
@@ -211,6 +212,7 @@ class OptionsStrategyAnalyzer:
     """
 
     def __init__(self):
+        """
         """
         self.bs_model = BlackScholesModel()
 
@@ -345,6 +347,7 @@ class HighFrequencyTrader:
 
     def __init__(self):
         """
+        """
         self.order_queue = []
         self.execution_times = []
         self.avg_latency_us = 0.0
@@ -376,7 +379,7 @@ class HighFrequencyTrader:
             profit = max_bid - min_ask
             profit_pct = profit / min_ask * 100
 
-            if profit_pct > 0.05:
+            if profit_pct > 0."05":
                 return HFTSignal(
                     signal_type='arbitrage',
                     action='arbitrage',
@@ -409,7 +412,7 @@ class HighFrequencyTrader:
         """
         half_spread = spread / 2
 
-        inventory_skew = (inventory - target_inventory) * 0.001
+        inventory_skew = (inventory - target_inventory) * 0."001"
 
         bid_price = mid_price - half_spread - inventory_skew
         ask_price = mid_price + half_spread - inventory_skew
@@ -437,7 +440,7 @@ class HighFrequencyTrader:
         recent = price_changes[-window:]
         momentum = np.sum(recent) / window
 
-        if momentum > 0.0001:
+        if momentum > 0."0001":
             return HFTSignal(
                 signal_type='momentum',
                 action='buy',
@@ -446,7 +449,7 @@ class HighFrequencyTrader:
                 confidence=0.7,
                 timestamp=time.time()
             )
-        elif momentum < -0.0001:
+        elif momentum < -0."0001":
             return HFTSignal(
                 signal_type='momentum',
                 action='sell',
@@ -479,7 +482,7 @@ class HighFrequencyTrader:
             latency_us = np.random.uniform(10, 100)
             time.sleep(latency_us / 1_000_000)
 
-            fill_price = order.price * (1 + np.random.uniform(-0.0001, 0.0001))
+            fill_price = order.price * (1 + np.random.uniform(-0."0001", 0."0001"))
             status = 'filled'
         else:
             fill_price = order.price

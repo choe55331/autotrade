@@ -19,6 +19,7 @@ class PositionManager:
 
     def __init__(self):
         """
+        """
         self.positions: Dict[str, Position] = {}
         logger.info("포지션 관리자 초기화")
 

@@ -28,6 +28,7 @@ def fix_docstring_issues(file_path: Path) -> bool:
                 if stripped.startswith('def ') or stripped.startswith('async def '):
                     if next_line and not next_line.startswith('"""') and not next_line.startswith('#') and not next_line.startswith('return') and not next_line.startswith('if ') and not next_line.startswith('for ') and not next_line.startswith('while ') and not next_line.startswith('try:') and ':' not in next_line:
 
+"""
                         j = i + 1
                         docstring_lines = []
 
@@ -41,6 +42,7 @@ def fix_docstring_issues(file_path: Path) -> bool:
                                 break
 
                             docstring_lines.append(lines[j])
+                            """
                             j += 1
 
                         if docstring_lines:
@@ -61,7 +63,7 @@ def fix_docstring_issues(file_path: Path) -> bool:
 
         content = '\n'.join(lines)
 
-        content = re.sub(r'^\s*[⚠️❌✅🔧🔌📊📤📥⏳✓🎯🐂🐻📩🔄].*\n', '', content, flags=re.MULTILINE)
+        content = re.sub(r'^\s*[[WARNING]️[X][OK]🔧🔌[CHART]📤📥⏳✓[TARGET]🐂🐻📩🔄].*\n', '', content, flags=re.MULTILINE)
 
         if content != original:
             with open(file_path, 'w', encoding='utf-8') as f:
@@ -144,9 +146,9 @@ def main():
                 error_count += 1
 
     print("=" * 70)
-    print(f"✅ {fixed_count}개 파일 수정 완료")
+    print(f"[OK] {fixed_count}개 파일 수정 완료")
     if error_count > 0:
-        print(f"❌ {error_count}개 파일 수정 실패 (수동 확인 필요)")
+        print(f"[X] {error_count}개 파일 수정 실패 (수동 확인 필요)")
 
     return error_count == 0
 

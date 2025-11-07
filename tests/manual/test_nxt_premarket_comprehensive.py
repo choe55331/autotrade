@@ -1,5 +1,5 @@
 """
-NXT 프리마켓(08:00-09:00) 현재가 조회 종합 테스트
+NXT 프리마켓("08":"00"-"09":"00") 현재가 조회 종합 테스트
 """
 
 오전 8시~9시 사이에 실행하여 다양한 조건에서 NXT 현재가 조회 테스트
@@ -52,7 +52,7 @@ class NXTPremarketTester:
 
     def log_test_result(self, test_name: str, success: bool, data: Any, error: str = ""):
         """테스트 결과 로깅 및 저장"""
-        status = "✅ 성공" if success else "❌ 실패"
+        status = "[OK] 성공" if success else "[X] 실패"
         logger.info(f"{status} - {test_name}")
         if success and data:
             logger.info(f"  현재가: {data.get('current_price', 'N/A'):,}원")
@@ -70,7 +70,7 @@ class NXTPremarketTester:
 
 
     def test_stock_code_basic(self, stock_code: str) -> Dict[str, Any]:
-        """테스트 1: 기본 종목코드 (예: 005930)"""
+        """테스트 1: 기본 종목코드 (예: "005930")"""
         self.log_test_start(
             "1. 기본 종목코드",
             f"종목코드: {stock_code} (변형 없음)"
@@ -398,8 +398,8 @@ class NXTPremarketTester:
         logger.info(f"{'#'*80}\n")
 
         if not is_nxt_hours():
-            logger.warning("⚠️  현재 NXT 시간대가 아닙니다!")
-            logger.warning("    프리마켓: 08:00-09:00")
+            logger.warning("[WARNING]️  현재 NXT 시간대가 아닙니다!")
+            logger.warning("    프리마켓: "08":"00"-"09":00")
             logger.warning("    애프터마켓: 15:30-20:00")
             response = input("\n계속 진행하시겠습니까? (yes/no): ")
             if response.lower() != 'yes':
@@ -448,14 +448,14 @@ class NXTPremarketTester:
         logger.info(f"실패: {len(failed_tests)}개 ({len(failed_tests)/total_tests*100:.1f}%)")
 
         if successful_tests:
-            logger.info(f"\n✅ 성공한 테스트:")
+            logger.info(f"\n[OK] 성공한 테스트:")
             for r in successful_tests:
                 price = r['data'].get('current_price', 'N/A')
                 source = r['data'].get('source', 'N/A')
                 logger.info(f"  - {r['test_name']}: {price:,}원 (출처: {source})")
 
         if failed_tests:
-            logger.info(f"\n❌ 실패한 테스트:")
+            logger.info(f"\n[X] 실패한 테스트:")
             for r in failed_tests:
                 logger.info(f"  - {r['test_name']}: {r['error']}")
 

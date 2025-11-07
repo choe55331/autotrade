@@ -104,7 +104,7 @@ class VerifiedAPITester:
         """모든 검증된 API 호출 테스트"""
         verified_file = Path("verified_api_calls.json")
         if not verified_file.exists():
-            print(f"❌ {verified_file} 파일이 없습니다.")
+            print(f"[X] {verified_file} 파일이 없습니다.")
             return
 
         with open(verified_file, 'r', encoding='utf-8') as f:
@@ -134,9 +134,9 @@ class VerifiedAPITester:
                 self.results.append(result)
 
                 status_symbol = {
-                    "success": "✅",
-                    "no_data": "⚠️",
-                    "error": "❌"
+                    "success": "[OK]",
+                    "no_data": "[WARNING]️",
+                    "error": "[X]"
                 }.get(result["status"], "❓")
 
                 data_info = ""
@@ -159,9 +159,9 @@ class VerifiedAPITester:
         print("테스트 결과 요약")
         print("="*80)
         print(f"총 테스트: {total_calls}개")
-        print(f"  ✅ 성공 (데이터 확인): {success_count}개 ({success_count/total_calls*100:.1f}%)")
-        print(f"  ⚠️  성공 (데이터 없음): {no_data_count}개 ({no_data_count/total_calls*100:.1f}%)")
-        print(f"  ❌ 실패: {error_count}개 ({error_count/total_calls*100:.1f}%)")
+        print(f"  [OK] 성공 (데이터 확인): {success_count}개 ({success_count/total_calls*100:.1f}%)")
+        print(f"  [WARNING]️  성공 (데이터 없음): {no_data_count}개 ({no_data_count/total_calls*100:.1f}%)")
+        print(f"  [X] 실패: {error_count}개 ({error_count/total_calls*100:.1f}%)")
         print("="*80)
         print(f"\n💾 결과 저장: {output_file}")
 
@@ -175,9 +175,9 @@ def main():
 
     print("\n[1] 토큰 발급")
     if not tester.get_token():
-        print("❌ 토큰 발급 실패")
+        print("[X] 토큰 발급 실패")
         sys.exit(1)
-    print("✅ 토큰 발급 성공")
+    print("[OK] 토큰 발급 성공")
 
     print("\n[2] 검증된 API 테스트 시작")
     tester.run_all_verified_tests()
