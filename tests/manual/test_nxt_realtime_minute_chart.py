@@ -84,7 +84,7 @@ async def test_realtime_minute_chart():
     print("🔧 API 토큰 가져오는 중...")
     from core.rest_client import KiwoomRESTClient
 
-    client = KiwoomRESTClient.get_instance()
+    client = KiwoomRESTClient()  # 싱글톤 패턴
 
     if not client or not hasattr(client, 'token') or not client.token:
         print("❌ API 토큰 없음 - 로그인 필요")
@@ -311,7 +311,7 @@ async def test_comparison():
     # API 토큰 가져오기
     from core.rest_client import KiwoomRESTClient
 
-    client = KiwoomRESTClient.get_instance()
+    client = KiwoomRESTClient()  # 싱글톤 패턴
 
     if not client or not hasattr(client, 'token') or not client.token:
         print("❌ API 토큰 없음")
