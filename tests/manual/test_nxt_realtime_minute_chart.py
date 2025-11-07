@@ -80,28 +80,37 @@ async def test_realtime_minute_chart():
             print(f"  시간대: ⏰ 장외 시간 (20:00-08:00)")
     print()
 
-    # 봇 초기화
-    print("🔧 TradingBot 초기화 중...")
-    bot = TradingBotV2()
+    # API 토큰 가져오기
+    print("🔧 API 토큰 가져오는 중...")
+    from core.rest_client import KiwoomRESTClient
 
-    if not bot.client:
-        print("❌ API 연결 실패")
-        return
+    client = KiwoomRESTClient.get_instance()
 
-    if not hasattr(bot.client, 'token') or not bot.client.token:
+    if not client or not hasattr(client, 'token') or not client.token:
         print("❌ API 토큰 없음 - 로그인 필요")
         return
 
-    print("✅ API 연결 성공")
+    print("✅ API 토큰 확보")
     print()
 
-    # WebSocket Manager 확인
-    if not bot.websocket_manager:
-        print("❌ WebSocket Manager 없음")
+    # WebSocket Manager 직접 생성
+    print("🔧 WebSocket Manager 생성 중...")
+    from core.websocket_manager import WebSocketManager
+
+    ws_manager = WebSocketManager(
+        access_token=client.token,
+        base_url=client.base_url
+    )
+
+    # WebSocket 연결
+    print("🔌 WebSocket 연결 중...")
+    connect_success = await ws_manager.connect()
+
+    if not connect_success:
+        print("❌ WebSocket 연결 실패")
         return
 
-    print(f"✅ WebSocket Manager 준비 완료")
-    print(f"  연결 상태: {'✅ 연결됨' if bot.websocket_manager.is_connected else '❌ 미연결'}")
+    print("✅ WebSocket 연결 성공")
     print()
 
     # 테스트 종목
@@ -118,7 +127,7 @@ async def test_realtime_minute_chart():
 
     # 실시간 분봉 매니저 생성
     print("🎯 실시간 분봉 매니저 생성 중...")
-    chart_manager = RealtimeMinuteChartManager(bot.websocket_manager)
+    chart_manager = RealtimeMinuteChartManager(ws_manager)
     print("✅ 매니저 생성 완료")
     print()
 
@@ -232,6 +241,16 @@ async def test_realtime_minute_chart():
 
     print()
 
+    # WebSocket 연결 종료
+    print("🔌 WebSocket 연결 종료 중...")
+    try:
+        await ws_manager.disconnect()
+        print("✅ WebSocket 연결 종료 완료")
+    except Exception as e:
+        print(f"⚠️ WebSocket 종료 중 오류: {e}")
+
+    print()
+
     # 요약
     print_section("📊 테스트 요약")
 
@@ -289,11 +308,13 @@ async def test_comparison():
 
     print_section("📊 REST API vs WebSocket 분봉 비교")
 
-    # 봇 초기화
-    bot = TradingBotV2()
+    # API 토큰 가져오기
+    from core.rest_client import KiwoomRESTClient
 
-    if not bot.client or not bot.websocket_manager:
-        print("❌ 초기화 실패")
+    client = KiwoomRESTClient.get_instance()
+
+    if not client or not hasattr(client, 'token') or not client.token:
+        print("❌ API 토큰 없음")
         return
 
     test_stock = "005930"  # 삼성전자
@@ -306,10 +327,11 @@ async def test_comparison():
     print()
 
     from utils.trading_date import get_last_trading_date
+    from api.market.chart_data import get_minute_chart
 
     last_date = get_last_trading_date()
 
-    rest_data = bot.market_api.get_minute_chart(
+    rest_data = get_minute_chart(
         stock_code=test_stock,
         interval=1,
         count=10,
@@ -329,13 +351,30 @@ async def test_comparison():
     print("━━━ WebSocket 실시간 분봉 생성 ━━━")
     print()
 
-    chart_manager = RealtimeMinuteChartManager(bot.websocket_manager)
+    # WebSocket Manager 생성
+    from core.websocket_manager import WebSocketManager
+
+    ws_manager = WebSocketManager(
+        access_token=client.token,
+        base_url=client.base_url
+    )
+
+    # 연결
+    print("🔌 WebSocket 연결 중...")
+    connect_success = await ws_manager.connect()
+
+    if not connect_success:
+        print("❌ WebSocket 연결 실패")
+        return
+
+    chart_manager = RealtimeMinuteChartManager(ws_manager)
 
     print(f"🔔 {test_stock} 구독 중...")
     success = await chart_manager.add_stock(test_stock)
 
     if not success:
         print(f"❌ 구독 실패")
+        await ws_manager.disconnect()
         return
 
     print(f"✅ 구독 성공")
@@ -356,8 +395,9 @@ async def test_comparison():
 
     print()
 
-    # 구독 해제
+    # 구독 해제 및 연결 종료
     await chart_manager.remove_stock(test_stock)
+    await ws_manager.disconnect()
 
     # 비교 요약
     print_separator("━", 80)
