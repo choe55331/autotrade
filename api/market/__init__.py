@@ -1,9 +1,7 @@
 """
 api/market/__init__.py
 시장 정보 API 통합 모듈
-"""
 
-"""
 모듈화 구조:
 - market_data.py: 시세/호가 데이터
 - chart_data.py: 차트 데이터
