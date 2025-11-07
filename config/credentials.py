@@ -10,7 +10,7 @@ API 키 및 민감정보 관리
 import os
 import json
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, Optional, Any
 
 # 환경변수 로드 (dotenv 선택적)
 try:
