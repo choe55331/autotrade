@@ -314,13 +314,11 @@ def set_setting(path: str, value: Any, save: bool = True):
 
     Example:
         set_setting('risk_management.max_position_size', 0.25)
-        """
         set_setting('ai.enabled', False, save=True)
     """
     _get_manager().set(path, value, save)
 
 
-"""
 def save_config():
     """현재 설정을 파일에 저장"""
     _get_manager().save()
