@@ -40,6 +40,13 @@ def get_position_monitor():
         }
 
         bot_instance = get_bot_instance()
+
+        # Debug logging
+        print(f"[Position Monitor] bot_instance: {bot_instance is not None}")
+        if bot_instance:
+            print(f"[Position Monitor] has account_api: {hasattr(bot_instance, 'account_api')}")
+            print(f"[Position Monitor] has market_api: {hasattr(bot_instance, 'market_api')}")
+
         if bot_instance and hasattr(bot_instance, 'account_api') and hasattr(bot_instance, 'market_api'):
             try:
                 from strategy.scoring_system import ScoringSystem
@@ -47,6 +54,10 @@ def get_position_monitor():
 
                 # Get holdings
                 holdings = bot_instance.account_api.get_holdings()
+                print(f"[Position Monitor] Holdings count: {len(holdings) if holdings else 0}")
+
+                if not holdings or len(holdings) == 0:
+                    print(f"[Position Monitor] No holdings found - returning empty positions")
 
                 for holding in holdings:
                     stock_code = holding.get('stk_cd', '').replace('A', '')
@@ -162,9 +173,12 @@ def get_position_monitor():
                 positions.sort(key=lambda x: x['profit_pct'])
 
             except Exception as e:
-                print(f"Position monitor error: {e}")
+                print(f"[Position Monitor] ERROR: {e}")
                 import traceback
                 traceback.print_exc()
+                print(f"[Position Monitor] Error occurred while processing holdings")
+        else:
+            print(f"[Position Monitor] Bot instance not available or missing APIs")
 
         return jsonify({
             'success': True,
@@ -607,6 +621,10 @@ def get_stock_recommendations():
                         grade = 'D'
                     else:
                         grade = 'F'
+
+                    # Filter out F-grade stocks (AI 추천 종목 기준 강화)
+                    if grade == 'F':
+                        continue
 
                     # Only recommend if score is decent
                     if score >= 120:  # Lower threshold
