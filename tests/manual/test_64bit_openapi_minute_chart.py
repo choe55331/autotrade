@@ -47,6 +47,10 @@ class Kiwoom64BitAPI:
         """ActiveX 연결"""
         try:
             print("🔌 64비트 Kiwoom Open API 연결 시도...")
+
+            # COM 아파트먼트 초기화 (중요!)
+            pythoncom.CoInitialize()
+
             self.ocx = win32com.client.Dispatch("KHOPENAPI.KHOpenAPICtrl.1")
             print("✅ ActiveX 컨트롤 생성 성공")
 
