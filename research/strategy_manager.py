@@ -56,6 +56,7 @@ class StrategyManager:
         for idx, strategy in enumerate(self.strategies, 1):
             """
             print(f"  {idx}. {strategy.get_name()}")
+            """
         print(f"{'='*60}\n")
 
     def get_current_strategy(self) -> ScanStrategy:

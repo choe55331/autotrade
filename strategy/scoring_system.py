@@ -276,6 +276,7 @@ class ScoringSystem:
 
             for future in as_completed(future_to_stock):
                 """
+                """
                 stock = future_to_stock[future]
                 try:
                     score = future.result()
@@ -389,7 +390,7 @@ class ScoringSystem:
 
         - institutional_net_buy (일별, ka10008): 40점
         - foreign_net_buy (일별, ka10008): 10점
-        - institutional_trend (5일 추이, ka10045): 10점 ⭐ NEW
+        - institutional_trend (5일 추이, ka10045): 10점 [STAR] NEW
 
         Args:
             stock_data: 종목 데이터
@@ -434,16 +435,19 @@ class ScoringSystem:
             try:
                 for key, values in institutional_trend.items():
                     """
+                    """
                     if isinstance(values, list) and len(values) > 0:
                         recent = values[0]
 
                         orgn_net = recent.get('orgn_netslmt', '0')
                         if orgn_net and not str(orgn_net).startswith('-'):
                             """
+                            """
                             trend_score += 5.0
 
                         for_net = recent.get('for_netslmt', '0')
                         if for_net and not str(for_net).startswith('-'):
+                            """
                             """
                             trend_score += 5.0
 
@@ -640,8 +644,10 @@ class ScoringSystem:
         if macd is not None:
             if isinstance(macd, dict):
                 """
+                """
                 macd_positive = macd.get('macd', 0) > 0
             elif isinstance(macd, (int, float)):
+                """
                 """
                 macd_positive = macd > 0
 
