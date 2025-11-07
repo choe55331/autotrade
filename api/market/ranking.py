@@ -38,7 +38,7 @@ class RankingAPI:
         limit: int = 20,
         date: str = None
     ) -> List[Dict[str, Any]]:
-        전일 거래량 순위 조회 (ka10031)
+        """전일 거래량 순위 조회 (ka10031)
 
         Args:
             market: 시장구분 ('0': 전체, '1': KOSPI, '2': KOSDAQ)
@@ -51,6 +51,7 @@ class RankingAPI:
         Note:
             이 API는 실시간 전일 데이터만 제공합니다.
             주말/공휴일/장마감 후에는 데이터가 제공되지 않을 수 있습니다.
+        """
         try:
             market_map = {'ALL': '000', 'KOSPI': '001', 'KOSDAQ': '101'}
             mrkt_tp = market_map.get(market.upper(), '001')
@@ -79,7 +80,7 @@ class RankingAPI:
                 print(f"📍 rank_list 크기: {len(rank_list) if rank_list else 0}개")
 
                 if not rank_list:
-                    msg = "⚠️ API 호출 성공했으나 데이터가 비어있습니다 (장마감 후/주말/공휴일일 수 있음)"
+                    msg = "WARNING: API 호출 성공했으나 데이터가 비어있습니다 (장마감 후/주말/공휴일일 수 있음)"
                     print(msg)
                     logger.warning(msg)
                     print(f"📍 전체 응답 키: {list(response.keys())}")
@@ -145,6 +146,7 @@ class RankingAPI:
         limit: int = 20,
         date: str = None
     ) -> List[Dict[str, Any]]:
+        """
         전일대비 등락률 상위 조회 (ka10027)
 
         Args:
@@ -159,6 +161,7 @@ class RankingAPI:
         Note:
             이 API는 실시간 전일 데이터만 제공합니다.
             주말/공휴일/장마감 후에는 데이터가 제공되지 않을 수 있습니다.
+        """
         try:
             market_map = {'ALL': '000', 'KOSPI': '001', 'KOSDAQ': '101'}
             mrkt_tp = market_map.get(market.upper(), '001')
@@ -191,7 +194,7 @@ class RankingAPI:
                 rank_list = response.get('pred_pre_flu_rt_upper', [])
 
                 if not rank_list:
-                    logger.warning("⚠️ API 호출 성공했으나 데이터가 비어있습니다 (장마감 후/주말/공휴일일 수 있음)")
+                    logger.warning("WARNING: API 호출 성공했으나 데이터가 비어있습니다 (장마감 후/주말/공휴일일 수 있음)")
                     return []
 
                 normalized_list = []
@@ -227,6 +230,7 @@ class RankingAPI:
         limit: int = 20,
         include_managed: bool = False
     ) -> List[Dict[str, Any]]:
+        """
         거래대금 상위 조회 (ka10032)
 
         Args:
@@ -240,6 +244,7 @@ class RankingAPI:
         Note:
             이 API는 실시간 전일 데이터만 제공합니다.
             주말/공휴일/장마감 후에는 데이터가 제공되지 않을 수 있습니다.
+        """
         try:
             market_map = {'ALL': '000', 'KOSPI': '001', 'KOSDAQ': '101'}
             mrkt_tp = market_map.get(market.upper(), '001')
@@ -269,7 +274,7 @@ class RankingAPI:
                         break
 
                 if not rank_list:
-                    logger.warning("⚠️ API 호출 성공했으나 데이터가 비어있습니다 (장마감 후/주말/공휴일일 수 있음)")
+                    logger.warning("WARNING: API 호출 성공했으나 데이터가 비어있습니다 (장마감 후/주말/공휴일일 수 있음)")
                     return []
 
                 normalized_list = []
@@ -305,6 +310,7 @@ class RankingAPI:
         limit: int = 20,
         time_interval: int = 5
     ) -> List[Dict[str, Any]]:
+        """
         거래량 급증 종목 조회 (ka10023)
 
         Args:
@@ -314,6 +320,7 @@ class RankingAPI:
 
         Returns:
             거래량 급증 순위 리스트
+        """
         market_map = {'ALL': '000', 'KOSPI': '001', 'KOSDAQ': '101'}
         mrkt_tp = market_map.get(market.upper(), '000')
 
@@ -367,6 +374,7 @@ class RankingAPI:
         sort: str = 'rise',
         limit: int = 20
     ) -> List[Dict[str, Any]]:
+        """
         시가대비 등락률 순위 조회 (ka10028)
 
         Args:
@@ -376,6 +384,7 @@ class RankingAPI:
 
         Returns:
             시가대비 등락률 순위 리스트
+        """
         market_map = {'ALL': '000', 'KOSPI': '001', 'KOSDAQ': '101'}
         mrkt_tp = market_map.get(market.upper(), '000')
 
@@ -435,6 +444,7 @@ class RankingAPI:
         period_days: int = 5,
         limit: int = 20
     ) -> List[Dict[str, Any]]:
+        """
         외국인 기간별 매매 상위 (ka10034)
 
         Args:
@@ -445,6 +455,7 @@ class RankingAPI:
 
         Returns:
             외국인 기간별 매매 순위
+        """
         market_map = {'KOSPI': '001', 'KOSDAQ': '101'}
         mrkt_tp = market_map.get(market.upper(), '001')
 
@@ -491,6 +502,7 @@ class RankingAPI:
         trade_type: str = 'buy',
         limit: int = 20
     ) -> List[Dict[str, Any]]:
+        """
         외국인 연속 순매매 상위 (ka10035)
 
         Args:
@@ -500,6 +512,7 @@ class RankingAPI:
 
         Returns:
             외국인 연속 순매매 순위
+        """
         market_map = {'KOSPI': '001', 'KOSDAQ': '101'}
         mrkt_tp = market_map.get(market.upper(), '001')
 
@@ -548,9 +561,10 @@ class RankingAPI:
         limit: int = 20,
         investor_type: str = 'foreign_buy'
     ) -> List[Dict[str, Any]]:
+        """
         외국인/기관 매매 상위 (ka90009)
 
-        ⚠️ 주의: 이 API는 현재가를 제공하지 않습니다!
+        WARNING: 주의: 이 API는 현재가를 제공하지 않습니다!
         각 항목은 4개의 카테고리로 구성됩니다:
         - for_netprps_: 외국인 순매수 상위
         - for_netslmt_: 외국인 순매도 상위
@@ -569,6 +583,7 @@ class RankingAPI:
             외국인/기관 매매 순위 (현재가 없음)
         from utils.trading_date import get_last_trading_date
 
+        """
         market_map = {'KOSPI': '001', 'KOSDAQ': '101'}
         mrkt_tp = market_map.get(market.upper(), '001')
 
@@ -627,6 +642,7 @@ class RankingAPI:
         market: str = 'KOSPI',
         limit: int = 20
     ) -> List[Dict[str, Any]]:
+        """
         신용비율 상위 (ka10033)
 
         Args:
@@ -635,6 +651,7 @@ class RankingAPI:
 
         Returns:
             신용비율 상위 순위
+        """
         market_map = {'KOSPI': '001', 'KOSDAQ': '101'}
         mrkt_tp = market_map.get(market.upper(), '001')
 
@@ -680,9 +697,10 @@ class RankingAPI:
         investor_type: str = 'foreign',
         limit: int = 20
     ) -> List[Dict[str, Any]]:
+        """
         장중 투자자별 매매 상위 (ka10065)
 
-        ⚠️ 주의: 이 API는 현재가를 제공하지 않습니다!
+        WARNING: 주의: 이 API는 현재가를 제공하지 않습니다!
         매도수량, 매수수량, 순매수량만 제공됩니다.
 
         Args:
@@ -692,6 +710,7 @@ class RankingAPI:
 
         Returns:
             투자자별 매매 순위 (현재가 없음)
+        """
         market_map = {'KOSPI': '001', 'KOSDAQ': '101'}
         mrkt_tp = market_map.get(market.upper(), '001')
 

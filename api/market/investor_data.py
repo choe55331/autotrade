@@ -37,6 +37,7 @@ class InvestorDataAPI:
         stock_code: str,
         date: str = None
     ) -> Optional[Dict[str, Any]]:
+        """
         투자자별 매매 동향 조회 (키움증권 API ka10059)
 
         Args:
@@ -51,6 +52,7 @@ class InvestorDataAPI:
                 '개인_순매수': -15000,
                 ...
             }
+        """
         if not date:
             date = get_last_trading_date()
 
@@ -78,7 +80,7 @@ class InvestorDataAPI:
             latest = stk_invsr_orgn[0]
 
             def parse_value(val: str) -> int:
-                """문자열 값을 정수로 변환 (+/- 기호 제거, 천 단위 → 원 단위)"""
+                """문자열 값을 정수로 변환 (+/- 기호 제거, 천 단위 -> 원 단위)"""
                 if not val:
                     return 0
                 val_str = val.replace('+', '').replace('-', '').strip()
@@ -124,6 +126,7 @@ class InvestorDataAPI:
         stock_code: str,
         date: str = None
     ) -> Optional[Dict[str, Any]]:
+        """
         투자자 매매 데이터 조회 (get_investor_trading의 별칭)
 
         Args:
@@ -139,6 +142,7 @@ class InvestorDataAPI:
             }
         return self.get_investor_trading(stock_code, date)
 
+    """
     def get_intraday_investor_trading_market(
         self,
         market: str = 'KOSPI',
@@ -146,6 +150,7 @@ class InvestorDataAPI:
         amount_or_qty: str = 'amount',
         exchange: str = 'KRX'
     ) -> List[Dict[str, Any]]:
+        """
         장중 투자자별 매매 상위 (ka10063) - 시장 전체
 
         이 API는 특정 종목이 아닌 시장 전체의 투자자별 매매 동향을 조회합니다.
@@ -158,6 +163,7 @@ class InvestorDataAPI:
 
         Returns:
             장중 투자자별 매매 순위 리스트
+        """
         try:
             market_map = {'KOSPI': '001', 'KOSDAQ': '101'}
             mrkt_tp = market_map.get(market.upper(), '001')
@@ -233,6 +239,7 @@ class InvestorDataAPI:
         trade_type: str = 'net_buy',
         exchange: str = 'KRX'
     ) -> List[Dict[str, Any]]:
+        """
         장마감후 투자자별 매매 상위 (ka10066) - 시장 전체
 
         이 API는 특정 종목이 아닌 시장 전체의 장마감후 투자자별 매매 동향을 조회합니다.
@@ -245,6 +252,7 @@ class InvestorDataAPI:
 
         Returns:
             장마감후 투자자별 매매 순위 리스트
+        """
         try:
             market_map = {'KOSPI': '001', 'KOSDAQ': '101'}
             mrkt_tp = market_map.get(market.upper(), '001')
@@ -316,6 +324,7 @@ class InvestorDataAPI:
         days: int = 5,
         price_type: str = 'buy'
     ) -> Optional[Dict[str, Any]]:
+        """
         종목별 기관매매추이 (ka10045)
 
         특정 종목에 대한 기관 및 외국인의 매매 추세와 추정 단가를 조회합니다.
@@ -332,6 +341,7 @@ class InvestorDataAPI:
                 'foreign_trend': [...],
                 'estimated_prices': {...}
             }
+        """
         try:
             from datetime import datetime, timedelta
 
@@ -388,6 +398,7 @@ class InvestorDataAPI:
         stock_code: str,
         days: int = 3
     ) -> Optional[List[Dict[str, Any]]]:
+        """
         증권사별 종목매매동향 (ka10078)
 
         특정 증권사의 특정 종목에 대한 매매 동향을 조회합니다.
@@ -409,6 +420,7 @@ class InvestorDataAPI:
                 },
                 ...
             ]
+        """
         try:
             from datetime import datetime, timedelta
 
@@ -444,7 +456,7 @@ class InvestorDataAPI:
                             if len(val) > 0:
                                 print(f"  first item: {val[0]}")
                             else:
-                                print(f"  ⚠️ 빈 리스트!")
+                                print(f"  WARNING: 빈 리스트!")
                         else:
                             print(f"  {key} = {type(val).__name__}")
                     print()
@@ -492,6 +504,7 @@ class InvestorDataAPI:
         stock_code: str,
         days: int = 1
     ) -> Optional[Dict[str, Any]]:
+        """
         체결강도 조회 (ka10047)
 
         Args:
@@ -506,6 +519,7 @@ class InvestorDataAPI:
                 'current_price': 50000,
                 ...
             }
+        """
         try:
             response = self.client.request(
                 api_id="ka10047",
@@ -557,6 +571,7 @@ class InvestorDataAPI:
         stock_code: str,
         days: int = 1
     ) -> Optional[Dict[str, Any]]:
+        """
         프로그램매매 추이 조회 (ka90013)
 
         Args:
@@ -572,6 +587,7 @@ class InvestorDataAPI:
                 'date': '20231201',
                 ...
             }
+        """
         try:
             response = self.client.request(
                 api_id="ka90013",
@@ -603,7 +619,7 @@ class InvestorDataAPI:
                                 program_net_buy_value = -program_net_buy_value
 
                             program_net_buy_value = program_net_buy_value * 1000
-                            logger.debug(f"[프로그램매매 API] {stock_code}: 천원 단위 적용 → {program_net_buy_value:,}원")
+                            logger.debug(f"[프로그램매매 API] {stock_code}: 천원 단위 적용 -> {program_net_buy_value:,}원")
                         except (ValueError, AttributeError):
                             program_net_buy_value = 0
 
