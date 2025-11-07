@@ -189,7 +189,6 @@ class Config:
         pl = config.profit_loss
 
         return f"""
-        """
         === 매매 파라미터 ===
         최대 포지션: {pos.get('max_open_positions', 5)}개
         거래당 리스크: {pos.get('risk_per_trade_ratio', 0.20)*100:.1f}%
@@ -201,7 +200,6 @@ class Config:
         """
 
 
-"""
 class ConfigManager:
     """설정 관리자 (Legacy Wrapper)"""
 
