@@ -314,13 +314,11 @@ def main():
 
     try:
         from main import TradingBotV2
-        from config.credentials import get_credentials
         from api.market.chart_data import ChartDataAPI
 
-        credentials = get_credentials()
-        bot = TradingBotV2(credentials=credentials)
+        bot = TradingBotV2()
 
-        if not bot.client.is_connected:
+        if not bot.client or not bot.client.is_connected:
             print(f"{RED}❌ API 연결 실패{RESET}")
             return
 
