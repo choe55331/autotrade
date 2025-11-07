@@ -137,8 +137,8 @@ class InstitutionalFollowingStrategy:
         stocks_with_strength = []
 
         for stock_code in self.data_history.keys():
-            """
             strength = self.calculate_buying_strength(stock_code)
+            """
             if strength > 0:
                 stocks_with_strength.append((stock_code, strength))
 
@@ -153,9 +153,9 @@ if __name__ == "__main__":
     base_date = datetime.now() - timedelta(days=10)
 
     for i in range(10):
-        """
         date = base_date + timedelta(days=i)
 
+"""
         data = InstitutionalData(
             date=date,
             stock_code="005930",

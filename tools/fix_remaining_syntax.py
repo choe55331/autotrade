@@ -12,11 +12,11 @@ def fix_file(filepath):
         original = content
 
         # 1. Remove all emojis and special characters
-        content = content.replace('⚠️', 'WARNING:')
-        content = content.replace('→', '->')
-        content = content.replace('✅', '[OK]')
-        content = content.replace('❌', '[ERROR]')
-        content = content.replace('⭐', '[STAR]')
+        content = content.replace('[WARNING]️', 'WARNING:')
+        content = content.replace('->', '->')
+        content = content.replace('[OK]', '[OK]')
+        content = content.replace('[X]', '[ERROR]')
+        content = content.replace('[STAR]', '[STAR]')
         content = content.replace('🔥', '[FIRE]')
 
         # 2. Fix unterminated f-strings - 임시 해결책으로 완전한 f-string 추출해서 수정
@@ -32,6 +32,7 @@ def fix_file(filepath):
 
         # 3. Fix file header docstrings - text outside """
         # Pattern: """ ... """ followed by text (not import/from/def/class)
+        """
         content = re.sub(
             r'("""[^"]*""")\n\n([가-힣\w\s\-:.]+)\n\n(import |from )',
             r'\1\n\n"""\2\n"""\n\n\3',
@@ -40,14 +41,17 @@ def fix_file(filepath):
 
         # 4. Fix function/method docstrings - Korean text without opening """
         # Pattern: def ...): followed by Korean line, then Args:/Returns:
+        """
         content = re.sub(
             r'(\n    def [^\n]+:\n)(    )([가-힣][^\n]+\n\s*\n)(    )(Args:|Returns:)',
             r'\1\2"""\n\2\3\2\5',
             content,
+            """
             flags=re.MULTILINE
         )
 
         # 5. Fix docstrings missing opening """ (simple case)
+        """
         content = re.sub(
             r'(\n    def [^\n]+:\n)(    )([가-힣][^\n]+\n)',
             lambda m: f"{m.group(1)}{m.group(2)}\"\"\"{m.group(3).strip()}\"\"\"\n"
@@ -71,6 +75,7 @@ def fix_file(filepath):
         )
 
         # 8. Fix f-string decimal format issue {:+.2f} -> {:.2f}
+        """
         content = re.sub(r'\{([^}]+):\+\.2f\}', r'{\1:.2f}', content)
 
         # 9. Remove standalone """ lines in code (not in docstrings)
@@ -84,13 +89,17 @@ def fix_file(filepath):
             # Track docstring state
             if '"""' in line:
                 # Count quotes to determine state
+                """
                 quote_count = line.count('"""')
+                """
                 if quote_count % 2 == 1:
                     in_docstring = not in_docstring
 
             # Remove standalone """ if not in proper docstring context
+            """
             if stripped == '"""' and not in_docstring:
                 # Check if previous line is def/class or if next line starts docstring
+                """
                 if i > 0:
                     prev = lines[i-1].strip()
                     if not (prev.endswith(':') or prev.startswith(('def ', 'class '))):

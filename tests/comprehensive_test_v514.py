@@ -87,11 +87,11 @@ def test_market_scanner():
         print(f"  Avg confidence: {stats.avg_confidence:.2f}")
         print(f"  Opportunities: {stats.opportunities_found}")
 
-        print("\n✅ Market Scanner tests passed!")
+        print("\n[OK] Market Scanner tests passed!")
         return True
 
     except Exception as e:
-        print(f"\n❌ Market Scanner test failed: {e}")
+        print(f"\n[X] Market Scanner test failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -114,16 +114,16 @@ def test_trading_bot():
             initial_capital=10000000,
             max_position_size=0.2,
             max_positions=5,
-            stop_loss_pct=0.05,
+            stop_loss_pct=0."05",
             take_profit_pct=0.10,
             trading_mode=TradingMode.PAPER
         )
         print(f"✓ Initialized: capital={bot.initial_capital:,.0f}, mode={bot.trading_mode.value}")
 
         print("\n[Test 2] Adding Strategies")
-        bot.add_strategy(MomentumStrategy(lookback_period=20, threshold=0.05))
+        bot.add_strategy(MomentumStrategy(lookback_period=20, threshold=0."05"))
         bot.add_strategy(MeanReversionStrategy(lookback_period=20, std_threshold=2.0))
-        bot.add_strategy(BreakoutStrategy(lookback_period=20, breakout_threshold=0.02))
+        bot.add_strategy(BreakoutStrategy(lookback_period=20, breakout_threshold=0."02"))
         print(f"✓ Added {len(bot.strategies)} strategies")
 
         print("\n[Test 3] Starting Bot")
@@ -199,11 +199,11 @@ def test_trading_bot():
         bot.stop()
         print(f"✓ Bot stopped: status={bot.status.value}")
 
-        print("\n✅ Trading Bot tests passed!")
+        print("\n[OK] Trading Bot tests passed!")
         return True
 
     except Exception as e:
-        print(f"\n❌ Trading Bot test failed: {e}")
+        print(f"\n[X] Trading Bot test failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -268,11 +268,11 @@ def test_integration():
         print(f"✓ Bot performance: {perf.total_trades} trades, "
               f"{perf.total_pnl:+,.0f}원 P&L")
 
-        print("\n✅ Integration test passed!")
+        print("\n[OK] Integration test passed!")
         return True
 
     except Exception as e:
-        print(f"\n❌ Integration test failed: {e}")
+        print(f"\n[X] Integration test failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -298,7 +298,7 @@ def main():
     print("=" * 60)
 
     for name, result in results:
-        status = "✅ PASS" if result else "❌ FAIL"
+        status = "[OK] PASS" if result else "[X] FAIL"
         print(f"{name}: {status}")
 
     all_passed = all(r[1] for r in results)
@@ -306,7 +306,7 @@ def main():
     if all_passed:
         print("🎉 ALL TESTS PASSED - v5.14 READY FOR DEPLOYMENT")
     else:
-        print("⚠️ SOME TESTS FAILED - REVIEW REQUIRED")
+        print("[WARNING]️ SOME TESTS FAILED - REVIEW REQUIRED")
     print("=" * 60)
 
     return all_passed
@@ -317,10 +317,10 @@ if __name__ == "__main__":
         success = main()
         sys.exit(0 if success else 1)
     except KeyboardInterrupt:
-        print("\n\n⚠️ Tests interrupted by user")
+        print("\n\n[WARNING]️ Tests interrupted by user")
         sys.exit(1)
     except Exception as e:
-        print(f"\n❌ Test execution error: {e}")
+        print(f"\n[X] Test execution error: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

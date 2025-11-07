@@ -40,6 +40,7 @@ class StreamingTick:
 
     def __post_init__(self):
         """
+        """
         self.spread = self.ask - self.bid
 
 
@@ -80,6 +81,7 @@ class RealTimeDataStream:
     """
 
     def __init__(self, buffer_size: int = 10000):
+        """
         """
         self.buffer_size = buffer_size
         self.tick_buffer: Dict[str, deque] = {}
@@ -161,7 +163,7 @@ class RealTimeDataStream:
 
         while self.is_running:
             for code in stock_codes:
-                price_change = random.uniform(-0.005, 0.005)
+                price_change = random.uniform(-0."005", 0."005")
                 price = base_prices[code] * (1 + price_change)
                 base_prices[code] = price
 
@@ -171,7 +173,7 @@ class RealTimeDataStream:
                     price=price,
                     volume=random.randint(1, 100),
                     bid=price * 0.999,
-                    ask=price * 1.001,
+                    ask=price * 1."001",
                     bid_size=random.randint(10, 1000),
                     ask_size=random.randint(10, 1000),
                     spread=0
@@ -220,8 +222,8 @@ class RealTimeDataStream:
             candles = self.candle_buffer[candle_key]
 
             if not candles or self._should_new_candle(candles[-1], tick.timestamp, interval):
-                """
                 candle = StreamingCandle(
+                """
                     stock_code=tick.stock_code,
                     interval=interval,
                     open=tick.price,
@@ -262,10 +264,10 @@ class RealTimeDataStream:
     def _publish_event(self, event: StreamingEvent):
         """Publish event to subscribers"""
         for callback in self.subscribers.get(event.event_type, []):
-            """
             try:
                 callback(event)
             except Exception as e:
+            """
                 print(f"Callback error: {e}")
 
     def _publish_candle(self, candle: StreamingCandle):
@@ -338,6 +340,7 @@ class EventDrivenTradingEngine:
 
     def __init__(self, data_stream: RealTimeDataStream):
         """
+        """
         self.data_stream = data_stream
         self.positions: Dict[str, Dict] = {}
         self.pending_orders: List[Dict] = []
@@ -395,7 +398,7 @@ class EventDrivenTradingEngine:
         ma_short = sum(prices[-5:]) / 5
         ma_long = sum(prices[-20:]) / 20
 
-        if ma_short > ma_long * 1.01:
+        if ma_short > ma_long * 1."01":
             return {
                 'action': 'buy',
                 'stock_code': candle.stock_code,
@@ -485,8 +488,8 @@ class EventDrivenTradingEngine:
         """Get current portfolio value"""
         total = self.pnl
         for pos in self.positions.values():
-            """
             total += pos['current_price'] * pos['quantity']
+            """
         return total
 
     def get_status(self) -> Dict[str, Any]:
@@ -524,6 +527,7 @@ if __name__ == '__main__':
     print("🔄 Real-time Trading System Test")
 
     async def test():
+        """
         """
         stream = get_data_stream()
         engine = get_trading_engine()

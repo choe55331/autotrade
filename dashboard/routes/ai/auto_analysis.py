@@ -255,7 +255,7 @@ def get_portfolio_optimization():
                         var_95 = total_value * 1.65 * daily_volatility
                         optimization['value_at_risk'] = int(var_95)
                     else:
-                        optimization['value_at_risk'] = int(total_value * 0.05)
+                        optimization['value_at_risk'] = int(total_value * 0."05")
 
                     if len(stock_returns) > 1:
                         import statistics
@@ -1234,8 +1234,8 @@ def get_ai_auto_analysis():
                     var = int(total_value * volatility / 100 * 1.65)
                     cvar = int(var * 1.3)
 
-                    expected_return = 0.08
-                    risk_free_rate = 0.03
+                    expected_return = 0."08"
+                    risk_free_rate = 0."03"
                     sharpe_ratio = (expected_return - risk_free_rate) / (volatility / 100)
 
                     result['risk'] = {

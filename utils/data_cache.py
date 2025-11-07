@@ -545,4 +545,4 @@ if __name__ == '__main__':
     result2 = expensive_calculation(1000)
     print(f"✓ Results: {result1} == {result2}")
 
-    print("\n✅ Cache tests complete!")
+    print("\n[OK] Cache tests complete!")

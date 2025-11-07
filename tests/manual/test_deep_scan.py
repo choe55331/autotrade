@@ -29,14 +29,14 @@ def test_deep_scan():
         candidates = strategy.scan()
 
         if not candidates:
-            print("\n⚠️  후보 종목이 없습니다 (비거래 시간일 수 있음)")
+            print("\n[WARNING]️  후보 종목이 없습니다 (비거래 시간일 수 있음)")
             return False
 
-        print(f"\n✅ 스캔 완료: {len(candidates)}개 종목")
+        print(f"\n[OK] 스캔 완료: {len(candidates)}개 종목")
 
         if candidates:
             print("\n" + "="*80)
-            print(f"📊 첫 번째 종목 상세 데이터 확인: {candidates[0].name} ({candidates[0].code})")
+            print(f"[CHART] 첫 번째 종목 상세 데이터 확인: {candidates[0].name} ({candidates[0].code})")
             print("="*80)
 
             c = candidates[0]
@@ -72,7 +72,7 @@ def test_deep_scan():
             print(f"     - 프로그램순매수: {c.program_net_buy:,}원" if c.program_net_buy else "     - 프로그램순매수: 없음")
 
             print("\n" + "="*80)
-            print("🔍 데이터 수집 검증")
+            print("[SEARCH] 데이터 수집 검증")
             print("="*80)
 
             checks = [
@@ -91,7 +91,7 @@ def test_deep_scan():
             total_count = len(checks)
 
             for name, check in checks:
-                status = "✅" if check else "❌"
+                status = "[OK]" if check else "[X]"
                 print(f"  {status} {name}")
 
             print(f"\n수집 성공률: {success_count}/{total_count} ({success_count/total_count*100:.1f}%)")
@@ -100,11 +100,11 @@ def test_deep_scan():
                 print("\n🎉 모든 데이터 수집 성공!")
                 return True
             else:
-                print("\n⚠️  일부 데이터 수집 실패 (비거래 시간일 수 있음)")
+                print("\n[WARNING]️  일부 데이터 수집 실패 (비거래 시간일 수 있음)")
                 return success_count >= total_count * 0.5
 
     except Exception as e:
-        print(f"\n❌ 테스트 실패: {e}")
+        print(f"\n[X] 테스트 실패: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -113,8 +113,8 @@ if __name__ == "__main__":
     success = test_deep_scan()
     print("\n" + "="*80)
     if success:
-        print("✅ Deep Scan 테스트 성공")
+        print("[OK] Deep Scan 테스트 성공")
     else:
-        print("❌ Deep Scan 테스트 실패")
+        print("[X] Deep Scan 테스트 실패")
     print("="*80 + "\n")
     sys.exit(0 if success else 1)

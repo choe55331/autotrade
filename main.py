@@ -53,7 +53,7 @@ class TradingBotV2:
     AutoTrade Pro v2.0 메인 봇
 
     통합 기능:
-    - 3단계 스캐닝 파이프라인 (Fast → Deep → AI)
+    - 3단계 스캐닝 파이프라인 (Fast -> Deep -> AI)
     - 10가지 기준 스코어링 시스템 (440점 만점)
     - 동적 리스크 관리 (4단계 모드)
     - 데이터베이스 기록
@@ -117,7 +117,7 @@ class TradingBotV2:
 
         self._initialize_components()
 
-        logger.info("✅ AutoTrade Pro v2.0 초기화 완료")
+        logger.info("[OK] AutoTrade Pro v2.0 초기화 완료")
 
     def _check_test_mode(self):
         """테스트 모드 확인 및 활성화
@@ -147,7 +147,7 @@ class TradingBotV2:
                 else:
                     logger.info(f"   사유: 평일 비장시간 (20:00~08:00)")
 
-                logger.info("   ⚠️  실제 주문은 발생하지 않습니다")
+                logger.info("   [WARNING]️  실제 주문은 발생하지 않습니다")
                 logger.info("=" * 60)
             else:
                 logger.info("⚡ 정규 장 시간 - 실시간 모드")
@@ -194,7 +194,7 @@ class TradingBotV2:
                             stock_code = data.get('item', '')
                             values = data.get('values', {})
                             price = int(values.get('10', '0'))
-                            logger.debug(f"📈 실시간 체결: {stock_code} = {price:,}원")
+                            logger.debug(f"[UP] 실시간 체결: {stock_code} = {price:,}원")
                         except Exception as e:
                             logger.error(f"체결 데이터 처리 오류: {e}")
 
@@ -205,7 +205,7 @@ class TradingBotV2:
                             values = data.get('values', {})
                             sell_price = int(values.get('27', '0'))
                             buy_price = int(values.get('28', '0'))
-                            logger.debug(f"📊 실시간 호가: {stock_code} 매도={sell_price:,}원 매수={buy_price:,}원")
+                            logger.debug(f"[CHART] 실시간 호가: {stock_code} 매도={sell_price:,}원 매수={buy_price:,}원")
                         except Exception as e:
                             logger.error(f"호가 데이터 처리 오류: {e}")
 
@@ -223,11 +223,11 @@ class TradingBotV2:
 
                             connected = loop.run_until_complete(self.websocket_manager.connect())
                             if connected:
-                                logger.info("✅ WebSocket 자동 연결 성공")
+                                logger.info("[OK] WebSocket 자동 연결 성공")
                             else:
-                                logger.warning("⚠️  WebSocket 자동 연결 실패")
+                                logger.warning("[WARNING]️  WebSocket 자동 연결 실패")
                         except Exception as e:
-                            logger.error(f"❌ WebSocket 연결 오류: {e}")
+                            logger.error(f"[X] WebSocket 연결 오류: {e}")
 
                     ws_thread = threading.Thread(target=start_websocket, daemon=True)
                     ws_thread.start()
@@ -237,9 +237,9 @@ class TradingBotV2:
                     logger.info("   💡 장중(09:00-15:30)에만 실시간 데이터가 수신됩니다")
                 else:
                     self.websocket_manager = None
-                    logger.info("⚠️  토큰 없음 - WebSocketManager 비활성화")
+                    logger.info("[WARNING]️  토큰 없음 - WebSocketManager 비활성화")
             except Exception as e:
-                logger.warning(f"⚠️  WebSocketManager 초기화 실패: {e}")
+                logger.warning(f"[WARNING]️  WebSocketManager 초기화 실패: {e}")
                 self.websocket_manager = None
 
             logger.info("📡 API 모듈 초기화 중...")
@@ -257,7 +257,7 @@ class TradingBotV2:
                     from ai.gemini_analyzer import GeminiAnalyzer
                     self.analyzer = GeminiAnalyzer()
                     if self.analyzer.initialize():
-                        logger.info("✅ Gemini AI 분석기 초기화 완료 (실제 AI 사용)")
+                        logger.info("[OK] Gemini AI 분석기 초기화 완료 (실제 AI 사용)")
                     else:
                         logger.warning("Gemini 초기화 실패 - Mock으로 대체")
                         from ai.mock_analyzer import MockAnalyzer
@@ -277,7 +277,7 @@ class TradingBotV2:
                 self.analyzer.initialize()
                 logger.warning("✓ Mock AI 분석기로 폴백")
 
-            logger.info("🎯 3가지 스캔 전략 매니저 초기화 중...")
+            logger.info("[TARGET] 3가지 스캔 전략 매니저 초기화 중...")
             screener = Screener(self.client)
             self.strategy_manager = StrategyManager(
                 market_api=self.market_api,
@@ -287,7 +287,7 @@ class TradingBotV2:
             )
             logger.info("✓ 3가지 스캔 전략 매니저 초기화 완료")
 
-            logger.info("📊 10가지 스코어링 시스템 초기화 중...")
+            logger.info("[CHART] 10가지 스코어링 시스템 초기화 중...")
             self.scoring_system = ScoringSystem(market_api=self.market_api)
             logger.info("✓ 10가지 스코어링 시스템 초기화 완료")
 
@@ -315,9 +315,9 @@ class TradingBotV2:
 
                 self.virtual_trader.load_all_states()
 
-                logger.info("✅ 가상 매매 시스템 초기화 완료 (3가지 전략 운영)")
+                logger.info("[OK] 가상 매매 시스템 초기화 완료 (3가지 전략 운영)")
             except Exception as e:
-                logger.warning(f"⚠️  가상 매매 시스템 초기화 실패: {e}")
+                logger.warning(f"[WARNING]️  가상 매매 시스템 초기화 실패: {e}")
                 self.virtual_trader = None
                 self.trade_logger = None
 
@@ -326,7 +326,7 @@ class TradingBotV2:
             self._restore_state()
 
             self.is_initialized = True
-            logger.info("✅ 모든 컴포넌트 초기화 완료")
+            logger.info("[OK] 모든 컴포넌트 초기화 완료")
 
             self.monitor.log_activity(
                 'system',
@@ -350,11 +350,11 @@ class TradingBotV2:
 
                 capital = deposit_total + holdings_value if (deposit_total + holdings_value) > 0 else 10_000_000
 
-                logger.info(f"💰 초기 자본금: {capital:,}원 (예수금: {deposit_total:,}, 보유주식: {holdings_value:,})")
+                logger.info(f"[MONEY] 초기 자본금: {capital:,}원 (예수금: {deposit_total:,}, 보유주식: {holdings_value:,})")
                 return capital
             return 10_000_000
         except Exception as e:
-            logger.warning(f"⚠️ 초기 자본금 조회 실패, 기본값 사용: {e}")
+            logger.warning(f"[WARNING]️ 초기 자본금 조회 실패, 기본값 사용: {e}")
             return 10_000_000
 
     def _initialize_control_file(self):
@@ -382,7 +382,7 @@ class TradingBotV2:
             logger.warning(f"상태 복원 실패: {e}")
 
     def _test_samsung_trade(self):
-        """삼성전자 테스트 매매 (연결 직후 1주 매수 → 10초 후 매도)"""
+        """삼성전자 테스트 매매 (연결 직후 1주 매수 -> 10초 후 매도)"""
         try:
             logger.info("="*60)
             logger.info("🧪 삼성전자 테스트 매매 시작")
@@ -425,7 +425,7 @@ class TradingBotV2:
                 logger.warning(f"⏰ 현재 시간: {now.strftime('%H:%M:%S')} - {market_type} (주문 불가)")
                 return
 
-            logger.info(f"📊 {samsung_name} 현재가 조회 중...")
+            logger.info(f"[CHART] {samsung_name} 현재가 조회 중...")
             current_price = None
 
             try:
@@ -435,17 +435,17 @@ class TradingBotV2:
                     source = quote.get('source', 'unknown')
                     logger.info(f"✓ {samsung_name} 현재가: {current_price:,}원 (출처: {source})")
                 else:
-                    logger.error(f"❌ {samsung_name} 현재가 조회 실패 (모든 소스)")
+                    logger.error(f"[X] {samsung_name} 현재가 조회 실패 (모든 소스)")
                     return
 
             except Exception as e:
-                logger.error(f"❌ 가격 조회 실패: {e}")
+                logger.error(f"[X] 가격 조회 실패: {e}")
                 import traceback
                 traceback.print_exc()
                 return
 
             if not current_price:
-                logger.error(f"❌ 현재가를 가져올 수 없습니다 - 테스트 중단")
+                logger.error(f"[X] 현재가를 가져올 수 없습니다 - 테스트 중단")
                 return
 
             quantity = 1
@@ -467,7 +467,7 @@ class TradingBotV2:
 
                 if buy_result:
                     order_no = buy_result.get('order_no', 'N/A')
-                    logger.info(f"✅ {samsung_name} 매수 주문 성공!")
+                    logger.info(f"[OK] {samsung_name} 매수 주문 성공!")
                     logger.info(f"   주문번호: {order_no}")
 
                     self.monitor.log_activity(
@@ -499,10 +499,10 @@ class TradingBotV2:
                     source = quote.get('source', 'unknown')
                     logger.info(f"✓ {samsung_name} 현재가 (매도): {sell_price:,}원 (출처: {source})")
                 else:
-                    logger.warning(f"⚠️ 현재가 조회 실패 - 매수가 사용: {sell_price:,}원")
+                    logger.warning(f"[WARNING]️ 현재가 조회 실패 - 매수가 사용: {sell_price:,}원")
 
             except Exception as e:
-                logger.warning(f"⚠️ 가격 재조회 실패: {e} - 매수가 사용: {sell_price:,}원")
+                logger.warning(f"[WARNING]️ 가격 재조회 실패: {e} - 매수가 사용: {sell_price:,}원")
 
             try:
                 sell_result = self.order_api.sell(
@@ -516,7 +516,7 @@ class TradingBotV2:
                 if sell_result:
                     order_no = sell_result.get('order_no', 'N/A')
                     profit_loss = (sell_price - current_price) * quantity
-                    logger.info(f"✅ {samsung_name} 매도 주문 성공!")
+                    logger.info(f"[OK] {samsung_name} 매도 주문 성공!")
                     logger.info(f"   주문번호: {order_no}")
                     logger.info(f"   매수가: {current_price:,}원")
                     logger.info(f"   매도가: {sell_price:,}원")
@@ -534,12 +534,12 @@ class TradingBotV2:
                 logger.error(f"매도 주문 실패: {e}")
 
             logger.info("="*60)
-            logger.info("✅ 삼성전자 테스트 매매 완료")
+            logger.info("[OK] 삼성전자 테스트 매매 완료")
             logger.info("="*60)
 
         except Exception as e:
             logger.error(f"테스트 매매 중 오류: {e}", exc_info=True)
-            print(f"❌ 테스트 매매 오류: {e}")
+            print(f"[X] 테스트 매매 오류: {e}")
             import traceback
             traceback.print_exc()
 
@@ -547,7 +547,7 @@ class TradingBotV2:
         """봇 시작"""
         if not self.is_initialized:
             logger.error("봇이 초기화되지 않았습니다")
-            print("❌ 오류: 봇이 초기화되지 않았습니다")
+            print("[X] 오류: 봇이 초기화되지 않았습니다")
             return
 
         print("\n" + "="*60)
@@ -567,7 +567,7 @@ class TradingBotV2:
             print("\n사용자에 의한 중단")
         except Exception as e:
             logger.error(f"메인 루프 오류: {e}", exc_info=True)
-            print(f"\n❌ 메인 루프 오류: {e}")
+            print(f"\n[X] 메인 루프 오류: {e}")
             import traceback
             traceback.print_exc()
         finally:
@@ -606,7 +606,7 @@ class TradingBotV2:
         if self.client:
             self.client.close()
 
-        logger.info("✅ AutoTrade Pro v2.0 종료 완료")
+        logger.info("[OK] AutoTrade Pro v2.0 종료 완료")
 
     def _main_loop(self):
         """메인 루프"""
@@ -663,7 +663,7 @@ class TradingBotV2:
 
             except Exception as e:
                 logger.error(f"메인 루프 오류: {e}", exc_info=True)
-                print(f"❌ 메인 루프 오류: {e}")
+                print(f"[X] 메인 루프 오류: {e}")
                 import traceback
                 traceback.print_exc()
 
@@ -698,11 +698,11 @@ class TradingBotV2:
         if market_status.get('is_test_mode'):
             logger.info(f"🧪 테스트 모드: {market_status['market_status']}")
         elif market_status.get('can_cancel_only'):
-            logger.info(f"⚠️  {market_status['market_type']}: {market_status['market_status']}")
+            logger.info(f"[WARNING]️  {market_status['market_type']}: {market_status['market_status']}")
         elif market_status.get('order_type_limit') == 'limit_only':
-            logger.info(f"📊 {market_status['market_type']}: {market_status['market_status']}")
+            logger.info(f"[CHART] {market_status['market_type']}: {market_status['market_status']}")
         else:
-            logger.info(f"✅ {market_status['market_type']}: {market_status['market_status']}")
+            logger.info(f"[OK] {market_status['market_type']}: {market_status['market_status']}")
 
         return True
 
@@ -722,14 +722,14 @@ class TradingBotV2:
             total_capital = deposit_total + stock_value
             self.dynamic_risk_manager.update_capital(total_capital)
 
-            logger.info(f"💰 계좌 정보: 예수금 {deposit_total:,}원, 주문가능금액 {cash:,}원, 주식평가 {stock_value:,}원, 총자산 {total_capital:,}원, 보유 {len(holdings)}개")
+            logger.info(f"[MONEY] 계좌 정보: 예수금 {deposit_total:,}원, 주문가능금액 {cash:,}원, 주식평가 {stock_value:,}원, 총자산 {total_capital:,}원, 보유 {len(holdings)}개")
 
         except Exception as e:
             logger.error(f"계좌 정보 업데이트 실패: {e}")
 
     def _check_sell_signals(self):
         """매도 신호 검토"""
-        logger.info("🔍 매도 신호 검토 중...")
+        logger.info("[SEARCH] 매도 신호 검토 중...")
 
         if self.market_status.get('is_test_mode'):
             logger.info("🧪 테스트 모드: 실제 보유 종목으로 매도 로직 실행 (API 호출, 서버에서 거절 예상)")
@@ -792,14 +792,14 @@ class TradingBotV2:
             can_add = self.portfolio_manager.can_add_position()
             positions = self.portfolio_manager.get_positions()
             if not can_add:
-                logger.info("⚠️  최대 포지션 수 도달")
+                logger.info("[WARNING]️  최대 포지션 수 도달")
                 return
 
             current_positions = len(positions)
             should_open = self.dynamic_risk_manager.should_open_position(current_positions)
 
             if not should_open:
-                logger.info("⚠️  리스크 관리: 포지션 진입 불가")
+                logger.info("[WARNING]️  리스크 관리: 포지션 진입 불가")
                 return
 
             final_candidates = self.strategy_manager.run_current_strategy()
@@ -818,8 +818,8 @@ class TradingBotV2:
             scan_type = strategy_to_scan_type.get(strategy_name, 'default')
 
             if not final_candidates:
-                print("✅ 스캐닝 완료: 최종 후보 없음")
-                logger.info("✅ 스캐닝 완료: 최종 후보 없음")
+                print("[OK] 스캐닝 완료: 최종 후보 없음")
+                logger.info("[OK] 스캐닝 완료: 최종 후보 없음")
                 return
 
             candidate_scores = {}
@@ -856,7 +856,7 @@ class TradingBotV2:
             final_candidates.sort(key=lambda x: x.final_score, reverse=True)
 
             top5 = final_candidates[:5]
-            print(f"\n📊 상위 5개 후보:")
+            print(f"\n[CHART] 상위 5개 후보:")
 
             self.scan_progress['top_candidates'] = []
 
@@ -965,10 +965,10 @@ class TradingBotV2:
                         if line.strip():
                             print(f"   {line}")
 
-                print(f"\n   ✅ AI 결정: {ai_signal.upper()}")
+                print(f"\n   [OK] AI 결정: {ai_signal.upper()}")
 
                 if ai_signal == 'buy' and split_strategy:
-                    print(f"   📊 분할매수 전략:")
+                    print(f"   [CHART] 분할매수 전략:")
                     for line in split_strategy.split('\n'):
                         if line.strip():
                             print(f"      {line}")
@@ -977,7 +977,7 @@ class TradingBotV2:
                     print(f"   💡 사유: {ai_analysis['reasons'][0]}")
 
                 if ai_analysis.get('risks') and ai_analysis['risks']:
-                    print(f"   ⚠️  경고: {ai_analysis['risks'][0]}")
+                    print(f"   [WARNING]️  경고: {ai_analysis['risks'][0]}")
 
                 if ai_signal == 'buy':
                     buy_candidate = {
@@ -999,7 +999,7 @@ class TradingBotV2:
                 )
 
                 if buy_approved:
-                    print(f"✅ 매수 조건 충족 - 주문 실행")
+                    print(f"[OK] 매수 조건 충족 - 주문 실행")
 
                     self.scan_progress['approved'].append({
                         'name': candidate.name,
@@ -1065,7 +1065,7 @@ class TradingBotV2:
                     break
                 else:
                     reason_text = f"AI={ai_signal}, 점수={scoring_result.total_score:.0f}"
-                    print(f"❌ 매수 조건 미충족 ({reason_text})")
+                    print(f"[X] 매수 조건 미충족 ({reason_text})")
 
                     self.scan_progress['rejected'].append({
                         'name': candidate.name,
@@ -1078,7 +1078,7 @@ class TradingBotV2:
 
         except Exception as e:
             logger.error(f"스캔 전략 실패: {e}", exc_info=True)
-            print(f"❌ 스캔 전략 오류: {e}")
+            print(f"[X] 스캔 전략 오류: {e}")
             import traceback
             traceback.print_exc()
 
@@ -1086,7 +1086,7 @@ class TradingBotV2:
         """매수 실행 (NXT 시장 규칙 적용)"""
         try:
             if self.market_status.get('can_cancel_only'):
-                logger.warning(f"⚠️  {self.market_status['market_type']}: 신규 매수 주문 불가")
+                logger.warning(f"[WARNING]️  {self.market_status['market_type']}: 신규 매수 주문 불가")
                 return
 
             stock_code = candidate.code
@@ -1132,7 +1132,7 @@ class TradingBotV2:
                 logger.info("📌 정규장 주문: 보통 지정가(0)")
 
             if self.market_status.get('is_test_mode'):
-                logger.info(f"🧪 테스트 모드: AI 검토 완료 → 실제 매수 API 호출 (서버에서 거절 예상)")
+                logger.info(f"🧪 테스트 모드: AI 검토 완료 -> 실제 매수 API 호출 (서버에서 거절 예상)")
                 logger.info(f"   종목: {stock_name}, AI 점수: {candidate.ai_score}, 종합 점수: {scoring_result.total_score}")
 
             order_result = self.order_api.buy(
@@ -1162,7 +1162,7 @@ class TradingBotV2:
                 self.db_session.add(trade)
                 self.db_session.commit()
 
-                logger.info(f"✅ {stock_name} 매수 성공 (주문번호: {order_no})")
+                logger.info(f"[OK] {stock_name} 매수 성공 (주문번호: {order_no})")
 
                 self.alert_manager.alert_position_opened(
                     stock_code=stock_code,
@@ -1173,7 +1173,7 @@ class TradingBotV2:
 
                 self.monitor.log_activity(
                     'buy',
-                    f'✅ {stock_name} 매수: {quantity}주 @ {current_price:,}원',
+                    f'[OK] {stock_name} 매수: {quantity}주 @ {current_price:,}원',
                     level='success'
                 )
 
@@ -1184,7 +1184,7 @@ class TradingBotV2:
         """매도 실행 (NXT 시장 규칙 적용)"""
         try:
             if self.market_status.get('can_cancel_only'):
-                logger.warning(f"⚠️  {self.market_status['market_type']}: 신규 매도 주문 불가")
+                logger.warning(f"[WARNING]️  {self.market_status['market_type']}: 신규 매도 주문 불가")
                 return
 
             logger.info(
@@ -1208,7 +1208,7 @@ class TradingBotV2:
                 logger.info("📌 정규장 매도: 보통 지정가(0)")
 
             if self.market_status.get('is_test_mode'):
-                logger.info(f"🧪 테스트 모드: 매도 조건 충족 → 실제 매도 API 호출 (서버에서 거절 예상)")
+                logger.info(f"🧪 테스트 모드: 매도 조건 충족 -> 실제 매도 API 호출 (서버에서 거절 예상)")
                 logger.info(f"   종목: {stock_name}, 사유: {reason}, 손익: {profit_loss:+,}원 ({profit_loss_rate:+.2f}%)")
 
             order_result = self.order_api.sell(
@@ -1237,7 +1237,7 @@ class TradingBotV2:
                 self.db_session.commit()
 
                 log_level = 'success' if profit_loss >= 0 else 'warning'
-                logger.info(f"✅ {stock_name} 매도 성공 (주문번호: {order_no})")
+                logger.info(f"[OK] {stock_name} 매도 성공 (주문번호: {order_no})")
 
                 self.alert_manager.alert_position_closed(
                     stock_code=stock_code,
@@ -1250,7 +1250,7 @@ class TradingBotV2:
 
                 self.monitor.log_activity(
                     'sell',
-                    f'✅ {stock_name} 매도: {quantity}주 @ {price:,}원 (손익: {profit_loss:+,}원)',
+                    f'[OK] {stock_name} 매도: {quantity}주 @ {price:,}원 (손익: {profit_loss:+,}원)',
                     level=log_level
                 )
 
@@ -1281,7 +1281,7 @@ class TradingBotV2:
     def _get_virtual_trading_prices(self) -> dict:
         """
         가상 매매용 현재 가격 조회
-        ✅ v5.15: NXT 시간대(15:30~20:00) 실시간 현재가 정확 반영
+        [OK] v5.15: NXT 시간대(15:30~20:00) 실시간 현재가 정확 반영
         """
         try:
             if not self.virtual_trader:
@@ -1319,25 +1319,25 @@ class TradingBotV2:
         """통계 출력"""
         try:
             logger.info("\n" + "="*60)
-            logger.info("📊 실시간 통계")
+            logger.info("[CHART] 실시간 통계")
             logger.info("="*60)
 
             summary = self.portfolio_manager.get_portfolio_summary()
-            logger.info(f"💰 총 자산: {summary['total_assets']:,}원")
+            logger.info(f"[MONEY] 총 자산: {summary['total_assets']:,}원")
             logger.info(f"💵 현금: {summary['cash']:,}원")
-            logger.info(f"📈 수익률: {summary['total_profit_loss_rate']:+.2f}%")
+            logger.info(f"[UP] 수익률: {summary['total_profit_loss_rate']:+.2f}%")
             logger.info(f"📦 포지션: {summary['position_count']}개")
 
             risk_status = self.dynamic_risk_manager.get_status_summary()
             logger.info(f"🛡️  리스크 모드: {self.dynamic_risk_manager.get_mode_description()}")
-            logger.info(f"📊 최대 포지션: {risk_status['config']['max_open_positions']}개")
+            logger.info(f"[CHART] 최대 포지션: {risk_status['config']['max_open_positions']}개")
 
             if self.strategy_manager:
                 current_strategy = self.strategy_manager.get_current_strategy_name() if hasattr(self.strategy_manager, 'get_current_strategy_name') else '알 수 없음'
-                logger.info(f"🔍 현재 전략: {current_strategy}")
-                logger.info(f"📊 스캔 진행: {len(self.scan_progress.get('top_candidates', []))}개 후보 발견")
+                logger.info(f"[SEARCH] 현재 전략: {current_strategy}")
+                logger.info(f"[CHART] 스캔 진행: {len(self.scan_progress.get('top_candidates', []))}개 후보 발견")
             else:
-                logger.info(f"🔍 스캐닝 대기 중...")
+                logger.info(f"[SEARCH] 스캐닝 대기 중...")
 
             if self.virtual_trader:
                 try:
@@ -1422,7 +1422,7 @@ class TradingBotV2:
             logger.error(f"🔌 WebSocket 오류: {error}")
             self.monitor.log_activity(
                 'system',
-                f'⚠️ WebSocket 오류: {error}',
+                f'[WARNING]️ WebSocket 오류: {error}',
                 level='error'
             )
 
@@ -1433,7 +1433,7 @@ class TradingBotV2:
             logger.info("🔄 자동 재연결 시도 중...")
             self.monitor.log_activity(
                 'system',
-                f'⚠️ WebSocket 연결 종료 - 재연결 시도 중',
+                f'[WARNING]️ WebSocket 연결 종료 - 재연결 시도 중',
                 level='warning'
             )
 
@@ -1473,10 +1473,10 @@ def main():
             time.sleep(1)
 
             print("✓ 웹 대시보드 시작 완료")
-            print(f"  → http://localhost:5000\n")
+            print(f"  -> http://localhost:5000\n")
 
         except Exception as e:
-            print(f"⚠ 대시보드 시작 실패: {e}\n")
+            print(f"[WARNING] 대시보드 시작 실패: {e}\n")
 
         print("3. 자동매매 봇 시작...")
         print("="*60 + "\n")
@@ -1486,7 +1486,7 @@ def main():
         print("\n사용자에 의한 중단")
         return 0
     except Exception as e:
-        print(f"\n❌ 오류: {e}")
+        print(f"\n[X] 오류: {e}")
         logger.error(f"오류: {e}", exc_info=True)
         return 1
 

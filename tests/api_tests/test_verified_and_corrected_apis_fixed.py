@@ -1,7 +1,9 @@
 """
 test_verified_and_corrected_apis_fixed.py
+"""
 검증된 347개 + 수정된 23개 = 총 370개 API 테스트
 test_all_394_calls.py와 동일한 방식 사용 (성공 확인됨)
+"""
 """
 import os
 import sys
@@ -42,12 +44,12 @@ class VerifiedCorrectedAPITester:
                 token_data = res.json()
                 self.token = token_data.get('token')
                 if self.token:
-                    print("✅ 토큰 발급 성공")
+                    print("[OK] 토큰 발급 성공")
                     return True
-            print(f"❌ 토큰 발급 실패: HTTP {res.status_code}")
+            print(f"[X] 토큰 발급 실패: HTTP {res.status_code}")
             return False
         except Exception as e:
-            print(f"❌ 토큰 발급 실패: {e}")
+            print(f"[X] 토큰 발급 실패: {e}")
             return False
 
     def request(self, api_id, body, path):
@@ -130,12 +132,12 @@ class VerifiedCorrectedAPITester:
         verified_apis = data['verified_apis']
         corrected_apis = data['corrected_apis']
 
-        print(f"  ✅ 검증된 API: {len(verified_apis)}개")
+        print(f"  [OK] 검증된 API: {len(verified_apis)}개")
         print(f"  🔧 수정된 API: {len(corrected_apis)}개")
 
         print("\n[2] 토큰 발급 중...")
         if not self.get_token():
-            print("❌ 토큰 발급 실패. 프로그램을 종료합니다.")
+            print("[X] 토큰 발급 실패. 프로그램을 종료합니다.")
             return
 
         stats = {
@@ -162,13 +164,13 @@ class VerifiedCorrectedAPITester:
                 self.results.append(result)
 
                 if result['is_real_success']:
-                    print(f"✅ SUCCESS ({result['data_count']}개)")
+                    print(f"[OK] SUCCESS ({result['data_count']}개)")
                     stats['verified']['success'] += 1
                 elif result['return_code'] == 0:
-                    print(f"⚠️  NO_DATA")
+                    print(f"[WARNING]️  NO_DATA")
                     stats['verified']['no_data'] += 1
                 else:
-                    print(f"❌ ERROR: {result['return_msg'][:40]}")
+                    print(f"[X] ERROR: {result['return_msg'][:40]}")
                     stats['verified']['error'] += 1
 
         print("\n[4] 수정된 API 테스트 (23개)...")
@@ -194,25 +196,25 @@ class VerifiedCorrectedAPITester:
                 self.results.append(result)
 
                 if result['is_real_success']:
-                    print(f"✅ SUCCESS! ({result['data_count']}개)")
+                    print(f"[OK] SUCCESS! ({result['data_count']}개)")
                     stats['corrected']['success'] += 1
                     if original_status == 'total_fail':
                         stats['corrected']['improved'] += 1
                 elif result['return_code'] == 0:
-                    print(f"⚠️  NO_DATA")
+                    print(f"[WARNING]️  NO_DATA")
                     stats['corrected']['no_data'] += 1
                 else:
-                    print(f"❌ ERROR: {result['return_msg'][:30]}")
+                    print(f"[X] ERROR: {result['return_msg'][:30]}")
                     stats['corrected']['error'] += 1
 
         print("\n" + "="*80)
-        print("📊 테스트 결과 통계")
+        print("[CHART] 테스트 결과 통계")
         print("="*80)
 
         total_tested = stats['verified']['tested'] + stats['corrected']['tested']
         total_success = stats['verified']['success'] + stats['corrected']['success']
 
-        print(f"\n✅ 검증된 API ({stats['verified']['tested']}개)")
+        print(f"\n[OK] 검증된 API ({stats['verified']['tested']}개)")
         print(f"  - 진짜 성공: {stats['verified']['success']}개 ({stats['verified']['success']/stats['verified']['tested']*100:.1f}%)")
         print(f"  - 데이터 없음: {stats['verified']['no_data']}개")
         print(f"  - 오류: {stats['verified']['error']}개")
@@ -221,11 +223,11 @@ class VerifiedCorrectedAPITester:
         print(f"  - 진짜 성공: {stats['corrected']['success']}개")
         print(f"  - 데이터 없음: {stats['corrected']['no_data']}개")
         print(f"  - 오류: {stats['corrected']['error']}개")
-        print(f"  🎉 실패→성공 개선: {stats['corrected']['improved']}개")
+        print(f"  🎉 실패->성공 개선: {stats['corrected']['improved']}개")
 
-        print(f"\n📊 전체 결과")
+        print(f"\n[CHART] 전체 결과")
         print(f"  총 테스트: {total_tested}개")
-        print(f"  ✅ 성공: {total_success}개 ({total_success/total_tested*100:.1f}%)")
+        print(f"  [OK] 성공: {total_success}개 ({total_success/total_tested*100:.1f}%)")
 
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         result_file = f'final_test_results_{timestamp}.json'

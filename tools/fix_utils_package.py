@@ -44,13 +44,13 @@ def check_and_fix_utils():
     print("=" * 70)
 
     if errors:
-        print(f"\n❌ {len(errors)}개 파일 오류:")
+        print(f"\n[X] {len(errors)}개 파일 오류:")
         for path, error in errors:
             print(f"  - {path}")
             print(f"    {error[:100]}")
         return False
     else:
-        print(f"\n✅ 모든 utils 파일 정상")
+        print(f"\n[OK] 모든 utils 파일 정상")
         return True
 
 if __name__ == '__main__':

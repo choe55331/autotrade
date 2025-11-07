@@ -46,11 +46,11 @@ def test_data_fetcher_methods():
         if inst_sell:
             print(f"  예시: {inst_sell[0]}")
 
-        print("\n✅ DataFetcher 테스트 완료!")
+        print("\n[OK] DataFetcher 테스트 완료!")
         return True
 
     except Exception as e:
-        print(f"\n❌ DataFetcher 테스트 실패: {e}")
+        print(f"\n[X] DataFetcher 테스트 실패: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -96,11 +96,11 @@ def test_screener_methods():
         if inst_sell:
             print(f"  예시: {inst_sell[0]}")
 
-        print("\n✅ Screener 테스트 완료!")
+        print("\n[OK] Screener 테스트 완료!")
         return True
 
     except Exception as e:
-        print(f"\n❌ Screener 테스트 실패: {e}")
+        print(f"\n[X] Screener 테스트 실패: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -122,14 +122,14 @@ def main():
     print("Test Summary")
     print("=" * 60)
     for name, result in results:
-        status = "✅ PASS" if result else "❌ FAIL"
+        status = "[OK] PASS" if result else "[X] FAIL"
         print(f"{name}: {status}")
 
     all_passed = all(r[1] for r in results)
     if all_passed:
         print("\n🎉 모든 테스트 통과!")
     else:
-        print("\n⚠️ 일부 테스트 실패")
+        print("\n[WARNING]️ 일부 테스트 실패")
 
     return all_passed
 
@@ -139,10 +139,10 @@ if __name__ == "__main__":
         success = main()
         sys.exit(0 if success else 1)
     except KeyboardInterrupt:
-        print("\n\n⚠️ 테스트 중단됨")
+        print("\n\n[WARNING]️ 테스트 중단됨")
         sys.exit(1)
     except Exception as e:
-        print(f"\n❌ 테스트 실행 중 오류: {e}")
+        print(f"\n[X] 테스트 실행 중 오류: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

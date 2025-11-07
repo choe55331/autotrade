@@ -20,9 +20,11 @@ def retry(max_attempts: int = 3, delay: float = 1.0, backoff: float = 2.0):
         backoff: 지연 시간 배수
     
     Example:
+    """
         @retry(max_attempts=3, delay=1.0)
         def api_call():
             ...
+    """
     """
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
@@ -60,10 +62,12 @@ def timing(func: Callable) -> Callable:
     
     Example:
         @timing
+        """
         def slow_function():
             time.sleep(1)
     """
     @functools.wraps(func)
+    """
     def wrapper(*args, **kwargs) -> Any:
         start_time = time.time()
         result = func(*args, **kwargs)
@@ -86,9 +90,11 @@ def log_execution(level: str = 'INFO'):
         level: 로그 레벨 ('DEBUG', 'INFO', 'WARNING', 'ERROR')
     
     Example:
+    """
         @log_execution(level='INFO')
         def process_data():
             ...
+    """
     """
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
@@ -131,9 +137,11 @@ def catch_exceptions(
         log_traceback: 트레이스백 로깅 여부
 
     Example:
+    """
         @catch_exceptions(default_return=None)
         def risky_function():
             ...
+    """
     """
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
@@ -165,9 +173,11 @@ def rate_limit(calls: int, period: float):
         period: 기간 (초)
     
     Example:
+    """
         @rate_limit(calls=10, period=60.0)  # 분당 10회
         def api_call():
             ...
+    """
     """
     def decorator(func: Callable) -> Callable:
         last_reset = [time.time()]
@@ -208,11 +218,13 @@ def validate_args(**validators):
     
     Example:
         @validate_args(
+        """
             stock_code=validate_stock_code,
             price=validate_price
         )
         def place_order(stock_code, price):
             ...
+    """
     """
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
@@ -247,9 +259,11 @@ def cache_result(ttl: float = 60.0):
         ttl: Time To Live (초)
     
     Example:
+    """
         @cache_result(ttl=300.0)  # 5분 캐싱
         def expensive_function():
             ...
+    """
     """
     def decorator(func: Callable) -> Callable:
         cache = {}
@@ -284,8 +298,10 @@ def singleton(cls):
     
     Example:
         @singleton
+        """
         class Config:
             ...
+    """
     """
     instances = {}
     

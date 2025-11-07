@@ -10,7 +10,7 @@ def convert_test_results_to_verified():
     output_file = Path("verified_api_calls.json")
 
     if not results_file.exists():
-        print(f"❌ {results_file} 파일이 없습니다.")
+        print(f"[X] {results_file} 파일이 없습니다.")
         return
 
     with open(results_file, 'r', encoding='utf-8') as f:
@@ -50,7 +50,7 @@ def convert_test_results_to_verified():
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(verified_calls, f, ensure_ascii=False, indent=2)
 
-    print(f"✅ {len(verified_calls)}개 검증된 API 호출을 {output_file}에 저장했습니다.")
+    print(f"[OK] {len(verified_calls)}개 검증된 API 호출을 {output_file}에 저장했습니다.")
     print(f"\n검증된 API 목록:")
     for api_id, info in sorted(verified_calls.items()):
         print(f"  - {api_id}: {info['api_name']} (데이터 {info['verified_calls'][0]['data_count']}개)")

@@ -103,14 +103,14 @@ class RealtimeMinuteChart:
             if success:
                 self.ws_manager.register_callback('0B', self._on_tick)
                 self.is_subscribed = True
-                logger.info(f"✅ {self.stock_code} 실시간 분봉 수집 시작")
+                logger.info(f"[OK] {self.stock_code} 실시간 분봉 수집 시작")
                 return True
             else:
-                logger.error(f"❌ {self.stock_code} 구독 실패")
+                logger.error(f"[X] {self.stock_code} 구독 실패")
                 return False
 
         except Exception as e:
-            logger.error(f"❌ 실시간 분봉 시작 실패: {e}")
+            logger.error(f"[X] 실시간 분봉 시작 실패: {e}")
             return False
 
     async def stop(self):
@@ -121,9 +121,9 @@ class RealtimeMinuteChart:
         try:
             await self.ws_manager.unsubscribe(f"minute_{self.stock_code}")
             self.is_subscribed = False
-            logger.info(f"✅ {self.stock_code} 실시간 분봉 수집 중지")
+            logger.info(f"[OK] {self.stock_code} 실시간 분봉 수집 중지")
         except Exception as e:
-            logger.error(f"❌ 실시간 분봉 중지 실패: {e}")
+            logger.error(f"[X] 실시간 분봉 중지 실패: {e}")
 
     async def _on_tick(self, data: Dict[str, Any]):
         """
@@ -254,10 +254,10 @@ class RealtimeMinuteChartManager:
 
         if success:
             self.charts[stock_code] = chart
-            logger.info(f"✅ {stock_code} 실시간 분봉 추가")
+            logger.info(f"[OK] {stock_code} 실시간 분봉 추가")
             return True
         else:
-            logger.error(f"❌ {stock_code} 실시간 분봉 추가 실패")
+            logger.error(f"[X] {stock_code} 실시간 분봉 추가 실패")
             return False
 
     async def remove_stock(self, stock_code: str):
@@ -274,7 +274,7 @@ class RealtimeMinuteChartManager:
         await chart.stop()
         del self.charts[stock_code]
 
-        logger.info(f"✅ {stock_code} 실시간 분봉 제거")
+        logger.info(f"[OK] {stock_code} 실시간 분봉 제거")
 
     def get_minute_data(self, stock_code: str, minutes: int = 60) -> List[Dict[str, Any]]:
         """

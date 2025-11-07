@@ -65,7 +65,7 @@ class RankingAPITester:
             result = func(*args, **kwargs)
 
             if result and len(result) > 0:
-                print(f"✅ 성공! {len(result)}개 조회")
+                print(f"[OK] 성공! {len(result)}개 조회")
 
                 if len(result) > 0:
                     print("\n샘플 데이터 (상위 3개):")
@@ -85,12 +85,12 @@ class RankingAPITester:
                 self.results.append((name, True))
                 return True
             else:
-                print("❌ 실패: 데이터 없음")
+                print("[X] 실패: 데이터 없음")
                 self.results.append((name, False))
                 return False
 
         except Exception as e:
-            print(f"❌ 에러 발생: {e}")
+            print(f"[X] 에러 발생: {e}")
             import traceback
             print(traceback.format_exc())
             self.results.append((name, False))
@@ -168,7 +168,7 @@ class RankingAPITester:
         total_count = len(self.results)
 
         for name, success in self.results:
-            status = "✅ 성공" if success else "❌ 실패"
+            status = "[OK] 성공" if success else "[X] 실패"
             print(f"{name:<20} {status}")
 
         print(f"\n전체: {success_count}/{total_count} 성공")
@@ -176,7 +176,7 @@ class RankingAPITester:
         if success_count == total_count:
             print("\n🎉 모든 API가 정상 작동합니다!")
         else:
-            print(f"\n⚠️  {total_count - success_count}개 API 실패")
+            print(f"\n[WARNING]️  {total_count - success_count}개 API 실패")
 
         return success_count == total_count
 
@@ -205,10 +205,10 @@ class APIResponseKeyDiscovery:
             with open(api_specs_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 apis = data.get('apis', {})
-                print(f"✅ {len(apis)}개 API 정의 로드 완료\n")
+                print(f"[OK] {len(apis)}개 API 정의 로드 완료\n")
                 return apis
         except Exception as e:
-            print(f"❌ 로드 실패: {e}\n")
+            print(f"[X] 로드 실패: {e}\n")
             return {}
 
     def discover_response_key(self, response: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -296,7 +296,7 @@ class APIResponseKeyDiscovery:
                 self.stats['failed'] += 1
 
             result['variants'].append(variant_result)
-            time.sleep(0.05)
+            time.sleep(0."05")
 
         return result
 
@@ -328,11 +328,11 @@ class APIResponseKeyDiscovery:
             total_variants = len(result['variants'])
 
             if has_data_count > 0:
-                print(f"   ✅ {has_data_count}/{total_variants} variants에서 데이터 확인")
+                print(f"   [OK] {has_data_count}/{total_variants} variants에서 데이터 확인")
             elif any(v.get('success') for v in result['variants']):
-                print(f"   ⚠️  성공했지만 데이터 없음")
+                print(f"   [WARNING]️  성공했지만 데이터 없음")
             else:
-                print(f"   ❌ 실패")
+                print(f"   [X] 실패")
 
             tested_count += 1
             self.stats['tested_apis'] += 1
@@ -342,9 +342,9 @@ class APIResponseKeyDiscovery:
         print_header("탐색 결과 통계")
         print(f"총 API: {self.stats['total_apis']}")
         print(f"테스트: {self.stats['tested_apis']}")
-        print(f"✅ 성공 (데이터 O): {self.stats['success_with_data']}")
-        print(f"⚠️  성공 (데이터 X): {self.stats['success_no_data']}")
-        print(f"❌ 실패: {self.stats['failed']}")
+        print(f"[OK] 성공 (데이터 O): {self.stats['success_with_data']}")
+        print(f"[WARNING]️  성공 (데이터 X): {self.stats['success_no_data']}")
+        print(f"[X] 실패: {self.stats['failed']}")
 
     def save_results(self):
         """결과 저장"""
@@ -362,7 +362,7 @@ class APIResponseKeyDiscovery:
         with open(output_path, 'w', encoding='utf-8') as f:
             json.dump(output_data, f, ensure_ascii=False, indent=2)
 
-        print(f"\n✅ JSON 결과 저장: {output_path}")
+        print(f"\n[OK] JSON 결과 저장: {output_path}")
 
 
 def main():
@@ -393,9 +393,9 @@ def main():
         try:
             client = KiwoomRESTClient()
             market_api = MarketAPI(client)
-            print("✅ 초기화 완료\n")
+            print("[OK] 초기화 완료\n")
         except Exception as e:
-            print(f"❌ 초기화 실패: {e}")
+            print(f"[X] 초기화 실패: {e}")
             import traceback
             print(traceback.format_exc())
             return 1
@@ -414,7 +414,7 @@ def main():
                 discoverer.run_discovery()
                 discoverer.save_results()
             except Exception as e:
-                print(f"\n❌ 탐색 중 에러: {e}")
+                print(f"\n[X] 탐색 중 에러: {e}")
                 import traceback
                 print(traceback.format_exc())
 

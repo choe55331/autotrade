@@ -128,8 +128,8 @@ class MLPricePredictor:
             scaler_file = self.models_dir / f'{model_name}_scaler.pkl'
 
             if model_file.exists() and scaler_file.exists():
-                """
                 try:
+                """
                     with open(model_file, 'rb') as f:
                         self.models[model_name] = pickle.load(f)
                     with open(scaler_file, 'rb') as f:
@@ -347,7 +347,7 @@ class MLPricePredictor:
                 current_price=current_price,
                 predicted_price_1h=ensemble_pred * 0.98,
                 predicted_price_1d=ensemble_pred,
-                predicted_price_5d=ensemble_pred * 1.02,
+                predicted_price_5d=ensemble_pred * 1."02",
                 confidence=confidence,
                 direction=direction,
                 expected_return=expected_return,
@@ -407,12 +407,13 @@ class MLPricePredictor:
         data: Dict[str, Any]
     ) -> PricePrediction:
         """
+        """
         current_price = data.get('price', 0)
         rsi = data.get('rsi', 50)
         volume_ratio = data.get('volume_ratio', 1.0)
 
         if rsi < 30 and volume_ratio > 1.5:
-            predicted = current_price * 1.03
+            predicted = current_price * 1."03"
             direction = 'up'
             confidence = 0.65
         elif rsi > 70:
@@ -420,7 +421,7 @@ class MLPricePredictor:
             direction = 'down'
             confidence = 0.60
         else:
-            predicted = current_price * 1.01
+            predicted = current_price * 1."01"
             direction = 'neutral'
             confidence = 0.45
 
@@ -432,12 +433,12 @@ class MLPricePredictor:
             current_price=current_price,
             predicted_price_1h=predicted * 0.99,
             predicted_price_1d=predicted,
-            predicted_price_5d=predicted * 1.01,
+            predicted_price_5d=predicted * 1."01",
             confidence=confidence,
             direction=direction,
             expected_return=expected_return,
             prediction_interval_low=predicted * 0.95,
-            prediction_interval_high=predicted * 1.05,
+            prediction_interval_high=predicted * 1."05",
             model_used='fallback',
             timestamp=datetime.now().isoformat()
         )

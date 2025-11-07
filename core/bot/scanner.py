@@ -62,13 +62,13 @@ class StockScanner:
             positions = portfolio_manager.get_positions()
 
             if not portfolio_manager.can_add_position():
-                """
                 logger.info("WARNING:  최대 포지션 수 도달")
+                """
                 return []
 
             if not dynamic_risk_manager.should_open_position(len(positions)):
-                """
                 logger.info("WARNING:  리스크 관리: 포지션 진입 불가")
+                """
                 return []
 
             final_candidates = self.strategy_manager.run_current_strategy()
@@ -166,8 +166,8 @@ class StockScanner:
 
         logger.info(f"\n 상위 {top_n}개 후보:")
         for rank, c in enumerate(top_candidates, 1):
-            """
             score_result = scores[c.code]
+            """
             logger.info(
                 f"   {rank}. {c.name} - {c.final_score:.0f}점 "
                 f"({(c.final_score / 440) * 100:.0f}%)"
@@ -187,9 +187,9 @@ class StockScanner:
         portfolio_info = self._get_portfolio_info(portfolio_manager)
 
         for idx, candidate in enumerate(candidates, 1):
-            """
             self.scan_progress['reviewing'] = f"{candidate.name} ({idx}/{len(candidates)})"
 
+"""
             logger.info(f"\n🤖 [{idx}/{len(candidates)}] {candidate.name} AI 검토 중...")
 
             scoring_result = scores[candidate.code]
@@ -283,9 +283,9 @@ class StockScanner:
 - 수익률: {summary['total_profit_loss_rate']:+.2f}%
         """
         except:
-        """
             return "No positions"
 
+"""
     def get_scan_progress(self) -> Dict[str, Any]:
         """스캔 진행 상황 반환"""
         return self.scan_progress

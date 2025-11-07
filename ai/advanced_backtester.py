@@ -108,10 +108,10 @@ class AdvancedBacktester:
     def __init__(
         self,
         initial_capital: float = 10000000,
-        commission_rate: float = 0.00015,
-        slippage_rate: float = 0.001,
-        tax_rate: float = 0.0023,
-        risk_free_rate: float = 0.02
+        commission_rate: float = 0."00015",
+        slippage_rate: float = 0."001",
+        tax_rate: float = 0."0023",
+        risk_free_rate: float = 0."02"
     ):
         """
         초기화
@@ -122,6 +122,7 @@ class AdvancedBacktester:
             slippage_rate: 슬리피지율
             tax_rate: 세율 (매도세)
             risk_free_rate: 무위험 수익률
+            """
         self.initial_capital = initial_capital
         self.commission_rate = commission_rate
         self.slippage_rate = slippage_rate
@@ -163,9 +164,9 @@ class AdvancedBacktester:
         logger.info(f"Running backtest: {len(all_dates)} days, {len(data)} stocks")
 
         for i, date in enumerate(all_dates):
-            """
             self.current_time = date
 
+"""
             current_data = self._get_data_until(data, date)
 
             try:
@@ -298,9 +299,9 @@ class AdvancedBacktester:
         final_equities = []
 
         for _ in range(num_simulations):
-            """
             simulated_returns = np.random.choice(returns, size=num_trades, replace=True)
 
+"""
             equity = self.initial_capital
             for ret in simulated_returns:
                 equity *= (1 + ret / 100)
@@ -343,16 +344,17 @@ class AdvancedBacktester:
         end: Optional[datetime]
     ) -> List[datetime]:
         """
+        """
         all_dates = set()
 
         for stock_data in data.values():
-            """
             for bar in stock_data:
+            """
                 date = bar.get('date')
                 if isinstance(date, str):
-                    """
                     date = datetime.fromisoformat(date)
 
+"""
                 if start and date < start:
                     continue
                 if end and date > end:
@@ -368,12 +370,13 @@ class AdvancedBacktester:
         date: datetime
     ) -> Dict[str, List[Dict]]:
         """
+        """
         result = {}
 
         for stock_code, bars in data.items():
-            """
             filtered = [
                 bar for bar in bars
+                """
                 if self._parse_date(bar.get('date')) <= date
             ]
             if filtered:
@@ -384,10 +387,8 @@ class AdvancedBacktester:
     def _parse_date(self, date) -> datetime:
         """날짜 파싱"""
         if isinstance(date, datetime):
-            """
             return date
         elif isinstance(date, str):
-            """
             return datetime.fromisoformat(date)
         else:
             return datetime.now()
@@ -508,8 +509,8 @@ class AdvancedBacktester:
         position_value = 0
 
         for stock_code, position in self.positions.items():
-            """
             if stock_code in data and data[stock_code]:
+            """
                 current_price = data[stock_code][-1].get('close', 0)
                 position['current_price'] = current_price
                 position_value += current_price * position['quantity']
@@ -519,8 +520,8 @@ class AdvancedBacktester:
     def _close_all_positions(self, data: Dict[str, List[Dict]]):
         """모든 포지션 청산"""
         for stock_code in list(self.positions.keys()):
-            """
             position = self.positions[stock_code]
+            """
             self._execute_sell(stock_code, position['quantity'], data)
 
     def _calculate_results(self) -> BacktestResult:
@@ -634,8 +635,8 @@ class AdvancedBacktester:
 
         returns = []
         for i in range(1, len(self.equity_curve)):
-            """
             prev_equity = self.equity_curve[i-1][1]
+            """
             curr_equity = self.equity_curve[i][1]
             daily_return = (curr_equity - prev_equity) / prev_equity
             returns.append(daily_return)
@@ -661,8 +662,8 @@ class AdvancedBacktester:
 
         returns = []
         for i in range(1, len(self.equity_curve)):
-            """
             prev_equity = self.equity_curve[i-1][1]
+            """
             curr_equity = self.equity_curve[i][1]
             daily_return = (curr_equity - prev_equity) / prev_equity
             returns.append(daily_return)

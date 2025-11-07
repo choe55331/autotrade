@@ -6,7 +6,7 @@
 1. 스코어링에 필요한 데이터를 다양한 API 조합으로 수집 테스트
 2. WebSocket 연결 조건을 다양한 조합으로 테스트
 
-✅ 검증 완료된 API (Production Ready):
+[OK] 검증 완료된 API (Production Ready):
   - ka10081: 일봉차트조회 (path=chart) ← 평균거래량/변동성
   - ka10047: 체결강도추이 (path=mrkcond) ← 체결강도
   - ka90013: 프로그램매매추이 (path=mrkcond) ← 프로그램순매수
@@ -122,19 +122,19 @@ class ComprehensiveDataTester:
                     else:
                         result['sample_data'] = first_value
 
-                print(f"   ✅ 성공: {result['return_msg']}")
-                print(f"   📊 데이터 키: {data_keys}")
+                print(f"   [OK] 성공: {result['return_msg']}")
+                print(f"   [CHART] 데이터 키: {data_keys}")
                 if result['sample_data']:
                     print(f"   📦 샘플 데이터 (첫 번째):")
                     print(f"      {json.dumps(result['sample_data'], ensure_ascii=False, indent=6)[:200]}...")
             else:
-                print(f"   ❌ 실패: {result['return_msg']}")
+                print(f"   [X] 실패: {result['return_msg']}")
 
             self.test_results['scoring_apis'].append(result)
             return result
 
         except Exception as e:
-            print(f"   ❌ 예외 발생: {str(e)}")
+            print(f"   [X] 예외 발생: {str(e)}")
             error_result = {
                 'test_name': test_name,
                 'api_id': api_id,
@@ -156,7 +156,7 @@ class ComprehensiveDataTester:
         print("   3. 외국인 매매 정보")
         print("   4. 투자자별 매매 동향")
         print("   5. 종목 체결 정보 (현재가, 거래량 등)")
-        print("\n🎯 다양한 API 조합으로 데이터 수집을 테스트합니다...\n")
+        print("\n[TARGET] 다양한 API 조합으로 데이터 수집을 테스트합니다...\n")
 
         today = get_last_trading_date()
 
@@ -439,7 +439,7 @@ class ComprehensiveDataTester:
             )
 
         print("\n" + "=" * 80)
-        print("✅ 테스트 케이스 11: 일봉차트조회 (ka10081) - 검증 완료!")
+        print("[OK] 테스트 케이스 11: 일봉차트조회 (ka10081) - 검증 완료!")
         print("=" * 80)
 
         self.test_scoring_api(
@@ -465,7 +465,7 @@ class ComprehensiveDataTester:
         )
 
         print("\n" + "=" * 80)
-        print("✅ 테스트 케이스 12: 체결강도추이 (ka10047) - 검증 완료!")
+        print("[OK] 테스트 케이스 12: 체결강도추이 (ka10047) - 검증 완료!")
         print("=" * 80)
 
         self.test_scoring_api(
@@ -487,7 +487,7 @@ class ComprehensiveDataTester:
         )
 
         print("\n" + "=" * 80)
-        print("✅ 테스트 케이스 13: 프로그램매매추이 (ka90013) - 검증 완료!")
+        print("[OK] 테스트 케이스 13: 프로그램매매추이 (ka90013) - 검증 완료!")
         print("=" * 80)
 
         self.test_scoring_api(
@@ -524,7 +524,7 @@ class ComprehensiveDataTester:
         )
 
         print("\n" + "=" * 80)
-        print(f"✅ 스코어링 API 테스트 완료: 총 {len(self.test_results['scoring_apis'])}개")
+        print(f"[OK] 스코어링 API 테스트 완료: 총 {len(self.test_results['scoring_apis'])}개")
         successful = sum(1 for r in self.test_results['scoring_apis'] if r.get('success', False))
         print(f"   성공: {successful}개 / 실패: {len(self.test_results['scoring_apis']) - successful}개")
         print("=" * 80)
@@ -570,7 +570,7 @@ class ComprehensiveDataTester:
                 ping_timeout=10
             ) as websocket:
                 result['connected'] = True
-                print(f"   ✅ WebSocket 연결 성공")
+                print(f"   [OK] WebSocket 연결 성공")
 
                 await websocket.send(json.dumps(subscribe_request))
                 print(f"   📤 구독 요청 전송")
@@ -588,7 +588,7 @@ class ComprehensiveDataTester:
 
                         if data.get('trnm') == 'REG' and data.get('return_code') == 0:
                             result['subscription_success'] = True
-                            print(f"   ✅ 구독 성공: {data.get('return_msg', '')}")
+                            print(f"   [OK] 구독 성공: {data.get('return_msg', '')}")
 
                         if data.get('trnm') == 'REAL':
                             print(f"   📨 실시간 데이터 수신 (총 {result['messages_received']}개)")
@@ -598,19 +598,19 @@ class ComprehensiveDataTester:
                     except asyncio.TimeoutError:
                         continue
                     except Exception as e:
-                        print(f"   ⚠️ 메시지 수신 오류: {str(e)}")
+                        print(f"   [WARNING]️ 메시지 수신 오류: {str(e)}")
                         break
 
                 result['success'] = result['connected'] and result['subscription_success']
 
                 if result['success']:
-                    print(f"   ✅ 테스트 성공: 연결 성공, 구독 성공, {result['messages_received']}개 메시지 수신")
+                    print(f"   [OK] 테스트 성공: 연결 성공, 구독 성공, {result['messages_received']}개 메시지 수신")
                 else:
-                    print(f"   ⚠️ 테스트 부분 성공: 연결={result['connected']}, 구독={result['subscription_success']}, 수신={result['messages_received']}개")
+                    print(f"   [WARNING]️ 테스트 부분 성공: 연결={result['connected']}, 구독={result['subscription_success']}, 수신={result['messages_received']}개")
 
         except Exception as e:
             result['error'] = str(e)
-            print(f"   ❌ 실패: {str(e)}")
+            print(f"   [X] 실패: {str(e)}")
 
         self.test_results['websocket_tests'].append(result)
         return result
@@ -623,10 +623,10 @@ class ComprehensiveDataTester:
         print("   1. 다양한 구독 형식 테스트")
         print("   2. 다양한 실시간 항목 조드 테스트")
         print("   3. grp_no, refresh 파라미터 조합 테스트")
-        print("\n🎯 다양한 WebSocket 연결 조건을 테스트합니다...\n")
+        print("\n[TARGET] 다양한 WebSocket 연결 조건을 테스트합니다...\n")
 
         await self.test_websocket_connection(
-            test_name="WS Case 1-1: 주문체결 구독 (type=00, refresh=1)",
+            test_name="WS Case 1-1: 주문체결 구독 (type="00", refresh=1)",
             subscribe_request={
                 "trnm": "REG",
                 "grp_no": "1",
@@ -640,7 +640,7 @@ class ComprehensiveDataTester:
         )
 
         await self.test_websocket_connection(
-            test_name="WS Case 1-2: 주문체결 구독 (type=00, refresh=0)",
+            test_name="WS Case 1-2: 주문체결 구독 (type="00", refresh=0)",
             subscribe_request={
                 "trnm": "REG",
                 "grp_no": "1",
@@ -814,7 +814,7 @@ class ComprehensiveDataTester:
         )
 
         print("\n" + "=" * 80)
-        print(f"✅ WebSocket 테스트 완료: 총 {len(self.test_results['websocket_tests'])}개")
+        print(f"[OK] WebSocket 테스트 완료: 총 {len(self.test_results['websocket_tests'])}개")
         successful = sum(1 for r in self.test_results['websocket_tests'] if r.get('success', False))
         connected = sum(1 for r in self.test_results['websocket_tests'] if r.get('connected', False))
         subscribed = sum(1 for r in self.test_results['websocket_tests'] if r.get('subscription_success', False))
@@ -838,18 +838,18 @@ class ComprehensiveDataTester:
         """테스트 결과 요약 출력"""
         self.print_section("테스트 결과 요약")
 
-        print("\n📊 스코어링 API - 성공한 케이스:")
+        print("\n[CHART] 스코어링 API - 성공한 케이스:")
         scoring_success = [r for r in self.test_results['scoring_apis'] if r.get('success', False) and r.get('has_data', False)]
 
         if scoring_success:
             for result in scoring_success:
-                print(f"\n  ✅ {result['test_name']}")
+                print(f"\n  [OK] {result['test_name']}")
                 print(f"     API: {result['api_id']}")
                 print(f"     데이터 키: {result['data_keys']}")
         else:
-            print("  ❌ 성공한 케이스 없음")
+            print("  [X] 성공한 케이스 없음")
 
-        print("\n\n🎯 스코어링을 위한 추천 API 조합:")
+        print("\n\n[TARGET] 스코어링을 위한 추천 API 조합:")
         if scoring_success:
             api_groups = {}
             for result in scoring_success:
@@ -869,21 +869,21 @@ class ComprehensiveDataTester:
 
         if ws_success:
             for result in ws_success:
-                print(f"\n  ✅ {result['test_name']}")
+                print(f"\n  [OK] {result['test_name']}")
                 print(f"     구독 요청: {json.dumps(result['subscribe_request'], ensure_ascii=False)}")
                 print(f"     수신 메시지: {result['messages_received']}개")
         else:
-            print("  ❌ 성공한 케이스 없음")
+            print("  [X] 성공한 케이스 없음")
 
         ws_partial = [r for r in self.test_results['websocket_tests']
                      if not r.get('success', False) and (r.get('connected', False) or r.get('subscription_success', False))]
 
         if ws_partial:
-            print("\n\n⚠️ WebSocket - 부분 성공 케이스 (디버깅 참고):")
+            print("\n\n[WARNING]️ WebSocket - 부분 성공 케이스 (디버깅 참고):")
             for result in ws_partial:
-                print(f"\n  ⚠️ {result['test_name']}")
-                print(f"     연결: {'✅' if result['connected'] else '❌'}")
-                print(f"     구독: {'✅' if result['subscription_success'] else '❌'}")
+                print(f"\n  [WARNING]️ {result['test_name']}")
+                print(f"     연결: {'[OK]' if result['connected'] else '[X]'}")
+                print(f"     구독: {'[OK]' if result['subscription_success'] else '[X]'}")
                 print(f"     수신: {result['messages_received']}개")
                 if result.get('error'):
                     print(f"     오류: {result['error']}")
@@ -910,11 +910,11 @@ async def main():
         tester.print_summary()
 
     except KeyboardInterrupt:
-        print("\n\n⚠️ 사용자에 의해 테스트가 중단되었습니다.")
+        print("\n\n[WARNING]️ 사용자에 의해 테스트가 중단되었습니다.")
         tester.save_results()
         tester.print_summary()
     except Exception as e:
-        print(f"\n\n❌ 예외 발생: {str(e)}")
+        print(f"\n\n[X] 예외 발생: {str(e)}")
         import traceback
         traceback.print_exc()
         tester.save_results()

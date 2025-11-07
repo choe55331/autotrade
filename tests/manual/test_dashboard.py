@@ -32,11 +32,11 @@ def init_apis():
         market_api = MarketAPI(client)
         account_api = AccountAPI(client)
 
-        print("✅ API 초기화 완료\n")
+        print("[OK] API 초기화 완료\n")
         return market_api, account_api
 
     except Exception as e:
-        print(f"❌ API 초기화 실패: {e}")
+        print(f"[X] API 초기화 실패: {e}")
         traceback.print_exc()
         return None, None
 
@@ -44,11 +44,11 @@ def init_apis():
 def test_account_balance(account_api):
     """계좌 잔고 계산 테스트"""
     print("=" * 80)
-    print("📊 테스트 1: 계좌 잔고 계산")
+    print("[CHART] 테스트 1: 계좌 잔고 계산")
     print("=" * 80)
 
     if not account_api:
-        print("⚠️  account_api 없음\n")
+        print("[WARNING]️  account_api 없음\n")
         return False
 
     try:
@@ -62,14 +62,14 @@ def test_account_balance(account_api):
         holdings = account_api.get_holdings()
 
         if not deposit:
-            print("❌ 예수금 조회 실패\n")
+            print("[X] 예수금 조회 실패\n")
             return False
 
         if holdings is None:
-            print("❌ 보유종목 조회 실패\n")
+            print("[X] 보유종목 조회 실패\n")
             return False
 
-        print("\n🔍 [디버깅] deposit API 응답 필드:")
+        print("\n[SEARCH] [디버깅] deposit API 응답 필드:")
         print(json.dumps({k: v for k, v in list(deposit.items())[:10]}, indent=2, ensure_ascii=False))
         print()
 
@@ -77,10 +77,10 @@ def test_account_balance(account_api):
 
         result1 = AccountBalanceFix.approach_1_deposit_minus_purchase(deposit, holdings)
 
-        print("✅ [접근법 1] 예수금 - 구매원가 (추천)")
+        print("[OK] [접근법 1] 예수금 - 구매원가 (추천)")
         print(f"   예수금: {result1['_debug']['deposit_amount']:,}원")
         print(f"   구매원가: {result1['_debug']['total_purchase_cost']:,}원")
-        print(f"   💰 실제 사용가능액: {result1['cash']:,}원")
+        print(f"   [MONEY] 실제 사용가능액: {result1['cash']:,}원")
         print(f"   총 자산: {result1['total_assets']:,}원")
         print(f"   보유주식: {result1['stock_value']:,}원")
         print(f"   손익: {result1['profit_loss']:,}원 ({result1['profit_loss_percent']:.2f}%)")
@@ -88,34 +88,34 @@ def test_account_balance(account_api):
         print()
 
         result2 = AccountBalanceFix.approach_2_manual_calculation(deposit, holdings)
-        print("✅ [접근법 2] 수동 계산")
-        print(f"   💰 실제 사용가능액: {result2['cash']:,}원")
+        print("[OK] [접근법 2] 수동 계산")
+        print(f"   [MONEY] 실제 사용가능액: {result2['cash']:,}원")
 
         print()
 
         old_cash = int(deposit.get('ord_alow_amt', 0))
-        print("⚠️  [기존 방식] 인출가능액 사용")
+        print("[WARNING]️  [기존 방식] 인출가능액 사용")
         print(f"   인출가능액: {old_cash:,}원")
         print(f"   차이: {result1['cash'] - old_cash:,}원")
 
-        print("\n🔍 [디버깅] 예수금 관련 필드 확인:")
+        print("\n[SEARCH] [디버깅] 예수금 관련 필드 확인:")
         for key in deposit.keys():
             if any(keyword in key.lower() for keyword in ['dps', 'amt', 'cash', 'deposit', '예수금']):
                 print(f"   {key}: {deposit.get(key)}")
 
         if holdings and len(holdings) > 0:
-            print("\n🔍 [디버깅] 보유종목 첫 번째 항목 필드:")
+            print("\n[SEARCH] [디버깅] 보유종목 첫 번째 항목 필드:")
             import json
             first_holding = holdings[0]
             print(json.dumps({k: v for k, v in list(first_holding.items())[:15]}, indent=2, ensure_ascii=False))
         else:
-            print("\n🔍 [디버깅] 보유종목 없음")
+            print("\n[SEARCH] [디버깅] 보유종목 없음")
 
         print()
         return True
 
     except Exception as e:
-        print(f"❌ 계좌 잔고 테스트 실패: {e}")
+        print(f"[X] 계좌 잔고 테스트 실패: {e}")
         traceback.print_exc()
         print()
         return False
@@ -124,11 +124,11 @@ def test_account_balance(account_api):
 def test_nxt_price(market_api, account_api):
     """NXT 시장가격 조회 테스트"""
     print("=" * 80)
-    print("💰 테스트 2: NXT 시장가격 조회")
+    print("[MONEY] 테스트 2: NXT 시장가격 조회")
     print("=" * 80)
 
     if not market_api:
-        print("⚠️  market_api 없음\n")
+        print("[WARNING]️  market_api 없음\n")
         return False
 
     try:
@@ -157,32 +157,32 @@ def test_nxt_price(market_api, account_api):
             price_info = market_api_ext.get_current_price_with_source(stock_code)
 
             if price_info['price'] > 0:
-                print(f"✅ 가격 조회 성공")
-                print(f"   💰 현재가: {price_info['price']:,}원")
+                print(f"[OK] 가격 조회 성공")
+                print(f"   [MONEY] 현재가: {price_info['price']:,}원")
                 print(f"   출처: {price_info['source']}")
                 print(f"   시도한 소스: {', '.join(price_info.get('sources_tried', []))}")
 
                 if not is_regular and not is_nxt and price_info['source'] == 'market_api':
-                    print(f"   ⚠️  시간외인데 market_api로 조회됨 (API가 전일 종가 반환했을 가능성)")
+                    print(f"   [WARNING]️  시간외인데 market_api로 조회됨 (API가 전일 종가 반환했을 가능성)")
 
                 success_count += 1
             else:
-                print(f"❌ 가격 조회 실패")
+                print(f"[X] 가격 조회 실패")
                 print(f"   시도한 소스: {', '.join(price_info.get('sources_tried', []))}")
 
             print()
 
         if success_count > 0:
-            print(f"✅ {success_count}/{len(test_stocks)}개 종목 가격 조회 성공")
+            print(f"[OK] {success_count}/{len(test_stocks)}개 종목 가격 조회 성공")
             print()
             return True
         else:
-            print(f"❌ 모든 종목 가격 조회 실패")
+            print(f"[X] 모든 종목 가격 조회 실패")
             print()
             return False
 
     except Exception as e:
-        print(f"❌ NXT 가격 조회 테스트 실패: {e}")
+        print(f"[X] NXT 가격 조회 테스트 실패: {e}")
         traceback.print_exc()
         print()
         return False
@@ -194,7 +194,7 @@ def test_ai_scanning():
     print("🤖 테스트 3: AI 스캐닝 종목 연동")
     print("=" * 80)
 
-    print("⚠️  이 테스트는 main.py가 실행 중일 때만 작동합니다.")
+    print("[WARNING]️  이 테스트는 main.py가 실행 중일 때만 작동합니다.")
     print()
     print("봇 실행 후 다음 명령으로 테스트하세요:")
     print("  python -c \"from tests.manual_tests.run_dashboard_tests import quick_test; import main; quick_test(main.bot)\"")
@@ -214,23 +214,23 @@ def test_ai_scanning():
 
                 scanning_info = get_scanning_info(bot, method='combined')
 
-                print("✅ AI 스캐닝 정보 조회 성공")
+                print("[OK] AI 스캐닝 정보 조회 성공")
                 print(f"   Fast Scan (스캐닝 종목): {scanning_info['fast_scan']['count']}개")
                 print(f"   Deep Scan (AI 분석 완료): {scanning_info['deep_scan']['count']}개")
                 print(f"   AI Scan (매수 대기): {scanning_info['ai_scan']['count']}개")
                 print()
                 return True
             else:
-                print("⚠️  main.bot 인스턴스를 찾을 수 없습니다.")
+                print("[WARNING]️  main.bot 인스턴스를 찾을 수 없습니다.")
                 print()
                 return False
         else:
-            print("⚠️  main 모듈이 로드되지 않았습니다.")
+            print("[WARNING]️  main 모듈이 로드되지 않았습니다.")
             print()
             return False
 
     except Exception as e:
-        print(f"⚠️  AI 스캐닝 테스트 스킵: {e}")
+        print(f"[WARNING]️  AI 스캐닝 테스트 스킵: {e}")
         print()
         return False
 
@@ -245,7 +245,7 @@ def main():
     market_api, account_api = init_apis()
 
     if not market_api or not account_api:
-        print("❌ API 초기화 실패. 테스트를 중단합니다.")
+        print("[X] API 초기화 실패. 테스트를 중단합니다.")
         return 1
 
     results = {
@@ -261,7 +261,7 @@ def main():
     results['ai_scanning'] = test_ai_scanning()
 
     print("=" * 80)
-    print("📊 테스트 결과 요약")
+    print("[CHART] 테스트 결과 요약")
     print("=" * 80)
     print()
 
@@ -269,7 +269,7 @@ def main():
     success = sum(1 for v in results.values() if v)
 
     for test_name, success_flag in results.items():
-        status = "✅ 성공" if success_flag else "❌ 실패"
+        status = "[OK] 성공" if success_flag else "[X] 실패"
         print(f"  {status}: {test_name}")
 
     print()
@@ -285,7 +285,7 @@ def main():
         print()
         return 0
     else:
-        print("⚠️  일부 테스트 실패")
+        print("[WARNING]️  일부 테스트 실패")
         print()
         print("해결 방법:")
         print("  - API 키 확인: config/config.yaml")

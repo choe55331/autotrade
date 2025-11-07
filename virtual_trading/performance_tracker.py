@@ -13,6 +13,7 @@ class PerformanceTracker:
 
     def __init__(self):
         """
+        """
         self.daily_snapshots: List[Dict] = []
         self.start_time = datetime.now()
 

@@ -201,7 +201,7 @@ class AccountAPI:
 
         Args:
             stock_code: 종목코드
-            order_type: 주문유형 (01: 시장가, 02: 지정가)
+            order_type: 주문유형 ("01": 시장가, "02": 지정가)
             price: 주문가격
 
         Returns:

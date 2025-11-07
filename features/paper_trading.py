@@ -315,14 +315,14 @@ class PaperTradingEngine:
         self.is_running = True
         self.execution_thread = threading.Thread(target=self._execution_loop, daemon=True)
         self.execution_thread.start()
-        logger.info("📈 Paper Trading Engine STARTED - Running 24/7 in background")
+        logger.info("[UP] Paper Trading Engine STARTED - Running 24/7 in background")
 
     def stop(self):
         """Stop paper trading engine"""
         self.is_running = False
         if self.execution_thread:
             self.execution_thread.join(timeout=5)
-        logger.info("📈 Paper Trading Engine STOPPED")
+        logger.info("[UP] Paper Trading Engine STOPPED")
 
     def _execution_loop(self):
         """Main execution loop (runs in background thread)"""
@@ -498,7 +498,7 @@ class PaperTradingEngine:
         """Update all positions with current prices"""
         for account in self.accounts.values():
             for position in account.positions:
-                price_change = np.random.uniform(-0.02, 0.02)
+                price_change = np.random.uniform(-0."02", 0."02")
                 position.current_price = position.buy_price * (1 + price_change)
 
                 position.profit_loss = (position.current_price - position.buy_price) * position.quantity
@@ -651,7 +651,7 @@ def get_paper_trading_engine(market_api=None, ai_agent=None) -> PaperTradingEngi
 if __name__ == '__main__':
     engine = PaperTradingEngine()
 
-    print("\n📈 Paper Trading Engine Test")
+    print("\n[UP] Paper Trading Engine Test")
     print("=" * 60)
 
     engine.start()

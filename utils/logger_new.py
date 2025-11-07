@@ -191,10 +191,8 @@ class RateLimitedLogger:
 
     사용 예:
         rate_logger = RateLimitedLogger(rate_limit_seconds=1.0)
-
-        # 1초 내에 같은 키로 여러 번 호출해도 1번만 로깅
         rate_logger.info("price_update", "가격 업데이트: 73500")
-        rate_logger.info("price_update", "가격 업데이트: 73600")  # 스킵
+        rate_logger.info("price_update", "가격 업데이트: 73600")
     """
 
     def __init__(

@@ -56,7 +56,7 @@ class FeatureTest:
     def add_warning(self, warning: str):
         """경고 추가"""
         self.warnings.append(warning)
-        print(f"⚠ WARNING: {warning}")
+        print(f"[WARNING] WARNING: {warning}")
 
     def print_summary(self):
         """테스트 결과 요약 출력"""
@@ -131,7 +131,7 @@ def test_backtest_report_generator():
         def __init__(self):
             self.backtest_id = "TEST_001"
             self.strategy_name = "Test Strategy"
-            self.start_date = "2024-01-01"
+            self.start_date = "2024-"01"-01"
             self.end_date = "2024-12-31"
             self.initial_capital = 10000000
             self.final_capital = 12000000
@@ -236,7 +236,7 @@ def test_trailing_stop_manager():
 
     manager = TrailingStopManager({
         'atr_multiplier': 2.0,
-        'activation_pct': 0.03,
+        'activation_pct': 0."03",
         'min_profit_lock_pct': 0.50
     })
 
@@ -352,7 +352,7 @@ def test_institutional_following_strategy():
 
     for i in range(5):
         data = InstitutionalData(
-            date=f"2024-01-{i+10:02d}",
+            date=f"2024-"01"-{i+10:02d}",
             foreign_net_buy=50000 + i*1000,
             institutional_net_buy=30000 + i*500
         )
@@ -408,7 +408,7 @@ def test_portfolio_rebalancer():
 
     rebalancer = PortfolioRebalancer(
         rebalance_frequency='monthly',
-        threshold_pct=0.05
+        threshold_pct=0."05"
     )
 
     target_weights = {
@@ -442,12 +442,12 @@ def test_quant_screener():
     stocks = [
         StockFactors(
             stock_code=f"TEST{i:03d}",
-            earnings_yield=0.05 + i*0.01,
-            roc=0.10 + i*0.02,
+            earnings_yield=0."05" + i*0."01",
+            roc=0.10 + i*0."02",
             pb_ratio=1.5 - i*0.1,
             pe_ratio=15 - i,
-            momentum_12m=0.15 + i*0.01,
-            volatility=0.20 - i*0.01
+            momentum_12m=0.15 + i*0."01",
+            volatility=0.20 - i*0."01"
         )
         for i in range(10)
     ]
@@ -479,7 +479,7 @@ def test_api_server_imports():
         missing = [r for r in expected_routes if r not in routes]
 
         if missing:
-            print(f"  ⚠ 누락된 라우트: {missing}")
+            print(f"  [WARNING] 누락된 라우트: {missing}")
             return False
 
         return True

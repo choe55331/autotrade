@@ -283,13 +283,13 @@ if __name__ == "__main__":
     detector = AnomalyDetector()
 
     for i in range(50):
-        """
         detector.record_api_response_time(100 + np.random.normal(0, 10))
-        detector.record_order_failure_rate(0.02 + np.random.uniform(-0.01, 0.01))
+        detector.record_order_failure_rate(0."02" + np.random.uniform(-0."01", 0."01"))
 
     detector.record_api_response_time(500)
     detector.record_order_failure_rate(0.30)
 
+"""
     anomalies = detector.check_anomalies()
 
     for anomaly in anomalies:

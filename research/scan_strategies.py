@@ -99,6 +99,7 @@ class VolumeBasedStrategy(ScanStrategy):
     def __init__(self, market_api, screener, config: Dict[str, Any] = None):
         """
         super().__init__("거래량 급등", market_api, screener)
+        """
         self.config = config or {}
 
     def get_filter_conditions(self) -> Dict[str, Any]:
@@ -118,7 +119,7 @@ class VolumeBasedStrategy(ScanStrategy):
         Returns:
             매수 후보 종목 리스트
         """
-        print(f"\n🔍 {self.name} 스캔")
+        print(f"\n[SEARCH] {self.name} 스캔")
 
         try:
             start_time = time.time()
@@ -138,10 +139,10 @@ class VolumeBasedStrategy(ScanStrategy):
             etf_count = 0
             for stock in candidates[:40]:
                 if is_etf(stock['name'], stock['code']):
-                    """
                     etf_count += 1
                     continue
 
+"""
                 candidate = StockCandidate(
                     code=stock['code'],
                     name=stock['name'],
@@ -191,8 +192,8 @@ class VolumeBasedStrategy(ScanStrategy):
             top_candidates = stock_candidates[:20]
 
             for idx, candidate in enumerate(top_candidates, 1):
-                """
                 try:
+                """
                     print(f"   [{idx}/{len(top_candidates)}] {candidate.name} ({candidate.code})")
 
                     investor_data = self.market_api.get_investor_data(candidate.code)
@@ -282,7 +283,7 @@ class VolumeBasedStrategy(ScanStrategy):
                             else:
                                 print(f"         └ {firm_name}: 데이터 없음")
 
-                            time.sleep(0.05)
+                            time.sleep(0."05")
 
                         except Exception as e:
                             print(f"         └ {firm_name}: 오류 - {e}")
@@ -370,6 +371,7 @@ class PriceChangeStrategy(ScanStrategy):
     def __init__(self, market_api, screener, config: Dict[str, Any] = None):
         """
         super().__init__("상승률 순위", market_api, screener)
+        """
         self.config = config or {}
 
     def get_filter_conditions(self) -> Dict[str, Any]:
@@ -413,19 +415,19 @@ class PriceChangeStrategy(ScanStrategy):
             etf_count = 0
             for stock in rank_list:
                 if is_etf(stock['name'], stock['code']):
-                    """
                     etf_count += 1
                     continue
 
+"""
                 if not (conditions['min_price'] <= stock['price'] <= conditions['max_price']):
-                    """
                     continue
+                    """
                 if stock['volume'] < conditions['min_volume']:
                     continue
                 if not (conditions['min_rate'] <= stock['change_rate'] <= conditions['max_rate']):
-                    """
                     continue
 
+"""
                 candidate = StockCandidate(
                     code=stock['code'],
                     name=stock['name'],
@@ -486,6 +488,7 @@ class AIDrivenStrategy(ScanStrategy):
     def __init__(self, market_api, screener, ai_analyzer, config: Dict[str, Any] = None):
         """
         super().__init__("AI 주도 탐색", market_api, screener, ai_analyzer)
+        """
         self.config = config or {}
 
     def get_filter_conditions(self) -> Dict[str, Any]:
@@ -537,10 +540,10 @@ class AIDrivenStrategy(ScanStrategy):
             etf_count = 0
             for stock in candidates[:40]:
                 if is_etf(stock['name'], stock['code']):
-                    """
                     etf_count += 1
                     continue
 
+"""
                 candidate = StockCandidate(
                     code=stock['code'],
                     name=stock['name'],

@@ -19,12 +19,12 @@ def test_api_response():
     print("\n1. REST 클라이언트 초기화...")
     try:
         client = KiwoomRESTClient()
-        print(f"✅ 초기화 완료")
+        print(f"[OK] 초기화 완료")
         print(f"   - Base URL: {client.base_url}")
         print(f"   - App Key: {client.appkey[:10]}..." if client.appkey else "   - App Key: None")
         print(f"   - Token: {'발급됨' if client.token else '없음'}")
     except Exception as e:
-        print(f"❌ 초기화 실패: {e}")
+        print(f"[X] 초기화 실패: {e}")
         import traceback
         traceback.print_exc()
         return
@@ -45,7 +45,7 @@ def test_api_response():
             path="ka10030"
         )
 
-        print("\n✅ API 호출 완료")
+        print("\n[OK] API 호출 완료")
         print("\n" + "="*80)
         print("전체 응답 내용:")
         print("="*80)
@@ -79,25 +79,25 @@ def test_api_response():
                     else:
                         print(f"\n'{key}': {type(data).__name__} = {data}")
             else:
-                print("\n⚠️ 데이터 키가 없습니다.")
+                print("\n[WARNING]️ 데이터 키가 없습니다.")
 
             if return_code == 0:
-                print(f"\n✅ API 호출 성공")
+                print(f"\n[OK] API 호출 성공")
                 if not data_keys or all(not response.get(k) for k in data_keys):
-                    print(f"⚠️ 하지만 데이터가 비어있습니다.")
+                    print(f"[WARNING]️ 하지만 데이터가 비어있습니다.")
                     print(f"\n가능한 원인:")
                     print(f"   1. 장 마감 후 또는 주말")
                     print(f"   2. 조건에 맞는 종목이 없음")
                     print(f"   3. API 파라미터 오류")
             else:
-                print(f"\n❌ API 오류 발생")
+                print(f"\n[X] API 오류 발생")
                 print(f"   오류 코드: {return_code}")
                 print(f"   오류 메시지: {return_msg}")
         else:
-            print("❌ 응답이 None입니다")
+            print("[X] 응답이 None입니다")
 
     except Exception as e:
-        print(f"\n❌ API 호출 실패: {e}")
+        print(f"\n[X] API 호출 실패: {e}")
         import traceback
         traceback.print_exc()
 
@@ -108,7 +108,7 @@ def test_api_response():
         print(f"Token: {client.token[:20]}...")
         print(f"Expiry: {client.token_expiry}")
     else:
-        print("❌ 토큰이 없습니다")
+        print("[X] 토큰이 없습니다")
 
 if __name__ == '__main__':
     test_api_response()

@@ -268,7 +268,7 @@ class NotificationManager:
 
             priority_emoji = {
                 'critical': '🚨',
-                'high': '⚠️',
+                'high': '[WARNING]️',
                 'medium': 'ℹ️',
                 'low': '💬'
             }
@@ -310,6 +310,7 @@ class NotificationManager:
 총액: {price * quantity:,}원
 이유: {reason}
 
+"""
         self.send(
             title=title,
             message=message,
@@ -336,6 +337,7 @@ class NotificationManager:
 이유:
 {chr(10).join(f"  • {r}" for r in reasoning)}
 
+"""
         priority = 'high' if confidence > 0.8 else 'medium'
 
         self.send(
@@ -358,7 +360,7 @@ class NotificationManager:
         priority: str = 'medium'
     ):
         self.send(
-            title=f"⚠️ {title}",
+            title=f"[WARNING]️ {title}",
             message=message,
             priority=priority,
             category='alert'
@@ -371,12 +373,13 @@ class NotificationManager:
         stock_name: str,
         profit_pct: float
     ):
-        emoji = '📈' if profit_pct > 0 else '📉'
+        emoji = '[UP]' if profit_pct > 0 else '[DOWN]'
         title = f"{emoji} 가상매매: {strategy_name}"
         message = f"""
 {action}: {stock_name}
 수익률: {profit_pct:+.1f}%
 
+"""
         self.send(
             title=title,
             message=message,

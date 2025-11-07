@@ -301,9 +301,11 @@ def retry_on_exception(
         logger: 로거 (선택)
 
     Usage:
+    """
         @retry_on_exception(exceptions=(APIConnectionException,), max_retries=3)
         def call_api():
             ...
+    """
     """
     import time
     from functools import wraps

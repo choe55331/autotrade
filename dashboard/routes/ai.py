@@ -16,7 +16,7 @@ New structure:
     auto_analysis.py     - Auto-Analysis
     market_commentary.py - Market Commentary
 
-Refactored from monolithic 2,045-line file to 6 modular files.
+Refactored from monolithic 2,"045"-line file to 6 modular files.
 
 For new code, use:
 """

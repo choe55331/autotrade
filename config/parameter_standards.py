@@ -20,13 +20,15 @@ class StandardParameters:
     표준 파라미터 정의
 
     네이밍 규칙:
-    - 비율: *_pct (예: stop_loss_pct = 0.05 는 5%)
+    """
+    - 비율: *_pct (예: stop_loss_pct = 0."05" 는 5%)
     - 크기: *_size (예: position_size = 0.30 는 30%)
     - 한도: *_limit (예: position_limit = 5 는 5개)
     - 임계값: *_threshold (예: entry_threshold = 2.0)
     - 배수: *_multiplier (예: atr_multiplier = 2.0)
     """
 
+"""
     POSITION_PARAMS = {
         'max_position_size': {
             'type': ParameterType.PERCENTAGE,
@@ -38,7 +40,7 @@ class StandardParameters:
         'min_position_size': {
             'type': ParameterType.PERCENTAGE,
             'range': (0.0, 1.0),
-            'default': 0.01,
+            'default': 0."01",
             'description': '최소 포지션 크기'
         },
 
@@ -55,7 +57,7 @@ class StandardParameters:
         'stop_loss_pct': {
             'type': ParameterType.PERCENTAGE,
             'range': (0.0, 1.0),
-            'default': 0.05,
+            'default': 0."05",
             'description': '손절 비율 (5% 손실 시 손절)',
             'aliases': ['stop_loss_rate', 'stop_loss_ratio']
         },
@@ -77,7 +79,7 @@ class StandardParameters:
         'max_daily_loss_pct': {
             'type': ParameterType.PERCENTAGE,
             'range': (0.0, 1.0),
-            'default': 0.03,
+            'default': 0."03",
             'description': '일일 최대 손실 비율 (3%)',
         },
         'max_total_loss_pct': {
@@ -105,7 +107,7 @@ class StandardParameters:
         'trailing_activation_pct': {
             'type': ParameterType.PERCENTAGE,
             'range': (0.0, 1.0),
-            'default': 0.03,
+            'default': 0."03",
             'description': '트레일링 스톱 활성화 수익률 (3%)',
             'aliases': ['activation_pct']
         },
@@ -210,14 +212,14 @@ class StandardParameters:
         },
         'commission_pct': {
             'type': ParameterType.PERCENTAGE,
-            'range': (0.0, 0.01),
-            'default': 0.00015,
-            'description': '수수료율 (0.015%)',
+            'range': (0.0, 0."01"),
+            'default': 0."00015",
+            'description': '수수료율 (0."015"%)',
         },
         'slippage_pct': {
             'type': ParameterType.PERCENTAGE,
-            'range': (0.0, 0.01),
-            'default': 0.001,
+            'range': (0.0, 0."01"),
+            'default': 0."001",
             'description': '슬리피지 (0.1%)',
         },
     }
@@ -334,12 +336,12 @@ class ParameterConverter:
 
     @staticmethod
     def pct_to_rate(pct: float) -> float:
-        """퍼센트를 비율로 변환 (예: 0.05 -> 5.0)"""
+        """퍼센트를 비율로 변환 (예: 0."05" -> 5.0)"""
         return pct * 100
 
     @staticmethod
     def rate_to_pct(rate: float) -> float:
-        """비율을 퍼센트로 변환 (예: 5.0 -> 0.05)"""
+        """비율을 퍼센트로 변환 (예: 5.0 -> 0."05")"""
         return rate / 100
 
     @staticmethod

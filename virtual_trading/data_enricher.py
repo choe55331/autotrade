@@ -50,8 +50,8 @@ class VirtualTradingDataEnricher:
         try:
             macd_value = stock_data.get('macd')
             if isinstance(macd_value, dict):
-                """
                 stock_data['macd'] = macd_value.get('macd', 0)
+                """
                 stock_data['macd_signal'] = macd_value.get('signal', 0)
                 stock_data['macd_histogram'] = macd_value.get('histogram', 0)
             elif macd_value is None:
@@ -164,22 +164,16 @@ class VirtualTradingDataEnricher:
                 stock_name = stock_data.get('stock_name', '')
 
                 if any(keyword in stock_name for keyword in ['전자', '반도체', '디스플레이', 'IT', '소프트']):
-                    """
                     stock_data['sector'] = 'IT'
                 elif any(keyword in stock_name for keyword in ['바이오', '제약', '병원', '헬스']):
-                    """
                     stock_data['sector'] = '헬스케어'
                 elif any(keyword in stock_name for keyword in ['은행', '증권', '보험', '금융']):
-                    """
                     stock_data['sector'] = '금융'
                 elif any(keyword in stock_name for keyword in ['건설', '건축']):
-                    """
                     stock_data['sector'] = '산업재'
                 elif any(keyword in stock_name for keyword in ['식품', '음료', '유통']):
-                    """
                     stock_data['sector'] = '필수소비재'
                 elif any(keyword in stock_name for keyword in ['자동차', '화학', '철강']):
-                    """
                     stock_data['sector'] = '경기소비재'
                 else:
                     stock_data['sector'] = 'IT'
@@ -189,7 +183,7 @@ class VirtualTradingDataEnricher:
                 if price_change > 3:
                     stock_data['sector_relative_strength'] = 1.10
                 elif price_change > 0:
-                    stock_data['sector_relative_strength'] = 1.03
+                    stock_data['sector_relative_strength'] = 1."03"
                 else:
                     stock_data['sector_relative_strength'] = 0.97
 

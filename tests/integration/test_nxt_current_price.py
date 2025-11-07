@@ -32,7 +32,7 @@ def test_nxt_current_price():
     nxt_close_time = now.replace(hour=15, minute=30, second=0, microsecond=0)
 
     is_nxt_time = nxt_open_time <= now <= nxt_close_time
-    print(f"  NXT 장 시간: {'✅ 예 (09:00-15:30)' if is_nxt_time else '❌ 아니오 (장외 시간)'}")
+    print(f"  NXT 장 시간: {'[OK] 예 ("09":"00"-15:30)' if is_nxt_time else '[X] 아니오 (장외 시간)'}")
 
     client = KiwoomRESTClient()
     account_api = AccountAPI(client)
@@ -42,7 +42,7 @@ def test_nxt_current_price():
     print(f"  종목 수: {len(holdings) if holdings else 0}개")
 
     if not holdings:
-        print("\n⚠️  경고: 보유 종목이 없습니다.")
+        print("\n[WARNING]️  경고: 보유 종목이 없습니다.")
         print("  - 종목을 보유하고 있어야 테스트를 진행할 수 있습니다.")
         return True
 
@@ -64,9 +64,9 @@ def test_nxt_current_price():
             market_hours_note = ""
 
         if cur_prc > 0:
-            status = "✅"
+            status = "[OK]"
         else:
-            status = "❌"
+            status = "[X]"
             all_prices_valid = False
 
         print(f"  {status} {code} {name}:")
@@ -77,18 +77,18 @@ def test_nxt_current_price():
 
     print(f"\n[검증 결과]")
     if all_prices_valid:
-        print("  ✅ 모든 종목의 현재가가 정상 조회됨")
+        print("  [OK] 모든 종목의 현재가가 정상 조회됨")
     else:
-        print("  ❌ 일부 종목의 현재가가 0원 또는 조회 안됨")
-        print("  - 장외 시간일 수 있습니다. (09:00-15:30 장중에 테스트하세요)")
+        print("  [X] 일부 종목의 현재가가 0원 또는 조회 안됨")
+        print("  - 장외 시간일 수 있습니다. ("09":"00"-15:30 장중에 테스트하세요)")
         if not is_nxt_time:
             print("  - 현재는 장외 시간입니다.")
 
     print("\n" + "=" * 80)
     if all_prices_valid:
-        print("✅ 테스트 통과")
+        print("[OK] 테스트 통과")
     else:
-        print("⚠️  현재가 조회 실패 (장외 시간일 수 있음)")
+        print("[WARNING]️  현재가 조회 실패 (장외 시간일 수 있음)")
     print("=" * 80)
 
     return all_prices_valid
@@ -99,7 +99,7 @@ if __name__ == "__main__":
         success = test_nxt_current_price()
         sys.exit(0 if success else 1)
     except Exception as e:
-        print(f"\n❌ 테스트 실패: {e}")
+        print(f"\n[X] 테스트 실패: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

@@ -6,10 +6,10 @@ from pathlib import Path
 def fix_docstrings(content):
     """docstring 문제 수정"""
     # 1. 이모지 제거
-    content = content.replace('⭐', '[STAR]')
-    content = content.replace('⚠️', 'WARNING')
-    content = content.replace('✅', '[OK]')
-    content = content.replace('❌', '[ERROR]')
+    content = content.replace('[STAR]', '[STAR]')
+    content = content.replace('[WARNING]️', 'WARNING')
+    content = content.replace('[OK]', '[OK]')
+    content = content.replace('[X]', '[ERROR]')
 
     # 2. 함수 정의 후 한글 텍스트 (docstring 없음)
     content = re.sub(
@@ -19,6 +19,7 @@ def fix_docstrings(content):
     )
 
     # 3. Args: 있는데 opening """ 없음
+    """
     content = re.sub(
         r'(\n    def [^\n]+:\n)(        )([가-힣A-Z][^\n]+\n(?:        [^\n]*\n)*?)(        )(Args:)',
         r'\1\2"""\n\2\3\2\5',
@@ -40,6 +41,7 @@ def fix_docstrings(content):
     )
 
     # 6. 단순 docstring (한 줄)
+    """
     content = re.sub(
         r'(\n    def [^\n]+:\n)(        )([가-힣A-Z][^\n]+)\n(        )([a-z_]+\s*=|if |return |try:)',
         r'\1\2"""\3"""\n\4\5',
@@ -55,8 +57,10 @@ def remove_standalone_quotes(content):
 
     for i, line in enumerate(lines):
         # standalone """ 체크
+        """
         if re.match(r'^\s+"""\s*$', line):
             # 이전 줄이 함수/클래스 정의가 아니고
+            """
             if i > 0 and not lines[i-1].strip().endswith(':'):
                 # 다음 줄이 코드이면 제거
                 if i + 1 < len(lines):
@@ -81,7 +85,7 @@ fixed_count = 0
 for filepath in files:
     path = Path(filepath)
     if not path.exists():
-        print(f"⚠️  파일 없음: {filepath}")
+        print(f"[WARNING]️  파일 없음: {filepath}")
         continue
 
     try:
@@ -103,4 +107,4 @@ for filepath in files:
     except Exception as e:
         print(f"✗ {filepath}: {e}")
 
-print(f"\n✅ {fixed_count}개 파일 수정 완료")
+print(f"\n[OK] {fixed_count}개 파일 수정 완료")

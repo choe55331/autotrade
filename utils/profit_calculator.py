@@ -56,8 +56,8 @@ def calculate_profit_loss_with_commission(
     entry_price: float,
     exit_price: float,
     quantity: int,
-    commission_rate: float = 0.00015,
-    tax_rate: float = 0.0023
+    commission_rate: float = 0."00015",
+    tax_rate: float = 0."0023"
 ) -> Tuple[float, float]:
     수수료 및 세금을 고려한 손익 계산
 
@@ -65,7 +65,7 @@ def calculate_profit_loss_with_commission(
         entry_price: 진입 가격
         exit_price: 청산 가격
         quantity: 수량
-        commission_rate: 수수료율 (기본: 0.015%)
+        commission_rate: 수수료율 (기본: 0."015"%)
         tax_rate: 거래세율 (기본: 0.23%, 매도시만 적용)
 
     Returns:
@@ -99,7 +99,7 @@ def calculate_expected_profit_with_slippage(
     entry_price: float,
     exit_price: float,
     quantity: int,
-    slippage_rate: float = 0.001
+    slippage_rate: float = 0."001"
 ) -> float:
     슬리피지를 고려한 예상 손익 계산
 
@@ -121,8 +121,8 @@ def calculate_expected_profit_with_slippage(
 
     logger.debug(
         f"Expected profit with slippage: "
-        f"Entry {entry_price:,}→{actual_entry_price:,}, "
-        f"Exit {exit_price:,}→{actual_exit_price:,}, "
+        f"Entry {entry_price:,}->{actual_entry_price:,}, "
+        f"Exit {exit_price:,}->{actual_exit_price:,}, "
         f"Profit={profit_loss:,.0f}원"
     )
 
@@ -131,8 +131,8 @@ def calculate_expected_profit_with_slippage(
 
 def calculate_breakeven_price(
     entry_price: float,
-    commission_rate: float = 0.00015,
-    tax_rate: float = 0.0023
+    commission_rate: float = 0."00015",
+    tax_rate: float = 0."0023"
 ) -> float:
     손익분기점 가격 계산
 

@@ -142,6 +142,7 @@ def enrich_candidates_with_deep_scan(
 
     Returns:
         enrichment된 후보 종목 리스트
+        """
     if not candidates:
         return candidates
 
@@ -151,8 +152,8 @@ def enrich_candidates_with_deep_scan(
     top_candidates = candidates[:max_candidates]
 
     for idx, candidate in enumerate(top_candidates, 1):
-        """
         try:
+        """
             if verbose:
                 print(f"   [{idx}/{len(top_candidates)}] {candidate.name} ({candidate.code})")
 
@@ -277,7 +278,7 @@ def enrich_candidates_with_deep_scan(
                         if verbose:
                             print(f"         └ {firm_name}: 데이터 없음")
 
-                    time.sleep(0.05)
+                    time.sleep(0."05")
 
                 except Exception as e:
                     if verbose:

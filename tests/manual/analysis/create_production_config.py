@@ -179,17 +179,17 @@ def create_summary_report():
 
     report.append("\n2️⃣ 최적화 결과")
     report.append("-"*80)
-    report.append(f"  ✅ 완전 성공 API: {stats['total_success_apis']}개")
+    report.append(f"  [OK] 완전 성공 API: {stats['total_success_apis']}개")
     report.append(f"     - 모든 variant가 데이터 수신 성공")
     report.append(f"     - 총 {stats['total_success_variants']}개 variant")
 
-    report.append(f"\n  ⚠️  부분 성공 API: {stats['partial_apis']}개")
+    report.append(f"\n  [WARNING]️  부분 성공 API: {stats['partial_apis']}개")
     report.append(f"     - 일부 variant만 성공, 실패한 것은 제거")
     report.append(f"     - 유지: {stats['partial_success_variants']}개 variant")
     report.append(f"     - 제거: {stats['partial_removed_variants']}개 variant (no_data/실패)")
 
-    report.append(f"\n  ❌ 전체 실패 API: {stats['total_fail_apis']}개")
-    report.append(f"     - 모든 variant 실패 → 목록에서 제외")
+    report.append(f"\n  [X] 전체 실패 API: {stats['total_fail_apis']}개")
+    report.append(f"     - 모든 variant 실패 -> 목록에서 제외")
 
     report.append(f"\n  🆕 신규 발견 API: {stats['new_apis']}개")
     report.append(f"     - kiwoom_docs 문서에서 발견")
@@ -198,8 +198,8 @@ def create_summary_report():
     report.append("\n3️⃣ 최종 결과")
     report.append("-"*80)
     report.append(f"  📦 최종 API 수: {len(apis)}개")
-    report.append(f"  📊 총 검증된 호출: {stats['total_success_variants'] + stats['partial_success_variants']}개")
-    report.append(f"  ✅ 모두 실제 데이터 수신 확인됨")
+    report.append(f"  [CHART] 총 검증된 호출: {stats['total_success_variants'] + stats['partial_success_variants']}개")
+    report.append(f"  [OK] 모두 실제 데이터 수신 확인됨")
 
     report.append("\n4️⃣ 부분 성공 API 상세 (실패 variant 제거)")
     report.append("-"*80)
@@ -214,8 +214,8 @@ def create_summary_report():
         removed = info['removed_variants']
 
         report.append(f"\n  [{api_id}] {info['api_name']}")
-        report.append(f"    ✅ 유지된 variant: {', '.join(f'Var {v}' for v in kept_vars)}")
-        report.append(f"    ❌ 제거된 variant: {removed}개 (no_data 또는 API 오류)")
+        report.append(f"    [OK] 유지된 variant: {', '.join(f'Var {v}' for v in kept_vars)}")
+        report.append(f"    [X] 제거된 variant: {removed}개 (no_data 또는 API 오류)")
 
     report.append("\n5️⃣ 생성된 파일")
     report.append("-"*80)
@@ -228,7 +228,7 @@ def create_summary_report():
     report.append("\n6️⃣ 권장 사항")
     report.append("-"*80)
     report.append("  1. production_api_config.json을 프로덕션 환경에 배포")
-    report.append("  2. 신규 발견 28개 API는 8:00-20:00 시간대에 테스트 진행")
+    report.append("  2. 신규 발견 28개 API는 8:"00"-20:"00" 시간대에 테스트 진행")
     report.append("  3. 부분 성공 API는 성공한 variant만 사용")
     report.append("  4. 전체 실패 12개 API는 추후 파라미터 재검토 필요")
 

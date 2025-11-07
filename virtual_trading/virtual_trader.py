@@ -36,7 +36,7 @@ class TradingStrategy:
         self.require_ai_approval = True
 
         self.take_profit_rate = 0.10
-        self.stop_loss_rate = -0.05
+        self.stop_loss_rate = -0."05"
         self.trailing_stop = False
         self.max_holding_days = 5
 
@@ -59,7 +59,6 @@ class TradingStrategy:
 
         stock_code = stock_data.get('stock_code')
         if account.has_position(stock_code):
-            """
             """
             return False
 
@@ -181,12 +180,10 @@ class VirtualTrader:
 
         for strategy_name, strategy in self.strategies.items():
             """
-            """
             account = self.accounts[strategy_name]
 
             try:
                 if isinstance(strategy, DiverseTradingStrategy):
-                    """
                     """
                     should_buy = strategy.should_buy(enriched_stock_data, enriched_market_data, account)
                 else:
@@ -199,7 +196,6 @@ class VirtualTrader:
                     quantity = strategy.calculate_quantity(price, account)
 
                     if quantity > 0 and account.can_buy(price, quantity):
-                        """
                         """
                         success = account.buy(
                             stock_code=stock_code,
@@ -231,11 +227,9 @@ class VirtualTrader:
 
         for strategy_name, account in self.accounts.items():
             """
-            """
             strategy = self.strategies[strategy_name]
 
             for stock_code, position in list(account.positions.items()):
-                """
                 """
                 if stock_code not in price_data:
                     continue
@@ -246,7 +240,6 @@ class VirtualTrader:
 
                 try:
                     if isinstance(strategy, DiverseTradingStrategy):
-                        """
                         """
                         stock_data = stock_data_dict.get(stock_code, {})
                         enriched_stock_data = self.data_enricher.enrich_stock_data(stock_data)
@@ -297,7 +290,6 @@ class VirtualTrader:
 
         for strategy_name, account in self.accounts.items():
             """
-            """
             pnl_rate = account.get_total_pnl_rate()
             if pnl_rate > best_pnl_rate:
                 best_pnl_rate = pnl_rate
@@ -314,7 +306,6 @@ class VirtualTrader:
         summaries = self.get_all_summaries()
 
         for strategy_name, summary in summaries.items():
-            """
             """
             pnl = summary['total_pnl']
             pnl_rate = summary['total_pnl_rate']
@@ -335,7 +326,6 @@ class VirtualTrader:
             if account.trade_history:
                 print(f"\n  📝 거래 내역 (최근 {min(10, len(account.trade_history))}건):")
                 for i, trade in enumerate(account.trade_history[-10:], 1):
-                    """
                     """
                     trade_type = trade['type']
                     timestamp = trade.get('timestamp', 'N/A')
@@ -370,7 +360,6 @@ class VirtualTrader:
         """모든 계좌 상태 저장"""
         for strategy_name, account in self.accounts.items():
             """
-            """
             filename = f"{strategy_name}.json"
             filepath = f"{base_dir}/{filename}"
             account.save_state(filepath)
@@ -378,7 +367,6 @@ class VirtualTrader:
     def load_all_states(self, base_dir: str = "data/virtual_trading"):
         """모든 계좌 상태 로드"""
         for strategy_name, account in self.accounts.items():
-            """
             """
             filename = f"{strategy_name}.json"
             filepath = f"{base_dir}/{filename}"

@@ -78,7 +78,7 @@ class RedisCacheManager:
                 self.redis_client = None
 
                 if use_fallback:
-                    logger.info("→ 메모리 캐시로 폴백")
+                    logger.info("-> 메모리 캐시로 폴백")
 
     def get(self, key: str, default: Any = None) -> Any:
         """
@@ -307,10 +307,12 @@ def cache_with_ttl(ttl: int = 300, key_prefix: str = ""):
 
     Usage:
         @cache_with_ttl(300)
+        """
         def get_stock_price(stock_code):
             return api.get_price(stock_code)
     """
 
+"""
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(*args, **kwargs):

@@ -156,9 +156,9 @@ class ThemeAnalyzer:
                     continue
                 
                 for stock in analysis.get('top_rising_stocks', []):
-                    """
                     change_rate = float(stock.get('flu_rt', '0'))
                     
+                    """
                     if change_rate >= min_stock_change:
                         candidates.append({
                             'stock_code': stock.get('stk_cd', ''),

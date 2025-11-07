@@ -25,7 +25,7 @@ class DataCollectionTester:
     def test_all_methods(self, stock_code: str = "005930") -> Dict[str, Any]:
         """모든 방법 테스트"""
         print("\n" + "="*80)
-        print(f"📊 종합 데이터 수집 테스트: {stock_code}")
+        print(f"[CHART] 종합 데이터 수집 테스트: {stock_code}")
         print("="*80)
 
         results = {
@@ -99,10 +99,10 @@ class DataCollectionTester:
                 volumes = [d.get('volume', 0) for d in daily_data if d.get('volume')]
                 if volumes:
                     avg_volume = sum(volumes) / len(volumes)
-                    print(f"      ✅ 평균거래량: {avg_volume:,.0f}주")
+                    print(f"      [OK] 평균거래량: {avg_volume:,.0f}주")
                 else:
                     avg_volume = None
-                    print(f"      ❌ 거래량 데이터 없음")
+                    print(f"      [X] 거래량 데이터 없음")
 
                 rates = []
                 for d in daily_data:
@@ -114,16 +114,16 @@ class DataCollectionTester:
 
                 if len(rates) > 1:
                     volatility = statistics.stdev(rates)
-                    print(f"      ✅ 변동성: {volatility:.2f}%")
+                    print(f"      [OK] 변동성: {volatility:.2f}%")
                 else:
                     volatility = None
-                    print(f"      ❌ 변동성 계산 실패")
+                    print(f"      [X] 변동성 계산 실패")
 
                 return avg_volume, volatility, "get_daily_chart[ka10081]"
             else:
-                print(f"      ❌ 일봉 데이터 없음")
+                print(f"      [X] 일봉 데이터 없음")
         except Exception as e:
-            print(f"      ❌ 실패: {e}")
+            print(f"      [X] 실패: {e}")
 
         print("\n   방법 2: 직접 ka10081 호출")
         try:
@@ -145,7 +145,7 @@ class DataCollectionTester:
                     volumes = [int(d.get('trde_qty', 0)) for d in daily_data[:20] if d.get('trde_qty')]
                     if volumes:
                         avg_volume = sum(volumes) / len(volumes)
-                        print(f"      ✅ 평균거래량 (직접): {avg_volume:,.0f}주")
+                        print(f"      [OK] 평균거래량 (직접): {avg_volume:,.0f}주")
 
                         rates = []
                         for d in daily_data[:20]:
@@ -157,14 +157,14 @@ class DataCollectionTester:
 
                         if len(rates) > 1:
                             volatility = statistics.stdev(rates)
-                            print(f"      ✅ 변동성 (직접): {volatility:.2f}%")
+                            print(f"      [OK] 변동성 (직접): {volatility:.2f}%")
                             return avg_volume, volatility, "direct_ka10081"
 
-                print(f"      ❌ 데이터 파싱 실패")
+                print(f"      [X] 데이터 파싱 실패")
             else:
-                print(f"      ❌ API 응답 실패")
+                print(f"      [X] API 응답 실패")
         except Exception as e:
-            print(f"      ❌ 실패: {e}")
+            print(f"      [X] 실패: {e}")
 
         return None, None, "NONE"
 
@@ -211,16 +211,16 @@ class DataCollectionTester:
                     continue
 
             if buy_count > 0:
-                print(f"      ✅ 순매수증권사: {buy_count}개")
-                print(f"      ✅ 순매수총량: {total_net_buy:,}주")
+                print(f"      [OK] 순매수증권사: {buy_count}개")
+                print(f"      [OK] 순매수총량: {total_net_buy:,}주")
                 print(f"      📋 상세: {', '.join(success_firms[:3])}")
                 return buy_count, total_net_buy, "individual_firm_query"
             else:
-                print(f"      ⚠️  순매수 증권사 없음 (모두 순매도)")
+                print(f"      [WARNING]️  순매수 증권사 없음 (모두 순매도)")
                 return 0, 0, "individual_firm_query"
 
         except Exception as e:
-            print(f"      ❌ 실패: {e}")
+            print(f"      [X] 실패: {e}")
 
         print("\n   방법 2: 통합 증권사 API 탐색")
         try:
@@ -236,12 +236,12 @@ class DataCollectionTester:
             )
 
             if response and response.get('return_code') == 0:
-                print(f"      ✅ 통합 API 성공!")
+                print(f"      [OK] 통합 API 성공!")
                 return None, None, "unified_api"
             else:
-                print(f"      ❌ 통합 API 불가: {response.get('return_msg', 'unknown')}")
+                print(f"      [X] 통합 API 불가: {response.get('return_msg', 'unknown')}")
         except Exception as e:
-            print(f"      ❌ 통합 API 실패: {e}")
+            print(f"      [X] 통합 API 실패: {e}")
 
         print("\n   방법 3: 대안 - 기관매매추이 사용")
         try:
@@ -252,13 +252,13 @@ class DataCollectionTester:
             )
 
             if trend_data:
-                print(f"      ✅ 기관매매추이 데이터 사용 가능")
+                print(f"      [OK] 기관매매추이 데이터 사용 가능")
                 print(f"      ℹ️  증권사 데이터 대신 기관 데이터 사용")
                 return 0, 0, "institutional_trend_fallback"
             else:
-                print(f"      ❌ 기관매매추이 없음")
+                print(f"      [X] 기관매매추이 없음")
         except Exception as e:
-            print(f"      ❌ 기관매매추이 실패: {e}")
+            print(f"      [X] 기관매매추이 실패: {e}")
 
         return None, None, "NONE"
 
@@ -270,12 +270,12 @@ class DataCollectionTester:
             data = self.market_api.get_execution_intensity(stock_code)
             if data and data.get('execution_intensity'):
                 intensity = data['execution_intensity']
-                print(f"      ✅ 체결강도: {intensity:.1f}")
+                print(f"      [OK] 체결강도: {intensity:.1f}")
                 return intensity, "get_execution_intensity"
             else:
-                print(f"      ❌ 체결강도 데이터 없음")
+                print(f"      [X] 체결강도 데이터 없음")
         except Exception as e:
-            print(f"      ❌ 실패: {e}")
+            print(f"      [X] 실패: {e}")
 
         print("\n   방법 2: 직접 ka10047 호출")
         try:
@@ -297,16 +297,16 @@ class DataCollectionTester:
                         if cntr_str:
                             try:
                                 intensity = float(str(cntr_str).replace('+', '').replace('-', ''))
-                                print(f"      ✅ 체결강도 (직접): {intensity:.1f}")
+                                print(f"      [OK] 체결강도 (직접): {intensity:.1f}")
                                 return intensity, "direct_ka10047"
                             except:
                                 pass
 
-                print(f"      ❌ 체결강도 필드 없음")
+                print(f"      [X] 체결강도 필드 없음")
             else:
-                print(f"      ❌ API 응답 실패")
+                print(f"      [X] API 응답 실패")
         except Exception as e:
-            print(f"      ❌ 실패: {e}")
+            print(f"      [X] 실패: {e}")
 
         return None, "NONE"
 
@@ -318,12 +318,12 @@ class DataCollectionTester:
             data = self.market_api.get_program_trading(stock_code)
             if data and data.get('program_net_buy'):
                 net_buy = data['program_net_buy']
-                print(f"      ✅ 프로그램순매수: {net_buy:,}원")
+                print(f"      [OK] 프로그램순매수: {net_buy:,}원")
                 return net_buy, "get_program_trading"
             else:
-                print(f"      ❌ 프로그램매매 데이터 없음")
+                print(f"      [X] 프로그램매매 데이터 없음")
         except Exception as e:
-            print(f"      ❌ 실패: {e}")
+            print(f"      [X] 실패: {e}")
 
         print("\n   방법 2: 직접 ka90013 호출")
         try:
@@ -349,40 +349,40 @@ class DataCollectionTester:
                         if net_buy:
                             try:
                                 net_buy_int = int(str(net_buy).replace('+', '').replace('-', '').replace(',', ''))
-                                print(f"      ✅ 프로그램순매수 (직접): {net_buy_int:,}원")
+                                print(f"      [OK] 프로그램순매수 (직접): {net_buy_int:,}원")
                                 return net_buy_int, "direct_ka90013"
                             except:
                                 pass
 
-                print(f"      ❌ 프로그램순매수 필드 없음")
+                print(f"      [X] 프로그램순매수 필드 없음")
             else:
-                print(f"      ❌ API 응답 실패")
+                print(f"      [X] API 응답 실패")
         except Exception as e:
-            print(f"      ❌ 실패: {e}")
+            print(f"      [X] 실패: {e}")
 
         return None, "NONE"
 
     def print_summary(self, results: Dict[str, Any]):
         """결과 요약 출력"""
         print("\n" + "="*80)
-        print("📊 테스트 결과 요약")
+        print("[CHART] 테스트 결과 요약")
         print("="*80)
 
-        print(f"\n✅ 성공: {results['success_count']}개")
-        print(f"❌ 실패: {results['fail_count']}개")
-        print(f"📈 성공률: {results['success_count']/4*100:.1f}%")
+        print(f"\n[OK] 성공: {results['success_count']}개")
+        print(f"[X] 실패: {results['fail_count']}개")
+        print(f"[UP] 성공률: {results['success_count']/4*100:.1f}%")
 
         print("\n[수집된 데이터]")
-        print(f"  • 평균거래량: {results['avg_volume']:,.0f}주" if results['avg_volume'] else "  • 평균거래량: ❌")
-        print(f"  • 변동성: {results['volatility']:.2f}%" if results['volatility'] else "  • 변동성: ❌")
-        print(f"  • 순매수증권사: {results['broker_buy_count']}개" if results['broker_buy_count'] is not None else "  • 순매수증권사: ❌")
-        print(f"  • 순매수총액: {results['broker_net_buy']:,}주" if results['broker_net_buy'] is not None else "  • 순매수총액: ❌")
-        print(f"  • 체결강도: {results['execution_intensity']:.1f}" if results['execution_intensity'] else "  • 체결강도: ❌")
-        print(f"  • 프로그램순매수: {results['program_net_buy']:,}원" if results['program_net_buy'] else "  • 프로그램순매수: ❌")
+        print(f"  • 평균거래량: {results['avg_volume']:,.0f}주" if results['avg_volume'] else "  • 평균거래량: [X]")
+        print(f"  • 변동성: {results['volatility']:.2f}%" if results['volatility'] else "  • 변동성: [X]")
+        print(f"  • 순매수증권사: {results['broker_buy_count']}개" if results['broker_buy_count'] is not None else "  • 순매수증권사: [X]")
+        print(f"  • 순매수총액: {results['broker_net_buy']:,}주" if results['broker_net_buy'] is not None else "  • 순매수총액: [X]")
+        print(f"  • 체결강도: {results['execution_intensity']:.1f}" if results['execution_intensity'] else "  • 체결강도: [X]")
+        print(f"  • 프로그램순매수: {results['program_net_buy']:,}원" if results['program_net_buy'] else "  • 프로그램순매수: [X]")
 
         print("\n[사용된 방법]")
         for key, method in results['methods_used'].items():
-            status = "✅" if method != "NONE" else "❌"
+            status = "[OK]" if method != "NONE" else "[X]"
             print(f"  {status} {key}: {method}")
 
         print("\n" + "="*80)
@@ -429,7 +429,7 @@ def main():
 
     for stock_code, stock_name in test_stocks:
         print(f"\n{'='*80}")
-        print(f"🔍 테스트 종목: {stock_name} ({stock_code})")
+        print(f"[SEARCH] 테스트 종목: {stock_name} ({stock_code})")
         print(f"{'='*80}")
 
         results = tester.test_all_methods(stock_code)
@@ -441,7 +441,7 @@ def main():
         break
 
     print("\n" + "="*80)
-    print("🎯 최종 결론")
+    print("[TARGET] 최종 결론")
     print("="*80)
 
     if all_results:
@@ -449,18 +449,18 @@ def main():
         print(f"\n평균 성공률: {avg_success_rate:.1f}%")
 
         if avg_success_rate >= 75:
-            print("✅ 대부분의 데이터 수집 성공! scan_strategies.py 적용 가능")
+            print("[OK] 대부분의 데이터 수집 성공! scan_strategies.py 적용 가능")
         elif avg_success_rate >= 50:
-            print("⚠️  일부 데이터 수집 실패. 코드 수정 필요")
+            print("[WARNING]️  일부 데이터 수집 실패. 코드 수정 필요")
         else:
-            print("❌ 많은 데이터 수집 실패. API 문제 확인 필요")
+            print("[X] 많은 데이터 수집 실패. API 문제 확인 필요")
 
 
 if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        print(f"\n❌ 테스트 실패: {e}")
+        print(f"\n[X] 테스트 실패: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

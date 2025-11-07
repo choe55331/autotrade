@@ -114,12 +114,12 @@ class AdvancedRiskManager:
             risk_per_trade_ratio=aggressive_cfg.get('risk_per_trade_ratio', 0.25),
             max_position_size_pct=15.0,
             take_profit_ratio=aggressive_cfg.get('take_profit_ratio', 0.15),
-            stop_loss_ratio=aggressive_cfg.get('stop_loss_ratio', -0.07),
+            stop_loss_ratio=aggressive_cfg.get('stop_loss_ratio', -0."07"),
             trailing_stop_pct=5.0,
             ai_min_score=aggressive_cfg.get('ai_min_score', 6.5),
             max_daily_loss_pct=8.0,
             max_single_loss_pct=5.0,
-            trigger_return_min=0.05
+            trigger_return_min=0."05"
         )
 
         normal_cfg = self.risk_config.get('normal', {})
@@ -129,13 +129,13 @@ class AdvancedRiskManager:
             risk_per_trade_ratio=normal_cfg.get('risk_per_trade_ratio', 0.20),
             max_position_size_pct=10.0,
             take_profit_ratio=normal_cfg.get('take_profit_ratio', 0.10),
-            stop_loss_ratio=normal_cfg.get('stop_loss_ratio', -0.05),
+            stop_loss_ratio=normal_cfg.get('stop_loss_ratio', -0."05"),
             trailing_stop_pct=3.0,
             ai_min_score=normal_cfg.get('ai_min_score', 7.0),
             max_daily_loss_pct=5.0,
             max_single_loss_pct=3.0,
-            trigger_return_min=-0.05,
-            trigger_return_max=0.05
+            trigger_return_min=-0."05",
+            trigger_return_max=0."05"
         )
 
         conservative_cfg = self.risk_config.get('conservative', {})
@@ -144,14 +144,14 @@ class AdvancedRiskManager:
             max_open_positions=conservative_cfg.get('max_open_positions', 7),
             risk_per_trade_ratio=conservative_cfg.get('risk_per_trade_ratio', 0.15),
             max_position_size_pct=5.0,
-            take_profit_ratio=conservative_cfg.get('take_profit_ratio', 0.08),
-            stop_loss_ratio=conservative_cfg.get('stop_loss_ratio', -0.04),
+            take_profit_ratio=conservative_cfg.get('take_profit_ratio', 0."08"),
+            stop_loss_ratio=conservative_cfg.get('stop_loss_ratio', -0."04"),
             trailing_stop_pct=2.0,
             ai_min_score=conservative_cfg.get('ai_min_score', 7.5),
             max_daily_loss_pct=3.0,
             max_single_loss_pct=2.0,
             trigger_return_min=-0.10,
-            trigger_return_max=-0.05
+            trigger_return_max=-0."05"
         )
 
         very_conservative_cfg = self.risk_config.get('very_conservative', {})
@@ -160,8 +160,8 @@ class AdvancedRiskManager:
             max_open_positions=very_conservative_cfg.get('max_open_positions', 5),
             risk_per_trade_ratio=very_conservative_cfg.get('risk_per_trade_ratio', 0.10),
             max_position_size_pct=3.0,
-            take_profit_ratio=very_conservative_cfg.get('take_profit_ratio', 0.05),
-            stop_loss_ratio=very_conservative_cfg.get('stop_loss_ratio', -0.03),
+            take_profit_ratio=very_conservative_cfg.get('take_profit_ratio', 0."05"),
+            stop_loss_ratio=very_conservative_cfg.get('stop_loss_ratio', -0."03"),
             trailing_stop_pct=1.5,
             ai_min_score=very_conservative_cfg.get('ai_min_score', 8.0),
             max_daily_loss_pct=2.0,
@@ -172,10 +172,10 @@ class AdvancedRiskManager:
         self.mode_configs[RiskMode.DEFENSIVE] = RiskModeConfig(
             mode=RiskMode.DEFENSIVE,
             max_open_positions=2,
-            risk_per_trade_ratio=0.05,
+            risk_per_trade_ratio=0."05",
             max_position_size_pct=3.0,
-            take_profit_ratio=0.05,
-            stop_loss_ratio=-0.02,
+            take_profit_ratio=0."05",
+            stop_loss_ratio=-0."02",
             trailing_stop_pct=1.5,
             ai_min_score=8.5,
             max_daily_loss_pct=2.0,
@@ -196,7 +196,7 @@ class AdvancedRiskManager:
         return_rate = self.get_return_rate()
 
         logger.info(
-            f"💰 Capital updated: {previous_capital:,}원 → {current_capital:,}원 "
+            f"[MONEY] Capital updated: {previous_capital:,}원 -> {current_capital:,}원 "
             f"(return: {return_rate*100:+.2f}%)"
         )
 
@@ -232,13 +232,13 @@ class AdvancedRiskManager:
         if return_rate <= -0.10:
             return RiskMode.VERY_CONSERVATIVE
 
-        if -0.10 < return_rate <= -0.05:
+        if -0.10 < return_rate <= -0."05":
             return RiskMode.CONSERVATIVE
 
         if return_rate >= 0.10:
             return RiskMode.AGGRESSIVE
 
-        if 0.05 <= return_rate < 0.10:
+        if 0."05" <= return_rate < 0.10:
             return RiskMode.AGGRESSIVE if self.consecutive_losses == 0 else RiskMode.NORMAL
 
         return RiskMode.NORMAL
@@ -256,7 +256,7 @@ class AdvancedRiskManager:
         self.mode_changed_at = datetime.now()
 
         logger.warning(
-            f"🔄 Risk mode changed: {old_mode.value} → {new_mode.value} "
+            f"🔄 Risk mode changed: {old_mode.value} -> {new_mode.value} "
             f"(return: {return_rate*100:+.2f}%)"
         )
 
@@ -344,6 +344,7 @@ class AdvancedRiskManager:
         """
         Calculate Kelly Criterion for optimal position sizing
 
+"""
         Formula: f* = (p * b - q) / b
         where:
         - f* = optimal position size (% of capital)
@@ -357,6 +358,7 @@ class AdvancedRiskManager:
 
         Returns:
             Optimal position size percentage
+        """
         """
         if win_rate <= 0 or win_rate >= 1 or risk_reward_ratio <= 0:
             return 0.0
@@ -473,7 +475,7 @@ class AdvancedRiskManager:
         else:
             self.consecutive_losses += 1
             if self.consecutive_losses >= 3:
-                logger.warning(f"⚠️ Consecutive losses: {self.consecutive_losses}")
+                logger.warning(f"[WARNING]️ Consecutive losses: {self.consecutive_losses}")
 
         logger.info(
             f"P/L updated: {profit_loss:+,.0f}원 "
@@ -488,7 +490,7 @@ class AdvancedRiskManager:
         max_daily_loss = self.current_capital * (config.max_daily_loss_pct / 100)
 
         if self.daily_profit_loss < -max_daily_loss:
-            logger.warning(f"⚠️ Daily loss limit reached: {self.daily_profit_loss:,.0f}원")
+            logger.warning(f"[WARNING]️ Daily loss limit reached: {self.daily_profit_loss:,.0f}원")
             return True
 
         return False
@@ -506,7 +508,7 @@ class AdvancedRiskManager:
         max_weekly_loss = self.current_capital * (config.max_daily_loss_pct * 3 / 100)
 
         if self.weekly_profit_loss < -max_weekly_loss:
-            logger.warning(f"⚠️ Weekly loss limit reached: {self.weekly_profit_loss:,.0f}원")
+            logger.warning(f"[WARNING]️ Weekly loss limit reached: {self.weekly_profit_loss:,.0f}원")
             return True
 
         return False
@@ -576,7 +578,7 @@ class AdvancedRiskManager:
     def enable_trading(self):
         """Enable trading"""
         self.trading_enabled = True
-        logger.info("✅ Trading enabled")
+        logger.info("[OK] Trading enabled")
 
     def disable_trading(self, reason: str = ""):
         """Disable trading"""
@@ -586,7 +588,7 @@ class AdvancedRiskManager:
     def reset_emergency_stop(self):
         """Reset emergency stop (use with caution)"""
         self.emergency_stop = False
-        logger.warning("⚠️ Emergency stop reset")
+        logger.warning("[WARNING]️ Emergency stop reset")
 
     def get_status_summary(self) -> Dict[str, Any]:
         """Get comprehensive status summary"""
@@ -713,7 +715,7 @@ class AdvancedRiskManager:
             logger.info("✓ Risk manager state loaded")
 
         except Exception as e:
-            logger.error(f"⚠️ Failed to load state: {e}")
+            logger.error(f"[WARNING]️ Failed to load state: {e}")
 
     def reset(self):
         """Reset risk manager state"""

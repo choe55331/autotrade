@@ -72,13 +72,13 @@ class NXTOrderTargetedTest:
                     stock_code = stock_code[1:]
                 stock_name = stock.get('stk_nm', '')
 
-                logger.info(f"✅ 테스트 종목: {stock_name} ({stock_code}) - 보유종목")
+                logger.info(f"[OK] 테스트 종목: {stock_name} ({stock_code}) - 보유종목")
                 return stock_code, stock_name
 
         except Exception as e:
             logger.warning(f"보유종목 조회 실패: {e}")
 
-        logger.info("✅ 테스트 종목: 삼성전자 (005930) - 기본값")
+        logger.info("[OK] 테스트 종목: 삼성전자 ("005930") - 기본값")
         return '005930', '삼성전자'
 
     def get_appropriate_price(self, stock_code: str) -> int:
@@ -88,7 +88,7 @@ class NXTOrderTargetedTest:
             if price_info and price_info.get('current_price', 0) > 0:
                 current_price = price_info['current_price']
                 order_price = int(current_price * 0.98)
-                logger.info(f"현재가: {current_price:,}원 → 주문가: {order_price:,}원")
+                logger.info(f"현재가: {current_price:,}원 -> 주문가: {order_price:,}원")
                 return order_price
 
         except Exception as e:
@@ -142,15 +142,15 @@ class NXTOrderTargetedTest:
             }
 
             if success:
-                logger.info(f"✅ 성공! 주문번호: {ord_no}")
+                logger.info(f"[OK] 성공! 주문번호: {ord_no}")
                 logger.info(f"   응답: {return_msg}")
             else:
-                logger.warning(f"❌ 실패: [{return_code}] {return_msg}")
+                logger.warning(f"[X] 실패: [{return_code}] {return_msg}")
 
             return result
 
         except Exception as e:
-            logger.error(f"❌ 오류 발생: {e}")
+            logger.error(f"[X] 오류 발생: {e}")
             return {
                 'description': desc,
                 'dmst_stex_tp': dmst_stex_tp,
@@ -160,9 +160,9 @@ class NXTOrderTargetedTest:
             }
 
     def run_premarket_tests(self, stock_code: str, stock_name: str, price: int):
-        """프리마켓 테스트 (08:00-09:00)"""
+        """프리마켓 테스트 ("08":"00"-"09":"00")"""
         logger.info("\n" + "="*80)
-        logger.info("🌅 프리마켓 주문 테스트 (08:00-09:00)")
+        logger.info("🌅 프리마켓 주문 테스트 ("08":"00"-"09":"00")")
         logger.info("="*80)
 
         test_cases = [
@@ -178,9 +178,9 @@ class NXTOrderTargetedTest:
             self.results['tests'].append(result)
 
     def run_aftermarket_tests(self, stock_code: str, stock_name: str, price: int):
-        """애프터마켓 테스트 (15:30-20:00)"""
+        """애프터마켓 테스트 (15:30-20:"00")"""
         logger.info("\n" + "="*80)
-        logger.info("🌆 애프터마켓 주문 테스트 (15:30-20:00)")
+        logger.info("🌆 애프터마켓 주문 테스트 (15:30-20:"00")")
         logger.info("="*80)
 
         test_cases = [
@@ -199,9 +199,9 @@ class NXTOrderTargetedTest:
             self.results['tests'].append(result)
 
     def run_regular_market_tests(self, stock_code: str, stock_name: str, price: int):
-        """정규장 테스트 (09:00-15:30)"""
+        """정규장 테스트 ("09":"00"-15:30)"""
         logger.info("\n" + "="*80)
-        logger.info("📈 정규장 주문 테스트 (09:00-15:30)")
+        logger.info("[UP] 정규장 주문 테스트 ("09":"00"-15:30)")
         logger.info("="*80)
 
         test_cases = [
@@ -219,7 +219,7 @@ class NXTOrderTargetedTest:
     def run(self):
         """테스트 실행"""
         logger.info("\n" + "="*80)
-        logger.info("🎯 NXT 주문 집중 테스트")
+        logger.info("[TARGET] NXT 주문 집중 테스트")
         logger.info("="*80)
 
         now = datetime.now()
@@ -234,7 +234,7 @@ class NXTOrderTargetedTest:
         price = self.get_appropriate_price(stock_code)
 
         logger.info("\n" + "="*80)
-        logger.info("⚠️  실제 주문이 발생합니다!")
+        logger.info("[WARNING]️  실제 주문이 발생합니다!")
         logger.info("="*80)
         logger.info(f"종목: {stock_name} ({stock_code})")
         logger.info(f"수량: 1주")
@@ -253,7 +253,7 @@ class NXTOrderTargetedTest:
         elif period == '정규장':
             self.run_regular_market_tests(stock_code, stock_name, price)
         else:
-            logger.warning("⚠️  장외 시간입니다. NXT 시간(08:00-09:00, 15:30-20:00) 또는 정규장(09:00-15:30)에 실행하세요.")
+            logger.warning("[WARNING]️  장외 시간입니다. NXT 시간("08":"00"-"09":"00", 15:30-20:"00") 또는 정규장("09":"00"-15:30)에 실행하세요.")
             logger.info("\n애프터마켓 조합으로 테스트를 시도합니다...")
             self.run_aftermarket_tests(stock_code, stock_name, price)
 
@@ -264,7 +264,7 @@ class NXTOrderTargetedTest:
     def print_summary(self):
         """결과 요약 출력"""
         logger.info("\n" + "="*80)
-        logger.info("📊 테스트 결과 요약")
+        logger.info("[CHART] 테스트 결과 요약")
         logger.info("="*80)
 
         tests = self.results.get('tests', [])
@@ -273,7 +273,7 @@ class NXTOrderTargetedTest:
         logger.info(f"\n총 {len(tests)}개 테스트 중 {len(success_tests)}개 성공")
 
         if success_tests:
-            logger.info("\n✅ 성공한 조합:")
+            logger.info("\n[OK] 성공한 조합:")
             for test in success_tests:
                 logger.info(f"\n   📌 {test['description']}")
                 logger.info(f"      dmst_stex_tp={test['dmst_stex_tp']}, trde_tp={test['trde_tp']}")
@@ -281,9 +281,10 @@ class NXTOrderTargetedTest:
 
             best = success_tests[0]
             logger.info("\n" + "="*80)
-            logger.info("🎯 권장 코드")
+            logger.info("[TARGET] 권장 코드")
             logger.info("="*80)
             logger.info(f"""
+            """
 def buy_stock_nxt(self, stock_code: str, quantity: int, price: int):
     \"\"\"NXT 시간대 매수 주문\"\"\"
     body = {{
@@ -302,7 +303,7 @@ def buy_stock_nxt(self, stock_code: str, quantity: int, price: int):
 
     return response.get('ord_no') if response.get('return_code') == 0 else None
         else:
-            logger.warning("\n❌ 성공한 조합이 없습니다.")
+            logger.warning("\n[X] 성공한 조합이 없습니다.")
 
             error_groups = {}
             for test in tests:
@@ -313,7 +314,7 @@ def buy_stock_nxt(self, stock_code: str, quantity: int, price: int):
 
             logger.info("\n오류 메시지별 그룹:")
             for msg, descs in error_groups.items():
-                logger.info(f"\n   ❌ {msg}")
+                logger.info(f"\n   [X] {msg}")
                 logger.info(f"      ({len(descs)}개 조합)")
 
     def save_results(self):

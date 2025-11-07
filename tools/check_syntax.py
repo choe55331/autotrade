@@ -23,7 +23,7 @@ def main():
     errors = []
     checked = 0
 
-    print("🔍 Python 문법 검사 시작...")
+    print("[SEARCH] Python 문법 검사 시작...")
     print("=" * 60)
 
     for py_file in base_dir.rglob("*.py"):
@@ -41,10 +41,10 @@ def main():
     print("=" * 60)
 
     if errors:
-        print(f"❌ {len(errors)}개 파일에 문법 오류 발견 (총 {checked}개 검사)")
+        print(f"[X] {len(errors)}개 파일에 문법 오류 발견 (총 {checked}개 검사)")
         sys.exit(1)
     else:
-        print(f"✅ 모든 파일 문법 검사 통과 (총 {checked}개 파일)")
+        print(f"[OK] 모든 파일 문법 검사 통과 (총 {checked}개 파일)")
         sys.exit(0)
 
 

@@ -41,8 +41,8 @@ def get_performance():
 
         if not data:
             if _bot_instance and hasattr(_bot_instance, 'account_api'):
-                """
                 try:
+                """
                     deposit = _bot_instance.account_api.get_deposit()
                     holdings = _bot_instance.account_api.get_holdings()
 
@@ -79,9 +79,9 @@ def get_portfolio_optimization():
         from features.portfolio_optimizer import PortfolioOptimizer
 
         if _bot_instance and hasattr(_bot_instance, 'account_api'):
-            """
             holdings = _bot_instance.account_api.get_holdings(market_type="KRX+NXT")
 
+"""
             if not holdings:
                 return jsonify({
                     'success': True,
@@ -142,9 +142,9 @@ def get_risk_analysis():
         from features.risk_analyzer import RiskAnalyzer
 
         if _bot_instance and hasattr(_bot_instance, 'account_api'):
-            """
             holdings = _bot_instance.account_api.get_holdings()
 
+"""
             positions = []
             for h in holdings:
                 code = h.get('pdno', '')
@@ -206,7 +206,7 @@ def assess_portfolio_risk():
         confidence = data.get('confidence_level', 0.95)
 
         import random
-        var_amount = value * random.uniform(0.03, 0.08)
+        var_amount = value * random.uniform(0."03", 0."08")
 
         return jsonify({
             'success': True,

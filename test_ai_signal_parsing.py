@@ -25,7 +25,7 @@ try:
     GEMINI_AVAILABLE = True
 except ImportError:
     GEMINI_AVAILABLE = False
-    print("❌ google-generativeai 패키지가 설치되지 않았습니다")
+    print("[X] google-generativeai 패키지가 설치되지 않았습니다")
     print("pip install google-generativeai")
     sys.exit(1)
 
@@ -52,9 +52,9 @@ class AISignalTester:
         for model_name in model_names:
             try:
                 self.models[model_name] = genai.GenerativeModel(model_name)
-                print(f"✅ {model_name} 초기화 성공")
+                print(f"[OK] {model_name} 초기화 성공")
             except Exception as e:
-                print(f"⚠️ {model_name} 초기화 실패: {e}")
+                print(f"[WARNING]️ {model_name} 초기화 실패: {e}")
 
 
     def prompt_strategy_1_simple(self, stock_data: Dict[str, Any]) -> str:
@@ -100,6 +100,7 @@ Provide a JSON response following this exact schema:
 Your JSON response:
 ```json
 
+"""
     def prompt_strategy_3_minimal_fields(self, stock_data: Dict[str, Any]) -> str:
         """전략 3: 최소 필드만 요청 (signal + confidence만)"""
         return f"""Stock: {stock_data['stock_name']} - {stock_data['current_price']:,} KRW ({stock_data['change_rate']:+.2f}%)
@@ -128,7 +129,7 @@ Now output ONLY this JSON (no extra text):
         """전략 5: 예제 기반 프롬프트"""
         return f"""Analyze this stock and respond like the example:
 
-Example Input: Samsung Electronics - 70,000 KRW (+2.5%)
+Example Input: Samsung Electronics - 70,"000" KRW (+2.5%)
 Example Output:
 {{
   "signal": "buy",
@@ -140,6 +141,7 @@ Your Input: {stock_data['stock_name']} - {stock_data['current_price']:,} KRW ({s
 Your Output:
 
 
+"""
     def parse_strategy_1_simple(self, response_text: str) -> Tuple[bool, Optional[Dict], str]:
         """전략 1: 가장 간단한 {} 추출"""
         try:
@@ -273,7 +275,7 @@ Your Output:
             model = self.models.get(model_name)
             if not model:
                 result['error'] = f"Model {model_name} not available"
-                print(f"❌ {result['error']}")
+                print(f"[X] {result['error']}")
                 return result
 
             print(f"📤 프롬프트 전송 중... (길이: {len(prompt)} chars)")
@@ -289,7 +291,7 @@ Your Output:
 
             if not response.candidates:
                 result['error'] = "No candidates in response"
-                print(f"❌ {result['error']}")
+                print(f"[X] {result['error']}")
                 return result
 
             candidate = response.candidates[0]
@@ -298,17 +300,17 @@ Your Output:
             if finish_reason != 1:
                 reason_map = {2: "SAFETY", 3: "MAX_TOKENS", 4: "RECITATION", 5: "OTHER"}
                 result['error'] = f"Blocked: {reason_map.get(finish_reason, finish_reason)}"
-                print(f"❌ {result['error']}")
+                print(f"[X] {result['error']}")
                 return result
 
             response_text = response.text
             result['response_length'] = len(response_text)
             result['response_preview'] = response_text[:200]
 
-            print(f"✅ API 응답 수신 ({execution_time:.2f}s, {len(response_text)} chars)")
+            print(f"[OK] API 응답 수신 ({execution_time:.2f}s, {len(response_text)} chars)")
             print(f"📝 응답 미리보기:\n{response_text[:300]}...")
 
-            print(f"\n🔍 JSON 파싱 시도: {parse_strategy_name}")
+            print(f"\n[SEARCH] JSON 파싱 시도: {parse_strategy_name}")
             parse_success, parsed_data, parse_msg = parse_func(response_text)
 
             if parse_success:
@@ -317,18 +319,18 @@ Your Output:
                 result['confidence'] = parsed_data.get('confidence', 0)
                 result['parsed_data'] = parsed_data
 
-                print(f"✅ 파싱 성공! {parse_msg}")
-                print(f"📊 신호: {result['signal']}, 신뢰도: {result['confidence']}")
+                print(f"[OK] 파싱 성공! {parse_msg}")
+                print(f"[CHART] 신호: {result['signal']}, 신뢰도: {result['confidence']}")
                 print(f"📋 전체 데이터: {json.dumps(parsed_data, indent=2, ensure_ascii=False)}")
             else:
                 result['error'] = parse_msg
-                print(f"❌ 파싱 실패: {parse_msg}")
+                print(f"[X] 파싱 실패: {parse_msg}")
 
-                print(f"\n🔍 디버깅 - 전체 응답:\n{response_text}")
+                print(f"\n[SEARCH] 디버깅 - 전체 응답:\n{response_text}")
 
         except Exception as e:
             result['error'] = f"Exception: {str(e)}"
-            print(f"❌ 예외 발생: {e}")
+            print(f"[X] 예외 발생: {e}")
             import traceback
             traceback.print_exc()
 
@@ -381,9 +383,9 @@ Your Output:
 
                     if result['success']:
                         successful_tests += 1
-                        print(f"\n✅ 성공! ({successful_tests}/{total_tests})")
+                        print(f"\n[OK] 성공! ({successful_tests}/{total_tests})")
                     else:
-                        print(f"\n❌ 실패 ({successful_tests}/{total_tests})")
+                        print(f"\n[X] 실패 ({successful_tests}/{total_tests})")
 
                     time.sleep(2)
 
@@ -422,7 +424,7 @@ Your Output:
             self.test_results.append(result)
 
             if result['success']:
-                print(f"\n✅✅✅ 성공한 조합 발견! ✅✅✅")
+                print(f"\n[OK][OK][OK] 성공한 조합 발견! [OK][OK][OK]")
                 print(f"모델: {model_name}")
                 print(f"프롬프트: {prompt_name}")
                 print(f"파싱: {parse_name}")
@@ -431,14 +433,14 @@ Your Output:
 
             time.sleep(2)
 
-        print(f"\n⚠️ 모든 빠른 테스트 실패")
+        print(f"\n[WARNING]️ 모든 빠른 테스트 실패")
         self.print_summary()
 
     def print_summary(self):
         """테스트 결과 요약"""
 
         print("\n\n" + "="*80)
-        print("📊 테스트 결과 요약")
+        print("[CHART] 테스트 결과 요약")
         print("="*80)
 
         total = len(self.test_results)
@@ -446,17 +448,17 @@ Your Output:
         failed = [r for r in self.test_results if not r['success']]
 
         print(f"\n총 테스트: {total}개")
-        print(f"✅ 성공: {len(successful)}개 ({len(successful)/total*100:.1f}%)")
-        print(f"❌ 실패: {len(failed)}개 ({len(failed)/total*100:.1f}%)")
+        print(f"[OK] 성공: {len(successful)}개 ({len(successful)/total*100:.1f}%)")
+        print(f"[X] 실패: {len(failed)}개 ({len(failed)/total*100:.1f}%)")
 
         if successful:
-            print(f"\n✅ 성공한 조합들:")
+            print(f"\n[OK] 성공한 조합들:")
             for r in successful:
                 print(f"  - {r['test_name']}")
                 print(f"    신호: {r['signal']}, 신뢰도: {r['confidence']}, 시간: {r['execution_time']:.2f}s")
 
         if failed:
-            print(f"\n❌ 실패 원인 분석:")
+            print(f"\n[X] 실패 원인 분석:")
             error_counts = {}
             for r in failed:
                 error = r.get('error', 'Unknown')
@@ -488,14 +490,14 @@ def main():
             sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
             from config import GEMINI_API_KEY
             api_key = GEMINI_API_KEY
-            print(f"✅ config에서 API 키 로드 성공")
+            print(f"[OK] config에서 API 키 로드 성공")
         except Exception as e:
-            print(f"❌ API 키를 찾을 수 없습니다: {e}")
+            print(f"[X] API 키를 찾을 수 없습니다: {e}")
             print("환경변수 또는 config.py에 GEMINI_API_KEY를 설정하세요")
             sys.exit(1)
 
     if not api_key:
-        print("❌ GEMINI_API_KEY가 비어있습니다")
+        print("[X] GEMINI_API_KEY가 비어있습니다")
         sys.exit(1)
 
     test_stock = {
@@ -510,7 +512,7 @@ def main():
     tester.initialize_models()
 
     if not tester.models:
-        print("❌ 사용 가능한 모델이 없습니다")
+        print("[X] 사용 가능한 모델이 없습니다")
         sys.exit(1)
 
     print("\n테스트 모드 선택:")
@@ -529,7 +531,7 @@ def main():
         print("\n커스텀 테스트 - 종목 정보 입력:")
         try:
             stock_name = input("종목명 (기본: 삼성전자): ").strip() or "삼성전자"
-            stock_code = input("종목코드 (기본: 005930): ").strip() or "005930"
+            stock_code = input("종목코드 (기본: "005930"): ").strip() or "005930"
             current_price = int(input("현재가 (기본: 70000): ").strip() or "70000")
             change_rate = float(input("변동률 (기본: 2.5): ").strip() or "2.5")
 
@@ -542,7 +544,7 @@ def main():
             }
             tester.run_quick_test(custom_stock)
         except Exception as e:
-            print(f"❌ 입력 오류: {e}")
+            print(f"[X] 입력 오류: {e}")
             print("기본 데이터로 테스트 진행...")
             tester.run_quick_test(test_stock)
     else:

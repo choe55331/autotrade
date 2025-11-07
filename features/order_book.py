@@ -195,17 +195,17 @@ class OrderBookService:
             추천 메시지
         """
         if order_book.is_bullish and order_book.spread_percent < 0.5:
-            return "💚 강한 매수세 + 좁은 스프레드 → 매수 고려"
+            return "💚 강한 매수세 + 좁은 스프레드 -> 매수 고려"
         elif order_book.is_bullish:
-            return "🟢 매수세 우위 → 관망 또는 매수"
+            return "🟢 매수세 우위 -> 관망 또는 매수"
         elif order_book.is_bearish and order_book.spread_percent < 0.5:
-            return "❤️ 강한 매도세 → 진입 주의"
+            return "❤️ 강한 매도세 -> 진입 주의"
         elif order_book.is_bearish:
-            return "🔴 매도세 우위 → 관망"
+            return "🔴 매도세 우위 -> 관망"
         elif order_book.spread_percent > 1.0:
-            return "⚠️ 넓은 스프레드 → 유동성 부족, 진입 주의"
+            return "[WARNING]️ 넓은 스프레드 -> 유동성 부족, 진입 주의"
         else:
-            return "⚖️ 균형 상태 → 중립"
+            return "⚖️ 균형 상태 -> 중립"
 
     def get_order_book_for_dashboard(self, stock_code: str, stock_name: str = "") -> Dict[str, Any]:
         """

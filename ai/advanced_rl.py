@@ -67,6 +67,7 @@ class A3CNetwork(nn.Module if TORCH_AVAILABLE else object):
 
     def __init__(self, state_dim: int = 15, action_dim: int = 7, hidden_dim: int = 128):
         """
+        """
         if TORCH_AVAILABLE:
             super(A3CNetwork, self).__init__()
 
@@ -108,7 +109,8 @@ class A3CAgent:
     """
 
     def __init__(self, state_dim: int = 15, action_dim: int = 7,
-                 lr: float = 0.001, gamma: float = 0.99, entropy_coef: float = 0.01):
+                 lr: float = 0."001", gamma: float = 0.99, entropy_coef: float = 0."01"):
+        """
         """
         self.state_dim = state_dim
         self.action_dim = action_dim
@@ -139,8 +141,8 @@ class A3CAgent:
 
         self.network.eval()
         with torch.no_grad():
-            """
             state_tensor = torch.FloatTensor(state).unsqueeze(0)
+            """
             action_probs, value = self.network(state_tensor)
 
             dist = Categorical(action_probs)
@@ -167,7 +169,7 @@ class A3CAgent:
             Training metrics
         """
         if not TORCH_AVAILABLE:
-            return {'actor_loss': 0.01, 'critic_loss': 0.02, 'entropy': 0.8}
+            return {'actor_loss': 0."01", 'critic_loss': 0."02", 'entropy': 0.8}
 
         self.network.train()
 
@@ -181,8 +183,8 @@ class A3CAgent:
         returns = []
         R = 0
         for r, done in zip(reversed(rewards), reversed(dones)):
-            """
             if done:
+            """
                 R = 0
             R = r + self.gamma * R
             returns.insert(0, R)
@@ -234,6 +236,7 @@ class PPONetwork(nn.Module if TORCH_AVAILABLE else object):
 
     def __init__(self, state_dim: int = 15, action_dim: int = 7, hidden_dim: int = 128):
         """
+        """
         if TORCH_AVAILABLE:
             super(PPONetwork, self).__init__()
 
@@ -273,8 +276,9 @@ class PPOAgent:
     """
 
     def __init__(self, state_dim: int = 15, action_dim: int = 7,
-                 lr: float = 0.0003, gamma: float = 0.99, gae_lambda: float = 0.95,
+                 lr: float = 0."0003", gamma: float = 0.99, gae_lambda: float = 0.95,
                  clip_epsilon: float = 0.2, epochs: int = 10, batch_size: int = 64):
+        """
         """
         self.state_dim = state_dim
         self.action_dim = action_dim
@@ -321,8 +325,8 @@ class PPOAgent:
 
         self.network.eval()
         with torch.no_grad():
-            """
             state_tensor = torch.FloatTensor(state).unsqueeze(0)
+            """
             action_probs, value = self.network(state_tensor)
 
             dist = Categorical(action_probs)
@@ -334,6 +338,7 @@ class PPOAgent:
 
     def store_transition(self, state: np.ndarray, action: int, reward: float,
                         value: float, log_prob: float, done: bool):
+        """
         """
         self.memory['states'].append(state)
         self.memory['actions'].append(action)
@@ -358,8 +363,8 @@ class PPOAgent:
         last_gae = 0
 
         for t in reversed(range(len(rewards))):
-            """
             if t == len(rewards) - 1:
+            """
                 next_value = 0
             else:
                 next_value = values[t + 1]
@@ -379,7 +384,7 @@ class PPOAgent:
             Training metrics
         """
         if not TORCH_AVAILABLE or len(self.memory['states']) == 0:
-            return {'policy_loss': 0.01, 'value_loss': 0.02}
+            return {'policy_loss': 0."01", 'value_loss': 0."02"}
 
         advantages, returns = self.compute_gae()
 
@@ -395,13 +400,13 @@ class PPOAgent:
         total_value_loss = 0
 
         for epoch in range(self.epochs):
-            """
             indices = np.arange(len(states))
             np.random.shuffle(indices)
 
+"""
             for start in range(0, len(states), self.batch_size):
-                """
                 end = start + self.batch_size
+                """
                 batch_indices = indices[start:end]
 
                 batch_states = states[batch_indices]
@@ -424,7 +429,7 @@ class PPOAgent:
 
                 value_loss = F.mse_loss(values.squeeze(), batch_returns)
 
-                loss = policy_loss + 0.5 * value_loss - 0.01 * entropy
+                loss = policy_loss + 0.5 * value_loss - 0."01" * entropy
 
                 self.optimizer.zero_grad()
                 loss.backward()
@@ -469,6 +474,7 @@ class SACNetwork(nn.Module if TORCH_AVAILABLE else object):
     """
 
     def __init__(self, state_dim: int = 15, action_dim: int = 7, hidden_dim: int = 256):
+        """
         """
         if TORCH_AVAILABLE:
             super(SACNetwork, self).__init__()
@@ -523,8 +529,9 @@ class SACAgent:
     """
 
     def __init__(self, state_dim: int = 15, action_dim: int = 7,
-                 lr: float = 0.0003, gamma: float = 0.99, tau: float = 0.005,
+                 lr: float = 0."0003", gamma: float = 0.99, tau: float = 0."005",
                  alpha: float = 0.2, buffer_size: int = 100000):
+        """
         """
         self.state_dim = state_dim
         self.action_dim = action_dim
@@ -575,8 +582,8 @@ class SACAgent:
 
         self.network.eval()
         with torch.no_grad():
-            """
             state_tensor = torch.FloatTensor(state).unsqueeze(0)
+            """
             mean, log_std = self.network(state_tensor)
 
             if deterministic:
@@ -599,7 +606,7 @@ class SACAgent:
             Training metrics
         """
         if not TORCH_AVAILABLE or len(self.replay_buffer) < batch_size:
-            return {'q_loss': 0.01, 'policy_loss': 0.02, 'alpha': self.alpha}
+            return {'q_loss': 0."01", 'policy_loss': 0."02", 'alpha': self.alpha}
 
         batch = [self.replay_buffer[i] for i in np.random.choice(len(self.replay_buffer), batch_size)]
         states, actions, rewards, next_states, dones = zip(*batch)
@@ -611,8 +618,8 @@ class SACAgent:
         dones = torch.FloatTensor(dones).unsqueeze(1)
 
         with torch.no_grad():
-            """
             next_mean, next_log_std = self.network(next_states)
+            """
             next_std = next_log_std.exp()
             next_dist = Normal(next_mean, next_std)
             next_z = next_dist.rsample()
@@ -658,9 +665,9 @@ class SACAgent:
         self.alpha = self.log_alpha.exp().item()
 
         for target_param, param in zip(self.target_network.parameters(), self.network.parameters()):
-            """
             target_param.data.copy_(self.tau * param.data + (1 - self.tau) * target_param.data)
 
+"""
         self.performance['total_steps'] += 1
         self.performance['q_loss'] = q_loss.item()
         self.performance['policy_loss'] = policy_loss.item()
@@ -698,6 +705,7 @@ class AdvancedRLManager:
 
     def __init__(self):
         """
+        """
         self.a3c_agent = A3CAgent()
         self.ppo_agent = PPOAgent()
         self.sac_agent = SACAgent()
@@ -729,10 +737,12 @@ class AdvancedRLManager:
 
         Args:
             state: Current market state
+            """
             algorithm: Algorithm to use (None = auto-select)
 
         Returns:
             Recommended action
+        """
         """
         if algorithm is None:
             algorithm = self.current_algorithm
@@ -822,6 +832,6 @@ if __name__ == '__main__':
 
     print(f"\n전체 성과:")
     for algo, perf in manager.get_all_performances().items():
-        """
         if algo != 'current_algorithm':
+        """
             print(f"{algo.upper()}: {perf}")

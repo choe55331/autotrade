@@ -15,15 +15,15 @@ def fix_file(filepath):
         
         # 1. 모든 emoji와 특수문자 제거
         replacements = {
-            '⚠️': 'WARNING:',
-            '→': '->',
-            '✅': '[OK]',
-            '❌': '[ERROR]',
+            '[WARNING]️': 'WARNING:',
+            '->': '->',
+            '[OK]': '[OK]',
+            '[X]': '[ERROR]',
             '🔥': '',
-            '📊': '',
-            '💰': '',
-            '📈': '',
-            '📉': '',
+            '[CHART]': '',
+            '[MONEY]': '',
+            '[UP]': '',
+            '[DOWN]': '',
         }
         for old, new in replacements.items():
             content = content.replace(old, new)
@@ -35,6 +35,7 @@ def fix_file(filepath):
         
         for i in range(min(40, len(lines))):
             quote_count += lines[i].count('"""')
+            """
             if quote_count >= 2:
                 first_docstring_end = i
                 break
@@ -50,14 +51,17 @@ def fix_file(filepath):
                 if (next_line.strip() and 
                     not next_line.strip().startswith(('import ', 'from ', 'def ', 'class ', '#', '"""'))):
                     # docstring 끝 제거
+                    """
                     lines[first_docstring_end] = re.sub(r'""".*$', '', lines[first_docstring_end])
                     
                     # import/from/def/class 찾을 때까지
+                    """
                     j = next_idx
                     while j < len(lines) and j < 60:
                         if lines[j].strip().startswith(('import ', 'from ', 'def ', 'class ')):
                             lines.insert(j, '"""')
                             break
+                            """
                         j += 1
         
         content = '\n'.join(lines)
@@ -71,6 +75,7 @@ def fix_file(filepath):
         )
         
         # ):\n        한글텍스트
+        """
         content = re.sub(
             r'(\):\n)(    +)([가-힣a-zA-Z][^\n]*\n)',
             r'\1\2"""\n\2\3',
@@ -86,12 +91,14 @@ def fix_file(filepath):
         )
         
         # Note:\n ... \n        코드
+        """
         content = re.sub(
             r'(        Note:\n(?:            [^\n]*\n)+)(        )(try:|if |return |self\.|logger\.|result )',
             r'\1        """\n\2\3',
             content
         )
         
+        """
         if content != original:
             with open(filepath, 'w', encoding='utf-8') as f:
                 f.write(content)

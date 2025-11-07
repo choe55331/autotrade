@@ -46,6 +46,7 @@ class DeepLearningPrediction:
 
     def __post_init__(self):
         """
+        """
         if not self.timestamp:
             self.timestamp = datetime.now().isoformat()
 
@@ -79,6 +80,7 @@ class LSTMPricePredictor(nn.Module if TORCH_AVAILABLE else object):
 
     def __init__(self, input_size: int = 10, hidden_size: int = 128,
                  num_layers: int = 3, dropout: float = 0.2):
+        """
         """
         if TORCH_AVAILABLE:
             super(LSTMPricePredictor, self).__init__()
@@ -141,7 +143,7 @@ class LSTMPricePredictor(nn.Module if TORCH_AVAILABLE else object):
         """
         if not TORCH_AVAILABLE:
             base_price = sequence[-1, 0] if len(sequence) > 0 else 73500
-            trend = np.random.uniform(-0.02, 0.03)
+            trend = np.random.uniform(-0."02", 0."03")
             return np.array([
                 base_price * (1 + trend * 0.2),
                 base_price * (1 + trend),
@@ -151,8 +153,8 @@ class LSTMPricePredictor(nn.Module if TORCH_AVAILABLE else object):
 
         self.eval()
         with torch.no_grad():
-            """
             x = torch.FloatTensor(sequence).unsqueeze(0)
+            """
             predictions, attention_weights = self.forward(x)
             return predictions.numpy()[0], attention_weights.numpy()[0]
 
@@ -171,6 +173,7 @@ class TransformerPricePredictor(nn.Module if TORCH_AVAILABLE else object):
 
     def __init__(self, input_size: int = 10, d_model: int = 128,
                  nhead: int = 8, num_layers: int = 4, dropout: float = 0.1):
+        """
         """
         if TORCH_AVAILABLE:
             super(TransformerPricePredictor, self).__init__()
@@ -233,8 +236,8 @@ class TransformerPricePredictor(nn.Module if TORCH_AVAILABLE else object):
         """Make prediction on sequence"""
         if not TORCH_AVAILABLE:
             base_price = sequence[-1, 0] if len(sequence) > 0 else 73500
-            trend = np.random.uniform(-0.015, 0.04)
-            volatility = np.random.uniform(0.005, 0.02)
+            trend = np.random.uniform(-0."015", 0."04")
+            volatility = np.random.uniform(0."005", 0."02")
             return np.array([
                 base_price * (1 + trend * 0.3 + np.random.normal(0, volatility)),
                 base_price * (1 + trend + np.random.normal(0, volatility)),
@@ -244,8 +247,8 @@ class TransformerPricePredictor(nn.Module if TORCH_AVAILABLE else object):
 
         self.eval()
         with torch.no_grad():
-            """
             x = torch.FloatTensor(sequence).unsqueeze(0)
+            """
             predictions = self.forward(x)
             return predictions.numpy()[0]
 
@@ -263,6 +266,7 @@ class CNNPatternRecognizer(nn.Module if TORCH_AVAILABLE else object):
     """
 
     def __init__(self, input_channels: int = 5, sequence_length: int = 60):
+        """
         """
         if TORCH_AVAILABLE:
             super(CNNPatternRecognizer, self).__init__()
@@ -337,7 +341,7 @@ class CNNPatternRecognizer(nn.Module if TORCH_AVAILABLE else object):
         """
         if not TORCH_AVAILABLE:
             base_price = chart_data[0, -1] if chart_data.shape[1] > 0 else 73500
-            trend = np.random.uniform(-0.02, 0.04)
+            trend = np.random.uniform(-0."02", 0."04")
             pattern_idx = np.random.randint(0, len(self.patterns))
 
             return np.array([
@@ -349,8 +353,8 @@ class CNNPatternRecognizer(nn.Module if TORCH_AVAILABLE else object):
 
         self.eval()
         with torch.no_grad():
-            """
             x = torch.FloatTensor(chart_data).unsqueeze(0)
+            """
             price_pred, pattern_logits = self.forward(x)
 
             pattern_idx = torch.argmax(pattern_logits, dim=1).item()
@@ -372,6 +376,7 @@ class DeepLearningManager:
     """
 
     def __init__(self):
+        """
         """
         self.lstm_model = LSTMPricePredictor()
         self.transformer_model = TransformerPricePredictor()
@@ -416,7 +421,7 @@ class DeepLearningManager:
                 data.get('ma20', 73500),
                 data.get('bb_upper', 75000),
                 data.get('bb_lower', 72000),
-                data.get('volatility', 0.02)
+                data.get('volatility', 0."02")
             ]
             sequence.append(features)
 
@@ -486,7 +491,7 @@ class DeepLearningManager:
         else:
             direction = 'neutral'
 
-        volatility_forecast = float(np.std(attention_weights)) if len(attention_weights) > 0 else 0.015
+        volatility_forecast = float(np.std(attention_weights)) if len(attention_weights) > 0 else 0."015"
 
         return DeepLearningPrediction(
             stock_code=stock_code,

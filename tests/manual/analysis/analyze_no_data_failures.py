@@ -11,7 +11,7 @@ def analyze_no_data_failures():
 
     result_files = sorted(Path('.').glob('all_394_test_results_*.json'))
     if not result_files:
-        print("❌ 테스트 결과 파일이 없습니다.")
+        print("[X] 테스트 결과 파일이 없습니다.")
         return
 
     latest_result = result_files[-1]
@@ -24,11 +24,11 @@ def analyze_no_data_failures():
     success_apis = [r for r in results if r['current_status'] == 'success']
 
     print("="*80)
-    print(f"📊 실질적인 성공/실패 분석")
+    print(f"[CHART] 실질적인 성공/실패 분석")
     print("="*80)
     print(f"총 테스트: {len(results)}개")
-    print(f"  ✅ 진짜 성공 (데이터 받음): {len(success_apis)}개 ({len(success_apis)/len(results)*100:.1f}%)")
-    print(f"  ❌ 실패 (데이터 못 받음): {len(no_data_apis)}개 ({len(no_data_apis)/len(results)*100:.1f}%)")
+    print(f"  [OK] 진짜 성공 (데이터 받음): {len(success_apis)}개 ({len(success_apis)/len(results)*100:.1f}%)")
+    print(f"  [X] 실패 (데이터 못 받음): {len(no_data_apis)}개 ({len(no_data_apis)/len(results)*100:.1f}%)")
     print()
 
     api_failures = defaultdict(list)
@@ -60,7 +60,7 @@ def analyze_no_data_failures():
 
     print()
     print("="*80)
-    print("🔍 실패 원인 분석")
+    print("[SEARCH] 실패 원인 분석")
     print("="*80)
 
     if account_apis:
@@ -68,30 +68,30 @@ def analyze_no_data_failures():
         for api_id, name, count in account_apis:
             print(f"  - {api_id}: {name} ({count}개)")
         print("\n  💡 원인: 계좌에 해당 데이터 없음 (미체결, 주문내역 등)")
-        print("  ✅ 해결: 실제 주문 후 테스트 or 과거 데이터 있는 날짜로 조회")
+        print("  [OK] 해결: 실제 주문 후 테스트 or 과거 데이터 있는 날짜로 조회")
 
     if gold_apis:
         print(f"\n🥇 금현물 API 실패 ({len(gold_apis)}개):")
         for api_id, name, count in gold_apis:
             print(f"  - {api_id}: {name} ({count}개)")
         print("\n  💡 원인: 금현물 계좌 없음 or 거래 내역 없음")
-        print("  ✅ 해결: 금현물 계좌 개설 or 해당 API 제외")
+        print("  [OK] 해결: 금현물 계좌 개설 or 해당 API 제외")
 
     if market_apis:
-        print(f"\n📈 시장 API 실패 ({len(market_apis)}개):")
+        print(f"\n[UP] 시장 API 실패 ({len(market_apis)}개):")
         for api_id, name, count in market_apis:
             print(f"  - {api_id}: {name} ({count}개)")
         print("\n  💡 원인: 시간대 문제 or 파라미터 부적절")
-        print("  ✅ 해결: 장 시간(9:00-15:30)에 재테스트 or 파라미터 조정")
+        print("  [OK] 해결: 장 시간(9:"00"-15:30)에 재테스트 or 파라미터 조정")
 
     print()
     print("="*80)
-    print("⚠️  원래 성공 → 지금 데이터없음 (최적화 필요)")
+    print("[WARNING]️  원래 성공 -> 지금 데이터없음 (최적화 필요)")
     print("="*80)
 
     changed_to_no_data = [r for r in no_data_apis if r['original_status'] == 'success']
     if changed_to_no_data:
-        print(f"\n{len(changed_to_no_data)}개 API 호출이 성공→데이터없음으로 변경:")
+        print(f"\n{len(changed_to_no_data)}개 API 호출이 성공->데이터없음으로 변경:")
 
         api_grouped = defaultdict(list)
         for api in changed_to_no_data:
@@ -112,9 +112,9 @@ def analyze_no_data_failures():
     print("="*80)
     print()
     print("1️⃣ 시간대 최적화")
-    print("  - 장 시작 전(8:00-9:00): 계좌 API만 테스트")
-    print("  - 장중(9:00-15:30): 모든 시세/순위 API 테스트")
-    print("  - 장 마감 후(15:30-20:00): 일부 API만 가능")
+    print("  - 장 시작 전(8:"00"-9:"00"): 계좌 API만 테스트")
+    print("  - 장중(9:"00"-15:30): 모든 시세/순위 API 테스트")
+    print("  - 장 마감 후(15:30-20:"00"): 일부 API만 가능")
     print()
     print("2️⃣ 파라미터 최적화")
     print("  - 날짜 범위: 어제~오늘 (과거 데이터 확실)")
@@ -128,7 +128,7 @@ def analyze_no_data_failures():
 
     print()
     print("="*80)
-    print(f"✅ 항상 성공하는 API ({len(success_apis)}개)")
+    print(f"[OK] 항상 성공하는 API ({len(success_apis)}개)")
     print("="*80)
 
     always_success = defaultdict(int)

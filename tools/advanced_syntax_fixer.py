@@ -63,6 +63,7 @@ def fix_advanced_syntax(file_path: Path) -> bool:
 
             if i < 15 and not in_docstring:
                 if stripped and not stripped.startswith(('"""', "'''", '#', 'import', 'from', 'def ', 'class ', 'if ', '__', '@', 'try:', 'except')):
+                """
                     if not any(kw in stripped for kw in ['=', '(', ')', '[', ']', '{', '}', 'return', 'raise']):
                         end_idx = i
                         while end_idx < min(i + 25, len(lines)):
@@ -88,6 +89,7 @@ def fix_advanced_syntax(file_path: Path) -> bool:
                                 continue
 
             if '"""' in line or "'''" in line:
+            """
                 quote = '"""' if '"""' in line else "'''"
                 count = line.count(quote)
 
@@ -104,15 +106,18 @@ def fix_advanced_syntax(file_path: Path) -> bool:
 
             if not in_docstring:
                 if re.match(r'\s*(print|logger\.\w+)\(f"""[^"]*$', line):
+                """
                     found_end = False
                     for j in range(i + 1, min(i + 100, len(lines))):
                         if '"""' in lines[j]:
+                        """
                             found_end = True
                             break
                     if not found_end:
                         for j in range(min(i + 100, len(lines)) - 1, i, -1):
                             if lines[j].strip() and not lines[j].strip().startswith('#'):
                                 lines[j] = lines[j].rstrip() + '\n""")\n'
+                                """
                                 modified = True
                                 break
 
@@ -174,7 +179,7 @@ def main():
             fixed_count += 1
 
     print("=" * 60)
-    print(f"✅ {checked}개 파일 검사, {fixed_count}개 파일 수정")
+    print(f"[OK] {checked}개 파일 검사, {fixed_count}개 파일 수정")
 
 
 if __name__ == '__main__':

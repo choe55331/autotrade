@@ -71,6 +71,7 @@ class HyperparameterOptimizer:
 
     def __init__(self):
         """
+        """
         self.search_spaces = {
             'random_forest': {
                 'n_estimators': [50, 100, 200, 300],
@@ -82,7 +83,7 @@ class HyperparameterOptimizer:
             'xgboost': {
                 'n_estimators': [50, 100, 200],
                 'max_depth': [3, 5, 7, 9],
-                'learning_rate': [0.01, 0.05, 0.1, 0.2],
+                'learning_rate': [0."01", 0."05", 0.1, 0.2],
                 'subsample': [0.6, 0.8, 1.0],
                 'colsample_bytree': [0.6, 0.8, 1.0],
                 'gamma': [0, 0.1, 0.2]
@@ -90,7 +91,7 @@ class HyperparameterOptimizer:
             'gradient_boosting': {
                 'n_estimators': [50, 100, 200],
                 'max_depth': [3, 5, 7],
-                'learning_rate': [0.01, 0.05, 0.1],
+                'learning_rate': [0."01", 0."05", 0.1],
                 'subsample': [0.7, 0.8, 0.9, 1.0],
                 'min_samples_split': [2, 5, 10]
             },
@@ -98,14 +99,14 @@ class HyperparameterOptimizer:
                 'hidden_size': [64, 128, 256],
                 'num_layers': [1, 2, 3, 4],
                 'dropout': [0.0, 0.1, 0.2, 0.3],
-                'learning_rate': [0.0001, 0.001, 0.01]
+                'learning_rate': [0."0001", 0."001", 0."01"]
             },
             'transformer': {
                 'd_model': [64, 128, 256],
                 'nhead': [4, 8, 16],
                 'num_layers': [2, 4, 6],
                 'dropout': [0.0, 0.1, 0.2],
-                'learning_rate': [0.0001, 0.001]
+                'learning_rate': [0."0001", 0."001"]
             }
         }
 
@@ -141,11 +142,11 @@ class HyperparameterOptimizer:
         best_score = -np.inf
         best_params = None
 
-        print(f"🔍 Grid Search: Testing {len(all_params)} configurations...")
+        print(f"[SEARCH] Grid Search: Testing {len(all_params)} configurations...")
 
         for i, params in enumerate(all_params):
-            """
             try:
+            """
                 score = objective_fn(params)
 
                 if score > best_score:
@@ -197,9 +198,9 @@ class HyperparameterOptimizer:
         print(f"🎲 Random Search: Testing {n_trials} random configurations...")
 
         for i in range(n_trials):
-            """
             params = {
                 key: np.random.choice(values)
+                """
                 for key, values in search_space.items()
             }
 
@@ -244,6 +245,7 @@ class HyperparameterOptimizer:
 
         Returns:
             Best hyperparameter configuration
+            """
         print(f"🧠 Bayesian Optimization (Simplified): {n_trials} trials...")
 
         search_space = self.search_spaces[model_type]
@@ -252,9 +254,9 @@ class HyperparameterOptimizer:
 
         n_random = min(10, n_trials // 3)
         for i in range(n_random):
-            """
             params = {
                 key: np.random.choice(values)
+                """
                 for key, values in search_space.items()
             }
 
@@ -271,9 +273,9 @@ class HyperparameterOptimizer:
             })
 
         for i in range(n_random, n_trials):
-            """
             params = best_params.copy()
 
+"""
             keys_to_modify = np.random.choice(
                 list(params.keys()),
                 size=min(2, len(params)),
@@ -323,6 +325,7 @@ class AutoFeatureEngineer:
 
     def __init__(self):
         """
+        """
         self.feature_registry = {}
         self.importance_scores = {}
 
@@ -332,9 +335,9 @@ class AutoFeatureEngineer:
         poly_features = [data]
 
         for d in range(2, degree + 1):
-            """
             poly_features.append(data ** d)
 
+"""
         return np.hstack(poly_features)
 
     def generate_interaction_features(self, data: np.ndarray) -> np.ndarray:
@@ -343,10 +346,10 @@ class AutoFeatureEngineer:
         interactions = []
 
         for i in range(n_features):
-            """
             for j in range(i + 1, n_features):
                 interactions.append((data[:, i] * data[:, j]).reshape(-1, 1))
 
+"""
         if interactions:
             return np.hstack([data] + interactions)
         return data
@@ -366,9 +369,9 @@ class AutoFeatureEngineer:
         n_samples, n_features = data.shape
 
         for feat_idx in range(n_features):
-            """
             feat_data = data[:, feat_idx]
 
+"""
             features[f'feature_{feat_idx}_rolling_mean'] = self._rolling_stat(feat_data, window, np.mean)
             features[f'feature_{feat_idx}_rolling_std'] = self._rolling_stat(feat_data, window, np.std)
             features[f'feature_{feat_idx}_rolling_min'] = self._rolling_stat(feat_data, window, np.min)
@@ -383,8 +386,8 @@ class AutoFeatureEngineer:
         """Calculate rolling statistic"""
         result = np.zeros_like(data)
         for i in range(len(data)):
-            """
             start = max(0, i - window + 1)
+            """
             result[i] = stat_fn(data[start:i+1])
         return result
 
@@ -392,16 +395,16 @@ class AutoFeatureEngineer:
         """Calculate momentum"""
         result = np.zeros_like(data)
         for i in range(window, len(data)):
-            """
             result[i] = data[i] - data[i - window]
+            """
         return result
 
     def _rate_of_change(self, data: np.ndarray, window: int) -> np.ndarray:
         """Calculate rate of change"""
         result = np.zeros_like(data)
         for i in range(window, len(data)):
-            """
             if data[i - window] != 0:
+            """
                 result[i] = (data[i] - data[i - window]) / data[i - window] * 100
         return result
 
@@ -421,18 +424,18 @@ class AutoFeatureEngineer:
         """
         correlations = []
         for i in range(X.shape[1]):
-            """
             corr = np.abs(np.corrcoef(X[:, i], y)[0, 1])
             correlations.append(corr if not np.isnan(corr) else 0)
 
+"""
         top_indices = np.argsort(correlations)[-top_k:]
         selected_features = X[:, top_indices]
         selected_names = [feature_names[i] for i in top_indices]
 
         for idx, name in zip(top_indices, selected_names):
-            """
             self.importance_scores[name] = correlations[idx]
 
+"""
         return selected_features, selected_names
 
 
@@ -449,6 +452,7 @@ class AutoModelSelector:
     """
 
     def __init__(self):
+        """
         """
         self.model_scores = defaultdict(list)
         self.best_model = None
@@ -472,8 +476,8 @@ class AutoModelSelector:
         print(f" Comparing {len(models)} models with {cv}-fold CV...")
 
         for model_name, model in models.items():
-            """
             try:
+            """
                 if SKLEARN_AVAILABLE:
                     scores = cross_val_score(model, X, y, cv=cv, scoring='r2')
                     mean_score = np.mean(scores)
@@ -531,6 +535,7 @@ class AutoMLManager:
 
     def __init__(self):
         """
+        """
         self.hp_optimizer = HyperparameterOptimizer()
         self.feature_engineer = AutoFeatureEngineer()
         self.model_selector = AutoModelSelector()
@@ -586,6 +591,7 @@ class AutoMLManager:
 
             def objective(params):
                 """
+                """
                 return np.random.uniform(0.6, 0.9)
 
             if optimization_method == 'grid':
@@ -629,8 +635,8 @@ class AutoMLManager:
             reverse=True
         )
         for rank, (name, score) in enumerate(sorted_features[:20]):
-            """
             total_importance = sum(s for _, s in sorted_features)
+            """
             contribution = score / total_importance * 100 if total_importance > 0 else 0
             feature_importances.append(FeatureImportance(
                 feature_name=name,

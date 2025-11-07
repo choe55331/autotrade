@@ -8,12 +8,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from datetime import datetime
 
-GREEN = '\033[92m'
-RED = '\033[91m'
-YELLOW = '\033[93m'
-BLUE = '\033[94m'
-CYAN = '\033[96m'
-RESET = '\033[0m'
+GREEN = '\"033"[92m'
+RED = '\"033"[91m'
+YELLOW = '\"033"[93m'
+BLUE = '\"033"[94m'
+CYAN = '\"033"[96m'
+RESET = '\"033"[0m'
 
 
 def test_ka10001(client, stock_code: str, description: str):
@@ -44,13 +44,13 @@ def test_ka10001(client, stock_code: str, description: str):
                         val = str(response[key]).replace('+', '').replace('-', '').replace(',', '')
                         if val and val != '0':
                             cur_prc = abs(int(val))
-                            print(f"\n{GREEN}💰 현재가 발견: {cur_prc:,}원 (필드: {key}){RESET}")
+                            print(f"\n{GREEN}[MONEY] 현재가 발견: {cur_prc:,}원 (필드: {key}){RESET}")
                             break
                     except:
                         pass
 
             if not cur_prc:
-                print(f"\n{YELLOW}⚠️  현재가 필드를 찾을 수 없습니다.{RESET}")
+                print(f"\n{YELLOW}[WARNING]️  현재가 필드를 찾을 수 없습니다.{RESET}")
                 print(f"{YELLOW}응답의 모든 키: {list(response.keys())}{RESET}")
 
             return cur_prc
@@ -120,17 +120,17 @@ def main():
     any_nx_success = any(r['nx'] for r in results.values())
 
     if any_nx_success:
-        print(f"{GREEN}✅ _NX 코드로 조회 성공! (어시스턴트 추천 방법 확인){RESET}")
+        print(f"{GREEN}[OK] _NX 코드로 조회 성공! (어시스턴트 추천 방법 확인){RESET}")
     elif any_base_success:
-        print(f"{GREEN}✅ 기본 코드로 조회 성공{RESET}")
-        print(f"{YELLOW}⚠️  _NX 코드는 작동하지 않음{RESET}")
+        print(f"{GREEN}[OK] 기본 코드로 조회 성공{RESET}")
+        print(f"{YELLOW}[WARNING]️  _NX 코드는 작동하지 않음{RESET}")
     else:
-        print(f"{RED}❌ 모든 방법 실패{RESET}")
+        print(f"{RED}[X] 모든 방법 실패{RESET}")
 
     print(f"\n{BLUE}{'='*80}{RESET}\n")
 
 
-MAGENTA = '\033[95m'
+MAGENTA = '\"033"[95m'
 
 if __name__ == "__main__":
     main()

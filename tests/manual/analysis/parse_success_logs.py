@@ -9,7 +9,7 @@ def parse_log_file(log_path):
     with open(log_path, 'r', encoding='utf-8') as f:
         log_content = f.read()
 
-    success_pattern = r'\[INFO\] ✅ 성공 \(데이터 확인\) \[(\w+) Var (\d+)/(\d+)\] ([^\|]+) \| 성공 \(Path: (\w+)\)'
+    success_pattern = r'\[INFO\] [OK] 성공 \(데이터 확인\) \[(\w+) Var (\d+)/(\d+)\] ([^\|]+) \| 성공 \(Path: (\w+)\)'
 
     success_records = []
 
@@ -28,7 +28,7 @@ def parse_log_file(log_path):
             'path': path
         })
 
-    print(f"✅ 성공 패턴 {len(success_records)}개 발견")
+    print(f"[OK] 성공 패턴 {len(success_records)}개 발견")
     return success_records
 
 def extract_variant_params_from_account():
@@ -39,7 +39,7 @@ def extract_variant_params_from_account():
     try:
         import account
     except ImportError as e:
-        print(f"❌ account.py 로드 실패: {e}")
+        print(f"[X] account.py 로드 실패: {e}")
         import traceback
         traceback.print_exc()
         return {}
@@ -138,7 +138,7 @@ def main():
     success_records = parse_log_file(log_path)
 
     if not success_records:
-        print("❌ 성공 기록을 찾을 수 없습니다.")
+        print("[X] 성공 기록을 찾을 수 없습니다.")
         return
 
     print(f"    성공 기록 {len(success_records)}개 발견")

@@ -170,6 +170,7 @@ def cached(ttl: int = 60, key_func: Optional[Callable] = None):
         key_func: 커스텀 키 생성 함수 (args, kwargs를 받아 str 반환)
 
     Usage:
+    """
         @cached(ttl=300)
         def expensive_function(arg1, arg2):
             return result
@@ -177,6 +178,7 @@ def cached(ttl: int = 60, key_func: Optional[Callable] = None):
         @cached(ttl=60, key_func=lambda args, kwargs: f"custom_{args[0]}")
         def custom_key_function(stock_code):
             return result
+    """
     """
     def decorator(func):
         @wraps(func)

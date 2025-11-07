@@ -285,7 +285,7 @@ class TradingJournal:
         mistakes = []
 
         if buy_entry.was_successful:
-            analysis.append("✅ 수익 거래")
+            analysis.append("[OK] 수익 거래")
 
             if buy_entry.profit_loss_pct > 5:
                 lessons.append("강한 수익 실현 - 진입 타이밍 우수")
@@ -296,7 +296,7 @@ class TradingJournal:
             if buy_entry.confidence_level > 0.7:
                 lessons.append("높은 신뢰도 결정이 성공으로 이어짐")
         else:
-            analysis.append("❌ 손실 거래")
+            analysis.append("[X] 손실 거래")
 
             if buy_entry.profit_loss_pct < -3:
                 mistakes.append("큰 손실 - 진입 타이밍 개선 필요")

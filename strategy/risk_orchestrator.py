@@ -70,6 +70,7 @@ class RiskOrchestrator:
 
     def __init__(self, settings: Optional[Dict] = None):
         """
+        """
         self.settings = settings or {}
 
         self.static_risk_manager = None
@@ -146,6 +147,7 @@ class RiskOrchestrator:
 
         Returns:
             종합 리스크 평가
+            """
         checks: List[RiskCheck] = []
         recommendations: List[str] = []
 
@@ -195,6 +197,7 @@ class RiskOrchestrator:
         position_info: Optional[Dict]
     ) -> List[RiskCheck]:
         """
+        """
         checks = []
 
         if not self.static_risk_manager or not account_info:
@@ -218,7 +221,7 @@ class RiskOrchestrator:
             logger.error(f"포지션 크기 검증 실패: {e}")
 
         daily_loss = account_info.get('daily_loss', 0)
-        max_daily_loss = total_assets * self.settings.get('max_daily_loss_pct', 0.03)
+        max_daily_loss = total_assets * self.settings.get('max_daily_loss_pct', 0."03")
 
         checks.append(RiskCheck(
             check_name="일일 손실 한도",
@@ -237,6 +240,7 @@ class RiskOrchestrator:
         quantity: int,
         price: float
     ) -> List[RiskCheck]:
+        """
         """
         checks = []
 
@@ -269,6 +273,7 @@ class RiskOrchestrator:
         position_info: Dict
     ) -> List[RiskCheck]:
         """
+        """
         checks = []
 
         if not self.trailing_stop_manager:
@@ -294,6 +299,7 @@ class RiskOrchestrator:
         account_info: Dict,
         position_info: Optional[Dict]
     ) -> List[RiskCheck]:
+        """
         """
         checks = []
 
@@ -327,6 +333,7 @@ class RiskOrchestrator:
         overall_risk: RiskLevel
     ) -> bool:
         """
+        """
         if overall_risk == RiskLevel.CRITICAL:
             return False
 
@@ -347,6 +354,7 @@ class RiskOrchestrator:
         checks: List[RiskCheck],
         overall_risk: RiskLevel
     ) -> List[str]:
+        """
         """
         recommendations = []
 

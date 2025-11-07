@@ -17,14 +17,14 @@ import time
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-GREEN = '\033[92m'
-RED = '\033[91m'
-BLUE = '\033[94m'
-YELLOW = '\033[93m'
-CYAN = '\033[96m'
-MAGENTA = '\033[95m'
-WHITE = '\033[97m'
-RESET = '\033[0m'
+GREEN = '\"033"[92m'
+RED = '\"033"[91m'
+BLUE = '\"033"[94m'
+YELLOW = '\"033"[93m'
+CYAN = '\"033"[96m'
+MAGENTA = '\"033"[95m'
+WHITE = '\"033"[97m'
+RESET = '\"033"[0m'
 
 
 def is_nxt_hours():
@@ -55,7 +55,7 @@ def test_price_monitoring(client, test_stocks, rounds=10, interval=5):
         interval: 조회 간격 (기본 5초)
     """
     print(f"\n{BLUE}{'='*100}{RESET}")
-    print(f"{BLUE}🔍 대규모 가격 모니터링 테스트{RESET}")
+    print(f"{BLUE}[SEARCH] 대규모 가격 모니터링 테스트{RESET}")
     print(f"{BLUE}{'='*100}{RESET}")
     print(f"{CYAN}종목 수: {len(test_stocks)}개{RESET}")
     print(f"{CYAN}조회 횟수: {rounds}회{RESET}")
@@ -100,26 +100,26 @@ def test_price_monitoring(client, test_stocks, rounds=10, interval=5):
                         prev_price = price_history[stock_code][-2]
                         diff = price - prev_price
                         if diff > 0:
-                            change_symbol = f" 📈 +{diff:,}원"
+                            change_symbol = f" [UP] +{diff:,}원"
                         elif diff < 0:
-                            change_symbol = f" 📉 {diff:,}원"
+                            change_symbol = f" [DOWN] {diff:,}원"
                         else:
                             change_symbol = " ➡️  변동없음"
 
                     stex_icon = "🟢" if stex_tp == "NXT" else "🔵" if stex_tp == "KRX" else "⚪"
                     print(f"  {stex_icon} {stock_name:15} ({stock_code}) | {price:7,}원 | {stex_tp:3} | {tm:6}{change_symbol}")
                 else:
-                    print(f"  ❌ {stock_name:15} ({stock_code}) | 체결정보 없음")
+                    print(f"  [X] {stock_name:15} ({stock_code}) | 체결정보 없음")
             else:
                 error_msg = response.get('return_msg') if response else 'No response'
-                print(f"  ❌ {stock_name:15} ({stock_code}) | 실패: {error_msg}")
+                print(f"  [X] {stock_name:15} ({stock_code}) | 실패: {error_msg}")
 
         if round_num < rounds:
             print(f"\n  {CYAN}⏳ {interval}초 대기 중...{RESET}")
             time.sleep(interval)
 
     print(f"\n{BLUE}{'='*100}{RESET}")
-    print(f"{BLUE}📊 최종 결과 분석{RESET}")
+    print(f"{BLUE}[CHART] 최종 결과 분석{RESET}")
     print(f"{BLUE}{'='*100}{RESET}")
 
     total_stocks = len(test_stocks)
@@ -150,7 +150,7 @@ def test_price_monitoring(client, test_stocks, rounds=10, interval=5):
         max_price = max(prices)
         price_range = max_price - min_price
 
-        change_icon = "✅" if has_change else "❌"
+        change_icon = "[OK]" if has_change else "[X]"
         stex_icon = "🟢" if 'NXT' in stex_tps else "🔵" if 'KRX' in stex_tps else "⚪"
 
         print(f"\n{WHITE}{stock_name} ({stock_code}){RESET}")
@@ -159,7 +159,7 @@ def test_price_monitoring(client, test_stocks, rounds=10, interval=5):
         print(f"  ⏰ 시간: {', '.join(set(times))}")
 
     print(f"\n{MAGENTA}{'='*100}{RESET}")
-    print(f"{MAGENTA}📈 전체 통계{RESET}")
+    print(f"{MAGENTA}[UP] 전체 통계{RESET}")
     print(f"{MAGENTA}{'='*100}{RESET}")
 
     print(f"\n{CYAN}종목 통계:{RESET}")
@@ -172,31 +172,31 @@ def test_price_monitoring(client, test_stocks, rounds=10, interval=5):
     print(f"  • KRX 표시 종목: {krx_stocks}개")
 
     print(f"\n{MAGENTA}{'='*100}{RESET}")
-    print(f"{MAGENTA}🎯 최종 결론{RESET}")
+    print(f"{MAGENTA}[TARGET] 최종 결론{RESET}")
     print(f"{MAGENTA}{'='*100}{RESET}")
 
     if stocks_with_change == 0:
-        print(f"\n{RED}❌ 모든 종목의 가격이 변동 없음{RESET}")
-        print(f"{RED}   → 실시간 가격 조회가 아닌 것으로 판단됨{RESET}")
+        print(f"\n{RED}[X] 모든 종목의 가격이 변동 없음{RESET}")
+        print(f"{RED}   -> 실시간 가격 조회가 아닌 것으로 판단됨{RESET}")
 
         if krx_stocks > 0:
-            print(f"\n{YELLOW}⚠️  거래소가 KRX로 표시됨{RESET}")
-            print(f"{YELLOW}   → NXT 시간대임에도 KRX 종가를 반환하고 있음{RESET}")
-            print(f"{YELLOW}   → 기본 코드로는 NXT 실시간 가격 조회 불가{RESET}")
+            print(f"\n{YELLOW}[WARNING]️  거래소가 KRX로 표시됨{RESET}")
+            print(f"{YELLOW}   -> NXT 시간대임에도 KRX 종가를 반환하고 있음{RESET}")
+            print(f"{YELLOW}   -> 기본 코드로는 NXT 실시간 가격 조회 불가{RESET}")
     elif stocks_with_change > 0 and stocks_with_change < total_stocks:
-        print(f"\n{YELLOW}⚠️  일부 종목만 가격 변동 감지{RESET}")
-        print(f"{YELLOW}   → {stocks_with_change}개 종목에서 실시간 가격 변동 확인{RESET}")
-        print(f"{YELLOW}   → 종목별로 동작이 다를 수 있음{RESET}")
+        print(f"\n{YELLOW}[WARNING]️  일부 종목만 가격 변동 감지{RESET}")
+        print(f"{YELLOW}   -> {stocks_with_change}개 종목에서 실시간 가격 변동 확인{RESET}")
+        print(f"{YELLOW}   -> 종목별로 동작이 다를 수 있음{RESET}")
     else:
-        print(f"\n{GREEN}✅ 모든 종목에서 가격 변동 감지!{RESET}")
-        print(f"{GREEN}   → 실시간 가격 조회가 작동 중{RESET}")
+        print(f"\n{GREEN}[OK] 모든 종목에서 가격 변동 감지!{RESET}")
+        print(f"{GREEN}   -> 실시간 가격 조회가 작동 중{RESET}")
 
         if nxt_stocks > 0:
-            print(f"\n{GREEN}✅ NXT 거래소로 표시됨{RESET}")
-            print(f"{GREEN}   → NXT 실시간 가격 조회 성공!{RESET}")
+            print(f"\n{GREEN}[OK] NXT 거래소로 표시됨{RESET}")
+            print(f"{GREEN}   -> NXT 실시간 가격 조회 성공!{RESET}")
         elif krx_stocks > 0:
-            print(f"\n{YELLOW}⚠️  KRX로 표시되지만 가격 변동 있음{RESET}")
-            print(f"{YELLOW}   → 실시간 조회는 되지만 거래소 구분 불명확{RESET}")
+            print(f"\n{YELLOW}[WARNING]️  KRX로 표시되지만 가격 변동 있음{RESET}")
+            print(f"{YELLOW}   -> 실시간 조회는 되지만 거래소 구분 불명확{RESET}")
 
 
 def main():
@@ -210,15 +210,15 @@ def main():
 
     print(f"\n{CYAN}📅 현재 시간 정보{RESET}")
     print(f"  시간: {now.strftime('%Y-%m-%d %H:%M:%S')}")
-    print(f"  NXT 거래 시간: {'✅ 예' if in_nxt_hours else '❌ 아니오'}")
+    print(f"  NXT 거래 시간: {'[OK] 예' if in_nxt_hours else '[X] 아니오'}")
 
     if not in_nxt_hours:
-        print(f"\n{YELLOW}⚠️  경고: 현재 NXT 거래 시간이 아닙니다!{RESET}")
-        print(f"  NXT 거래 시간: 08:00-09:00, 15:30-20:00")
+        print(f"\n{YELLOW}[WARNING]️  경고: 현재 NXT 거래 시간이 아닙니다!{RESET}")
+        print(f"  NXT 거래 시간: "08":"00"-"09":"00", 15:30-20:00")
         print(f"  이 시간대에 테스트해야 정확한 결과를 얻을 수 있습니다.")
         return
 
-    print(f"\n{GREEN}✅ 지금이 NXT 거래 시간입니다! 테스트를 시작합니다.{RESET}")
+    print(f"\n{GREEN}[OK] 지금이 NXT 거래 시간입니다! 테스트를 시작합니다.{RESET}")
 
     try:
         from core.rest_client import KiwoomRESTClient
@@ -226,10 +226,10 @@ def main():
         client = KiwoomRESTClient()
 
         if not client.token:
-            print(f"{RED}❌ API 연결 실패{RESET}")
+            print(f"{RED}[X] API 연결 실패{RESET}")
             return
 
-        print(f"{GREEN}✅ API 연결 성공{RESET}")
+        print(f"{GREEN}[OK] API 연결 성공{RESET}")
 
         test_stocks = [
             ("249420", "일동제약"),
@@ -256,7 +256,7 @@ def main():
         )
 
     except Exception as e:
-        print(f"{RED}❌ 오류 발생: {e}{RESET}")
+        print(f"{RED}[X] 오류 발생: {e}{RESET}")
         import traceback
         traceback.print_exc()
 

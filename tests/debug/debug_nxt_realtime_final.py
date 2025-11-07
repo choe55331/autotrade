@@ -11,12 +11,12 @@ import json
 from datetime import datetime
 from typing import Dict, Optional
 
-GREEN = '\033[92m'
-RED = '\033[91m'
-YELLOW = '\033[93m'
-BLUE = '\033[94m'
-CYAN = '\033[96m'
-RESET = '\033[0m'
+GREEN = '\"033"[92m'
+RED = '\"033"[91m'
+YELLOW = '\"033"[93m'
+BLUE = '\"033"[94m'
+CYAN = '\"033"[96m'
+RESET = '\"033"[0m'
 
 
 class NXTRealtimeTest:
@@ -122,7 +122,7 @@ class NXTRealtimeTest:
 
         try:
             await asyncio.wait_for(self.data_received.wait(), timeout=20)
-            print(f"\n{GREEN}✅ 모든 종목 수신 완료{RESET}")
+            print(f"\n{GREEN}[OK] 모든 종목 수신 완료{RESET}")
         except asyncio.TimeoutError:
             print(f"\n{YELLOW}⏱️  타임아웃 ({len(self.realtime_prices)}/{len(self.test_stocks)}개 수신){RESET}")
 
@@ -183,14 +183,14 @@ async def main():
         bot = TradingBotV2()
 
         if not bot.client:
-            print(f"{RED}❌ 클라이언트 초기화 실패{RESET}")
+            print(f"{RED}[X] 클라이언트 초기화 실패{RESET}")
             return
 
         if not bot.websocket_manager or not bot.websocket_manager.is_connected:
-            print(f"{RED}❌ WebSocket 연결 실패{RESET}")
+            print(f"{RED}[X] WebSocket 연결 실패{RESET}")
             return
 
-        print(f"{GREEN}✅ 초기화 완료{RESET}")
+        print(f"{GREEN}[OK] 초기화 완료{RESET}")
 
         tester = NXTRealtimeTest(bot)
         await tester.run_test()
@@ -200,7 +200,7 @@ async def main():
     except KeyboardInterrupt:
         print(f"\n{YELLOW}사용자 중단{RESET}")
     except Exception as e:
-        print(f"\n{RED}❌ 오류: {e}{RESET}")
+        print(f"\n{RED}[X] 오류: {e}{RESET}")
         import traceback
         traceback.print_exc()
 

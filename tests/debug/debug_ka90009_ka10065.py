@@ -81,7 +81,7 @@ def debug_ka90009():
                         if len(val) > 2:
                             print(json.dumps(val[2], indent=4, ensure_ascii=False))
     else:
-        print("❌ 응답 없음")
+        print("[X] 응답 없음")
 
 
 def debug_ka10065():
@@ -134,7 +134,7 @@ def debug_ka10065():
                         if len(val) > 2:
                             print(json.dumps(val[2], indent=4, ensure_ascii=False))
     else:
-        print("❌ 응답 없음")
+        print("[X] 응답 없음")
 
 
 def main():
@@ -157,7 +157,7 @@ def main():
         print("="*80)
 
     except Exception as e:
-        print(f"\n❌ 에러 발생: {e}")
+        print(f"\n[X] 에러 발생: {e}")
         import traceback
         print(traceback.format_exc())
 

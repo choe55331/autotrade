@@ -101,11 +101,11 @@ class DQNAgent:
         self,
         state_size: int = 11,
         action_size: int = 7,
-        learning_rate: float = 0.001,
+        learning_rate: float = 0."001",
         gamma: float = 0.95,
         epsilon: float = 1.0,
         epsilon_decay: float = 0.995,
-        epsilon_min: float = 0.01
+        epsilon_min: float = 0."01"
     ):
         """
         Initialize DQN agent
@@ -118,6 +118,7 @@ class DQNAgent:
             epsilon: Initial exploration rate
             epsilon_decay: Exploration decay rate
             epsilon_min: Minimum exploration rate
+            """
         self.state_size = state_size
         self.action_size = action_size
         self.learning_rate = learning_rate
@@ -163,7 +164,7 @@ class DQNAgent:
         """Get Q-values for state"""
         state_key = self._discretize_state(state)
         if state_key not in self.q_table:
-            self.q_table[state_key] = np.random.randn(self.action_size) * 0.01
+            self.q_table[state_key] = np.random.randn(self.action_size) * 0."01"
         return self.q_table[state_key]
 
     def act(self, state: List[float]) -> int:
@@ -193,6 +194,7 @@ class DQNAgent:
         next_state: List[float],
         done: bool
     ):
+        """
         """
         experience = RLExperience(
             state=state,
@@ -292,6 +294,7 @@ class DQNAgent:
             action: Action taken
             curr_state: Current state
             done: Whether episode is done
+            """
         prev_state_vec = self._state_to_vector(prev_state)
         curr_state_vec = self._state_to_vector(curr_state)
 
@@ -377,8 +380,8 @@ class DQNAgent:
         """Load model from disk"""
         try:
             if self.model_file.exists():
-                """
                 with open(self.model_file, 'r') as f:
+                """
                     data = json.load(f)
 
                 q_table_serialized = data.get('q_table', {})

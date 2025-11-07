@@ -1,6 +1,6 @@
 """
 NXT 실시간 현재가 처리 모듈 - v5.15
-NXT 시장 시간대(15:30~20:00)의 실시간 현재가 정확한 반영
+NXT 시장 시간대(15:30~20:"00")의 실시간 현재가 정확한 반영
 """
 from datetime import datetime, time
 from typing import Dict, Any, Optional
@@ -13,7 +13,7 @@ class NXTRealtimePriceManager:
     """
     NXT 실시간 현재가 관리자
 
-    문제: NXT 시간대(15:30~20:00)에 종가를 사용하여 실시간 가격 변동 반영 안됨
+    문제: NXT 시간대(15:30~20:"00")에 종가를 사용하여 실시간 가격 변동 반영 안됨
     해결: NXT 시간대에 실시간 현재가 API 호출로 변경
     """
 
@@ -30,8 +30,8 @@ class NXTRealtimePriceManager:
         """
         NXT 거래 시간 확인
 
-        오전: 08:00 ~ 09:00
-        오후: 15:30 ~ 20:00 (실제 거래는 18:00까지지만 여유있게)
+        오전: "08":"00" ~ "09":"00"
+        오후: 15:30 ~ 20:"00" (실제 거래는 18:00까지지만 여유있게)
 
         Returns:
             bool: NXT 거래 시간 여부
@@ -53,7 +53,7 @@ class NXTRealtimePriceManager:
                           force_refresh: bool = False) -> Optional[Dict[str, Any]]:
         실시간 현재가 조회
 
-        ⚠️ 중요 발견 (v5.15 테스트 결과):
+        [WARNING]️ 중요 발견 (v5.15 테스트 결과):
         - NXT 시간대에도 _NX 접미사 사용하면 실패 (0% 성공률)
         - 기본 코드로 조회하면 정상 작동 (100% 성공률)
         - ka10003, ka10004 모두 기본 코드 사용
@@ -154,7 +154,7 @@ def get_current_price_fixed(market_api, stock_code: str,
                            use_chart_close: bool = False) -> int:
     현재가 조회 (NXT 시간대 수정 버전)
 
-    ⚠️ 중요: NXT 시간대(15:30~20:00)에는 차트 종가가 아닌 실시간 현재가 사용
+    [WARNING]️ 중요: NXT 시간대(15:30~20:"00")에는 차트 종가가 아닌 실시간 현재가 사용
 
     Args:
         market_api: MarketAPI 인스턴스
@@ -220,7 +220,7 @@ def patch_chart_current_price(chart_data: list, market_api, stock_code: str) -> 
         last_candle['low'] = current_price
 
     logger.info(f"NXT 차트 현재가 업데이트: {stock_code} "
-               f"{original_close:,} → {current_price:,}원")
+               f"{original_close:,} -> {current_price:,}원")
 
     return chart_data
 
@@ -237,7 +237,7 @@ def is_price_stale(timestamp_str: str, max_age_seconds: int = 60) -> bool:
         bool: 오래되었으면 True
     """
     try:
-        timestamp = datetime.fromisoformat(timestamp_str.replace('Z', '+00:00'))
+        timestamp = datetime.fromisoformat(timestamp_str.replace('Z', '+"00":00'))
         age = (datetime.now() - timestamp).total_seconds()
         return age > max_age_seconds
     except:

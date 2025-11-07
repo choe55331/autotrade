@@ -11,12 +11,12 @@ import json
 from datetime import datetime
 from typing import Dict, Optional
 
-GREEN = '\033[92m'
-RED = '\033[91m'
-YELLOW = '\033[93m'
-BLUE = '\033[94m'
-CYAN = '\033[96m'
-RESET = '\033[0m'
+GREEN = '\"033"[92m'
+RED = '\"033"[91m'
+YELLOW = '\"033"[93m'
+BLUE = '\"033"[94m'
+CYAN = '\"033"[96m'
+RESET = '\"033"[0m'
 
 
 class NXTRealtimePriceTest:
@@ -252,7 +252,7 @@ async def main():
             print(f"{RED}WebSocket 연결 실패{RESET}")
             return
 
-        print(f"{GREEN}✅ 초기화 완료 (WebSocket 연결됨){RESET}")
+        print(f"{GREEN}[OK] 초기화 완료 (WebSocket 연결됨){RESET}")
 
         tester = NXTRealtimePriceTest(bot)
         await tester.run_test()

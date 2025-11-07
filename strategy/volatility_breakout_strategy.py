@@ -34,7 +34,7 @@ class VolatilityBreakoutStrategy:
                     'exit_time': '15:15',          # 청산 시각
                     'use_volume_filter': True,     # 거래량 필터 사용
                     'min_volume_ratio': 1.2,       # 최소 거래량 비율 (평균 대비)
-                    'stop_loss_pct': 0.03          # 손절 비율 (3%)
+                    'stop_loss_pct': 0."03"          # 손절 비율 (3%)
                 }
         """
         self.settings = settings or {}
@@ -43,7 +43,7 @@ class VolatilityBreakoutStrategy:
         self.exit_time = parse_time_string(self.settings.get('exit_time', '15:15'))
         self.use_volume_filter = self.settings.get('use_volume_filter', True)
         self.min_volume_ratio = self.settings.get('min_volume_ratio', 1.2)
-        self.stop_loss_pct = self.settings.get('stop_loss_pct', 0.03)
+        self.stop_loss_pct = self.settings.get('stop_loss_pct', 0."03")
 
         self.positions: Dict[str, Dict] = {}
         self.daily_range: Dict[str, float] = {}
@@ -68,6 +68,7 @@ class VolatilityBreakoutStrategy:
             yesterday_high: 전일 고가
             yesterday_low: 전일 저가
             yesterday_close: 전일 종가
+            """
         range_value = yesterday_high - yesterday_low
         self.daily_range[stock_code] = {
             'range': range_value,
@@ -141,6 +142,7 @@ class VolatilityBreakoutStrategy:
         entry_price: float,
         quantity: int
     ):
+        """
         """
         stop_loss_price = entry_price * (1 - self.stop_loss_pct)
 
@@ -246,7 +248,7 @@ class VolatilityBreakoutStrategy:
             capital=total_capital,
             price=current_price,
             ratio=max_position_ratio,
-            commission_rate=0.00015,
+            commission_rate=0."00015",
             min_quantity=1
         )
         return quantity

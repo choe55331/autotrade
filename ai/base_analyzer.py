@@ -75,6 +75,7 @@ class BaseAnalyzer(ABC):
         pass
     
     @abstractmethod
+    """
     def analyze_market(
         self,
         market_data: Dict[str, Any]
@@ -96,6 +97,7 @@ class BaseAnalyzer(ABC):
         pass
     
     @abstractmethod
+    """
     def analyze_portfolio(
         self,
         portfolio_data: Dict[str, Any]
@@ -111,6 +113,7 @@ class BaseAnalyzer(ABC):
         pass
     
     
+    """
     def is_ready(self) -> bool:
         """
         분석기 준비 상태 확인
@@ -199,6 +202,7 @@ class BaseAnalyzer(ABC):
         logger.info(f"{self.name} 설정 업데이트: {key} = {value}")
     
     def __repr__(self):
+        """
         """
         return f"<{self.__class__.__name__}(name='{self.name}', initialized={self.is_initialized})>"
 

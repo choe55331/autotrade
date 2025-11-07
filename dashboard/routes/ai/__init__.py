@@ -12,7 +12,7 @@ Modules:
 - market_commentary: Real-time AI market commentary
 - multi_model: Multi-Model AI v1.0 (consensus analysis, model performance tracking)
 
-Refactored from monolithic ai.py (2,045 lines) to modular structure (7 modules)
+Refactored from monolithic ai.py (2,"045" lines) to modular structure (7 modules)
 from flask import Blueprint
 
 from .ai_mode import ai_mode_bp
@@ -36,6 +36,7 @@ def register_ai_routes(app):
         app: Flask application instance
 
     Usage:
+    """
         from dashboard.routes.ai import register_ai_routes
         register_ai_routes(app)
     """
@@ -47,6 +48,7 @@ def register_ai_routes(app):
     app.register_blueprint(market_commentary_bp)
     app.register_blueprint(multi_model_bp)
 
+"""
     print("✓ Registered 7 AI route modules:")
     print("  - AI Mode v3.6 (5 endpoints)")
     print("  - Advanced AI v4.0 (5 endpoints)")

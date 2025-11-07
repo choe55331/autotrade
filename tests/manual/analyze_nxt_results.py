@@ -14,22 +14,22 @@ def analyze_results(filename: str):
     """테스트 결과 분석 및 권장사항 출력"""
 
     if not Path(filename).exists():
-        print(f"❌ 파일을 찾을 수 없습니다: {filename}")
+        print(f"[X] 파일을 찾을 수 없습니다: {filename}")
         return
 
     with open(filename, 'r', encoding='utf-8') as f:
         results = json.load(f)
 
     print("\n" + "="*80)
-    print("📊 NXT 테스트 결과 분석")
+    print("[CHART] NXT 테스트 결과 분석")
     print("="*80)
 
     print(f"\n⏰ 테스트 시간: {results['timestamp']}")
-    print(f"   NXT 시간대: {'✅ Yes' if results['is_nxt_time'] else '❌ No'}")
-    print(f"   정규장 시간: {'✅ Yes' if results['is_market_time'] else '❌ No'}")
+    print(f"   NXT 시간대: {'[OK] Yes' if results['is_nxt_time'] else '[X] No'}")
+    print(f"   정규장 시간: {'[OK] Yes' if results['is_market_time'] else '[X] No'}")
 
     print("\n" + "-"*80)
-    print("🔍 현재가 조회 결과")
+    print("[SEARCH] 현재가 조회 결과")
     print("-"*80)
 
     price_tests = results.get('price_tests', [])
@@ -38,7 +38,7 @@ def analyze_results(filename: str):
     print(f"\n총 {len(price_tests)}개 테스트 중 {len(price_success)}개 성공 ({len(price_success)/len(price_tests)*100:.1f}%)")
 
     if price_success:
-        print("\n✅ 성공한 접근법:")
+        print("\n[OK] 성공한 접근법:")
         success_by_approach = {}
         for test in price_success:
             approach = test['approach']
@@ -51,7 +51,7 @@ def analyze_results(filename: str):
             for test in tests:
                 print(f"      - {test['stock_code']}: {test['price']:,}원 (출처: {test['source']})")
 
-        print("\n" + "🎯 권장 현재가 조회 방법 ".ljust(80, "="))
+        print("\n" + "[TARGET] 권장 현재가 조회 방법 ".ljust(80, "="))
         best = price_success[0]
         print(f"\n   접근법: {best['approach']}")
         print(f"   출처: {best['source']}")
@@ -66,7 +66,7 @@ def analyze_results(filename: str):
             print("   response = self.client.request(api_id='ka10003', body=body, path='stkinfo')")
             print("   ```")
     else:
-        print("\n❌ 성공한 접근법 없음")
+        print("\n[X] 성공한 접근법 없음")
         print("\n💡 확인사항:")
         print("   - API 키가 유효한가?")
         print("   - 네트워크 연결이 정상인가?")
@@ -82,13 +82,13 @@ def analyze_results(filename: str):
     print(f"\n총 {len(order_tests)}개 조합 중 {len(order_success)}개 성공 ({len(order_success)/len(order_tests)*100:.1f}%)")
 
     if order_success:
-        print("\n✅ 성공한 파라미터 조합:")
+        print("\n[OK] 성공한 파라미터 조합:")
         for test in order_success:
             print(f"\n   📌 {test['combination']}")
             print(f"      주문번호: {test.get('ord_no', 'N/A')}")
             print(f"      응답: {test.get('return_msg', 'N/A')}")
 
-        print("\n" + "🎯 권장 주문 파라미터 ".ljust(80, "="))
+        print("\n" + "[TARGET] 권장 주문 파라미터 ".ljust(80, "="))
         best_order = order_success[0]
         combination = best_order['combination']
 
@@ -131,7 +131,7 @@ def analyze_results(filename: str):
         print("   ```")
 
     else:
-        print("\n❌ 성공한 조합 없음")
+        print("\n[X] 성공한 조합 없음")
         print("\n💡 확인사항:")
         print("   - 매수가능금액이 충분한가?")
         print("   - 종목이 거래정지 상태가 아닌가?")
@@ -140,7 +140,7 @@ def analyze_results(filename: str):
     summary = results.get('summary', {})
     if summary:
         print("\n" + "="*80)
-        print("📈 전체 요약")
+        print("[UP] 전체 요약")
         print("="*80)
 
         price_summary = summary.get('price_tests', {})
@@ -154,7 +154,7 @@ def analyze_results(filename: str):
             print(f"   성공 조합: {', '.join(order_summary['successful_combinations'][:3])}")
 
     print("\n" + "="*80)
-    print("✅ 분석 완료")
+    print("[OK] 분석 완료")
     print("="*80)
     print(f"\n상세 결과: {filename}\n")
 

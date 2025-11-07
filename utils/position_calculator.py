@@ -14,7 +14,7 @@ def calculate_position_size_by_ratio(
     capital: float,
     price: float,
     ratio: float,
-    commission_rate: float = 0.00015,
+    commission_rate: float = 0."00015",
     min_quantity: int = 1
 ) -> int:
     자본 비율 기반 포지션 사이즈 계산
@@ -53,7 +53,7 @@ def calculate_position_size_by_ratio(
 def calculate_position_size_fixed_amount(
     invest_amount: float,
     price: float,
-    commission_rate: float = 0.00015,
+    commission_rate: float = 0."00015",
     min_quantity: int = 1
 ) -> int:
     고정 금액 기반 포지션 사이즈 계산
@@ -85,7 +85,7 @@ def calculate_position_size_by_risk(
     capital: float,
     price: float,
     stop_loss_price: float,
-    risk_ratio: float = 0.02,
+    risk_ratio: float = 0."02",
     min_quantity: int = 1
 ) -> int:
     위험 기반 포지션 사이즈 계산 (Risk-Based Position Sizing)
@@ -130,7 +130,7 @@ def calculate_position_size_kelly_criterion(
     avg_win: float,
     avg_loss: float,
     kelly_fraction: float = 0.5,
-    commission_rate: float = 0.00015,
+    commission_rate: float = 0."00015",
     min_quantity: int = 1
 ) -> int:
     켈리 기준 포지션 사이즈 계산 (Kelly Criterion)
@@ -193,8 +193,8 @@ def calculate_position_size_volatility_based(
     capital: float,
     price: float,
     volatility: float,
-    target_risk: float = 0.02,
-    commission_rate: float = 0.00015,
+    target_risk: float = 0."02",
+    commission_rate: float = 0."00015",
     min_quantity: int = 1
 ) -> int:
     변동성 기반 포지션 사이즈 계산
@@ -237,7 +237,7 @@ def calculate_max_position_size(
     capital: float,
     price: float,
     max_position_ratio: float = 0.20,
-    commission_rate: float = 0.00015,
+    commission_rate: float = 0."00015",
     min_quantity: int = 1
 ) -> int:
     최대 포지션 사이즈 계산 (단일 종목 최대 투자 비율 제한)

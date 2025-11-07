@@ -96,7 +96,7 @@ def debug_ka90009():
                 else:
                     print(f"\n{key}: {type(val).__name__} = {val}")
         else:
-            print("❌ 응답 없음")
+            print("[X] 응답 없음")
 
         print()
 
@@ -168,7 +168,7 @@ def debug_ka10065():
                 else:
                     print(f"\n{key}: {type(val).__name__} = {val}")
         else:
-            print("❌ 응답 없음")
+            print("[X] 응답 없음")
 
         print()
 
@@ -186,7 +186,7 @@ def main():
         print("=" * 80)
 
     except Exception as e:
-        print(f"❌ 에러: {e}")
+        print(f"[X] 에러: {e}")
         import traceback
         print(traceback.format_exc())
 

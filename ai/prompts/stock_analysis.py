@@ -4,6 +4,7 @@ STOCK_ANALYSIS_PROMPT_V7 = """당신은 20년 경력의 퀀트 헤지펀드 매�
 
 다음 한국 주식을 심층 분석하여 매수/보유/매도 결정을 내려주세요.
 
+"""
 === 종목 기본 정보 ===
 종목명: {stock_name} ({stock_code})
 현재가: {current_price:,}원
@@ -77,6 +78,7 @@ KOSPI: {kospi_index:,} ({kospi_change:+.2f}%)
 }}
 ```"""
 
+"""
 def format_technical_indicators(indicators: Dict[str, Any]) -> str:
     if not indicators:
         return "기술적 지표 정보 없음"
@@ -125,9 +127,9 @@ def format_investor_analysis(data: Dict[str, Any]) -> str:
     lines = []
 
     if inst > 0 and foreign > 0:
-        lines.append("✅ 기관과 외국인이 동시 순매수 중 (강력한 상승 신호)")
+        lines.append("[OK] 기관과 외국인이 동시 순매수 중 (강력한 상승 신호)")
     elif inst < 0 and foreign < 0:
-        lines.append("⚠️ 기관과 외국인이 동시 순매도 중 (약세 신호)")
+        lines.append("[WARNING]️ 기관과 외국인이 동시 순매도 중 (약세 신호)")
     elif inst > 0:
         lines.append("🔵 기관 순매수 중 (외국인은 관망)")
     elif foreign > 0:
@@ -139,7 +141,7 @@ def format_investor_analysis(data: Dict[str, Any]) -> str:
     if bid_ask > 1.5:
         lines.append(f"💪 강한 매수세 (매수호가 {bid_ask:.2f}배)")
     elif bid_ask < 0.7:
-        lines.append(f"📉 강한 매도세 (매수호가 {bid_ask:.2f}배)")
+        lines.append(f"[DOWN] 강한 매도세 (매수호가 {bid_ask:.2f}배)")
 
     return "\n".join(lines) if lines else ""
 
@@ -165,24 +167,24 @@ def format_risk_factors(data: Dict[str, Any]) -> str:
 
     change_rate = abs(data.get('change_rate', 0))
     if change_rate > 5:
-        risks.append(f"⚠️ 단기 급등/급락 ({change_rate:.1f}%) - 조정 가능성")
+        risks.append(f"[WARNING]️ 단기 급등/급락 ({change_rate:.1f}%) - 조정 가능성")
 
     volume_ratio = data.get('volume_ratio', 1.0)
     if volume_ratio > 3:
-        risks.append(f"⚠️ 거래량 급증 ({volume_ratio:.1f}배) - 단기 과열 주의")
+        risks.append(f"[WARNING]️ 거래량 급증 ({volume_ratio:.1f}배) - 단기 과열 주의")
 
     rsi = data.get('rsi', 50)
     if rsi > 75:
-        risks.append(f"⚠️ RSI 과매수 구간 ({rsi:.1f}) - 조정 대기 권장")
+        risks.append(f"[WARNING]️ RSI 과매수 구간 ({rsi:.1f}) - 조정 대기 권장")
     elif rsi < 25:
-        risks.append(f"⚠️ RSI 과매도 구간 ({rsi:.1f}) - 추가 하락 가능")
+        risks.append(f"[WARNING]️ RSI 과매도 구간 ({rsi:.1f}) - 추가 하락 가능")
 
     market_change = data.get('kospi_change', 0)
     if market_change < -1.5:
-        risks.append(f"⚠️ 시장 전체 약세 (KOSPI {market_change:+.2f}%)")
+        risks.append(f"[WARNING]️ 시장 전체 약세 (KOSPI {market_change:+.2f}%)")
 
     if not risks:
-        risks.append("✅ 특별한 리스크 요인 없음")
+        risks.append("[OK] 특별한 리스크 요인 없음")
 
     return "\n".join(risks)
 

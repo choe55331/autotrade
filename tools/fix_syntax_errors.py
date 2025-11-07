@@ -65,7 +65,9 @@ def fix_unterminated_triple_string(file_path: Path) -> int:
 
         for i, line in enumerate(lines):
             if '"""' in line:
+            """
                 count = line.count('"""')
+                """
                 if count == 1:
                     if not in_triple:
                         in_triple = True
@@ -81,6 +83,7 @@ def fix_unterminated_triple_string(file_path: Path) -> int:
             for i in range(len(lines) - 1, triple_start, -1):
                 if lines[i].strip() and not lines[i].strip().startswith('#'):
                     lines[i] = lines[i].rstrip() + '\n"""\n'
+                    """
                     fixes += 1
                     break
 
@@ -121,7 +124,7 @@ def main():
                     total_fixes += fixes
 
     print("=" * 60)
-    print(f"✅ 총 {total_fixes}개 수정 완료")
+    print(f"[OK] 총 {total_fixes}개 수정 완료")
 
 
 if __name__ == '__main__':

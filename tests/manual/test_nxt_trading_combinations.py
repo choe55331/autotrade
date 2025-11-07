@@ -4,7 +4,7 @@ NXT 시간외 거래 매수/매도 조합 테스트
 """
 
 """
-⚠️ 주의: 실제 주문이 체결됩니다!
+[WARNING]️ 주의: 실제 주문이 체결됩니다!
 - 소액(1주)으로 테스트합니다
 - 테스트 후 즉시 정리합니다
 """
@@ -101,18 +101,18 @@ class TradingCombinationTester:
             }
 
             if success:
-                logger.info(f"✅ 성공! 주문번호: {result.get('ord_no')}")
+                logger.info(f"[OK] 성공! 주문번호: {result.get('ord_no')}")
 
                 time.sleep(0.5)
                 self.cancel_order(result.get('ord_no'), dmst_stex_tp)
             else:
-                logger.error(f"❌ 실패: {result.get('return_msg')}")
+                logger.error(f"[X] 실패: {result.get('return_msg')}")
 
             self.results.append(test_result)
             return success
 
         except Exception as e:
-            logger.error(f"❌ 예외 발생: {e}")
+            logger.error(f"[X] 예외 발생: {e}")
             self.results.append({
                 'case': case_name,
                 'dmst_stex_tp': dmst_stex_tp,
@@ -146,9 +146,9 @@ class TradingCombinationTester:
             )
 
             if result and result.get('return_code') == 0:
-                logger.info(f"✅ 취소 성공")
+                logger.info(f"[OK] 취소 성공")
             else:
-                logger.warning(f"⚠️ 취소 실패: {result.get('return_msg') if result else '응답 없음'}")
+                logger.warning(f"[WARNING]️ 취소 실패: {result.get('return_msg') if result else '응답 없음'}")
 
         except Exception as e:
             logger.error(f"취소 중 오류: {e}")
@@ -156,34 +156,34 @@ class TradingCombinationTester:
     def print_summary(self):
         """테스트 결과 요약 출력"""
         logger.info(f"\n{'='*80}")
-        logger.info(f"📊 테스트 결과 요약")
+        logger.info(f"[CHART] 테스트 결과 요약")
         logger.info(f"{'='*80}")
 
         success_count = sum(1 for r in self.results if r['success'])
         total_count = len(self.results)
 
         logger.info(f"\n총 {total_count}개 케이스 테스트")
-        logger.info(f"성공: {success_count}개 ✅")
-        logger.info(f"실패: {total_count - success_count}개 ❌")
+        logger.info(f"성공: {success_count}개 [OK]")
+        logger.info(f"실패: {total_count - success_count}개 [X]")
 
         logger.info(f"\n{'='*80}")
-        logger.info(f"✅ 성공한 조합:")
+        logger.info(f"[OK] 성공한 조합:")
         logger.info(f"{'='*80}")
         success_cases = [r for r in self.results if r['success']]
         if success_cases:
             for r in success_cases:
-                logger.info(f"  🎯 {r['case']}")
+                logger.info(f"  [TARGET] {r['case']}")
                 logger.info(f"     dmst_stex_tp={r['dmst_stex_tp']}, trde_tp={r['trde_tp']}, ord_uv={r['ord_uv']}")
                 logger.info(f"     주문번호: {r['order_no']}")
         else:
             logger.info(f"  없음")
 
         logger.info(f"\n{'='*80}")
-        logger.info(f"❌ 실패한 조합:")
+        logger.info(f"[X] 실패한 조합:")
         logger.info(f"{'='*80}")
         failed_cases = [r for r in self.results if not r['success']]
         for r in failed_cases:
-            logger.info(f"  ❌ {r['case']}")
+            logger.info(f"  [X] {r['case']}")
             logger.info(f"     dmst_stex_tp={r['dmst_stex_tp']}, trde_tp={r['trde_tp']}, ord_uv={r['ord_uv']}")
             logger.info(f"     오류: {r['error']}")
 
@@ -191,12 +191,12 @@ class TradingCombinationTester:
         logger.info(f"💡 결론")
         logger.info(f"{'='*80}")
         if success_cases:
-            logger.info(f"✅ 성공한 조합을 사용하세요!")
+            logger.info(f"[OK] 성공한 조합을 사용하세요!")
             logger.info(f"   권장 설정: dmst_stex_tp={success_cases[0]['dmst_stex_tp']}, "
                        f"trde_tp={success_cases[0]['trde_tp']}, "
                        f"ord_uv={success_cases[0]['ord_uv']}")
         else:
-            logger.info(f"❌ 모든 조합이 실패했습니다.")
+            logger.info(f"[X] 모든 조합이 실패했습니다.")
             logger.info(f"   서버 확인: {self.client.base_url}")
             logger.info(f"   시간 확인: 시간외 거래 시간대인지 확인하세요")
 
@@ -206,8 +206,8 @@ def main():
     logger.info(f"\n{'='*80}")
     logger.info(f"🚀 NXT 시간외 거래 조합 테스트 시작")
     logger.info(f"{'='*80}")
-    logger.info(f"⚠️  주의: 실제 주문이 체결됩니다!")
-    logger.info(f"⚠️  소액(1주) 테스트 후 즉시 취소합니다.")
+    logger.info(f"[WARNING]️  주의: 실제 주문이 체결됩니다!")
+    logger.info(f"[WARNING]️  소액(1주) 테스트 후 즉시 취소합니다.")
     logger.info(f"{'='*80}\n")
 
     now = datetime.now()
@@ -215,19 +215,19 @@ def main():
     logger.info(f"⏰ 현재 시간: {now.strftime('%H:%M:%S')}")
 
     if current_hour < 8 or current_hour >= 20:
-        logger.warning(f"⚠️  현재 시간은 거래 불가 시간대입니다 (20:00-08:00)")
-        logger.warning(f"⚠️  테스트는 진행하지만 모두 실패할 가능성이 높습니다.")
+        logger.warning(f"[WARNING]️  현재 시간은 거래 불가 시간대입니다 (20:"00"-"08":"00")")
+        logger.warning(f"[WARNING]️  테스트는 진행하지만 모두 실패할 가능성이 높습니다.")
     elif 16 <= current_hour < 20:
-        logger.info(f"✅ 시간외 단일가 거래 시간대 (16:00-20:00)")
+        logger.info(f"[OK] 시간외 단일가 거래 시간대 (16:"00"-20:"00")")
     elif 15 <= current_hour < 16:
         if now.minute >= 40:
-            logger.info(f"✅ 장후 시간외 종가 거래 시간대 (15:40-16:00)")
+            logger.info(f"[OK] 장후 시간외 종가 거래 시간대 (15:40-16:"00")")
         else:
             logger.info(f"⏸️  거래 대기 시간대 (15:30-15:40)")
     elif 9 <= current_hour < 15 or (current_hour == 15 and now.minute < 30):
-        logger.info(f"✅ 정규장 거래 시간대 (09:00-15:30)")
+        logger.info(f"[OK] 정규장 거래 시간대 ("09":"00"-15:30)")
     elif 8 <= current_hour < 9:
-        logger.info(f"✅ 장시작전 시간외 거래 시간대 (08:00-09:00)")
+        logger.info(f"[OK] 장시작전 시간외 거래 시간대 ("08":"00"-"09":"00")")
 
     tester = TradingCombinationTester()
 
@@ -236,7 +236,7 @@ def main():
         logger.error(f"현재가를 조회할 수 없습니다. 테스트를 중단합니다.")
         return
 
-    logger.info(f"📊 현재가: {current_price:,}원\n")
+    logger.info(f"[CHART] 현재가: {current_price:,}원\n")
 
     test_cases = [
         {
@@ -338,7 +338,7 @@ def main():
     tester.print_summary()
 
     logger.info(f"\n{'='*80}")
-    logger.info(f"✅ 모든 테스트 완료")
+    logger.info(f"[OK] 모든 테스트 완료")
     logger.info(f"{'='*80}\n")
 
 

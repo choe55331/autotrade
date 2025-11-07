@@ -14,7 +14,7 @@ from api.market import MarketAPI
 def test_execution_intensity():
     """체결강도 API 테스트"""
     print("\n" + "="*80)
-    print("📊 체결강도 API 테스트 (ka10047)")
+    print("[CHART] 체결강도 API 테스트 (ka10047)")
     print("="*80)
 
     try:
@@ -27,7 +27,7 @@ def test_execution_intensity():
         result = market_api.get_execution_intensity(test_stock)
 
         if result:
-            print(f"\n✅ 성공!")
+            print(f"\n[OK] 성공!")
             print(f"   체결강도: {result.get('execution_intensity')}")
             print(f"   날짜: {result.get('date')}")
             print(f"   현재가: {result.get('current_price')}")
@@ -35,11 +35,11 @@ def test_execution_intensity():
             print(f"   거래량: {result.get('volume')}")
             return True
         else:
-            print("\n❌ 실패: 데이터를 받아오지 못했습니다")
+            print("\n[X] 실패: 데이터를 받아오지 못했습니다")
             return False
 
     except Exception as e:
-        print(f"\n❌ 예외 발생: {e}")
+        print(f"\n[X] 예외 발생: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -47,7 +47,7 @@ def test_execution_intensity():
 def test_program_trading():
     """프로그램매매 API 테스트"""
     print("\n" + "="*80)
-    print("📊 프로그램매매 API 테스트 (ka90013)")
+    print("[CHART] 프로그램매매 API 테스트 (ka90013)")
     print("="*80)
 
     try:
@@ -60,7 +60,7 @@ def test_program_trading():
         result = market_api.get_program_trading(test_stock)
 
         if result:
-            print(f"\n✅ 성공!")
+            print(f"\n[OK] 성공!")
             print(f"   프로그램순매수: {result.get('program_net_buy'):,}원")
             print(f"   프로그램매수: {result.get('program_buy')}")
             print(f"   프로그램매도: {result.get('program_sell')}")
@@ -68,11 +68,11 @@ def test_program_trading():
             print(f"   현재가: {result.get('current_price')}")
             return True
         else:
-            print("\n❌ 실패: 데이터를 받아오지 못했습니다")
+            print("\n[X] 실패: 데이터를 받아오지 못했습니다")
             return False
 
     except Exception as e:
-        print(f"\n❌ 예외 발생: {e}")
+        print(f"\n[X] 예외 발생: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -92,11 +92,11 @@ def main():
     results.append(("프로그램매매 (ka90013)", result2))
 
     print("\n" + "="*80)
-    print("📊 테스트 결과 요약")
+    print("[CHART] 테스트 결과 요약")
     print("="*80)
 
     for name, success in results:
-        status = "✅ 성공" if success else "❌ 실패"
+        status = "[OK] 성공" if success else "[X] 실패"
         print(f"   {name}: {status}")
 
     print("\n" + "="*80)
@@ -105,7 +105,7 @@ def main():
     if all_success:
         print("🎉 모든 테스트 성공!")
     else:
-        print("⚠️  일부 테스트 실패")
+        print("[WARNING]️  일부 테스트 실패")
 
     print("="*80 + "\n")
 

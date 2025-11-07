@@ -86,15 +86,15 @@ class APITester:
                 return False
 
             if hasattr(self.api_client, 'token') and self.api_client.token:
-                logger.info("✅ API 클라이언트 준비 완료 (토큰 발급 성공)")
+                logger.info("[OK] API 클라이언트 준비 완료 (토큰 발급 성공)")
                 self.client_ready = True
                 return True
             else:
-                logger.error(f"❌ API 클라이언트 초기화 실패: 토큰 발급 실패")
+                logger.error(f"[X] API 클라이언트 초기화 실패: 토큰 발급 실패")
                 return False
 
         except Exception as e:
-            logger.error(f"❌ API 클라이언트 초기화 중 예외: {e}")
+            logger.error(f"[X] API 클라이언트 초기화 중 예외: {e}")
             logger.debug(traceback.format_exc())
             return False
 
@@ -191,7 +191,7 @@ class APITester:
                 logger.warning(f"⚪ '{api_id}' Variants 없음 - 건너뜀")
                 return results
 
-            logger.info(f"  → {len(variants)} Variants 테스트 중...")
+            logger.info(f"  -> {len(variants)} Variants 테스트 중...")
 
             for idx, (path, body) in enumerate(variants, 1):
                 logger.debug(f"    Variant {idx}/{len(variants)}: path={path}, body={body}")
@@ -205,15 +205,15 @@ class APITester:
 
                 status = result["status"]
                 if status == "success":
-                    logger.info(f"  ✅ Variant {idx}/{len(variants)}: 성공 (데이터 {result['data_count']}개)")
+                    logger.info(f"  [OK] Variant {idx}/{len(variants)}: 성공 (데이터 {result['data_count']}개)")
                 elif status == "no_data":
-                    logger.warning(f"  ⚠️ Variant {idx}/{len(variants)}: 성공 (데이터 없음)")
+                    logger.warning(f"  [WARNING]️ Variant {idx}/{len(variants)}: 성공 (데이터 없음)")
                 elif status == "api_error":
-                    logger.error(f"  ❌ Variant {idx}/{len(variants)}: API 오류 - {result['return_msg']}")
+                    logger.error(f"  [X] Variant {idx}/{len(variants)}: API 오류 - {result['return_msg']}")
                 else:
-                    logger.error(f"  ❌ Variant {idx}/{len(variants)}: {status} - {result.get('error', '')}")
+                    logger.error(f"  [X] Variant {idx}/{len(variants)}: {status} - {result.get('error', '')}")
 
-                time.sleep(0.05)
+                time.sleep(0."05")
 
             success_variants = [r for r in results if r["status"] == "success" and r["data_received"]]
             if success_variants:
@@ -242,7 +242,7 @@ class APITester:
                 }
 
         except Exception as e:
-            logger.error(f"❌ '{api_id}' 테스트 중 예외: {e}")
+            logger.error(f"[X] '{api_id}' 테스트 중 예외: {e}")
             logger.debug(traceback.format_exc())
 
         return results
@@ -282,7 +282,7 @@ class APITester:
         elapsed_time = time.time() - start_time
 
         logger.info("=" * 80)
-        logger.info(f"✅ 전체 테스트 완료 - {total_tests}개 Variant 테스트 ({elapsed_time:.1f}초)")
+        logger.info(f"[OK] 전체 테스트 완료 - {total_tests}개 Variant 테스트 ({elapsed_time:.1f}초)")
         logger.info("=" * 80)
 
         self.save_results()
@@ -322,14 +322,14 @@ class APITester:
                 self.test_results.append(result)
 
                 if result["status"] == "success":
-                    logger.info(f"  ✅ 호출 {idx}/{len(verified_calls)}: 성공")
+                    logger.info(f"  [OK] 호출 {idx}/{len(verified_calls)}: 성공")
                 else:
-                    logger.error(f"  ❌ 호출 {idx}/{len(verified_calls)}: {result['status']}")
+                    logger.error(f"  [X] 호출 {idx}/{len(verified_calls)}: {result['status']}")
 
-                time.sleep(0.05)
+                time.sleep(0."05")
 
         logger.info("=" * 80)
-        logger.info("✅ 검증된 API 재테스트 완료")
+        logger.info("[OK] 검증된 API 재테스트 완료")
         logger.info("=" * 80)
 
         self.save_results()
@@ -378,12 +378,12 @@ class APITester:
         failed = total - success - no_data
 
         logger.info("\n" + "=" * 80)
-        logger.info("📊 테스트 결과 요약")
+        logger.info("[CHART] 테스트 결과 요약")
         logger.info("=" * 80)
         logger.info(f"  총 테스트: {total}개")
-        logger.info(f"  ✅ 성공 (데이터 확인): {success}개 ({success/total*100:.1f}%)")
-        logger.info(f"  ⚠️ 성공 (데이터 없음): {no_data}개 ({no_data/total*100:.1f}%)")
-        logger.info(f"  ❌ 실패: {failed}개 ({failed/total*100:.1f}%)")
+        logger.info(f"  [OK] 성공 (데이터 확인): {success}개 ({success/total*100:.1f}%)")
+        logger.info(f"  [WARNING]️ 성공 (데이터 없음): {no_data}개 ({no_data/total*100:.1f}%)")
+        logger.info(f"  [X] 실패: {failed}개 ({failed/total*100:.1f}%)")
         logger.info("=" * 80)
 
         if self.verified_calls:

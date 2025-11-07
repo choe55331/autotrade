@@ -15,7 +15,7 @@ def analyze_order_failures(filename: str):
     """주문 실패 원인 상세 분석"""
 
     if not Path(filename).exists():
-        print(f"❌ 파일을 찾을 수 없습니다: {filename}")
+        print(f"[X] 파일을 찾을 수 없습니다: {filename}")
         return
 
     with open(filename, 'r', encoding='utf-8') as f:
@@ -28,7 +28,7 @@ def analyze_order_failures(filename: str):
     order_tests = results.get('order_tests', [])
 
     if not order_tests:
-        print("\n❌ 주문 테스트 결과가 없습니다.")
+        print("\n[X] 주문 테스트 결과가 없습니다.")
         return
 
     print(f"\n총 {len(order_tests)}개 조합 테스트")
@@ -45,7 +45,7 @@ def analyze_order_failures(filename: str):
 
     for error_key, tests in sorted(error_groups.items(), key=lambda x: len(x[1]), reverse=True):
         print("="*80)
-        print(f"❌ {error_key}")
+        print(f"[X] {error_key}")
         print(f"   발생 횟수: {len(tests)}회")
         print("-"*80)
 
@@ -80,11 +80,11 @@ def analyze_order_failures(filename: str):
     주문불가_errors = [k for k in error_groups.keys() if '주문불가' in k or '주문거부' in k]
 
     if 장종료_errors:
-        print("\n❌ '장종료' 오류가 발생한 조합들:")
-        print("   → 정규장 전용 거래유형입니다.")
-        print("   → NXT 시간에는 시간외 거래유형 사용 필요\n")
+        print("\n[X] '장종료' 오류가 발생한 조합들:")
+        print("   -> 정규장 전용 거래유형입니다.")
+        print("   -> NXT 시간에는 시간외 거래유형 사용 필요\n")
 
-    print("🎯 NXT 시간대 추천 조합 (시도해볼 것):")
+    print("[TARGET] NXT 시간대 추천 조합 (시도해볼 것):")
     print()
 
     nxt_recommendations = [
@@ -92,19 +92,19 @@ def analyze_order_failures(filename: str):
             'dmst_stex_tp': 'NXT',
             'trde_tp': '16',
             'desc': '시간외단일가',
-            'time': 'NXT 시간대 (08:00-09:00, 15:30-20:00)'
+            'time': 'NXT 시간대 ("08":"00"-"09":"00", 15:30-20:"00")'
         },
         {
             'dmst_stex_tp': 'NXT',
             'trde_tp': '13',
             'desc': '장후시간외',
-            'time': '장 종료 후 (15:30-20:00)'
+            'time': '장 종료 후 (15:30-20:"00")'
         },
         {
             'dmst_stex_tp': 'NXT',
             'trde_tp': '10',
             'desc': '장전시간외',
-            'time': '장 시작 전 (08:00-09:00)'
+            'time': '장 시작 전 ("08":"00"-"09":"00")'
         },
         {
             'dmst_stex_tp': 'KRX',
@@ -125,12 +125,12 @@ def analyze_order_failures(filename: str):
         if tested:
             test = tested[0]
             if test.get('success'):
-                print(f"   ✅ 테스트 성공!")
+                print(f"   [OK] 테스트 성공!")
             else:
                 error_msg = test.get('return_msg', test.get('error', 'Unknown'))
-                print(f"   ❌ 테스트 실패: {error_msg}")
+                print(f"   [X] 테스트 실패: {error_msg}")
         else:
-            print(f"   ⚠️  미테스트")
+            print(f"   [WARNING]️  미테스트")
         print()
 
     print("="*80)
@@ -138,11 +138,12 @@ def analyze_order_failures(filename: str):
     print("="*80)
     print("""
 프리마켓 (장전시간외):
-    시간: 08:00 - 09:00
+    시간: "08":"00" - "09":"00"
+    """
     거래유형: trde_tp=10 (장전시간외)
 
 애프터마켓 (장후시간외):
-    시간: 15:30 - 20:00
+    시간: 15:30 - 20:"00"
     거래유형: trde_tp=13 (장후시간외) 또는 trde_tp=16 (시간외단일가)
 
 ※ 현재 시간이 어느 구간인지 확인하고 적절한 거래유형 사용
@@ -154,6 +155,7 @@ def analyze_order_failures(filename: str):
 다음 코드로 개별 조합을 직접 테스트할 수 있습니다:
 
 ```python
+"""
 from core.rest_client import KiwoomRESTClient
 
 client = KiwoomRESTClient()

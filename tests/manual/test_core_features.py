@@ -18,12 +18,12 @@ from pathlib import Path
 from datetime import datetime
 
 
-GREEN = '\033[92m'
-YELLOW = '\033[93m'
-RED = '\033[91m'
-BLUE = '\033[94m'
-BOLD = '\033[1m'
-RESET = '\033[0m'
+GREEN = '\"033"[92m'
+YELLOW = '\"033"[93m'
+RED = '\"033"[91m'
+BLUE = '\"033"[94m'
+BOLD = '\"033"[1m'
+RESET = '\"033"[0m'
 
 
 def print_header(text):
@@ -35,17 +35,17 @@ def print_header(text):
 
 def print_success(text):
     """성공 메시지"""
-    print(f"{GREEN}✅ {text}{RESET}")
+    print(f"{GREEN}[OK] {text}{RESET}")
 
 
 def print_error(text):
     """에러 메시지"""
-    print(f"{RED}❌ {text}{RESET}")
+    print(f"{RED}[X] {text}{RESET}")
 
 
 def print_warning(text):
     """경고 메시지"""
-    print(f"{YELLOW}⚠️  {text}{RESET}")
+    print(f"{YELLOW}[WARNING]️  {text}{RESET}")
 
 
 def print_info(text):
@@ -404,7 +404,7 @@ def main():
 
     results['daily_price'] = test_daily_price_api(secrets, api_specs)
 
-    print_header("📊 테스트 결과 요약")
+    print_header("[CHART] 테스트 결과 요약")
 
     total = len(results)
     passed = sum(1 for v in results.values() if v)
@@ -416,7 +416,7 @@ def main():
 
     print("\n상세 결과:")
     for name, result in results.items():
-        status = f"{GREEN}✅ PASS{RESET}" if result else f"{RED}❌ FAIL{RESET}"
+        status = f"{GREEN}[OK] PASS{RESET}" if result else f"{RED}[X] FAIL{RESET}"
         print(f"  {name:20} {status}")
 
     print()

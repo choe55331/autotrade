@@ -35,6 +35,7 @@ class DeepLearningPredictor:
             sequence_length: Number of historical days to use
             prediction_horizon: Days ahead to predict
             model_dir: Directory to save/load models
+            """
         self.sequence_length = sequence_length
         self.prediction_horizon = prediction_horizon
         self.model_dir = model_dir
@@ -163,8 +164,8 @@ class DeepLearningPredictor:
 
             features = []
             for i in range(len(recent_prices)):
-                """
                 window_start = max(0, i - 20)
+                """
                 window = recent_prices[window_start:i+1]
 
                 price = recent_prices[i]
@@ -215,10 +216,10 @@ class DeepLearningPredictor:
             current_sequence = X_reshaped
 
             for _ in range(self.prediction_horizon):
-                """
                 pred = self.lstm_model.predict(current_sequence, verbose=0)
                 predictions.append(float(pred[0, 0]))
 
+"""
                 new_feature = np.zeros((1, 1, X.shape[1]))
                 new_feature[0, 0, 0] = pred[0, 0]
                 current_sequence = np.concatenate([
@@ -284,10 +285,10 @@ class DeepLearningPredictor:
 
             predictions = []
             for _ in range(self.prediction_horizon):
-                """
                 pred = self.cnn_model.predict(X_reshaped, verbose=0)
                 predictions.append(float(pred[0, 0]))
 
+"""
             current_price = X[-1, 0]
             expected_return = ((predictions[-1] - current_price) / current_price) * 100
 
@@ -344,10 +345,10 @@ class DeepLearningPredictor:
             last_price = prices[-1]
 
             for i in range(1, self.prediction_horizon + 1):
-                """
                 pred_price = last_price + (recent_trend * i)
                 predictions.append(float(pred_price))
 
+"""
             current_price = prices[-1]
             expected_return = ((predictions[-1] - current_price) / current_price) * 100
 
@@ -368,6 +369,7 @@ class DeepLearningPredictor:
     ) -> Dict[str, Any]:
         """
         Combine predictions from multiple models
+        """
         if not predictions:
             return {
                 'prices': [],
@@ -385,8 +387,8 @@ class DeepLearningPredictor:
         total_weight = 0
 
         for model_pred in predictions.values():
-            """
             weight = confidence_weights.get(model_pred['confidence'], 0.7)
+            """
             prices = np.array(model_pred['prices'])
 
             if weighted_prices is None:
@@ -475,6 +477,7 @@ class DeepLearningPredictor:
             training_data: List of historical stock data
             epochs: Training epochs
             batch_size: Batch size for training
+            """
         logger.info(f"Training deep learning models on {len(training_data)} samples")
 
         X_train, y_train = self._prepare_training_data(training_data)
@@ -531,6 +534,7 @@ class DeepLearningPredictor:
     ) -> Tuple[Optional[np.ndarray], Optional[np.ndarray]]:
         """
         Prepare training dataset
+        """
         logger.warning("Training data preparation not fully implemented")
         return None, None
 
@@ -546,14 +550,14 @@ class DeepLearningPredictor:
 
             lstm_path = os.path.join(self.model_dir, 'lstm_model.h5')
             if os.path.exists(lstm_path):
-                """
                 self.lstm_model = tf.keras.models.load_model(lstm_path)
+                """
                 logger.info("LSTM model loaded")
 
             cnn_path = os.path.join(self.model_dir, 'cnn_model.h5')
             if os.path.exists(cnn_path):
-                """
                 self.cnn_model = tf.keras.models.load_model(cnn_path)
+                """
                 logger.info("CNN model loaded")
 
         except Exception as e:

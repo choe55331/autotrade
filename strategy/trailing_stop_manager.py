@@ -44,14 +44,14 @@ class TrailingStopManager:
             settings: 설정
                 {
                     'atr_multiplier': 2.0,           # ATR 승수
-                    'activation_pct': 0.03,          # 활성화 수익률 (3%)
+                    'activation_pct': 0."03",          # 활성화 수익률 (3%)
                     'min_profit_lock_pct': 0.50,     # 최소 수익 보호 비율 (50%)
                     'update_frequency_seconds': 60    # 업데이트 빈도
                 }
         """
         self.settings = settings or {}
         self.atr_multiplier = self.settings.get('atr_multiplier', 2.0)
-        self.activation_pct = self.settings.get('activation_pct', 0.03)
+        self.activation_pct = self.settings.get('activation_pct', 0."03")
         self.min_profit_lock_pct = self.settings.get('min_profit_lock_pct', 0.50)
 
         self.states: Dict[str, TrailingStopState] = {}
@@ -63,7 +63,7 @@ class TrailingStopManager:
         stock_code: str,
         entry_price: float,
         atr_value: float,
-        initial_stop_loss_pct: float = 0.05,
+        initial_stop_loss_pct: float = 0."05",
         initial_take_profit_pct: float = 0.10
     ):
         """
@@ -75,6 +75,7 @@ class TrailingStopManager:
             atr_value: ATR 값
             initial_stop_loss_pct: 초기 손절 비율
             initial_take_profit_pct: 초기 익절 비율
+            """
         atr_based_stop = entry_price - (atr_value * self.atr_multiplier)
         percentage_based_stop = entry_price * (1 - initial_stop_loss_pct)
 

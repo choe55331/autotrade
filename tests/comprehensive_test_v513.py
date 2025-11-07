@@ -86,11 +86,11 @@ def test_websocket_streaming():
         remaining = len(manager.connections)
         print(f"✓ Connection removed, remaining: {remaining}")
 
-        print("\n✅ WebSocket Streaming tests passed!")
+        print("\n[OK] WebSocket Streaming tests passed!")
         return True
 
     except Exception as e:
-        print(f"\n❌ WebSocket Streaming test failed: {e}")
+        print(f"\n[X] WebSocket Streaming test failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -108,7 +108,7 @@ def test_portfolio_optimizer():
         )
 
         print("\n[Test 1] Portfolio Optimizer Initialization")
-        optimizer = PortfolioOptimizer(risk_free_rate=0.03)
+        optimizer = PortfolioOptimizer(risk_free_rate=0."03")
         print(f"✓ Initialized with risk-free rate: 3%")
 
         print("\n[Test 2] Generating Sample Price Histories")
@@ -120,7 +120,7 @@ def test_portfolio_optimizer():
             base_price = np.random.uniform(50000, 150000)
 
             for i in range(100):
-                price = base_price * (1 + np.random.normal(0, 0.02))
+                price = base_price * (1 + np.random.normal(0, 0."02"))
                 history.append({
                     'date': (datetime.now() - timedelta(days=100-i)).strftime('%Y-%m-%d'),
                     'close': price,
@@ -181,18 +181,18 @@ def test_portfolio_optimizer():
             current_weights,
             result.weights,
             portfolio_value=50000000,
-            rebalance_threshold=0.05
+            rebalance_threshold=0."05"
         )
         print(f"✓ Rebalancing recommendations: {len(recommendations)} actions")
         for stock, rec in list(recommendations.items())[:2]:
             print(f"  {stock}: {rec['action']} {rec['amount']:,.0f}원 "
                   f"(diff={rec['weight_diff']:+.2%})")
 
-        print("\n✅ Portfolio Optimizer tests passed!")
+        print("\n[OK] Portfolio Optimizer tests passed!")
         return True
 
     except Exception as e:
-        print(f"\n❌ Portfolio Optimizer test failed: {e}")
+        print(f"\n[X] Portfolio Optimizer test failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -336,11 +336,11 @@ def test_smart_execution():
         print(f"  Avg slippage: {stats['avg_slippage_bps']:.2f}bps")
         print(f"  Total volume: {stats['total_volume']:,} shares")
 
-        print("\n✅ Smart Execution tests passed!")
+        print("\n[OK] Smart Execution tests passed!")
         return True
 
     except Exception as e:
-        print(f"\n❌ Smart Execution test failed: {e}")
+        print(f"\n[X] Smart Execution test failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -409,11 +409,11 @@ def test_integration():
             )
             print(f"✓ Executed order for {stock}: {exec_result.executed_quantity} shares")
 
-        print("\n✅ Integration test passed!")
+        print("\n[OK] Integration test passed!")
         return True
 
     except Exception as e:
-        print(f"\n❌ Integration test failed: {e}")
+        print(f"\n[X] Integration test failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -441,7 +441,7 @@ def main():
     print("=" * 60)
 
     for name, result in results:
-        status = "✅ PASS" if result else "❌ FAIL"
+        status = "[OK] PASS" if result else "[X] FAIL"
         print(f"{name}: {status}")
 
     all_passed = all(r[1] for r in results)
@@ -449,7 +449,7 @@ def main():
     if all_passed:
         print("🎉 ALL TESTS PASSED - v5.13 READY FOR DEPLOYMENT")
     else:
-        print("⚠️ SOME TESTS FAILED - REVIEW REQUIRED")
+        print("[WARNING]️ SOME TESTS FAILED - REVIEW REQUIRED")
     print("=" * 60)
 
     return all_passed
@@ -460,10 +460,10 @@ if __name__ == "__main__":
         success = main()
         sys.exit(0 if success else 1)
     except KeyboardInterrupt:
-        print("\n\n⚠️ Tests interrupted by user")
+        print("\n\n[WARNING]️ Tests interrupted by user")
         sys.exit(1)
     except Exception as e:
-        print(f"\n❌ Test execution error: {e}")
+        print(f"\n[X] Test execution error: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

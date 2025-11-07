@@ -15,20 +15,20 @@ sys.path.insert(0, str(project_root))
 
 from core.rest_client import KiwoomRESTClient
 
-GREEN = '\033[92m'
-RED = '\033[91m'
-BLUE = '\033[94m'
-YELLOW = '\033[93m'
-CYAN = '\033[96m'
-MAGENTA = '\033[95m'
-WHITE = '\033[97m'
-RESET = '\033[0m'
+GREEN = '\"033"[92m'
+RED = '\"033"[91m'
+BLUE = '\"033"[94m'
+YELLOW = '\"033"[93m'
+CYAN = '\"033"[96m'
+MAGENTA = '\"033"[95m'
+WHITE = '\"033"[97m'
+RESET = '\"033"[0m'
 
 
 def test_nxt_closing_price():
     """NXT 종가 조회 테스트"""
     print(f"\n{BLUE}{'='*100}{RESET}")
-    print(f"{BLUE}🔍 NXT 종가 조회 테스트{RESET}")
+    print(f"{BLUE}[SEARCH] NXT 종가 조회 테스트{RESET}")
     print(f"{BLUE}{'='*100}{RESET}")
 
     test_stocks = [
@@ -46,13 +46,13 @@ def test_nxt_closing_price():
 
     client = KiwoomRESTClient()
     if not client.token:
-        print(f"{RED}❌ REST API 연결 실패{RESET}")
+        print(f"{RED}[X] REST API 연결 실패{RESET}")
         return
 
-    print(f"\n{GREEN}✅ REST API 연결 성공{RESET}")
+    print(f"\n{GREEN}[OK] REST API 연결 성공{RESET}")
 
     print(f"\n{MAGENTA}{'='*100}{RESET}")
-    print(f"{MAGENTA}📊 종가 조회 테스트{RESET}")
+    print(f"{MAGENTA}[CHART] 종가 조회 테스트{RESET}")
     print(f"{MAGENTA}{'='*100}{RESET}")
 
     results = {
@@ -63,7 +63,7 @@ def test_nxt_closing_price():
 
     for code, name in test_stocks:
         print(f"\n{WHITE}{'='*100}{RESET}")
-        print(f"{WHITE}📈 {name} ({code}){RESET}")
+        print(f"{WHITE}[UP] {name} ({code}){RESET}")
         print(f"{WHITE}{'='*100}{RESET}")
 
         print(f"\n{CYAN}1️⃣ 기본 코드 조회: {code}{RESET}")
@@ -94,14 +94,14 @@ def test_nxt_closing_price():
                 print(f"  전일대비: {pred_pre}")
 
                 if cur_prc != 'N/A' and cur_prc != '0':
-                    print(f"  {GREEN}✅ 조회 성공{RESET}")
+                    print(f"  {GREEN}[OK] 조회 성공{RESET}")
                     results['base_code_success'].append((code, name, cur_prc, stex_tp))
                 else:
-                    print(f"  {RED}❌ 가격 없음{RESET}")
+                    print(f"  {RED}[X] 가격 없음{RESET}")
             else:
-                print(f"  {RED}❌ 응답 데이터 없음 (cntr_infr 필드 없거나 비어있음){RESET}")
+                print(f"  {RED}[X] 응답 데이터 없음 (cntr_infr 필드 없거나 비어있음){RESET}")
         except Exception as e:
-            print(f"  {RED}❌ 오류: {e}{RESET}")
+            print(f"  {RED}[X] 오류: {e}{RESET}")
             import traceback
             traceback.print_exc()
 
@@ -133,14 +133,14 @@ def test_nxt_closing_price():
                 print(f"  전일대비: {pred_pre}")
 
                 if cur_prc != 'N/A' and cur_prc != '0':
-                    print(f"  {GREEN}✅ 조회 성공{RESET}")
+                    print(f"  {GREEN}[OK] 조회 성공{RESET}")
                     results['nx_suffix_success'].append((code, name, cur_prc, stex_tp))
                 else:
-                    print(f"  {RED}❌ 가격 없음{RESET}")
+                    print(f"  {RED}[X] 가격 없음{RESET}")
             else:
-                print(f"  {RED}❌ 응답 데이터 없음 (cntr_infr 필드 없거나 비어있음){RESET}")
+                print(f"  {RED}[X] 응답 데이터 없음 (cntr_infr 필드 없거나 비어있음){RESET}")
         except Exception as e:
-            print(f"  {RED}❌ 오류: {e}{RESET}")
+            print(f"  {RED}[X] 오류: {e}{RESET}")
             import traceback
             traceback.print_exc()
 
@@ -151,19 +151,19 @@ def test_nxt_closing_price():
             results['both_failed'].append((code, name))
 
     print(f"\n{BLUE}{'='*100}{RESET}")
-    print(f"{BLUE}🎯 최종 결과{RESET}")
+    print(f"{BLUE}[TARGET] 최종 결과{RESET}")
     print(f"{BLUE}{'='*100}{RESET}")
 
-    print(f"\n{GREEN}✅ 기본 코드로 조회 성공 ({len(results['base_code_success'])}개):{RESET}")
+    print(f"\n{GREEN}[OK] 기본 코드로 조회 성공 ({len(results['base_code_success'])}개):{RESET}")
     for code, name, price, stex_tp in results['base_code_success']:
         print(f"  • {name:20} ({code:6}) | {price:>12} | 거래소: {stex_tp}")
 
-    print(f"\n{GREEN}✅ _NX 접미사로 조회 성공 ({len(results['nx_suffix_success'])}개):{RESET}")
+    print(f"\n{GREEN}[OK] _NX 접미사로 조회 성공 ({len(results['nx_suffix_success'])}개):{RESET}")
     for code, name, price, stex_tp in results['nx_suffix_success']:
         print(f"  • {name:20} ({code:6}_NX) | {price:>12} | 거래소: {stex_tp}")
 
     if results['both_failed']:
-        print(f"\n{RED}❌ 둘 다 실패 ({len(results['both_failed'])}개):{RESET}")
+        print(f"\n{RED}[X] 둘 다 실패 ({len(results['both_failed'])}개):{RESET}")
         for code, name in results['both_failed']:
             print(f"  • {name:20} ({code})")
 
@@ -182,11 +182,11 @@ def test_nxt_closing_price():
         print(f"  • NXT 거래가 없던 종목은 cntr_infr = [] (빈 배열)")
         print(f"  • 기본 코드는 KRX 종가, _NX는 NXT 종가 반환")
     elif len(results['base_code_success']) > 0:
-        print(f"\n{YELLOW}⚠️  기본 코드로만 조회 가능{RESET}")
+        print(f"\n{YELLOW}[WARNING]️  기본 코드로만 조회 가능{RESET}")
         print(f"{YELLOW}   _NX 접미사는 REST API에서 작동하지 않음{RESET}")
         print(f"{YELLOW}   거래소 구분(stex_tp)으로 NXT 여부 확인 필요{RESET}")
     else:
-        print(f"\n{RED}❌ NXT 종가 조회 실패{RESET}")
+        print(f"\n{RED}[X] NXT 종가 조회 실패{RESET}")
         print(f"{RED}   다른 API나 방법 필요{RESET}")
 
 

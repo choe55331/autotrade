@@ -60,11 +60,11 @@ def test_performance_monitor():
         monitor.export_to_json(json_path)
         print(f"✓ Metrics exported to {json_path}")
 
-        print("\n✅ Performance Monitor tests passed!")
+        print("\n[OK] Performance Monitor tests passed!")
         return True
 
     except Exception as e:
-        print(f"\n❌ Performance Monitor test failed: {e}")
+        print(f"\n[X] Performance Monitor test failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -82,9 +82,9 @@ def test_advanced_backtester():
         print("\n[Test 1] Backtester Initialization")
         backtester = AdvancedBacktester(
             initial_capital=10_000_000,
-            commission_rate=0.00015,
-            slippage_rate=0.001,
-            tax_rate=0.0023
+            commission_rate=0."00015",
+            slippage_rate=0."001",
+            tax_rate=0."0023"
         )
         print(f"✓ Backtester initialized with capital: {backtester.initial_capital:,.0f}원")
 
@@ -145,13 +145,13 @@ def test_advanced_backtester():
             print(f"  Std Dev: {mc_result['std_return']:.2f}%")
             print(f"  95% VaR: {mc_result['var_95']:.2f}%")
         else:
-            print("⚠ Skipped (no trades to simulate)")
+            print("[WARNING] Skipped (no trades to simulate)")
 
-        print("\n✅ Advanced Backtester tests passed!")
+        print("\n[OK] Advanced Backtester tests passed!")
         return True
 
     except Exception as e:
-        print(f"\n❌ Advanced Backtester test failed: {e}")
+        print(f"\n[X] Advanced Backtester test failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -168,7 +168,7 @@ def test_loading_utils_structure():
 
         print("\n[Test 1] File Existence")
         if not os.path.exists(js_file):
-            print(f"❌ File not found: {js_file}")
+            print(f"[X] File not found: {js_file}")
             return False
         print(f"✓ File exists: {js_file}")
 
@@ -192,17 +192,17 @@ def test_loading_utils_structure():
             if component in content:
                 print(f"✓ Found: {component}")
             else:
-                print(f"❌ Missing: {component}")
+                print(f"[X] Missing: {component}")
                 return False
 
         print(f"\n✓ Total file size: {len(content):,} characters")
         print(f"✓ Total lines: {content.count(chr(10)) + 1}")
 
-        print("\n✅ Loading Utils structure tests passed!")
+        print("\n[OK] Loading Utils structure tests passed!")
         return True
 
     except Exception as e:
-        print(f"\n❌ Loading Utils test failed: {e}")
+        print(f"\n[X] Loading Utils test failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -219,7 +219,7 @@ def test_animations_css_structure():
 
         print("\n[Test 1] File Existence")
         if not os.path.exists(css_file):
-            print(f"❌ File not found: {css_file}")
+            print(f"[X] File not found: {css_file}")
             return False
         print(f"✓ File exists: {css_file}")
 
@@ -248,17 +248,17 @@ def test_animations_css_structure():
             if animation in content:
                 print(f"✓ Found: {animation}")
             else:
-                print(f"❌ Missing: {animation}")
+                print(f"[X] Missing: {animation}")
                 return False
 
         print(f"\n✓ Total file size: {len(content):,} characters")
         print(f"✓ Total lines: {content.count(chr(10)) + 1}")
 
-        print("\n✅ Animations CSS structure tests passed!")
+        print("\n[OK] Animations CSS structure tests passed!")
         return True
 
     except Exception as e:
-        print(f"\n❌ Animations CSS test failed: {e}")
+        print(f"\n[X] Animations CSS test failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -286,7 +286,7 @@ def main():
     print("=" * 60)
 
     for name, result in results:
-        status = "✅ PASS" if result else "❌ FAIL"
+        status = "[OK] PASS" if result else "[X] FAIL"
         print(f"{name}: {status}")
 
     all_passed = all(r[1] for r in results)
@@ -294,7 +294,7 @@ def main():
     if all_passed:
         print("🎉 ALL TESTS PASSED - v5.11 READY FOR DEPLOYMENT")
     else:
-        print("⚠️ SOME TESTS FAILED - REVIEW REQUIRED")
+        print("[WARNING]️ SOME TESTS FAILED - REVIEW REQUIRED")
     print("=" * 60)
 
     return all_passed
@@ -305,10 +305,10 @@ if __name__ == "__main__":
         success = main()
         sys.exit(0 if success else 1)
     except KeyboardInterrupt:
-        print("\n\n⚠️ Tests interrupted by user")
+        print("\n\n[WARNING]️ Tests interrupted by user")
         sys.exit(1)
     except Exception as e:
-        print(f"\n❌ Test execution error: {e}")
+        print(f"\n[X] Test execution error: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

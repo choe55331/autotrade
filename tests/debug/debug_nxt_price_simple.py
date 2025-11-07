@@ -10,11 +10,11 @@ import json
 from datetime import datetime
 from core.rest_client import KiwoomRESTClient
 
-GREEN = '\033[92m'
-RED = '\033[91m'
-YELLOW = '\033[93m'
-BLUE = '\033[94m'
-RESET = '\033[0m'
+GREEN = '\"033"[92m'
+RED = '\"033"[91m'
+YELLOW = '\"033"[93m'
+BLUE = '\"033"[94m'
+RESET = '\"033"[0m'
 
 
 def print_json(data, title=""):
@@ -53,7 +53,7 @@ def test_api_call(client, api_id: str, body: dict, description: str):
         response = client.request(api_id=api_id, body=body, path=path)
 
         if not response:
-            print(f"{RED}❌ 응답 없음{RESET}")
+            print(f"{RED}[X] 응답 없음{RESET}")
             return None
 
         return_code = response.get('return_code')
@@ -63,24 +63,24 @@ def test_api_call(client, api_id: str, body: dict, description: str):
         print(f"msg_txt: {msg_txt}")
 
         if return_code == 0:
-            print(f"{GREEN}✅ 성공{RESET}")
+            print(f"{GREEN}[OK] 성공{RESET}")
 
             print_json(response, "전체 응답")
 
             price = extract_price(response, api_id)
             if price:
-                print(f"\n{GREEN}💰 현재가 추출 성공: {price:,}원{RESET}")
+                print(f"\n{GREEN}[MONEY] 현재가 추출 성공: {price:,}원{RESET}")
             else:
-                print(f"\n{RED}⚠️  현재가 추출 실패{RESET}")
+                print(f"\n{RED}[WARNING]️  현재가 추출 실패{RESET}")
 
             return response
         else:
-            print(f"{RED}❌ 실패 (return_code: {return_code}){RESET}")
+            print(f"{RED}[X] 실패 (return_code: {return_code}){RESET}")
             print_json(response, "응답 데이터")
             return None
 
     except Exception as e:
-        print(f"{RED}❌ 예외 발생: {e}{RESET}")
+        print(f"{RED}[X] 예외 발생: {e}{RESET}")
         import traceback
         traceback.print_exc()
         return None
@@ -147,19 +147,19 @@ def main():
         bot = TradingBotV2()
 
         if not bot.client:
-            print(f"{RED}❌ 클라이언트 초기화 실패{RESET}")
+            print(f"{RED}[X] 클라이언트 초기화 실패{RESET}")
             return
 
         client = bot.client
-        print(f"{GREEN}✅ 클라이언트 초기화 완료 (from TradingBotV2){RESET}")
+        print(f"{GREEN}[OK] 클라이언트 초기화 완료 (from TradingBotV2){RESET}")
     except Exception as e:
-        print(f"{RED}❌ TradingBot 초기화 실패: {e}{RESET}")
+        print(f"{RED}[X] TradingBot 초기화 실패: {e}{RESET}")
         print(f"\n{YELLOW}Fallback: 직접 클라이언트 초기화 시도...{RESET}")
         try:
             client = KiwoomRESTClient()
-            print(f"{GREEN}✅ 클라이언트 직접 초기화 완료{RESET}")
+            print(f"{GREEN}[OK] 클라이언트 직접 초기화 완료{RESET}")
         except Exception as e2:
-            print(f"{RED}❌ 클라이언트 직접 초기화도 실패: {e2}{RESET}")
+            print(f"{RED}[X] 클라이언트 직접 초기화도 실패: {e2}{RESET}")
             return
 
     test_stock = "249420"

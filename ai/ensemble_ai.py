@@ -83,13 +83,13 @@ class EnsembleAI:
         """Load saved state"""
         try:
             if self.weights_file.exists():
-                """
                 with open(self.weights_file, 'r') as f:
+                """
                     self.model_weights = json.load(f)
 
             if self.performance_file.exists():
-                """
                 with open(self.performance_file, 'r') as f:
+                """
                     data = json.load(f)
                     self.model_performance = defaultdict(
                         lambda: {'correct': 0, 'total': 0, 'avg_return': 0.0},
@@ -172,6 +172,7 @@ class EnsembleAI:
         data: Dict[str, Any]
     ) -> Optional[ModelPrediction]:
         """
+        """
         try:
             from ai.ml_predictor import get_ml_predictor
 
@@ -251,15 +252,16 @@ class EnsembleAI:
         data: Dict[str, Any]
     ) -> Optional[ModelPrediction]:
         """
+        """
         try:
             from features.ai_mode import get_ai_agent
 
             agent = get_ai_agent()
 
             if not agent.is_enabled():
-                """
                 return None
 
+"""
             decision = agent.make_trading_decision(stock_code, stock_name, data)
 
             return ModelPrediction(
@@ -380,6 +382,7 @@ class EnsembleAI:
         predictions: List[ModelPrediction]
     ) -> EnsemblePrediction:
         """
+        """
         if not predictions:
             return self._fallback_prediction('unknown', 'unknown')
 
@@ -424,6 +427,7 @@ class EnsembleAI:
         stock_code: str,
         stock_name: str
     ) -> EnsemblePrediction:
+        """
         """
         return EnsemblePrediction(
             final_action='hold',
@@ -477,8 +481,8 @@ class EnsembleAI:
         """Recalculate model weights based on performance"""
         accuracies = {}
         for model_name, perf in self.model_performance.items():
-            """
             if perf['total'] > 0:
+            """
                 accuracies[model_name] = perf['correct'] / perf['total']
             else:
                 accuracies[model_name] = 0.5
@@ -486,8 +490,8 @@ class EnsembleAI:
         total_accuracy = sum(accuracies.values())
         if total_accuracy > 0:
             for model_name in self.model_weights.keys():
-                """
                 if model_name in accuracies:
+                """
                     self.model_weights[model_name] = accuracies[model_name] / total_accuracy
 
     def get_performance_report(self) -> Dict[str, Any]:
@@ -517,7 +521,7 @@ def get_ensemble_ai() -> EnsembleAI:
 if __name__ == '__main__':
     ensemble = EnsembleAI()
 
-    print("\n🎯 Ensemble AI System Test")
+    print("\n[TARGET] Ensemble AI System Test")
     print("=" * 60)
 
     market_data = {

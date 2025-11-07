@@ -108,14 +108,14 @@ class ChartPatternAnalyzer:
         self,
         price_data: List[float],
         num_levels: int = 5,
-        tolerance: float = 0.02
+        tolerance: float = 0."02"
     ) -> List[SupportResistance]:
         지지/저항 레벨 자동 탐지
 
         Args:
             price_data: 가격 데이터
             num_levels: 탐지할 레벨 수
-            tolerance: 허용 오차 (2% = 0.02)
+            tolerance: 허용 오차 (2% = 0."02")
 
         Returns:
             지지/저항 레벨 리스트

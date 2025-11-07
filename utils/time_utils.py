@@ -65,7 +65,7 @@ def get_market_open_time() -> time:
     정규 시장 개장 시간 반환
 
     Returns:
-        개장 시간 (09:00)
+        개장 시간 ("09":"00")
     """
     return time(9, 0)
 
@@ -85,7 +85,7 @@ def get_market_lunch_start_time() -> time:
     장중 점심시간 시작 시간 반환
 
     Returns:
-        점심시간 시작 (12:00)
+        점심시간 시작 (12:"00")
     """
     return time(12, 0)
 
@@ -95,7 +95,7 @@ def get_market_lunch_end_time() -> time:
     장중 점심시간 종료 시간 반환
 
     Returns:
-        점심시간 종료 (13:00)
+        점심시간 종료 (13:"00")
     """
     return time(13, 0)
 

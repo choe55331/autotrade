@@ -49,11 +49,13 @@ class PerformanceProfiler:
         함수 성능 측정 데코레이터
 
         Usage:
+        """
             profiler = PerformanceProfiler()
 
             @profiler.measure()
             def my_function():
                 ...
+        """
         """
         def decorator(func: Callable):
             name = func_name or func.__name__

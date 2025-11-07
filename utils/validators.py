@@ -160,7 +160,7 @@ def validate_order_type(order_type: str) -> Tuple[bool, str]:
     valid_types = ['00', '03']
     
     if order_type not in valid_types:
-        return False, f"유효하지 않은 주문 유형: {order_type} (00: 지정가, 03: 시장가)"
+        return False, f"유효하지 않은 주문 유형: {order_type} ("00": 지정가, "03": 시장가)"
     
     return True, "유효한 주문 유형"
 
@@ -266,7 +266,6 @@ def validate_trading_params(params: dict) -> Tuple[bool, list]:
     
     if 'MAX_OPEN_POSITIONS' in params:
         if not (1 <= params['MAX_OPEN_POSITIONS'] <= 50):
-            """
             errors.append("MAX_OPEN_POSITIONS는 1~50 사이여야 합니다")
     
             """

@@ -306,7 +306,7 @@ class MarketScanner:
         resistance = max(highs)
         support = min(lows)
 
-        if current_price > resistance * 1.01:
+        if current_price > resistance * 1."01":
             breakout_pct = ((current_price - resistance) / resistance) * 100
 
             if breakout_pct > 5:
@@ -440,8 +440,8 @@ class MarketScanner:
 
         medium_returns = (closes[-3] - closes[0]) / closes[0]
 
-        if short_returns > 0.02 and medium_returns < -0.05:
-            strength = SignalStrength.STRONG if short_returns > 0.05 else SignalStrength.MODERATE
+        if short_returns > 0."02" and medium_returns < -0."05":
+            strength = SignalStrength.STRONG if short_returns > 0."05" else SignalStrength.MODERATE
             confidence = 0.75
 
             return MarketSignal(
@@ -463,7 +463,7 @@ class MarketScanner:
                 }
             )
 
-        elif short_returns < -0.02 and medium_returns > 0.05:
+        elif short_returns < -0."02" and medium_returns > 0."05":
             strength = SignalStrength.MODERATE
             confidence = 0.70
 

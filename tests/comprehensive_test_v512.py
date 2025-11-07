@@ -71,13 +71,13 @@ def test_lstm_predictor():
             print(f"  Confidence: {prediction.confidence:.2%}")
             print(f"  Volatility: {prediction.volatility_forecast:.2%}")
         else:
-            print("⚠ Prediction returned None")
+            print("[WARNING] Prediction returned None")
 
-        print("\n✅ LSTM Predictor tests passed!")
+        print("\n[OK] LSTM Predictor tests passed!")
         return True
 
     except Exception as e:
-        print(f"\n❌ LSTM Predictor test failed: {e}")
+        print(f"\n[X] LSTM Predictor test failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -150,11 +150,11 @@ def test_data_cache():
         invalidated = cache.invalidate_by_tag("stock")
         print(f"✓ Invalidated {invalidated} entries with tag 'stock'")
 
-        print("\n✅ Data Cache tests passed!")
+        print("\n[OK] Data Cache tests passed!")
         return True
 
     except Exception as e:
-        print(f"\n❌ Data Cache test failed: {e}")
+        print(f"\n[X] Data Cache test failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -170,7 +170,7 @@ def test_risk_analyzer():
         from utils.risk_analyzer import RiskAnalyzer
 
         print("\n[Test 1] Risk Analyzer Initialization")
-        analyzer = RiskAnalyzer(risk_free_rate=0.03)
+        analyzer = RiskAnalyzer(risk_free_rate=0."03")
         print(f"✓ Initialized with risk-free rate: 3%")
 
         print("\n[Test 2] Generating Sample Data")
@@ -256,11 +256,11 @@ def test_risk_analyzer():
         for rec in portfolio_metrics.recommendations:
             print(f"  {rec}")
 
-        print("\n✅ Risk Analyzer tests passed!")
+        print("\n[OK] Risk Analyzer tests passed!")
         return True
 
     except Exception as e:
-        print(f"\n❌ Risk Analyzer test failed: {e}")
+        print(f"\n[X] Risk Analyzer test failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -306,7 +306,7 @@ def test_integration():
 
         prediction = lstm.predict(stock_code, stock_name, sample_data, days_ahead=5)
         if prediction:
-            print(f"✓ LSTM Prediction: {prediction.current_price:,.0f} → "
+            print(f"✓ LSTM Prediction: {prediction.current_price:,.0f} -> "
                   f"{prediction.predicted_prices[-1]:,.0f} ({prediction.trend_direction})")
 
         risk_metrics = risk.analyze_stock_risk(
@@ -316,11 +316,11 @@ def test_integration():
         print(f"✓ Risk Analysis: Score={risk_metrics.risk_score:.1f}, "
               f"Grade={risk_metrics.risk_grade}")
 
-        print("\n✅ Integration test passed!")
+        print("\n[OK] Integration test passed!")
         return True
 
     except Exception as e:
-        print(f"\n❌ Integration test failed: {e}")
+        print(f"\n[X] Integration test failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -348,7 +348,7 @@ def main():
     print("=" * 60)
 
     for name, result in results:
-        status = "✅ PASS" if result else "❌ FAIL"
+        status = "[OK] PASS" if result else "[X] FAIL"
         print(f"{name}: {status}")
 
     all_passed = all(r[1] for r in results)
@@ -356,7 +356,7 @@ def main():
     if all_passed:
         print("🎉 ALL TESTS PASSED - v5.12 READY FOR DEPLOYMENT")
     else:
-        print("⚠️ SOME TESTS FAILED - REVIEW REQUIRED")
+        print("[WARNING]️ SOME TESTS FAILED - REVIEW REQUIRED")
     print("=" * 60)
 
     return all_passed
@@ -367,10 +367,10 @@ if __name__ == "__main__":
         success = main()
         sys.exit(0 if success else 1)
     except KeyboardInterrupt:
-        print("\n\n⚠️ Tests interrupted by user")
+        print("\n\n[WARNING]️ Tests interrupted by user")
         sys.exit(1)
     except Exception as e:
-        print(f"\n❌ Test execution error: {e}")
+        print(f"\n[X] Test execution error: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

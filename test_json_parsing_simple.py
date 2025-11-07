@@ -242,7 +242,7 @@ This is based on technical indicators.''',
   ],
   "risks": [
     "Market volatility",
-    "Potential resistance at 72,000 KRW"
+    "Potential resistance at 72,"000" KRW"
   ],
   "target_price": 75000,
   "stop_loss": 67000
@@ -280,14 +280,14 @@ def run_tests():
             success, data, msg = strategy_func(test_case['response'])
 
             if success and data and data.get('signal') == test_case['expected_signal']:
-                print(f"  ✅ {strategy_name:12} - SUCCESS: {msg}")
+                print(f"  [OK] {strategy_name:12} - SUCCESS: {msg}")
                 results[strategy_name]['success'] += 1
             else:
-                print(f"  ❌ {strategy_name:12} - FAILED: {msg}")
+                print(f"  [X] {strategy_name:12} - FAILED: {msg}")
                 results[strategy_name]['fail'] += 1
 
     print(f"\n\n{'='*80}")
-    print("📊 결과 요약")
+    print("[CHART] 결과 요약")
     print(f"{'='*80}")
 
     for strategy_name, counts in results.items():
@@ -313,7 +313,7 @@ if __name__ == '__main__':
     run_tests()
 
     print(f"\n\n{'='*80}")
-    print("🔍 에러 케이스 상세 분석")
+    print("[SEARCH] 에러 케이스 상세 분석")
     print(f"{'='*80}")
 
     error_response = '''{

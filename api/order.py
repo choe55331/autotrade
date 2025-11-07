@@ -36,9 +36,9 @@ class OrderAPI:
         logger.info(f"OrderAPI 초기화 완료 - 모드: {mode}")
 
         if dry_run:
-            logger.warning("⚠️  DRY RUN 모드 활성화 - 실제 주문이 실행되지 않습니다")
+            logger.warning("[WARNING]️  DRY RUN 모드 활성화 - 실제 주문이 실행되지 않습니다")
         else:
-            logger.info("✅ LIVE 모드 활성화 - 실제 주문이 API로 전송됩니다")
+            logger.info("[OK] LIVE 모드 활성화 - 실제 주문이 API로 전송됩니다")
 
     def buy(
         self,
@@ -92,10 +92,10 @@ class OrderAPI:
 
             if trde_tp == '3':
                 ord_uv_value = ""
-                logger.info(f"⚠️ 시장가 주문: 가격 지정 없음")
+                logger.info(f"[WARNING]️ 시장가 주문: 가격 지정 없음")
             elif trde_tp == '81':
                 ord_uv_value = ""
-                logger.info(f"⚠️ 시간외종가 주문: 장 마감 종가로 자동 체결")
+                logger.info(f"[WARNING]️ 시간외종가 주문: 장 마감 종가로 자동 체결")
             else:
                 ord_uv_value = str(price)
 
@@ -107,7 +107,7 @@ class OrderAPI:
                 "trde_tp": trde_tp
             }
 
-            logger.info(f"📋 주문 파라미터: order_type={order_type} → trde_tp={trde_tp}, dmst_stex_tp={dmst_stex_tp}, ord_uv={ord_uv_value}")
+            logger.info(f"📋 주문 파라미터: order_type={order_type} -> trde_tp={trde_tp}, dmst_stex_tp={dmst_stex_tp}, ord_uv={ord_uv_value}")
             print(f"📋 DEBUG: body_params={body_params}")
 
             result = self.client.request(
@@ -118,7 +118,7 @@ class OrderAPI:
 
             if result and result.get('return_code') == 0:
                 order_no = result.get('ord_no', 'N/A')
-                logger.info(f"✅ 매수 주문 성공: 주문번호 {order_no}")
+                logger.info(f"[OK] 매수 주문 성공: 주문번호 {order_no}")
                 return {
                     'order_no': order_no,
                     'stock_code': stock_code,
@@ -129,13 +129,13 @@ class OrderAPI:
                 }
             else:
                 error_msg = result.get('return_msg', '알 수 없는 오류') if result else '응답 없음'
-                logger.error(f"❌ 매수 주문 실패: {error_msg}")
+                logger.error(f"[X] 매수 주문 실패: {error_msg}")
                 logger.error(f"   서버: {self.client.base_url}")
                 logger.error(f"   파라미터: trde_tp={trde_tp}, dmst_stex_tp={dmst_stex_tp}")
 
                 if dmst_stex_tp == 'NXT' and 'mockapi' in self.client.base_url:
-                    logger.error(f"   ⚠️ 모의투자 서버는 NXT 시간외 거래를 지원하지 않습니다!")
-                    logger.error(f"   ⚠️ 실제 운영 서버(api.kiwoom.com)로 변경하세요.")
+                    logger.error(f"   [WARNING]️ 모의투자 서버는 NXT 시간외 거래를 지원하지 않습니다!")
+                    logger.error(f"   [WARNING]️ 실제 운영 서버(api.kiwoom.com)로 변경하세요.")
 
                 return {
                     'order_no': None,
@@ -210,10 +210,10 @@ class OrderAPI:
 
             if trde_tp == '3':
                 ord_uv_value = ""
-                logger.info(f"⚠️ 시장가 주문: 가격 지정 없음")
+                logger.info(f"[WARNING]️ 시장가 주문: 가격 지정 없음")
             elif trde_tp == '81':
                 ord_uv_value = ""
-                logger.info(f"⚠️ 시간외종가 주문: 장 마감 종가로 자동 체결")
+                logger.info(f"[WARNING]️ 시간외종가 주문: 장 마감 종가로 자동 체결")
             else:
                 ord_uv_value = str(price)
 
@@ -225,7 +225,7 @@ class OrderAPI:
                 "trde_tp": trde_tp
             }
 
-            logger.info(f"📋 주문 파라미터: order_type={order_type} → trde_tp={trde_tp}, dmst_stex_tp={dmst_stex_tp}, ord_uv={ord_uv_value}")
+            logger.info(f"📋 주문 파라미터: order_type={order_type} -> trde_tp={trde_tp}, dmst_stex_tp={dmst_stex_tp}, ord_uv={ord_uv_value}")
             print(f"📋 DEBUG: body_params={body_params}")
 
             result = self.client.request(
@@ -236,7 +236,7 @@ class OrderAPI:
 
             if result and result.get('return_code') == 0:
                 order_no = result.get('ord_no', 'N/A')
-                logger.info(f"✅ 매도 주문 성공: 주문번호 {order_no}")
+                logger.info(f"[OK] 매도 주문 성공: 주문번호 {order_no}")
                 return {
                     'order_no': order_no,
                     'stock_code': stock_code,
@@ -247,13 +247,13 @@ class OrderAPI:
                 }
             else:
                 error_msg = result.get('return_msg', '알 수 없는 오류') if result else '응답 없음'
-                logger.error(f"❌ 매도 주문 실패: {error_msg}")
+                logger.error(f"[X] 매도 주문 실패: {error_msg}")
                 logger.error(f"   서버: {self.client.base_url}")
                 logger.error(f"   파라미터: trde_tp={trde_tp}, dmst_stex_tp={dmst_stex_tp}")
 
                 if dmst_stex_tp == 'NXT' and 'mockapi' in self.client.base_url:
-                    logger.error(f"   ⚠️ 모의투자 서버는 NXT 시간외 거래를 지원하지 않습니다!")
-                    logger.error(f"   ⚠️ 실제 운영 서버(api.kiwoom.com)로 변경하세요.")
+                    logger.error(f"   [WARNING]️ 모의투자 서버는 NXT 시간외 거래를 지원하지 않습니다!")
+                    logger.error(f"   [WARNING]️ 실제 운영 서버(api.kiwoom.com)로 변경하세요.")
 
                 return {
                     'order_no': None,

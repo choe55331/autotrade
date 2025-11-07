@@ -30,6 +30,7 @@ def fix_file(file_path: Path) -> bool:
 
             if i < 10 and not in_docstring:
                 if stripped and not stripped.startswith(('"""', "'''", '#', 'import', 'from', 'def ', 'class ', 'if ', '__', '@')):
+                """
                     if not any(keyword in stripped for keyword in ['=', '(', ')', '[', ']', '{', '}']):
                         end_idx = i
                         while end_idx < min(i + 20, len(lines)):
@@ -55,6 +56,7 @@ def fix_file(file_path: Path) -> bool:
                                 continue
 
             if '"""' in line or "'''" in line:
+            """
                 quote = '"""' if '"""' in line else "'''"
                 count = line.count(quote)
 
@@ -76,15 +78,18 @@ def fix_file(file_path: Path) -> bool:
                         modified = True
 
                 if re.match(r'\s*print\(f?"""[^"]*$', line):
+                """
                     found_end = False
                     for j in range(i + 1, min(i + 50, len(lines))):
                         if '"""' in lines[j]:
+                        """
                             found_end = True
                             break
                     if not found_end:
                         for j in range(min(i + 50, len(lines)) - 1, i, -1):
                             if lines[j].strip():
                                 lines[j] = lines[j].rstrip() + '\n"""\n'
+                                """
                                 modified = True
                                 break
 
@@ -163,7 +168,7 @@ def main():
             fixed_count += 1
 
     print("=" * 60)
-    print(f"✅ {checked}개 파일 검사, {fixed_count}개 파일 수정")
+    print(f"[OK] {checked}개 파일 검사, {fixed_count}개 파일 수정")
 
 
 if __name__ == '__main__':

@@ -16,8 +16,10 @@ def test_account_balance():
     계좌잔액 계산 테스트
 
     검증사항:
+    """
     1. 총 자산 = 주식 현재가치 + 잔존 현금
     2. KRX와 NXT 종목 모두 포함되는지
+    """
     """
     print("=" * 80)
     print("계좌잔액 계산 테스트")
@@ -34,7 +36,7 @@ def test_account_balance():
         print(f"  예수금 (entr): {deposit_amount:,}원")
         print(f"  주문가능금액 (100stk_ord_alow_amt): {cash:,}원")
     else:
-        print("  ❌ 예수금 조회 실패")
+        print("  [X] 예수금 조회 실패")
         return False
 
     holdings = account_api.get_holdings(market_type="KRX+NXT")
@@ -68,18 +70,18 @@ def test_account_balance():
 
     print(f"\n[검증]")
     if stock_value + cash == total_assets:
-        print("  ✅ 계산 정확도: OK (주식 현재가치 + 잔존 현금 = 총 자산)")
+        print("  [OK] 계산 정확도: OK (주식 현재가치 + 잔존 현금 = 총 자산)")
     else:
-        print("  ❌ 계산 정확도: FAIL")
+        print("  [X] 계산 정확도: FAIL")
         return False
 
     if holdings:
-        print("  ✅ 종목 조회: OK (보유 종목 존재)")
+        print("  [OK] 종목 조회: OK (보유 종목 존재)")
     else:
-        print("  ⚠️  경고: 보유 종목 없음")
+        print("  [WARNING]️  경고: 보유 종목 없음")
 
     print("\n" + "=" * 80)
-    print("✅ 테스트 통과")
+    print("[OK] 테스트 통과")
     print("=" * 80)
     return True
 
@@ -89,7 +91,7 @@ if __name__ == "__main__":
         success = test_account_balance()
         sys.exit(0 if success else 1)
     except Exception as e:
-        print(f"\n❌ 테스트 실패: {e}")
+        print(f"\n[X] 테스트 실패: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

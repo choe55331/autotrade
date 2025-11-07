@@ -32,6 +32,7 @@ class TradeExecutor:
         monitor
     ):
         """
+        """
         self.order_api = order_api
         self.account_api = account_api
         self.market_api = market_api
@@ -63,8 +64,8 @@ class TradeExecutor:
         """
         try:
             if self.market_status.get('can_cancel_only'):
-                """
                 logger.warning(f"WARNING:  {self.market_status['market_type']}: 신규 매수 주문 불가")
+                """
                 return False
 
             stock_code = candidate.code
@@ -157,8 +158,8 @@ class TradeExecutor:
         """
         try:
             if self.market_status.get('can_cancel_only'):
-                """
                 logger.warning(f"WARNING:  {self.market_status['market_type']}: 신규 매도 주문 불가")
+                """
                 return False
 
             logger.info(
@@ -224,8 +225,8 @@ class TradeExecutor:
         from datetime import datetime
 
         if is_nxt_hours():
-            """
             now = datetime.now()
+            """
             if now.hour == 8:
                 return '61'
             else:

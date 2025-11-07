@@ -83,8 +83,8 @@ def analyze_and_optimize():
             removed = info['removed_variants']
             kept = info['total_variants']
             print(f"[{api_id}] {info['api_name']}")
-            print(f"  ✅ 유지: {kept}개 variant")
-            print(f"  ❌ 제거: {removed}개 variant (no_data/실패)")
+            print(f"  [OK] 유지: {kept}개 variant")
+            print(f"  [X] 제거: {removed}개 variant (no_data/실패)")
 
             for call in info['optimized_calls']:
                 print(f"     ✓ Var {call['variant_idx']}: {call['path']}")
@@ -116,7 +116,7 @@ def analyze_and_optimize():
         json.dump(output, f, ensure_ascii=False, indent=2)
 
     print("\n" + "="*80)
-    print("📊 최적화 통계")
+    print("[CHART] 최적화 통계")
     print("="*80)
     print(f"완전 성공 API: {stats['total_success_apis']}개 ({stats['total_success_variants']}개 variant)")
     print(f"부분 성공 API: {stats['partial_apis']}개")

@@ -19,11 +19,11 @@ def test_volume_rank():
     try:
         print("\n1. REST 클라이언트 초기화 중...")
         client = KiwoomRESTClient()
-        print("✅ REST 클라이언트 초기화 완료")
+        print("[OK] REST 클라이언트 초기화 완료")
 
         print("\n2. DataFetcher 생성 중...")
         fetcher = DataFetcher(client)
-        print("✅ DataFetcher 생성 완료")
+        print("[OK] DataFetcher 생성 완료")
 
         print("\n3. 거래량 순위 조회 중...")
         print("   - 시장: KOSPI")
@@ -31,7 +31,7 @@ def test_volume_rank():
 
         result = fetcher.get_volume_rank(market='KOSPI', limit=20)
 
-        print(f"\n✅ 조회 완료! {len(result)}개 종목")
+        print(f"\n[OK] 조회 완료! {len(result)}개 종목")
 
         if result:
             print("\n" + "=" * 80)
@@ -49,10 +49,10 @@ def test_volume_rank():
 
                 print(f"{i:<5} {name:<15} {code:<10} {price:>12,}원 {rate:>9.2f}% {volume:>15,}")
 
-            print("\n✅ 시장탐색 기능 정상 작동!")
+            print("\n[OK] 시장탐색 기능 정상 작동!")
             return True
         else:
-            print("\n❌ 결과가 비어있습니다.")
+            print("\n[X] 결과가 비어있습니다.")
             print("   가능한 원인:")
             print("   1. API 키 설정 오류")
             print("   2. 네트워크 오류")
@@ -60,7 +60,7 @@ def test_volume_rank():
             return False
 
     except Exception as e:
-        print(f"\n❌ 오류 발생: {e}")
+        print(f"\n[X] 오류 발생: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -83,7 +83,7 @@ def test_price_change_rank():
 
         result = fetcher.get_price_change_rank(market='KOSDAQ', sort='rise', limit=10)
 
-        print(f"\n✅ 조회 완료! {len(result)}개 종목")
+        print(f"\n[OK] 조회 완료! {len(result)}개 종목")
 
         if result:
             print("\n상위 3개 종목:")
@@ -94,11 +94,11 @@ def test_price_change_rank():
 
             return True
         else:
-            print("\n❌ 결과가 비어있습니다.")
+            print("\n[X] 결과가 비어있습니다.")
             return False
 
     except Exception as e:
-        print(f"\n❌ 오류 발생: {e}")
+        print(f"\n[X] 오류 발생: {e}")
         return False
 
 
@@ -116,6 +116,7 @@ def main():
 
 대시보드를 실행하지 않아도 테스트할 수 있습니다.
 
+"""
     success1 = test_volume_rank()
 
     success2 = test_price_change_rank()
@@ -123,15 +124,15 @@ def main():
     print("\n" + "=" * 80)
     print("테스트 결과 요약")
     print("=" * 80)
-    print(f"거래량 순위: {'✅ 통과' if success1 else '❌ 실패'}")
-    print(f"등락률 순위: {'✅ 통과' if success2 else '❌ 실패'}")
+    print(f"거래량 순위: {'[OK] 통과' if success1 else '[X] 실패'}")
+    print(f"등락률 순위: {'[OK] 통과' if success2 else '[X] 실패'}")
 
     if success1 and success2:
         print("\n🎉 모든 테스트 통과!")
         print("\n시장탐색 기능은 정상입니다.")
         print("대시보드에서도 정상 작동해야 합니다.")
     else:
-        print("\n⚠️  일부 테스트 실패")
+        print("\n[WARNING]️  일부 테스트 실패")
         print("\n가능한 원인:")
         print("1. config.yaml의 키움증권 API 키 확인")
         print("2. 네트워크 연결 확인")

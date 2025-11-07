@@ -95,10 +95,10 @@ class KiwoomRESTClient:
             self.retry_backoff = API_RATE_LIMIT.get('REST_RETRY_BACKOFF', 1.0)
 
             if 'mockapi' in self.base_url:
-                logger.warning(f"⚠️ 모의투자 서버 사용 중: {self.base_url}")
-                logger.warning(f"⚠️ NXT 시간외 거래는 모의투자에서 지원되지 않습니다 (KRX만 지원)")
+                logger.warning(f"[WARNING]️ 모의투자 서버 사용 중: {self.base_url}")
+                logger.warning(f"[WARNING]️ NXT 시간외 거래는 모의투자에서 지원되지 않습니다 (KRX만 지원)")
             else:
-                logger.info(f"✅ 실제 운영 서버 사용 중: {self.base_url}")
+                logger.info(f"[OK] 실제 운영 서버 사용 중: {self.base_url}")
 
             logger.info(f"계좌번호: {self.account_prefix}-{self.account_suffix}")
         except ImportError:
@@ -485,8 +485,10 @@ class KiwoomRESTClient:
             API 응답 딕셔너리
 
         Example:
+        """
             >>> client.call_verified_api('kt00005', variant_idx=1)
             {'return_code': 0, 'stk_cntr_remn': [...]}
+        """
         """
         try:
             from config.api_loader import get_api_loader
@@ -516,7 +518,7 @@ class KiwoomRESTClient:
             if body_override:
                 body = {**body, **body_override}
 
-            logger.info(f"🔍 검증된 API 호출: {api_id} (variant {variant_idx}) - {api_spec.get('api_name')}")
+            logger.info(f"[SEARCH] 검증된 API 호출: {api_id} (variant {variant_idx}) - {api_spec.get('api_name')}")
             logger.info(f"   Path: {path}")
             logger.info(f"   Body: {body}")
 

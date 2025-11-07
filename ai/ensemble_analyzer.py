@@ -48,6 +48,7 @@ class EnsembleAnalyzer(BaseAnalyzer):
 
         Args:
             voting_strategy: Strategy for combining model outputs (kept for compatibility)
+            """
         super().__init__(name="GeminiEnsembleAnalyzer", config={})
         self.voting_strategy = voting_strategy
 
@@ -82,10 +83,10 @@ class EnsembleAnalyzer(BaseAnalyzer):
         """
         try:
             for model_type, analyzer in self.analyzers.items():
-                """
                 if hasattr(analyzer, 'initialize'):
                     analyzer.initialize()
 
+"""
             self.is_initialized = True
             logger.info("Ensemble analyzer initialized successfully")
             return True
@@ -110,16 +111,16 @@ class EnsembleAnalyzer(BaseAnalyzer):
 
         tasks = []
         for model_type, analyzer in self.analyzers.items():
-            """
             task = self._analyze_with_model(model_type, analyzer, stock_data)
             tasks.append(task)
 
+"""
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
         valid_results = []
         for i, result in enumerate(results):
-            """
             if isinstance(result, Exception):
+            """
                 model_type = list(self.analyzers.keys())[i]
                 logger.error(f"{model_type.value} analysis failed: {result}")
             else:
@@ -153,6 +154,7 @@ class EnsembleAnalyzer(BaseAnalyzer):
     ) -> Dict[str, Any]:
         """
         Analyze stock with a specific model
+        """
         try:
             loop = asyncio.get_event_loop()
             result = await loop.run_in_executor(
@@ -177,6 +179,7 @@ class EnsembleAnalyzer(BaseAnalyzer):
     ) -> Dict[str, Any]:
         """
         Combine multiple model results using voting strategy
+        """
         if self.voting_strategy == VotingStrategy.MAJORITY:
             return self._majority_vote(results, stock_data)
         elif self.voting_strategy == VotingStrategy.WEIGHTED:
@@ -195,6 +198,7 @@ class EnsembleAnalyzer(BaseAnalyzer):
     ) -> Dict[str, Any]:
         """
         Simple majority voting
+        """
         signals = [r.get('signal', 'HOLD') for r in results]
 
         buy_votes = signals.count('BUY')
@@ -233,6 +237,7 @@ class EnsembleAnalyzer(BaseAnalyzer):
     ) -> Dict[str, Any]:
         """
         Confidence and performance weighted averaging
+        """
         total_weight = 0
         weighted_score = 0
         signal_weights = {'BUY': 0, 'SELL': 0, 'HOLD': 0}
@@ -298,6 +303,7 @@ class EnsembleAnalyzer(BaseAnalyzer):
     ) -> Dict[str, Any]:
         """
         Only buy/sell if all models agree
+        """
         signals = [r.get('signal', 'HOLD') for r in results]
 
         if len(set(signals)) == 1:
@@ -328,6 +334,7 @@ class EnsembleAnalyzer(BaseAnalyzer):
     ) -> Dict[str, Any]:
         """
         Use the historically best performing model
+        """
         best_result = None
         best_accuracy = 0
 
@@ -380,8 +387,8 @@ class EnsembleAnalyzer(BaseAnalyzer):
         reasoning_parts = []
 
         for i, result in enumerate(results, 1):
-            """
             model = result.get('model', f'Model{i}')
+            """
             signal = result.get('signal', 'HOLD')
             score = result.get('score', 5)
             reasoning = result.get('reasoning', 'No reasoning provided')
@@ -404,8 +411,8 @@ class EnsembleAnalyzer(BaseAnalyzer):
 
         results = []
         for model_type, analyzer in self.analyzers.items():
-            """
             try:
+            """
                 result = analyzer.analyze_market(market_data)
                 result['model'] = model_type.value
                 results.append(result)
@@ -459,11 +466,11 @@ class EnsembleAnalyzer(BaseAnalyzer):
 
         results = []
         for model_type, analyzer in self.analyzers.items():
-            """
             try:
+            """
                 if hasattr(analyzer, 'analyze_portfolio'):
-                    """
                     result = analyzer.analyze_portfolio(portfolio_data)
+                    """
                     result['model'] = model_type.value
                     results.append(result)
             except Exception as e:
@@ -539,6 +546,7 @@ class EnsembleAnalyzer(BaseAnalyzer):
             model: The AI model
             was_correct: Whether the prediction was correct
             confidence: The confidence level of the prediction
+            """
         if model not in self.model_performance:
             return
 
@@ -568,7 +576,6 @@ class EnsembleAnalyzer(BaseAnalyzer):
         """
         rankings = []
         for model, perf in self.model_performance.items():
-            """
             rankings.append({
                 'model': model.value,
                 'accuracy': round(perf['accuracy'], 3),
@@ -577,6 +584,7 @@ class EnsembleAnalyzer(BaseAnalyzer):
                 'avg_confidence': round(perf['avg_confidence'], 3)
             })
 
+"""
         rankings.sort(key=lambda x: x['accuracy'], reverse=True)
         return rankings
 
@@ -615,6 +623,7 @@ def get_analyzer(
     Returns:
         EnsembleAnalyzer instance
     global _analyzer_instance
+    """
     if _analyzer_instance is None:
         _analyzer_instance = EnsembleAnalyzer(
             voting_strategy=voting_strategy

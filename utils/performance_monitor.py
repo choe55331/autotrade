@@ -106,9 +106,11 @@ class PerformanceMonitor:
         Context manager for performance measurement
 
         Usage:
+        """
             with monitor.measure('function_name'):
                 # code to measure
                 pass
+        """
         """
         return PerformanceContext(self, name, metadata or {})
 
@@ -118,12 +120,14 @@ class PerformanceMonitor:
 
         Usage:
             @monitor.track
+            """
             def my_function():
                 pass
 
             @monitor.track(name='custom_name')
             def another_function():
                 pass
+        """
         """
         def decorator(f):
             metric_name = name or f.__name__
@@ -439,8 +443,10 @@ def track_performance(func=None, name=None):
 
     Usage:
         @track_performance
+        """
         def my_function():
             pass
+    """
     """
     monitor = get_performance_monitor()
     return monitor.track(func, name)

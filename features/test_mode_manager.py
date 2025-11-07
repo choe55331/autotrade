@@ -91,7 +91,7 @@ class TestModeManager:
             return False
 
         self.test_date = get_last_trading_date()
-        logger.info(f"✅ 테스트 모드 활성화 ({reason})")
+        logger.info(f"[OK] 테스트 모드 활성화 ({reason})")
         logger.info(f"   사용할 데이터 날짜: {self.test_date}")
         logger.info(f"   현재 시간: {now.strftime('%Y-%m-%d %H:%M:%S')}")
 
@@ -156,7 +156,7 @@ class TestModeManager:
         self.test_results["duration_seconds"] = duration
 
         print("\n" + "=" * 80)
-        print("✅ 테스트 완료")
+        print("[OK] 테스트 완료")
         print("=" * 80)
         print(f"소요 시간: {duration:.2f}초")
         print(f"성공한 테스트: {sum(1 for t in self.test_results['tests'].values() if t.get('success'))}/{len(self.test_results['tests'])}")
@@ -182,10 +182,10 @@ class TestModeManager:
             }
 
             if success:
-                print("   ✅ 계좌 조회 성공")
+                print("   [OK] 계좌 조회 성공")
                 print(f"      예수금: {result.get('deposit', 'N/A')}")
             else:
-                print("   ❌ 계좌 조회 실패")
+                print("   [X] 계좌 조회 실패")
 
         except Exception as e:
             logger.error(f"계좌 조회 테스트 실패: {e}")
@@ -193,7 +193,7 @@ class TestModeManager:
                 "success": False,
                 "error": str(e)
             }
-            print(f"   ❌ 오류: {e}")
+            print(f"   [X] 오류: {e}")
 
     async def _test_market_search(self):
         """시장 탐색 테스트"""
@@ -212,9 +212,9 @@ class TestModeManager:
             }
 
             if success:
-                print(f"   ✅ 시장 탐색 성공 - 총 {len(result)}개 종목")
+                print(f"   [OK] 시장 탐색 성공 - 총 {len(result)}개 종목")
             else:
-                print("   ❌ 시장 탐색 실패")
+                print("   [X] 시장 탐색 실패")
 
         except Exception as e:
             logger.error(f"시장 탐색 테스트 실패: {e}")
@@ -222,7 +222,7 @@ class TestModeManager:
                 "success": False,
                 "error": str(e)
             }
-            print(f"   ❌ 오류: {e}")
+            print(f"   [X] 오류: {e}")
 
     async def _test_stock_info(self):
         """종목 정보 조회 테스트"""
@@ -242,13 +242,13 @@ class TestModeManager:
                             "success": True,
                             "price": result.get("current_price")
                         })
-                        print(f"   ✅ {stock_code}: {result.get('current_price', 'N/A')}원")
+                        print(f"   [OK] {stock_code}: {result.get('current_price', 'N/A')}원")
                     else:
                         tested_stocks.append({
                             "code": stock_code,
                             "success": False
                         })
-                        print(f"   ❌ {stock_code}: 조회 실패")
+                        print(f"   [X] {stock_code}: 조회 실패")
 
                     await asyncio.sleep(0.3)
 
@@ -267,7 +267,7 @@ class TestModeManager:
                 "success_count": success_count
             }
 
-            print(f"   📊 {success_count}/{len(tested_stocks)} 종목 조회 성공")
+            print(f"   [CHART] {success_count}/{len(tested_stocks)} 종목 조회 성공")
 
         except Exception as e:
             logger.error(f"종목 정보 조회 테스트 실패: {e}")
@@ -275,7 +275,7 @@ class TestModeManager:
                 "success": False,
                 "error": str(e)
             }
-            print(f"   ❌ 오류: {e}")
+            print(f"   [X] 오류: {e}")
 
     async def _test_chart_data(self):
         """차트 데이터 조회 테스트"""
@@ -300,10 +300,10 @@ class TestModeManager:
             }
 
             if success:
-                print(f"   ✅ 차트 데이터 조회 성공 - {len(result)}일치 데이터")
+                print(f"   [OK] 차트 데이터 조회 성공 - {len(result)}일치 데이터")
                 print(f"      최근일: {result[0].get('date', 'N/A')}, 종가: {result[0].get('close', 'N/A')}")
             else:
-                print("   ❌ 차트 데이터 조회 실패")
+                print("   [X] 차트 데이터 조회 실패")
 
         except Exception as e:
             logger.error(f"차트 데이터 조회 테스트 실패: {e}")
@@ -311,7 +311,7 @@ class TestModeManager:
                 "success": False,
                 "error": str(e)
             }
-            print(f"   ❌ 오류: {e}")
+            print(f"   [X] 오류: {e}")
 
     async def _test_order_book(self):
         """호가 조회 테스트"""
@@ -332,11 +332,11 @@ class TestModeManager:
             }
 
             if success:
-                print(f"   ✅ 호가 조회 성공")
+                print(f"   [OK] 호가 조회 성공")
                 print(f"      매도호가: {result.get('ask_price', 'N/A')}")
                 print(f"      매수호가: {result.get('bid_price', 'N/A')}")
             else:
-                print("   ❌ 호가 조회 실패")
+                print("   [X] 호가 조회 실패")
 
         except Exception as e:
             logger.error(f"호가 조회 테스트 실패: {e}")
@@ -344,7 +344,7 @@ class TestModeManager:
                 "success": False,
                 "error": str(e)
             }
-            print(f"   ❌ 오류: {e}")
+            print(f"   [X] 오류: {e}")
 
     async def _test_balance(self):
         """잔고 조회 테스트"""
@@ -364,9 +364,9 @@ class TestModeManager:
 
             if success:
                 holdings_count = len(result) if isinstance(result, list) else 0
-                print(f"   ✅ 잔고 조회 성공 - {holdings_count}개 보유 종목")
+                print(f"   [OK] 잔고 조회 성공 - {holdings_count}개 보유 종목")
             else:
-                print("   ❌ 잔고 조회 실패")
+                print("   [X] 잔고 조회 실패")
 
         except Exception as e:
             logger.error(f"잔고 조회 테스트 실패: {e}")
@@ -374,14 +374,14 @@ class TestModeManager:
                 "success": False,
                 "error": str(e)
             }
-            print(f"   ❌ 오류: {e}")
+            print(f"   [X] 오류: {e}")
 
     async def _test_ai_analysis(self):
         """AI 분석 테스트 (실제 기술적 지표 계산)"""
         print("\n[7/8] AI 분석 및 기술적 지표 계산 테스트...")
 
         try:
-            print("   📊 차트 데이터 조회 및 기술적 지표 계산 중...")
+            print("   [CHART] 차트 데이터 조회 및 기술적 지표 계산 중...")
 
             from api.market import get_daily_chart
             import pandas as pd
@@ -399,7 +399,7 @@ class TestModeManager:
                     "bollinger": "데이터 부족",
                     "volume": "데이터 부족"
                 }
-                print("   ⚠️ 차트 데이터 부족 - 시뮬레이션 모드")
+                print("   [WARNING]️ 차트 데이터 부족 - 시뮬레이션 모드")
             else:
                 df = pd.DataFrame(chart_data)
 
@@ -467,7 +467,7 @@ class TestModeManager:
                         "volume": volume_signal
                     }
 
-                    print(f"   ✅ 실제 기술적 지표 계산 완료 ({len(close_prices)}일 데이터 사용)")
+                    print(f"   [OK] 실제 기술적 지표 계산 완료 ({len(close_prices)}일 데이터 사용)")
                 else:
                     technical_analysis = {
                         "rsi": "데이터 부족",
@@ -475,7 +475,7 @@ class TestModeManager:
                         "bollinger": "데이터 부족",
                         "volume": "데이터 부족"
                     }
-                    print("   ⚠️ 유효한 가격 데이터 부족")
+                    print("   [WARNING]️ 유효한 가격 데이터 부족")
 
             sentiment_analysis = {
                 "news_sentiment": "시뮬레이션",
@@ -490,7 +490,7 @@ class TestModeManager:
                 "data_points": len(chart_data) if chart_data else 0
             }
 
-            print("   ✅ 기술적 분석 완료")
+            print("   [OK] 기술적 분석 완료")
             print(f"      RSI: {technical_analysis['rsi']}")
             print(f"      MACD: {technical_analysis['macd']}")
             print(f"      Bollinger: {technical_analysis['bollinger']}")
@@ -502,7 +502,7 @@ class TestModeManager:
                 "success": False,
                 "error": str(e)
             }
-            print(f"   ❌ 오류: {e}")
+            print(f"   [X] 오류: {e}")
 
     async def _test_trading_simulation(self):
         """매수/매도 시뮬레이션 테스트"""
@@ -510,7 +510,7 @@ class TestModeManager:
 
         try:
             print("   🔄 매매 시뮬레이션 실행 중...")
-            print("   ⚠️  실제 주문은 발생하지 않습니다")
+            print("   [WARNING]️  실제 주문은 발생하지 않습니다")
 
             buy_simulation = {
                 "action": "buy",
@@ -544,7 +544,7 @@ class TestModeManager:
                 "sell": sell_simulation
             }
 
-            print("   ✅ 매매 시뮬레이션 완료")
+            print("   [OK] 매매 시뮬레이션 완료")
             print(f"      매수: {buy_simulation['stock_name']} {buy_simulation['quantity']}주 @ {buy_simulation['price']:,}원")
             print(f"      매도: {sell_simulation['stock_name']} {sell_simulation['quantity']}주 @ {sell_simulation['price']:,}원")
             print(f"      예상 수익: {sell_simulation['profit']:,}원 ({sell_simulation['profit_rate']:.2f}%)")
@@ -555,7 +555,7 @@ class TestModeManager:
                 "success": False,
                 "error": str(e)
             }
-            print(f"   ❌ 오류: {e}")
+            print(f"   [X] 오류: {e}")
 
     def _save_test_results(self):
         """테스트 결과 저장"""
@@ -574,7 +574,7 @@ class TestModeManager:
 
         except Exception as e:
             logger.error(f"테스트 결과 저장 실패: {e}")
-            print(f"⚠️  테스트 결과 저장 실패: {e}")
+            print(f"[WARNING]️  테스트 결과 저장 실패: {e}")
 
 
 async def run_test_mode():

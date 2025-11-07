@@ -83,7 +83,7 @@ def fix_partial_failure_params(api_id, failed_variants):
             old_code = body['stk_cd']
             if old_code in ['000660', '066970', '071050']:
                 body['stk_cd'] = stocks['samsung']
-                fix_reason.append(f'종목코드 {old_code} → 005930 (삼성전자)')
+                fix_reason.append(f'종목코드 {old_code} -> "005930" (삼성전자)')
 
         if 'strt_dt' in body:
             body['strt_dt'] = dates['week_ago']
@@ -105,7 +105,7 @@ def fix_partial_failure_params(api_id, failed_variants):
             old_code = body['bsis_aset_cd']
             if old_code in ['000660', '066970']:
                 body['bsis_aset_cd'] = '201'
-                fix_reason.append(f'기초자산코드 {old_code} → 201 (KOSPI200)')
+                fix_reason.append(f'기초자산코드 {old_code} -> 201 (KOSPI200)')
 
         if api_id == 'ka90001':
             if 'qry_tp' in body and body['qry_tp'] == '1':
@@ -211,7 +211,7 @@ def create_corrected_api_calls():
         'verified_apis': optimized['optimized_apis'],
         'corrected_apis': corrected_apis,
         'correction_summary': {
-            'ka10010': '업종코드 → 실제 종목코드로 변경',
+            'ka10010': '업종코드 -> 실제 종목코드로 변경',
             'partial_failures': '실패 종목코드, 날짜 파라미터 최적화',
             'dates_updated': get_valid_dates(),
             'stock_codes_used': get_valid_stock_codes()
@@ -223,11 +223,11 @@ def create_corrected_api_calls():
         json.dump(output, f, ensure_ascii=False, indent=2)
 
     print("\n" + "="*80)
-    print("📊 수정 완료 통계")
+    print("[CHART] 수정 완료 통계")
     print("="*80)
-    print(f"✅ 검증된 API: {verified_count}개 ({verified_variants}개 variant)")
+    print(f"[OK] 검증된 API: {verified_count}개 ({verified_variants}개 variant)")
     print(f"🔧 수정된 API: {len(corrected_apis)}개 ({corrections_made}개 variant)")
-    print(f"📊 총 테스트 대상: {verified_variants + corrections_made}개 variant")
+    print(f"[CHART] 총 테스트 대상: {verified_variants + corrections_made}개 variant")
     print(f"\n💾 저장 완료: {output_file}")
     print("="*80)
 

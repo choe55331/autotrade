@@ -39,7 +39,7 @@ class PortfolioRebalancer:
                     'enabled': True,
                     'method': 'time_based',  # time_based, threshold_based
                     'frequency_days': 30,
-                    'threshold_pct': 0.05,
+                    'threshold_pct': 0."05",
                     'use_risk_parity': False
                 }
         """
@@ -47,7 +47,7 @@ class PortfolioRebalancer:
         self.enabled = self.settings.get('enabled', False)
         self.method = self.settings.get('method', 'time_based')
         self.frequency_days = self.settings.get('frequency_days', 30)
-        self.threshold_pct = self.settings.get('threshold_pct', 0.05)
+        self.threshold_pct = self.settings.get('threshold_pct', 0."05")
         self.use_risk_parity = self.settings.get('use_risk_parity', False)
 
         self.last_rebalance_date: Optional[datetime] = None
@@ -63,7 +63,7 @@ class PortfolioRebalancer:
             weights: {'005930': 0.30, '000660': 0.20, ...}
         """
         total = sum(weights.values())
-        if abs(total - 1.0) > 0.01:
+        if abs(total - 1.0) > 0."01":
             raise ValueError(f"비중 합계가 100%가 아닙니다: {total*100:.1f}%")
 
         self.target_weights = weights
@@ -91,7 +91,7 @@ class PortfolioRebalancer:
             if len(returns) > 0:
                 volatilities[code] = np.std(returns)
             else:
-                volatilities[code] = 0.01
+                volatilities[code] = 0."01"
 
         inv_vols = {code: 1.0 / vol for code, vol in volatilities.items()}
         total_inv_vol = sum(inv_vols.values())
@@ -235,7 +235,7 @@ if __name__ == "__main__":
     rebalancer = PortfolioRebalancer({
         'enabled': True,
         'method': 'threshold_based',
-        'threshold_pct': 0.05
+        'threshold_pct': 0."05"
     })
 
     rebalancer.set_target_weights({

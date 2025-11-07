@@ -11,12 +11,13 @@ def simplify_docstrings(filepath):
     original = content
 
     # 1. 이모지 제거
-    content = content.replace('⭐', '[STAR]')
-    content = content.replace('⚠️', 'WARNING')
-    content = content.replace('✅', '[OK]')
-    content = content.replace('❌', '[ERROR]')
+    content = content.replace('[STAR]', '[STAR]')
+    content = content.replace('[WARNING]️', 'WARNING')
+    content = content.replace('[OK]', '[OK]')
+    content = content.replace('[X]', '[ERROR]')
 
     # 2. 모든 standalone """ 제거
+    """
     lines = content.split('\n')
     cleaned = []
     i = 0
@@ -27,11 +28,13 @@ def simplify_docstrings(filepath):
         # standalone """ 체크 (들여쓰기 + """ + 빈 줄)
         if re.match(r'^\s+"""\s*$', line):
             # 다음 줄이 코드이면 제거
+            """
             if i + 1 < len(lines):
                 next_line = lines[i+1].strip()
                 if next_line and not next_line.startswith('"""') and \
                    not next_line.startswith(('#', 'def ', 'class ')):
                     # 이전 줄이 함수 정의가 아니면 제거
+                    """
                     if i > 0:
                         prev_line = lines[i-1].strip()
                         if not prev_line.endswith(':'):
@@ -47,6 +50,7 @@ def simplify_docstrings(filepath):
     # Pattern: """로 시작하는 multi-line docstring
     # """...\n...Args:...\n...Returns:...\n...""" -> """Simple docstring"""
 
+"""
     def simplify_multiline(match):
         """복잡한 docstring을 한 줄로 압축"""
         indent = match.group(1)

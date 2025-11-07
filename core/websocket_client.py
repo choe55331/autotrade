@@ -237,7 +237,7 @@ class WebSocketClient:
             time.sleep(delay)
             self.connect()
         elif self.reconnect_count >= self.max_reconnects:
-            logger.error("❌ 최대 재연결 횟수 초과. 재연결을 중단합니다.")
+            logger.error("[X] 최대 재연결 횟수 초과. 재연결을 중단합니다.")
         elif not self.should_reconnect:
             logger.info("재연결 비활성화 상태 - 재연결하지 않음")
 

@@ -45,9 +45,9 @@ def set_control_status(enabled: bool) -> bool:
 def start_trading():
     """Start trading"""
     if set_control_status(True):
-        """
         if _socketio:
             _socketio.emit('trading_status', {'enabled': True})
+            """
         return jsonify({'success': True, 'message': 'Trading started'})
     return jsonify({'success': False, 'message': 'Failed to start'}), 500
 
@@ -56,9 +56,9 @@ def start_trading():
 def stop_trading():
     """Stop trading"""
     if set_control_status(False):
-        """
         if _socketio:
             _socketio.emit('trading_status', {'enabled': False})
+            """
         return jsonify({'success': True, 'message': 'Trading stopped'})
     return jsonify({'success': False, 'message': 'Failed to stop'}), 500
 
@@ -159,13 +159,13 @@ def get_virtual_trading_status():
     """Get virtual trading status and performance"""
     try:
         if not _bot_instance or not hasattr(_bot_instance, 'virtual_trader'):
-            """
             return jsonify({
                 'success': False,
                 'message': 'Virtual trading not initialized',
                 'enabled': False
             })
 
+"""
         virtual_trader = _bot_instance.virtual_trader
         if not virtual_trader:
             return jsonify({
@@ -194,9 +194,9 @@ def get_virtual_trading_account(strategy_name: str):
     """Get virtual trading account details for specific strategy"""
     try:
         if not _bot_instance or not hasattr(_bot_instance, 'virtual_trader'):
-            """
             return jsonify({'success': False, 'message': 'Virtual trading not initialized'})
 
+"""
         virtual_trader = _bot_instance.virtual_trader
         if not virtual_trader:
             return jsonify({'success': False, 'message': 'Virtual trading not enabled'})
@@ -209,9 +209,9 @@ def get_virtual_trading_account(strategy_name: str):
 
         positions = []
         for stock_code, position in account.positions.items():
-            """
             positions.append(position.to_dict())
 
+"""
         return jsonify({
             'success': True,
             'strategy_name': strategy_name,
@@ -228,9 +228,9 @@ def get_virtual_trading_trades():
     """Get virtual trading trade history"""
     try:
         if not _bot_instance or not hasattr(_bot_instance, 'trade_logger'):
-            """
             return jsonify({'success': False, 'message': 'Trade logger not initialized'})
 
+"""
         trade_logger = _bot_instance.trade_logger
         if not trade_logger:
             return jsonify({'success': False, 'message': 'Trade logger not enabled'})
@@ -257,19 +257,19 @@ def get_virtual_trades():
     """가상매매 전략별 거래 기록 조회"""
     try:
         if not _bot_instance or not hasattr(_bot_instance, 'virtual_trader'):
-            """
             return jsonify({
                 'success': False,
                 'message': '가상매매 미활성화'
             })
 
+"""
         virtual_trader = _bot_instance.virtual_trader
         trades_by_strategy = {}
 
         for strategy_name, account in virtual_trader.accounts.items():
-            """
             trades = account.trade_history[-50:] if account.trade_history else []
 
+"""
             trades = list(reversed(trades))
 
             trades_by_strategy[strategy_name] = {
@@ -311,15 +311,15 @@ def run_backtest():
         historical_data = []
         base_price = 73000
         for i in range(100):
+            price_change = np.random.uniform(-0."03", 0."03")
             """
-            price_change = np.random.uniform(-0.03, 0.03)
             close_price = base_price * (1 + price_change)
 
             historical_data.append({
                 'date': (datetime.now() - timedelta(days=100-i)).isoformat(),
                 'stock_code': '005930',
                 'open': base_price,
-                'high': close_price * 1.02,
+                'high': close_price * 1."02",
                 'low': close_price * 0.98,
                 'close': close_price,
                 'volume': int(np.random.uniform(500000, 2000000)),
@@ -394,8 +394,8 @@ def price_option():
         strike = data.get('strike_price', 75000)
 
         import random
-        call_price = spot * random.uniform(0.02, 0.05)
-        put_price = strike * random.uniform(0.03, 0.08)
+        call_price = spot * random.uniform(0."02", 0."05")
+        put_price = strike * random.uniform(0."03", 0."08")
 
         return jsonify({
             'success': True,
@@ -404,7 +404,7 @@ def price_option():
                 'put_price': int(put_price),
                 'greeks': {
                     'delta': round(random.uniform(0.3, 0.7), 4),
-                    'gamma': round(random.uniform(0.001, 0.005), 4),
+                    'gamma': round(random.uniform(0."001", 0."005"), 4),
                     'theta': round(random.uniform(-50, -20), 4),
                     'vega': round(random.uniform(20, 50), 4),
                     'rho': round(random.uniform(10, 30), 4)
@@ -469,13 +469,13 @@ def sell_all_positions():
             return jsonify({'success': False, 'error': 'Bot instance not available'})
         
         if not hasattr(_bot_instance, 'trading_api'):
-            """
             return jsonify({'success': False, 'error': 'Trading API not available'})
         
+        """
         if hasattr(_bot_instance, 'account_api'):
-            """
             holdings = _bot_instance.account_api.get_holdings(market_type="KRX+NXT")
             
+            """
             if not holdings:
                 return jsonify({
                     'success': True,
@@ -523,8 +523,8 @@ def pause_trading():
         
         current_status = {}
         if control_file.exists():
-            """
             with open(control_file, 'r', encoding='utf-8') as f:
+            """
                 current_status = json.load(f)
         
         current_pause = current_status.get('pause_buy', False)
@@ -587,15 +587,15 @@ def quick_buy():
             return jsonify({'success': False, 'error': '봇 인스턴스가 연결되지 않았습니다'}), 503
 
         if hasattr(_bot_instance, 'market_status') and _bot_instance.market_status.get('is_test_mode'):
-            """
             return jsonify({
                 'success': False,
                 'error': '테스트 모드에서는 실제 주문을 실행할 수 없습니다'
             }), 403
 
+"""
         if hasattr(_bot_instance, 'portfolio_manager'):
-            """
             position_size = _bot_instance.portfolio_manager.calculate_position_size(price)
+            """
             quantity = int(position_size / price)
         else:
             quantity = int(1_000_000 / price)
@@ -604,8 +604,8 @@ def quick_buy():
             return jsonify({'success': False, 'error': '매수 수량이 0입니다'}), 400
 
         if hasattr(_bot_instance, 'order_api'):
-            """
             order_response = _bot_instance.order_api.buy(
+            """
                 stock_code=stock_code,
                 quantity=quantity,
                 price=price,

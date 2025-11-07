@@ -58,6 +58,7 @@ def fix_file_completely(file_path: Path) -> bool:
                 if i + 1 < len(lines):
                     next_line = lines[i + 1].strip()
                     if next_line and not next_line.startswith('"""') and not next_line.startswith('#'):
+                    """
                         if not any(kw in next_line for kw in ['return', 'if ', 'for ', 'while ', 'self.', 'print(', 'logger.', ' = ']):
                             j = i + 1
                             doc_lines = []
@@ -73,6 +74,7 @@ def fix_file_completely(file_path: Path) -> bool:
                                     break
 
                                 doc_lines.append(lines[j])
+                                """
                                 j += 1
 
                             if doc_lines:
@@ -93,7 +95,7 @@ def fix_file_completely(file_path: Path) -> bool:
 
         content = '\n'.join(lines)
 
-        content = re.sub(r'^\s*[⚠️❌✅🔧🔌📊📤📥⏳✓🎯🐂🐻📩🔄→].*\n', '', content, flags=re.MULTILINE)
+        content = re.sub(r'^\s*[[WARNING]️[X][OK]🔧🔌[CHART]📤📥⏳✓[TARGET]🐂🐻📩🔄->].*\n', '', content, flags=re.MULTILINE)
 
         if content != original:
             try:
@@ -148,7 +150,7 @@ def main():
                 print(f"  ✗ 수정 불가")
 
     print("=" * 70)
-    print(f"✅ {fixed_count}개 파일 수정 완료")
+    print(f"[OK] {fixed_count}개 파일 수정 완료")
 
     return fixed_count > 0
 

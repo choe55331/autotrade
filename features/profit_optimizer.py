@@ -56,11 +56,11 @@ class ProfitOptimizer:
 
         self.rules['aggressive'] = OptimizationRule(
             name='공격적',
-            stop_loss_rate=0.05,
+            stop_loss_rate=0."05",
             take_profit_rate=0.15,
             trailing_stop_enabled=True,
-            trailing_stop_trigger=0.08,
-            trailing_stop_distance=0.05,
+            trailing_stop_trigger=0."08",
+            trailing_stop_distance=0."05",
             max_holding_days=5,
             partial_profit_enabled=True,
             partial_profit_rate=0.10,
@@ -69,11 +69,11 @@ class ProfitOptimizer:
 
         self.rules['conservative'] = OptimizationRule(
             name='보수적',
-            stop_loss_rate=0.08,
+            stop_loss_rate=0."08",
             take_profit_rate=0.12,
             trailing_stop_enabled=True,
             trailing_stop_trigger=0.10,
-            trailing_stop_distance=0.06,
+            trailing_stop_distance=0."06",
             max_holding_days=15,
             partial_profit_enabled=False,
             partial_profit_rate=0.0,
@@ -82,21 +82,21 @@ class ProfitOptimizer:
 
         self.rules['balanced'] = OptimizationRule(
             name='균형',
-            stop_loss_rate=0.06,
+            stop_loss_rate=0."06",
             take_profit_rate=0.12,
             trailing_stop_enabled=True,
-            trailing_stop_trigger=0.08,
-            trailing_stop_distance=0.04,
+            trailing_stop_trigger=0."08",
+            trailing_stop_distance=0."04",
             max_holding_days=10,
             partial_profit_enabled=True,
-            partial_profit_rate=0.08,
+            partial_profit_rate=0."08",
             partial_profit_sell_ratio=0.3
         )
 
         self.rules['daytrading'] = OptimizationRule(
             name='단타',
-            stop_loss_rate=0.03,
-            take_profit_rate=0.05,
+            stop_loss_rate=0."03",
+            take_profit_rate=0."05",
             trailing_stop_enabled=False,
             trailing_stop_trigger=0.0,
             trailing_stop_distance=0.0,
@@ -164,7 +164,7 @@ class ProfitOptimizer:
             if current_price <= trailing_stop_price:
                 return PositionAnalysis(
                     should_close=True,
-                    reason=f"트레일링 스톱 (최고 {highest_rate*100:.1f}% → 현재 {pnl_rate*100:.1f}%)",
+                    reason=f"트레일링 스톱 (최고 {highest_rate*100:.1f}% -> 현재 {pnl_rate*100:.1f}%)",
                     action='full_sell',
                     sell_ratio=1.0
                 )

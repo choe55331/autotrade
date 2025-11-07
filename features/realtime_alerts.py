@@ -195,7 +195,7 @@ class RealtimeAlertSystem:
         return self.create_alert(
             alert_type=AlertType.PRICE_TARGET,
             priority=AlertPriority.HIGH,
-            title=f"🎯 목표가 도달: {stock_name}",
+            title=f"[TARGET] 목표가 도달: {stock_name}",
             message=message,
             stock_code=stock_code,
             stock_name=stock_name,
@@ -256,7 +256,7 @@ class RealtimeAlertSystem:
         return self.create_alert(
             alert_type=AlertType.VOLUME_SURGE,
             priority=AlertPriority.HIGH,
-            title=f"📊 거래량 급증: {stock_name}",
+            title=f"[CHART] 거래량 급증: {stock_name}",
             message=message,
             stock_code=stock_code,
             stock_name=stock_name,
@@ -409,7 +409,7 @@ class RealtimeAlertSystem:
         return self.create_alert(
             alert_type=AlertType.PORTFOLIO_RISK,
             priority=priority,
-            title=f"⚠️ 포트폴리오 리스크 경고: {risk_level}",
+            title=f"[WARNING]️ 포트폴리오 리스크 경고: {risk_level}",
             message=message,
             action_required="포트폴리오 리밸런싱 검토",
             metadata={

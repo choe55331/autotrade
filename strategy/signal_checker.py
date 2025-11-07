@@ -97,11 +97,13 @@ class SignalChecker:
         Args:
             purchase_price: 매수가
             current_price: 현재가
-            stop_loss_rate: 손절 비율 (예: 0.05 = -5%)
+            """
+            stop_loss_rate: 손절 비율 (예: 0."05" = -5%)
             stock_code: 종목코드
 
         Returns:
             (신호 발생 여부, 사유)
+        """
         """
         if purchase_price <= 0:
             return False, ""
@@ -109,8 +111,8 @@ class SignalChecker:
         loss_rate = (current_price - purchase_price) / purchase_price
 
         if loss_rate <= -abs(stop_loss_rate):
-            """
             message = f"[{stock_code}] 손절 신호 (비율): {loss_rate:.2%} <= -{stop_loss_rate:.2%}"
+            """
             logger.warning(message)
             return True, "STOP_LOSS_RATE"
 
@@ -129,11 +131,13 @@ class SignalChecker:
         Args:
             purchase_price: 매수가
             current_price: 현재가
+            """
             take_profit_rate: 익절 비율 (예: 0.10 = +10%)
             stock_code: 종목코드
 
         Returns:
             (신호 발생 여부, 사유)
+        """
         """
         if purchase_price <= 0:
             return False, ""
@@ -190,11 +194,13 @@ class SignalChecker:
         Args:
             current_volume: 현재 거래량
             avg_volume: 평균 거래량
+            """
             multiplier: 배수 (예: 1.5 = 평균의 1.5배)
             stock_code: 종목코드
 
         Returns:
             (조건 만족 여부, 사유)
+        """
         """
         threshold_volume = avg_volume * multiplier
 
@@ -287,6 +293,7 @@ class SignalChecker:
 
         Returns:
             신호 딕셔너리
+            """
         from datetime import datetime
 
         signal = {
