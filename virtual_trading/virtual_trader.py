@@ -27,6 +27,7 @@ class TradingStrategy:
 
     def __init__(self, name: str, description: str = ""):
         """
+        """
         self.name = name
         self.description = description
 
@@ -59,6 +60,7 @@ class TradingStrategy:
         stock_code = stock_data.get('stock_code')
         if account.has_position(stock_code):
             """
+            """
             return False
 
         return True
@@ -79,6 +81,7 @@ class TradingStrategy:
         Returns:
             (should_sell, reason)
         position.update_price(current_price)
+        """
         pnl_rate = position.unrealized_pnl_rate
 
         if pnl_rate >= self.take_profit_rate * 100:
@@ -132,7 +135,6 @@ class VirtualTrader:
 
         descriptions = get_strategy_descriptions()
         for name, desc in descriptions.items():
-            """
             logger.info(f"  - {name}: {desc}")
 
     def add_strategy(self, strategy: TradingStrategy):
@@ -179,10 +181,12 @@ class VirtualTrader:
 
         for strategy_name, strategy in self.strategies.items():
             """
+            """
             account = self.accounts[strategy_name]
 
             try:
                 if isinstance(strategy, DiverseTradingStrategy):
+                    """
                     """
                     should_buy = strategy.should_buy(enriched_stock_data, enriched_market_data, account)
                 else:
@@ -195,6 +199,7 @@ class VirtualTrader:
                     quantity = strategy.calculate_quantity(price, account)
 
                     if quantity > 0 and account.can_buy(price, quantity):
+                        """
                         """
                         success = account.buy(
                             stock_code=stock_code,
@@ -226,9 +231,11 @@ class VirtualTrader:
 
         for strategy_name, account in self.accounts.items():
             """
+            """
             strategy = self.strategies[strategy_name]
 
             for stock_code, position in list(account.positions.items()):
+                """
                 """
                 if stock_code not in price_data:
                     continue
@@ -239,6 +246,7 @@ class VirtualTrader:
 
                 try:
                     if isinstance(strategy, DiverseTradingStrategy):
+                        """
                         """
                         stock_data = stock_data_dict.get(stock_code, {})
                         enriched_stock_data = self.data_enricher.enrich_stock_data(stock_data)
@@ -270,14 +278,12 @@ class VirtualTrader:
     def update_all_prices(self, price_data: Dict[str, int]):
         """모든 계좌의 포지션 가격 업데이트"""
         for account in self.accounts.values():
-            """
             account.update_positions(price_data)
 
     def get_all_summaries(self) -> Dict[str, Dict]:
         """모든 계좌 요약"""
         summaries = {}
         for strategy_name, account in self.accounts.items():
-            """
             summaries[strategy_name] = account.get_summary()
         return summaries
 
@@ -290,6 +296,7 @@ class VirtualTrader:
         best_pnl_rate = float('-inf')
 
         for strategy_name, account in self.accounts.items():
+            """
             """
             pnl_rate = account.get_total_pnl_rate()
             if pnl_rate > best_pnl_rate:
@@ -307,6 +314,7 @@ class VirtualTrader:
         summaries = self.get_all_summaries()
 
         for strategy_name, summary in summaries.items():
+            """
             """
             pnl = summary['total_pnl']
             pnl_rate = summary['total_pnl_rate']
@@ -327,6 +335,7 @@ class VirtualTrader:
             if account.trade_history:
                 print(f"\n  📝 거래 내역 (최근 {min(10, len(account.trade_history))}건):")
                 for i, trade in enumerate(account.trade_history[-10:], 1):
+                    """
                     """
                     trade_type = trade['type']
                     timestamp = trade.get('timestamp', 'N/A')
@@ -361,6 +370,7 @@ class VirtualTrader:
         """모든 계좌 상태 저장"""
         for strategy_name, account in self.accounts.items():
             """
+            """
             filename = f"{strategy_name}.json"
             filepath = f"{base_dir}/{filename}"
             account.save_state(filepath)
@@ -368,6 +378,7 @@ class VirtualTrader:
     def load_all_states(self, base_dir: str = "data/virtual_trading"):
         """모든 계좌 상태 로드"""
         for strategy_name, account in self.accounts.items():
+            """
             """
             filename = f"{strategy_name}.json"
             filepath = f"{base_dir}/{filename}"

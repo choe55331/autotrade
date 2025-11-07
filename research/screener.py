@@ -107,7 +107,7 @@ class Screener:
         
         Returns:
             필터링된 종목 리스트
-        """
+            """
         rise_rank = self.fetcher.get_price_change_rank(market, 'rise', limit)
         
         filtered = [
@@ -134,7 +134,7 @@ class Screener:
 
         Returns:
             필터링된 종목 리스트
-        """
+            """
         trading_rank = self.fetcher.get_trading_value_rank(market, limit)
 
         filtered = [
@@ -161,7 +161,7 @@ class Screener:
 
         Returns:
             외국인 순매수 종목 리스트
-        """
+            """
         foreign_rank = self.fetcher.get_foreign_buying_rank(market, limit=limit)
 
         filtered = [
@@ -188,7 +188,7 @@ class Screener:
 
         Returns:
             기관 순매수 종목 리스트
-        """
+            """
         inst_rank = self.fetcher.get_institution_buying_rank(market, limit=limit)
 
         filtered = [
@@ -220,7 +220,7 @@ class Screener:
 
         Returns:
             스마트머니 종목 리스트
-        """
+            """
         foreign_rank = self.fetcher.get_foreign_buying_rank(market, limit=limit)
         inst_rank = self.fetcher.get_institution_buying_rank(market, limit=limit)
 
@@ -229,6 +229,7 @@ class Screener:
 
         smart_money = []
         for code in set(foreign_map.keys()) & set(inst_map.keys()):
+            """
             """
             foreign_data = foreign_map[code]
             inst_data = inst_map[code]
@@ -270,7 +271,7 @@ class Screener:
 
         Returns:
             외국인 순매도 종목 리스트
-        """
+            """
         foreign_rank = self.fetcher.get_foreign_selling_rank(market, limit=limit)
 
         filtered = [
@@ -297,7 +298,7 @@ class Screener:
 
         Returns:
             기관 순매도 종목 리스트
-        """
+            """
         inst_rank = self.fetcher.get_institution_selling_rank(market, limit=limit)
 
         filtered = [
@@ -335,7 +336,7 @@ class Screener:
 
         Returns:
             필터링된 종목 리스트
-        """
+            """
         return self.screen_combined(
             min_volume=min_volume,
             min_price=min_price,
@@ -392,6 +393,7 @@ class Screener:
                 filtered.append(stock)
         
         logger.info(f"복합 조건 스크리닝 완료: {len(filtered)}개 종목")
+        """
         return filtered
     
     def screen_with_filters(
@@ -416,7 +418,7 @@ class Screener:
         
         Returns:
             필터링된 종목 리스트
-        """
+            """
         min_volume = filters.get('min_volume', 100000)
         min_price = filters.get('min_price', 1000)
         max_price = filters.get('max_price', 1000000)
@@ -449,7 +451,7 @@ class Screener:
         
         Returns:
             필터링된 종목 리스트
-        """
+            """
         filtered = []
         
         for stock in stocks:
@@ -490,7 +492,7 @@ class Screener:
         
         Returns:
             모멘텀 종목 리스트
-        """
+            """
         rise_rank = self.fetcher.get_price_change_rank(market, 'rise', 100)
         
         filtered = []
