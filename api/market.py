@@ -1,9 +1,8 @@
 """
 api/market.py
 시세 및 시장 정보 API (Backward Compatibility Wrapper)
-"""
 
-⚠️ 이 파일은 backward compatibility를 위해 유지됩니다.
+WARNING: 이 파일은 backward compatibility를 위해 유지됩니다.
    실제 구현은 api/market/ 디렉토리의 모듈들로 이동되었습니다.
 
 새 코드에서는 다음을 사용하세요:
@@ -18,6 +17,7 @@ api/market.py
 - api/market/ranking.py: 순위 정보
 - api/market/investor_data.py: 투자자 매매 데이터
 - api/market/stock_info.py: 종목/업종/테마 정보
+"""
 import warnings
 
 from api.market import (

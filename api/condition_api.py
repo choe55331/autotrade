@@ -53,6 +53,7 @@ class ConditionAPI:
         cont_yn: str = 'N',
         next_key: str = ''
     ) -> Dict[str, Any]:
+        """
         조건검색 실행 (일반)
         
         Args:
@@ -64,6 +65,7 @@ class ConditionAPI:
         
         Returns:
             검색 결과
+        """
         try:
             logger.warning("조건검색은 WebSocket API 필요")
             return {}

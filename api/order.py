@@ -49,6 +49,7 @@ class OrderAPI:
         account_number: str = None,
         exchange: str = None
     ) -> Optional[Dict[str, Any]]:
+        """
         매수 주문
 
         Args:
@@ -61,6 +62,7 @@ class OrderAPI:
 
         Returns:
             주문 결과
+        """
         if self.dry_run:
             return self._simulate_buy(stock_code, quantity, price, order_type)
 
@@ -165,6 +167,7 @@ class OrderAPI:
         account_number: str = None,
         exchange: str = None
     ) -> Optional[Dict[str, Any]]:
+        """
         매도 주문
 
         Args:
@@ -177,6 +180,7 @@ class OrderAPI:
 
         Returns:
             주문 결과
+        """
         if self.dry_run:
             return self._simulate_sell(stock_code, quantity, price, order_type)
 
@@ -280,6 +284,7 @@ class OrderAPI:
         price: int,
         account_number: str = None
     ) -> Optional[Dict[str, Any]]:
+        """
         주문 정정
 
         Args:
@@ -291,6 +296,7 @@ class OrderAPI:
 
         Returns:
             정정 결과
+        """
         logger.warning("주문 정정 API가 아직 구현되지 않았습니다")
         return None
 
@@ -301,6 +307,7 @@ class OrderAPI:
         quantity: int,
         account_number: str = None
     ) -> Optional[Dict[str, Any]]:
+        """
         주문 취소
 
         Args:
@@ -311,6 +318,7 @@ class OrderAPI:
 
         Returns:
             취소 결과
+        """
         logger.warning("주문 취소 API가 아직 구현되지 않았습니다")
         return None
 
@@ -319,6 +327,7 @@ class OrderAPI:
         order_no: str,
         account_number: str = None
     ) -> Optional[Dict[str, Any]]:
+        """
         주문 상태 조회
 
         Args:
@@ -327,6 +336,7 @@ class OrderAPI:
 
         Returns:
             주문 상태
+        """
         logger.warning("주문 상태 조회 API가 아직 구현되지 않았습니다")
         return None
 

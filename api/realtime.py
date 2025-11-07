@@ -47,14 +47,16 @@ class RealtimeAPI:
         stock_codes: List[str],
         callback: Optional[Callable] = None
     ) -> bool:
+        """
         실시간 시세 구독
-        
+
         Args:
             stock_codes: 종목코드 리스트
             callback: 데이터 수신 콜백
-        
+
         Returns:
             성공 여부
+        """
         if not self.ws_manager:
             logger.error("WebSocket Manager가 설정되지 않았습니다")
             return False
@@ -132,6 +134,7 @@ class RealtimeAPI:
         stock_codes: List[str],
         callback: Optional[Callable] = None
     ) -> bool:
+        """
         실시간 호가 구독
         
         Args:
@@ -140,6 +143,7 @@ class RealtimeAPI:
         
         Returns:
             성공 여부
+        """
         if not self.ws_manager:
             logger.error("WebSocket Manager가 설정되지 않았습니다")
             return False
@@ -176,6 +180,7 @@ class RealtimeAPI:
         account_number: str,
         callback: Optional[Callable] = None
     ) -> bool:
+        """
         실시간 체결 구독
         
         Args:
@@ -184,6 +189,7 @@ class RealtimeAPI:
         
         Returns:
             성공 여부
+        """
         if not self.ws_manager:
             logger.error("WebSocket Manager가 설정되지 않았습니다")
             return False
