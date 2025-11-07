@@ -211,7 +211,7 @@ class MockAnalyzer(BaseAnalyzer):
         signal: str,
         stock_data: Dict[str, Any]
     ) -> list:
-        """
+        """분석 이유 생성"""
         change_rate = stock_data.get('change_rate', 0)
         volume = stock_data.get('volume', 0)
         

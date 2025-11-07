@@ -100,7 +100,7 @@ class AlertManager:
     def check_position_alerts(self, stock_code: str, stock_name: str,
                              current_price: int, buy_price: int,
                              profit_loss_rate: float, profit_loss_amount: int):
-        포지션 손익 체크하여 알림 발생
+        """포지션 손익 체크하여 알림 발생
 
         Args:
             stock_code: 종목 코드
@@ -109,6 +109,7 @@ class AlertManager:
             buy_price: 매수가
             profit_loss_rate: 손익률 (%)
             profit_loss_amount: 손익 금액 (원)
+        """
         if profit_loss_rate >= self.thresholds['profit_target']:
             self._create_alert(
                 alert_type=AlertType.PROFIT_TARGET,
