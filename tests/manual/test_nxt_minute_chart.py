@@ -102,7 +102,7 @@ def test_nxt_minute_chart():
             # 테스트 1: NXT 시간대 실시간 조회 (자동 _NX 처리)
             print(f"📊 Test 1: NXT 자동 전환 모드 (use_nxt_fallback=True)")
             try:
-                chart_data = bot.market_api.chart_api.get_minute_chart(
+                chart_data = bot.market_api.get_minute_chart(
                     stock_code=stock_code,
                     interval=interval,
                     count=10,
@@ -139,7 +139,7 @@ def test_nxt_minute_chart():
             if is_nxt:
                 print(f"📊 Test 2: NXT 전용 모드 (use_nxt_fallback=False)")
                 try:
-                    chart_data_nxt_only = bot.market_api.chart_api.get_minute_chart(
+                    chart_data_nxt_only = bot.market_api.get_minute_chart(
                         stock_code=stock_code,
                         interval=interval,
                         count=10,
@@ -180,7 +180,7 @@ def test_nxt_minute_chart():
         print(f"━━━ {test_stock_name} ({test_stock_code}) - 기준일: {base_dt} ━━━")
 
         try:
-            chart_data_historical = bot.market_api.chart_api.get_minute_chart(
+            chart_data_historical = bot.market_api.get_minute_chart(
                 stock_code=test_stock_code,
                 interval=5,
                 count=20,
