@@ -159,51 +159,95 @@ class UnifiedAnalyzer:
 - 변동성: {volatility}
 """
 
-        # 분석 요청
+        # 분석 요청 (고도화된 프롬프트 - v6.2)
         prompt += """
 
-## 분석 요청
+## 분석 요청 (심층 분석)
 
-다음 3가지 시나리오를 분석하세요:
+### STEP 1: 3가지 시나리오 분석
 
-### 1. 낙관적 시나리오 (확률: %)
-- 예상 상승폭:
-- 주요 긍정 요인:
-- 목표가:
+#### 1. 낙관적 시나리오 (확률: %)
+- 예상 상승폭: (%, 목표가)
+- 주요 긍정 요인: (3가지 이상, 구체적으로)
+- 상승 지속 근거: (데이터 기반)
+- 목표가 달성 기간: (예상 일수)
 
-### 2. 중립적 시나리오 (확률: %)
-- 예상 변동폭:
-- 현재 가격 유지 요인:
+#### 2. 중립적 시나리오 (확률: %)
+- 예상 변동폭: (±%)
+- 현재 가격 유지 요인: (균형 요인 분석)
+- 관망 필요 기간:
 
-### 3. 비관적 시나리오 (확률: %)
-- 예상 하락폭:
-- 주요 리스크:
-- 손절가:
+#### 3. 비관적 시나리오 (확률: %)
+- 예상 하락폭: (%, 손절가)
+- 주요 리스크: (3가지 이상, 구체적으로)
+- 하락 트리거: (어떤 이벤트/지표가 하락을 유발하는가)
+- 손절가 근거:
 
-## 최종 판단
+### STEP 2: 신뢰도 자가 평가
 
-다음 형식으로 답변하세요:
+다음 기준으로 분석의 신뢰도를 평가하세요:
+
+1. **데이터 충분성** (0~100점)
+   - 제공된 데이터가 충분한가?
+   - 추가 필요 데이터는?
+
+2. **시장 투명성** (0~100점)
+   - 해당 종목의 거래가 투명한가?
+   - 작전 세력 가능성은?
+
+3. **추세 명확성** (0~100점)
+   - 가격 추세가 명확한가?
+   - 혼조세/박스권인가?
+
+4. **시기 적정성** (0~100점)
+   - 지금이 진입 타이밍인가?
+   - 더 기다려야 하는가?
+
+5. **리스크-리워드 비율**
+   - 기대 수익: 손실 위험 = ?:?
+   - 비율이 최소 2:1 이상인가?
+
+**종합 신뢰도 점수**: (5가지 평균) / 100
+
+### STEP 3: 최종 판단
+
+다음 형식으로 답변하세요 (JSON 형식 엄수):
 
 ```json
 {
   "signal": "buy" | "hold" | "sell",
   "confidence": 0.0 ~ 1.0,
+  "reliability_score": 0 ~ 100,
+  "reliability_breakdown": {
+    "data_sufficiency": 0~100,
+    "market_transparency": 0~100,
+    "trend_clarity": 0~100,
+    "timing_appropriateness": 0~100,
+    "risk_reward_ratio": "예: 3:1"
+  },
   "entry_price": 구체적인 진입 가격,
+  "entry_timing": "즉시" | "조정 대기" | "추가 관찰 필요",
   "exit_price": 구체적인 청산 가격,
   "stop_loss": 구체적인 손절 가격,
   "position_size": "small" | "medium" | "large",
-  "reasons": ["이유 1", "이유 2", "이유 3"],
-  "risks": ["리스크 1", "리스크 2"],
+  "reasons": ["이유 1 (구체적으로)", "이유 2 (데이터 기반)", "이유 3 (정량적)"],
+  "risks": ["리스크 1 (발생 확률 포함)", "리스크 2", "리스크 3"],
   "scenarios": {
-    "optimistic": {"probability": 0.3, "target": 75000},
-    "neutral": {"probability": 0.5, "target": 70000},
-    "pessimistic": {"probability": 0.2, "target": 65000}
+    "optimistic": {"probability": 0.0~1.0, "target": 목표가, "timeline_days": 일수},
+    "neutral": {"probability": 0.0~1.0, "target": 현재가 유지, "timeline_days": 일수},
+    "pessimistic": {"probability": 0.0~1.0, "target": 손절가, "timeline_days": 일수}
   },
-  "analysis_text": "상세 분석 텍스트"
+  "data_gaps": ["부족한 데이터 1", "부족한 데이터 2"],
+  "confidence_rationale": "confidence와 reliability_score가 이 값인 이유를 2~3문장으로 설명",
+  "analysis_text": "종합 분석 (시나리오별 확률 근거, 리스크-리워드 평가 포함)"
 }
 ```
 
-JSON 형식을 정확히 지켜주세요.
+**중요**:
+- confidence는 AI 자신의 확신도 (모델의 자신감)
+- reliability_score는 분석의 객관적 신뢰도 (데이터/시장 상황 기반)
+- 두 값은 다를 수 있음 (예: confidence 0.8이어도 reliability_score 60점 가능)
+- JSON 형식을 정확히 지켜주세요.
 """
 
         return prompt

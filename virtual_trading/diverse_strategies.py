@@ -609,33 +609,30 @@ class HotStockStrategy(DiverseTradingStrategy):
         super().__init__("급등추격", "당일 급등주 단타")
         self.max_positions = 8
         self.position_size_rate = 0.10
-        self.min_price_surge = 5.0  # 최소 5% 상승
-        self.max_price_surge = 20.0  # 최대 20% 상승 (과열 제외)
+        self.min_price_surge = 3.0  # 최소 3% 상승 (완화: 5% → 3%)
+        self.max_price_surge = 30.0  # 최대 30% 상승 (완화: 20% → 30%)
 
     def should_buy(self, stock_data: Dict, market_data: Dict, account: VirtualAccount) -> bool:
         if len(account.positions) >= self.max_positions:
             return False
 
-        # 당일 급등 확인
+        # 당일 급등 확인 (완화: 3% 이상)
         price_change = stock_data.get('price_change_percent', 0)
         if not (self.min_price_surge <= price_change <= self.max_price_surge):
             return False
 
-        # 거래량 폭증 확인 (평균의 3배 이상)
+        # 거래량 폭증 확인 (완화: 3배 → 2배)
         volume_ratio = stock_data.get('volume_ratio', 1.0)
-        if volume_ratio < 3.0:
+        if volume_ratio < 2.0:
             return False
 
-        # 시가총액 필터 (500억 이상 - 작전주 제외)
+        # 시가총액 필터 (완화: 500억 → 100억) - 중소형주도 포함
         market_cap = stock_data.get('market_cap', 0)
-        if market_cap < 50_000_000_000:
+        if market_cap < 10_000_000_000:
             return False
 
-        # 52주 신고가 근접 (활력 있는 종목)
-        current_price = stock_data.get('current_price', 0)
-        high_52w = stock_data.get('high_52week', current_price * 2)
-        if current_price < high_52w * 0.90:
-            return False
+        # 52주 신고가 근접 조건 제거 (너무 엄격하여 제거)
+        # 모든 급등주에 기회 제공
 
         return True
 
