@@ -48,6 +48,23 @@ except ImportError:
     print("   설치 후 다시 실행해주세요.")
     sys.exit(1)
 
+def check_ocx_registered():
+    """OCX 등록 상태 확인"""
+    import winreg
+    try:
+        key = winreg.OpenKey(
+            winreg.HKEY_CLASSES_ROOT,
+            "KHOPENAPI.KHOpenAPICtrl.1",
+            0,
+            winreg.KEY_READ
+        )
+        winreg.CloseKey(key)
+        return True
+    except FileNotFoundError:
+        return False
+    except Exception:
+        return False
+
 
 class Kiwoom64BitAPI:
     """64비트 Kiwoom Open API 래퍼 - 연속 조회 지원"""
@@ -66,6 +83,19 @@ class Kiwoom64BitAPI:
         try:
             print("🔌 64비트 Kiwoom Open API 연결 시도...\n")
 
+            # OCX 등록 확인
+            print("🔍 OCX 등록 상태 확인 중...")
+            if not check_ocx_registered():
+                print("❌ OCX가 등록되지 않았습니다!")
+                print("\n💡 해결 방법:")
+                print("   1. 진단 도구 실행:")
+                print("      python diagnose_kiwoom_64bit.py")
+                print("   2. 관리자 권한으로 OCX 등록:")
+                print("      regsvr32 C:\\OpenApi\\KHOpenAPI64.ocx")
+                print("   3. 또는 생성된 register_kiwoom_ocx.bat 파일을 관리자 권한으로 실행")
+                return False
+            print("✅ OCX 등록 확인됨\n")
+
             # COM 아파트먼트 초기화
             pythoncom.CoInitialize()
 
@@ -76,10 +106,12 @@ class Kiwoom64BitAPI:
             except Exception as e:
                 print(f"❌ ActiveX 컨트롤 생성 실패: {e}")
                 print("\n💡 해결 방법:")
-                print("   1. 64bit-kiwoom-openapi 설치 확인")
-                print("   2. 관리자 권한으로 OCX 등록:")
-                print("      regsvr32 C:\\OpenAPI\\KHOpenAPI64.ocx")
-                print("   3. 다른 Kiwoom 프로그램 종료 (HTS, API 등)")
+                print("   1. 진단 도구 실행:")
+                print("      python diagnose_kiwoom_64bit.py")
+                print("   2. 64bit-kiwoom-openapi 설치 확인")
+                print("   3. 관리자 권한으로 OCX 등록:")
+                print("      regsvr32 C:\\OpenApi\\KHOpenAPI64.ocx")
+                print("   4. 다른 Kiwoom 프로그램 종료 (HTS, API 등)")
                 return False
 
             # 이벤트 핸들러 연결
