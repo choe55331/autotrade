@@ -1,7 +1,7 @@
 """
 ai/advanced_backtester.py
 고급 백테스팅 엔진 (v5.11 NEW)
-"""
+
 
 Features:
 - 다양한 전략 백테스팅
@@ -10,6 +10,7 @@ Features:
 - Monte Carlo 시뮬레이션
 - 워크포워드 분석
 - 성능 리포트 생성
+"""
 from typing import Dict, Any, List, Optional, Callable, Tuple
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
@@ -112,6 +113,7 @@ class AdvancedBacktester:
         tax_rate: float = 0.0023,
         risk_free_rate: float = 0.02
     ):
+        """
         초기화
 
         Args:
@@ -142,6 +144,7 @@ class AdvancedBacktester:
         start_date: Optional[datetime] = None,
         end_date: Optional[datetime] = None
     ) -> BacktestResult:
+        """
         백테스트 실행
 
         Args:
@@ -152,6 +155,7 @@ class AdvancedBacktester:
 
         Returns:
             백테스트 결과
+        """
         self._reset()
 
         all_dates = self._get_all_dates(data, start_date, end_date)
@@ -159,6 +163,7 @@ class AdvancedBacktester:
         logger.info(f"Running backtest: {len(all_dates)} days, {len(data)} stocks")
 
         for i, date in enumerate(all_dates):
+            """
             self.current_time = date
 
             current_data = self._get_data_until(data, date)
@@ -193,6 +198,7 @@ class AdvancedBacktester:
         price: Optional[float] = None,
         order_type: OrderType = OrderType.MARKET
     ) -> BacktestOrder:
+        """
         매수 주문
 
         Args:
@@ -203,6 +209,7 @@ class AdvancedBacktester:
 
         Returns:
             주문 객체
+        """
         order = BacktestOrder(
             timestamp=self.current_time,
             stock_code=stock_code,
@@ -222,6 +229,7 @@ class AdvancedBacktester:
         price: Optional[float] = None,
         order_type: OrderType = OrderType.MARKET
     ) -> BacktestOrder:
+        """
         매도 주문
 
         Args:
@@ -232,6 +240,7 @@ class AdvancedBacktester:
 
         Returns:
             주문 객체
+        """
         order = BacktestOrder(
             timestamp=self.current_time,
             stock_code=stock_code,
@@ -265,6 +274,7 @@ class AdvancedBacktester:
         num_simulations: int = 1000,
         num_trades: Optional[int] = None
     ) -> Dict[str, Any]:
+        """
         Monte Carlo 시뮬레이션
 
         Args:
@@ -274,6 +284,7 @@ class AdvancedBacktester:
 
         Returns:
             시뮬레이션 결과
+        """
         if not result.trades:
             return {'error': 'No trades to simulate'}
 
@@ -287,6 +298,7 @@ class AdvancedBacktester:
         final_equities = []
 
         for _ in range(num_simulations):
+            """
             simulated_returns = np.random.choice(returns, size=num_trades, replace=True)
 
             equity = self.initial_capital
@@ -330,12 +342,15 @@ class AdvancedBacktester:
         start: Optional[datetime],
         end: Optional[datetime]
     ) -> List[datetime]:
+        """
         all_dates = set()
 
         for stock_data in data.values():
+            """
             for bar in stock_data:
                 date = bar.get('date')
                 if isinstance(date, str):
+                    """
                     date = datetime.fromisoformat(date)
 
                 if start and date < start:
@@ -352,9 +367,11 @@ class AdvancedBacktester:
         data: Dict[str, List[Dict]],
         date: datetime
     ) -> Dict[str, List[Dict]]:
+        """
         result = {}
 
         for stock_code, bars in data.items():
+            """
             filtered = [
                 bar for bar in bars
                 if self._parse_date(bar.get('date')) <= date
@@ -367,8 +384,10 @@ class AdvancedBacktester:
     def _parse_date(self, date) -> datetime:
         """날짜 파싱"""
         if isinstance(date, datetime):
+            """
             return date
         elif isinstance(date, str):
+            """
             return datetime.fromisoformat(date)
         else:
             return datetime.now()
@@ -489,6 +508,7 @@ class AdvancedBacktester:
         position_value = 0
 
         for stock_code, position in self.positions.items():
+            """
             if stock_code in data and data[stock_code]:
                 current_price = data[stock_code][-1].get('close', 0)
                 position['current_price'] = current_price
@@ -499,6 +519,7 @@ class AdvancedBacktester:
     def _close_all_positions(self, data: Dict[str, List[Dict]]):
         """모든 포지션 청산"""
         for stock_code in list(self.positions.keys()):
+            """
             position = self.positions[stock_code]
             self._execute_sell(stock_code, position['quantity'], data)
 
@@ -613,6 +634,7 @@ class AdvancedBacktester:
 
         returns = []
         for i in range(1, len(self.equity_curve)):
+            """
             prev_equity = self.equity_curve[i-1][1]
             curr_equity = self.equity_curve[i][1]
             daily_return = (curr_equity - prev_equity) / prev_equity
@@ -639,6 +661,7 @@ class AdvancedBacktester:
 
         returns = []
         for i in range(1, len(self.equity_curve)):
+            """
             prev_equity = self.equity_curve[i-1][1]
             curr_equity = self.equity_curve[i][1]
             daily_return = (curr_equity - prev_equity) / prev_equity

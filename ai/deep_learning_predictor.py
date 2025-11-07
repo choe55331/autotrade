@@ -28,6 +28,7 @@ class DeepLearningPredictor:
         prediction_horizon: int = 5,
         model_dir: str = "models/dl_models"
     ):
+        """
         Initialize deep learning predictor
 
         Args:
@@ -80,6 +81,7 @@ class DeepLearningPredictor:
         stock_data: Dict[str, Any],
         model_type: str = "ensemble"
     ) -> Dict[str, Any]:
+        """
         Predict future price using deep learning models
 
         Args:
@@ -88,6 +90,7 @@ class DeepLearningPredictor:
 
         Returns:
             Prediction results with confidence intervals
+        """
         if not self.tf_available and not self.torch_available:
             return self._get_default_prediction(stock_data)
 
@@ -160,6 +163,7 @@ class DeepLearningPredictor:
 
             features = []
             for i in range(len(recent_prices)):
+                """
                 window_start = max(0, i - 20)
                 window = recent_prices[window_start:i+1]
 
@@ -211,6 +215,7 @@ class DeepLearningPredictor:
             current_sequence = X_reshaped
 
             for _ in range(self.prediction_horizon):
+                """
                 pred = self.lstm_model.predict(current_sequence, verbose=0)
                 predictions.append(float(pred[0, 0]))
 
@@ -279,6 +284,7 @@ class DeepLearningPredictor:
 
             predictions = []
             for _ in range(self.prediction_horizon):
+                """
                 pred = self.cnn_model.predict(X_reshaped, verbose=0)
                 predictions.append(float(pred[0, 0]))
 
@@ -338,6 +344,7 @@ class DeepLearningPredictor:
             last_price = prices[-1]
 
             for i in range(1, self.prediction_horizon + 1):
+                """
                 pred_price = last_price + (recent_trend * i)
                 predictions.append(float(pred_price))
 
@@ -359,6 +366,7 @@ class DeepLearningPredictor:
         self,
         predictions: Dict[str, Dict[str, Any]]
     ) -> Dict[str, Any]:
+        """
         Combine predictions from multiple models
         if not predictions:
             return {
@@ -377,6 +385,7 @@ class DeepLearningPredictor:
         total_weight = 0
 
         for model_pred in predictions.values():
+            """
             weight = confidence_weights.get(model_pred['confidence'], 0.7)
             prices = np.array(model_pred['prices'])
 
@@ -459,6 +468,7 @@ class DeepLearningPredictor:
         epochs: int = 50,
         batch_size: int = 32
     ):
+        """
         Train all deep learning models
 
         Args:
@@ -519,6 +529,7 @@ class DeepLearningPredictor:
         self,
         training_data: List[Dict[str, Any]]
     ) -> Tuple[Optional[np.ndarray], Optional[np.ndarray]]:
+        """
         Prepare training dataset
         logger.warning("Training data preparation not fully implemented")
         return None, None
@@ -535,11 +546,13 @@ class DeepLearningPredictor:
 
             lstm_path = os.path.join(self.model_dir, 'lstm_model.h5')
             if os.path.exists(lstm_path):
+                """
                 self.lstm_model = tf.keras.models.load_model(lstm_path)
                 logger.info("LSTM model loaded")
 
             cnn_path = os.path.join(self.model_dir, 'cnn_model.h5')
             if os.path.exists(cnn_path):
+                """
                 self.cnn_model = tf.keras.models.load_model(cnn_path)
                 logger.info("CNN model loaded")
 

@@ -1,7 +1,7 @@
 """
 Ensemble AI System
 Combines multiple AI models for superior predictions
-"""
+
 
 Features:
 - Multiple AI model integration
@@ -10,6 +10,7 @@ Features:
 - Meta-model for final decision
 - Confidence aggregation
 - Model selection based on market conditions
+"""
 import json
 import numpy as np
 from typing import Dict, List, Optional, Any, Tuple
@@ -82,10 +83,12 @@ class EnsembleAI:
         """Load saved state"""
         try:
             if self.weights_file.exists():
+                """
                 with open(self.weights_file, 'r') as f:
                     self.model_weights = json.load(f)
 
             if self.performance_file.exists():
+                """
                 with open(self.performance_file, 'r') as f:
                     data = json.load(f)
                     self.model_performance = defaultdict(
@@ -116,6 +119,7 @@ class EnsembleAI:
         stock_name: str,
         market_data: Dict[str, Any]
     ) -> EnsemblePrediction:
+        """
         Make ensemble prediction
 
         Args:
@@ -125,6 +129,7 @@ class EnsembleAI:
 
         Returns:
             Ensemble prediction
+        """
         try:
             model_predictions = []
 
@@ -166,6 +171,7 @@ class EnsembleAI:
         stock_name: str,
         data: Dict[str, Any]
     ) -> Optional[ModelPrediction]:
+        """
         try:
             from ai.ml_predictor import get_ml_predictor
 
@@ -244,12 +250,14 @@ class EnsembleAI:
         stock_name: str,
         data: Dict[str, Any]
     ) -> Optional[ModelPrediction]:
+        """
         try:
             from features.ai_mode import get_ai_agent
 
             agent = get_ai_agent()
 
             if not agent.is_enabled():
+                """
                 return None
 
             decision = agent.make_trading_decision(stock_code, stock_name, data)
@@ -371,6 +379,7 @@ class EnsembleAI:
         self,
         predictions: List[ModelPrediction]
     ) -> EnsemblePrediction:
+        """
         if not predictions:
             return self._fallback_prediction('unknown', 'unknown')
 
@@ -415,6 +424,7 @@ class EnsembleAI:
         stock_code: str,
         stock_name: str
     ) -> EnsemblePrediction:
+        """
         return EnsemblePrediction(
             final_action='hold',
             final_confidence=0.3,
@@ -467,6 +477,7 @@ class EnsembleAI:
         """Recalculate model weights based on performance"""
         accuracies = {}
         for model_name, perf in self.model_performance.items():
+            """
             if perf['total'] > 0:
                 accuracies[model_name] = perf['correct'] / perf['total']
             else:
@@ -475,6 +486,7 @@ class EnsembleAI:
         total_accuracy = sum(accuracies.values())
         if total_accuracy > 0:
             for model_name in self.model_weights.keys():
+                """
                 if model_name in accuracies:
                     self.model_weights[model_name] = accuracies[model_name] / total_accuracy
 

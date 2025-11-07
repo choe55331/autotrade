@@ -1,7 +1,7 @@
 """
 virtual_trading/diverse_strategies.py
-12가지 다양한 실전 매매 전략 구현 (v5.7.5: 10개 → 12개 확장)
-"""
+12가지 다양한 실전 매매 전략 구현 (v5.7.5: 10개 -> 12개 확장)
+
 
 User Requirement:
 "시중에 나온 다양한 매매 전략법을 완전 다른걸로 12개 해서 유리한 조합 테스트"
@@ -10,6 +10,7 @@ Not simple score variations - fundamentally different trading approaches.
 v5.7.5 추가 전략:
 11. 기관추종 (Institutional Following): 기관/외국인 순매수 추종
 12. 거래량RSI (Volume & RSI Combined): 거래량 급증 + RSI 조합
+"""
 from typing import Dict, Optional
 from datetime import datetime
 from .virtual_account import VirtualAccount, VirtualPosition
@@ -19,6 +20,7 @@ class DiverseTradingStrategy:
     """다양한 실전 매매 전략의 베이스 클래스"""
 
     def __init__(self, name: str, description: str):
+        """
         self.name = name
         self.description = description
 
@@ -32,6 +34,7 @@ class DiverseTradingStrategy:
 
     def should_sell(self, position: VirtualPosition, current_price: int,
                     stock_data: Dict, days_held: int) -> tuple[bool, str]:
+        """
         raise NotImplementedError
 
     def calculate_quantity(self, price: int, account: VirtualAccount) -> int:
@@ -50,6 +53,7 @@ class MomentumStrategy(DiverseTradingStrategy):
     """
 
     def __init__(self):
+        """
         super().__init__("모멘텀추세", "강한 상승세 포착 후 추세 추종")
         self.max_positions = 6
         self.position_size_rate = 0.18
@@ -57,6 +61,7 @@ class MomentumStrategy(DiverseTradingStrategy):
         self.min_price_change = 3.0
 
     def should_buy(self, stock_data: Dict, market_data: Dict, account: VirtualAccount) -> bool:
+        """
         if len(account.positions) >= self.max_positions:
             return False
 
@@ -76,6 +81,7 @@ class MomentumStrategy(DiverseTradingStrategy):
 
     def should_sell(self, position: VirtualPosition, current_price: int,
                     stock_data: Dict, days_held: int) -> tuple[bool, str]:
+        """
         position.update_price(current_price)
         pnl_rate = position.unrealized_pnl_rate
 
@@ -103,6 +109,7 @@ class MeanReversionStrategy(DiverseTradingStrategy):
     """
 
     def __init__(self):
+        """
         super().__init__("평균회귀", "과매도 구간 반등 노림")
         self.max_positions = 4
         self.position_size_rate = 0.20
@@ -110,6 +117,7 @@ class MeanReversionStrategy(DiverseTradingStrategy):
         self.min_days_down = 3
 
     def should_buy(self, stock_data: Dict, market_data: Dict, account: VirtualAccount) -> bool:
+        """
         if len(account.positions) >= self.max_positions:
             return False
 
@@ -129,6 +137,7 @@ class MeanReversionStrategy(DiverseTradingStrategy):
 
     def should_sell(self, position: VirtualPosition, current_price: int,
                     stock_data: Dict, days_held: int) -> tuple[bool, str]:
+        """
         position.update_price(current_price)
         pnl_rate = position.unrealized_pnl_rate
 
@@ -156,12 +165,14 @@ class BreakoutStrategy(DiverseTradingStrategy):
     """
 
     def __init__(self):
+        """
         super().__init__("돌파매매", "저항선 돌파 포착")
         self.max_positions = 5
         self.position_size_rate = 0.16
         self.breakout_threshold = 0.98
 
     def should_buy(self, stock_data: Dict, market_data: Dict, account: VirtualAccount) -> bool:
+        """
         if len(account.positions) >= self.max_positions:
             return False
 
@@ -188,6 +199,7 @@ class BreakoutStrategy(DiverseTradingStrategy):
 
     def should_sell(self, position: VirtualPosition, current_price: int,
                     stock_data: Dict, days_held: int) -> tuple[bool, str]:
+        """
         position.update_price(current_price)
         pnl_rate = position.unrealized_pnl_rate
 
@@ -198,7 +210,7 @@ class BreakoutStrategy(DiverseTradingStrategy):
         if highest_rate > 8.0:
             current_rate = current_price / position.average_price * 100 - 100
             if current_rate < highest_rate - 7.0:
-                return True, f"트레일링 스탑 (최고 {highest_rate:.1f}% → 현재 {current_rate:.1f}%)"
+                return True, f"트레일링 스탑 (최고 {highest_rate:.1f}% -> 현재 {current_rate:.1f}%)"
 
         if pnl_rate <= -5.0:
             return True, f"돌파 실패 손절 {pnl_rate:.1f}%"
@@ -217,6 +229,7 @@ class ValueInvestingStrategy(DiverseTradingStrategy):
     """
 
     def __init__(self):
+        """
         super().__init__("가치투자", "저평가 우량주 장기 보유")
         self.max_positions = 3
         self.position_size_rate = 0.25
@@ -225,6 +238,7 @@ class ValueInvestingStrategy(DiverseTradingStrategy):
         self.min_dividend = 2.0
 
     def should_buy(self, stock_data: Dict, market_data: Dict, account: VirtualAccount) -> bool:
+        """
         if len(account.positions) >= self.max_positions:
             return False
 
@@ -246,6 +260,7 @@ class ValueInvestingStrategy(DiverseTradingStrategy):
         if per is None and pbr is None and dividend_yield is None:
             price_change = stock_data.get('price_change_percent', 0)
             if not (2.0 <= price_change <= 5.0):
+                """
                 return False
             volume_ratio = stock_data.get('volume_ratio', 1.0)
             if volume_ratio < 1.0:
@@ -259,6 +274,7 @@ class ValueInvestingStrategy(DiverseTradingStrategy):
 
     def should_sell(self, position: VirtualPosition, current_price: int,
                     stock_data: Dict, days_held: int) -> tuple[bool, str]:
+        """
         position.update_price(current_price)
         pnl_rate = position.unrealized_pnl_rate
 
@@ -286,12 +302,14 @@ class SwingTradingStrategy(DiverseTradingStrategy):
     """
 
     def __init__(self):
+        """
         super().__init__("스윙매매", "단기 변동성 활용")
         self.max_positions = 7
         self.position_size_rate = 0.12
         self.bb_lower_threshold = 0.95
 
     def should_buy(self, stock_data: Dict, market_data: Dict, account: VirtualAccount) -> bool:
+        """
         if len(account.positions) >= self.max_positions:
             return False
 
@@ -311,6 +329,7 @@ class SwingTradingStrategy(DiverseTradingStrategy):
 
     def should_sell(self, position: VirtualPosition, current_price: int,
                     stock_data: Dict, days_held: int) -> tuple[bool, str]:
+        """
         position.update_price(current_price)
         pnl_rate = position.unrealized_pnl_rate
 
@@ -338,11 +357,13 @@ class MACDStrategy(DiverseTradingStrategy):
     """
 
     def __init__(self):
+        """
         super().__init__("MACD크로스", "MACD 시그널 추종")
         self.max_positions = 5
         self.position_size_rate = 0.17
 
     def should_buy(self, stock_data: Dict, market_data: Dict, account: VirtualAccount) -> bool:
+        """
         if len(account.positions) >= self.max_positions:
             return False
 
@@ -364,6 +385,7 @@ class MACDStrategy(DiverseTradingStrategy):
 
     def should_sell(self, position: VirtualPosition, current_price: int,
                     stock_data: Dict, days_held: int) -> tuple[bool, str]:
+        """
         position.update_price(current_price)
         pnl_rate = position.unrealized_pnl_rate
 
@@ -392,6 +414,7 @@ class ContrarianStrategy(DiverseTradingStrategy):
     """
 
     def __init__(self):
+        """
         super().__init__("역발상", "시장 감정의 반대편 베팅")
         self.max_positions = 4
         self.position_size_rate = 0.22
@@ -399,6 +422,7 @@ class ContrarianStrategy(DiverseTradingStrategy):
         self.greed_threshold = 70
 
     def should_buy(self, stock_data: Dict, market_data: Dict, account: VirtualAccount) -> bool:
+        """
         if len(account.positions) >= self.max_positions:
             return False
 
@@ -422,6 +446,7 @@ class ContrarianStrategy(DiverseTradingStrategy):
 
     def should_sell(self, position: VirtualPosition, current_price: int,
                     stock_data: Dict, days_held: int) -> tuple[bool, str]:
+        """
         position.update_price(current_price)
         pnl_rate = position.unrealized_pnl_rate
 
@@ -450,6 +475,7 @@ class SectorRotationStrategy(DiverseTradingStrategy):
     """
 
     def __init__(self):
+        """
         super().__init__("섹터순환", "경기 사이클별 섹터 선택")
         self.max_positions = 6
         self.position_size_rate = 0.15
@@ -462,6 +488,7 @@ class SectorRotationStrategy(DiverseTradingStrategy):
         }
 
     def should_buy(self, stock_data: Dict, market_data: Dict, account: VirtualAccount) -> bool:
+        """
         if len(account.positions) >= self.max_positions:
             return False
 
@@ -484,6 +511,7 @@ class SectorRotationStrategy(DiverseTradingStrategy):
 
     def should_sell(self, position: VirtualPosition, current_price: int,
                     stock_data: Dict, days_held: int) -> tuple[bool, str]:
+        """
         position.update_price(current_price)
         pnl_rate = position.unrealized_pnl_rate
 
@@ -511,6 +539,7 @@ class HotStockStrategy(DiverseTradingStrategy):
     """
 
     def __init__(self):
+        """
         super().__init__("급등추격", "당일 급등주 단타")
         self.max_positions = 8
         self.position_size_rate = 0.10
@@ -518,11 +547,13 @@ class HotStockStrategy(DiverseTradingStrategy):
         self.max_price_surge = 20.0
 
     def should_buy(self, stock_data: Dict, market_data: Dict, account: VirtualAccount) -> bool:
+        """
         if len(account.positions) >= self.max_positions:
             return False
 
         price_change = stock_data.get('price_change_percent', 0)
         if not (self.min_price_surge <= price_change <= self.max_price_surge):
+            """
             return False
 
         volume_ratio = stock_data.get('volume_ratio', 1.0)
@@ -542,6 +573,7 @@ class HotStockStrategy(DiverseTradingStrategy):
 
     def should_sell(self, position: VirtualPosition, current_price: int,
                     stock_data: Dict, days_held: int) -> tuple[bool, str]:
+        """
         position.update_price(current_price)
         pnl_rate = position.unrealized_pnl_rate
 
@@ -565,6 +597,7 @@ class DividendGrowthStrategy(DiverseTradingStrategy):
     """
 
     def __init__(self):
+        """
         super().__init__("배당성장", "배당 증가 우량주 장기 보유")
         self.max_positions = 4
         self.position_size_rate = 0.23
@@ -572,6 +605,7 @@ class DividendGrowthStrategy(DiverseTradingStrategy):
         self.min_dividend_growth = 5.0
 
     def should_buy(self, stock_data: Dict, market_data: Dict, account: VirtualAccount) -> bool:
+        """
         if len(account.positions) >= self.max_positions:
             return False
 
@@ -596,6 +630,7 @@ class DividendGrowthStrategy(DiverseTradingStrategy):
 
     def should_sell(self, position: VirtualPosition, current_price: int,
                     stock_data: Dict, days_held: int) -> tuple[bool, str]:
+        """
         position.update_price(current_price)
         pnl_rate = position.unrealized_pnl_rate
 
@@ -623,6 +658,7 @@ class InstitutionalFollowingStrategy(DiverseTradingStrategy):
     """
 
     def __init__(self):
+        """
         super().__init__("기관추종", "기관/외국인 순매수 추종")
         self.max_positions = 5
         self.position_size_rate = 0.17
@@ -630,6 +666,7 @@ class InstitutionalFollowingStrategy(DiverseTradingStrategy):
         self.min_foreign_buy = 5_000_000
 
     def should_buy(self, stock_data: Dict, market_data: Dict, account: VirtualAccount) -> bool:
+        """
         if len(account.positions) >= self.max_positions:
             return False
 
@@ -654,6 +691,7 @@ class InstitutionalFollowingStrategy(DiverseTradingStrategy):
 
     def should_sell(self, position: VirtualPosition, current_price: int,
                     stock_data: Dict, days_held: int) -> tuple[bool, str]:
+        """
         position.update_price(current_price)
         pnl_rate = position.unrealized_pnl_rate
 
@@ -683,6 +721,7 @@ class VolumeRSIStrategy(DiverseTradingStrategy):
     """
 
     def __init__(self):
+        """
         super().__init__("거래량RSI", "거래량 급증 + RSI 조합")
         self.max_positions = 6
         self.position_size_rate = 0.16
@@ -691,6 +730,7 @@ class VolumeRSIStrategy(DiverseTradingStrategy):
         self.rsi_upper_bound = 60
 
     def should_buy(self, stock_data: Dict, market_data: Dict, account: VirtualAccount) -> bool:
+        """
         if len(account.positions) >= self.max_positions:
             return False
 
@@ -708,6 +748,7 @@ class VolumeRSIStrategy(DiverseTradingStrategy):
         rsi = stock_data.get('rsi')
         if rsi is not None:
             if not (self.rsi_lower_bound <= rsi <= self.rsi_upper_bound):
+                """
                 return False
         else:
             price_change = stock_data.get('change_rate', 0)
@@ -726,6 +767,7 @@ class VolumeRSIStrategy(DiverseTradingStrategy):
 
     def should_sell(self, position: VirtualPosition, current_price: int,
                     stock_data: Dict, days_held: int) -> tuple[bool, str]:
+        """
         position.update_price(current_price)
         pnl_rate = position.unrealized_pnl_rate
 
@@ -753,7 +795,7 @@ class VolumeRSIStrategy(DiverseTradingStrategy):
 
 
 def create_all_diverse_strategies() -> list:
-    """v5.7.5: 12가지 다양한 전략 생성 (10개 → 12개 확장)"""
+    """v5.7.5: 12가지 다양한 전략 생성 (10개 -> 12개 확장)"""
     return [
         MomentumStrategy(),
         MeanReversionStrategy(),

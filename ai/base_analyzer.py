@@ -53,6 +53,7 @@ class BaseAnalyzer(ABC):
         stock_data: Dict[str, Any],
         analysis_type: str = 'comprehensive'
     ) -> Dict[str, Any]:
+        """
         종목 분석 (추상 메서드)
         
         Args:
@@ -78,6 +79,7 @@ class BaseAnalyzer(ABC):
         self,
         market_data: Dict[str, Any]
     ) -> Dict[str, Any]:
+        """
         시장 분석 (추상 메서드)
         
         Args:
@@ -98,6 +100,7 @@ class BaseAnalyzer(ABC):
         self,
         portfolio_data: Dict[str, Any]
     ) -> Dict[str, Any]:
+        """
         포트폴리오 분석 (추상 메서드)
         
         Args:
@@ -196,6 +199,7 @@ class BaseAnalyzer(ABC):
         logger.info(f"{self.name} 설정 업데이트: {key} = {value}")
     
     def __repr__(self):
+        """
         return f"<{self.__class__.__name__}(name='{self.name}', initialized={self.is_initialized})>"
 
 

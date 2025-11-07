@@ -43,6 +43,7 @@ class EnsembleAnalyzer(BaseAnalyzer):
         self,
         voting_strategy: VotingStrategy = VotingStrategy.WEIGHTED
     ):
+        """
         Initialize ensemble analyzer (Gemini only)
 
         Args:
@@ -81,6 +82,7 @@ class EnsembleAnalyzer(BaseAnalyzer):
         """
         try:
             for model_type, analyzer in self.analyzers.items():
+                """
                 if hasattr(analyzer, 'initialize'):
                     analyzer.initialize()
 
@@ -108,6 +110,7 @@ class EnsembleAnalyzer(BaseAnalyzer):
 
         tasks = []
         for model_type, analyzer in self.analyzers.items():
+            """
             task = self._analyze_with_model(model_type, analyzer, stock_data)
             tasks.append(task)
 
@@ -115,6 +118,7 @@ class EnsembleAnalyzer(BaseAnalyzer):
 
         valid_results = []
         for i, result in enumerate(results):
+            """
             if isinstance(result, Exception):
                 model_type = list(self.analyzers.keys())[i]
                 logger.error(f"{model_type.value} analysis failed: {result}")
@@ -147,6 +151,7 @@ class EnsembleAnalyzer(BaseAnalyzer):
         analyzer: BaseAnalyzer,
         stock_data: Dict[str, Any]
     ) -> Dict[str, Any]:
+        """
         Analyze stock with a specific model
         try:
             loop = asyncio.get_event_loop()
@@ -170,6 +175,7 @@ class EnsembleAnalyzer(BaseAnalyzer):
         results: List[Dict[str, Any]],
         stock_data: Dict[str, Any]
     ) -> Dict[str, Any]:
+        """
         Combine multiple model results using voting strategy
         if self.voting_strategy == VotingStrategy.MAJORITY:
             return self._majority_vote(results, stock_data)
@@ -187,6 +193,7 @@ class EnsembleAnalyzer(BaseAnalyzer):
         results: List[Dict[str, Any]],
         stock_data: Dict[str, Any]
     ) -> Dict[str, Any]:
+        """
         Simple majority voting
         signals = [r.get('signal', 'HOLD') for r in results]
 
@@ -224,6 +231,7 @@ class EnsembleAnalyzer(BaseAnalyzer):
         results: List[Dict[str, Any]],
         stock_data: Dict[str, Any]
     ) -> Dict[str, Any]:
+        """
         Confidence and performance weighted averaging
         total_weight = 0
         weighted_score = 0
@@ -288,6 +296,7 @@ class EnsembleAnalyzer(BaseAnalyzer):
         results: List[Dict[str, Any]],
         stock_data: Dict[str, Any]
     ) -> Dict[str, Any]:
+        """
         Only buy/sell if all models agree
         signals = [r.get('signal', 'HOLD') for r in results]
 
@@ -317,6 +326,7 @@ class EnsembleAnalyzer(BaseAnalyzer):
         results: List[Dict[str, Any]],
         stock_data: Dict[str, Any]
     ) -> Dict[str, Any]:
+        """
         Use the historically best performing model
         best_result = None
         best_accuracy = 0
@@ -370,6 +380,7 @@ class EnsembleAnalyzer(BaseAnalyzer):
         reasoning_parts = []
 
         for i, result in enumerate(results, 1):
+            """
             model = result.get('model', f'Model{i}')
             signal = result.get('signal', 'HOLD')
             score = result.get('score', 5)
@@ -393,6 +404,7 @@ class EnsembleAnalyzer(BaseAnalyzer):
 
         results = []
         for model_type, analyzer in self.analyzers.items():
+            """
             try:
                 result = analyzer.analyze_market(market_data)
                 result['model'] = model_type.value
@@ -427,6 +439,7 @@ class EnsembleAnalyzer(BaseAnalyzer):
         self,
         portfolio_data: Dict[str, Any]
     ) -> Dict[str, Any]:
+        """
         Analyze portfolio using ensemble
 
         Args:
@@ -434,6 +447,7 @@ class EnsembleAnalyzer(BaseAnalyzer):
 
         Returns:
             Portfolio analysis results
+        """
         if not self.analyzers:
             return {
                 'score': 5,
@@ -445,8 +459,10 @@ class EnsembleAnalyzer(BaseAnalyzer):
 
         results = []
         for model_type, analyzer in self.analyzers.items():
+            """
             try:
                 if hasattr(analyzer, 'analyze_portfolio'):
+                    """
                     result = analyzer.analyze_portfolio(portfolio_data)
                     result['model'] = model_type.value
                     results.append(result)
@@ -516,6 +532,7 @@ class EnsembleAnalyzer(BaseAnalyzer):
         was_correct: bool,
         confidence: str
     ):
+        """
         Update performance tracking for a model
 
         Args:
@@ -551,6 +568,7 @@ class EnsembleAnalyzer(BaseAnalyzer):
         """
         rankings = []
         for model, perf in self.model_performance.items():
+            """
             rankings.append({
                 'model': model.value,
                 'accuracy': round(perf['accuracy'], 3),
@@ -588,6 +606,7 @@ _analyzer_instance: Optional[EnsembleAnalyzer] = None
 def get_analyzer(
     voting_strategy: VotingStrategy = VotingStrategy.WEIGHTED
 ) -> EnsembleAnalyzer:
+    """
     Get singleton instance of EnsembleAnalyzer (Gemini only)
 
     Args:

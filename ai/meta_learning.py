@@ -1,7 +1,7 @@
 """
 Meta-Learning Engine
 Learning how to learn - adaptive strategy selection and optimization
-"""
+
 
 Features:
 - Strategy performance meta-analysis
@@ -9,6 +9,7 @@ Features:
 - Market regime adaptation
 - Learning rate scheduling
 - Transfer learning between stocks
+"""
 import json
 import numpy as np
 from typing import Dict, List, Optional, Any
@@ -60,6 +61,7 @@ class MetaLearningEngine:
         """Load meta-knowledge"""
         try:
             if self.knowledge_file.exists():
+                """
                 with open(self.knowledge_file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
                     self.meta_knowledge = [MetaKnowledge(**k) for k in data.get('knowledge', [])]
@@ -86,6 +88,7 @@ class MetaLearningEngine:
         outcome: str,
         profit: float
     ):
+        """
         Learn from trading experience
 
         Args:
@@ -113,6 +116,7 @@ class MetaLearningEngine:
         parameters: Dict[str, Any],
         outcome: str
     ):
+        """
         regime = conditions.get('regime', 'unknown')
         volatility = conditions.get('volatility', 'medium')
         pattern_id = f"{regime}_{volatility}"

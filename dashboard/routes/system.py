@@ -108,6 +108,7 @@ def get_status():
     }
 
     if _bot_instance and hasattr(_bot_instance, 'start_time'):
+        """
         uptime_seconds = (datetime.now() - _bot_instance.start_time).total_seconds()
         hours = int(uptime_seconds // 3600)
         minutes = int((uptime_seconds % 3600) // 60)
@@ -118,6 +119,7 @@ def get_status():
         'description': 'Normal trading conditions'
     }
     if _bot_instance and hasattr(_bot_instance, 'dynamic_risk_manager'):
+        """
         try:
             risk_manager = _bot_instance.dynamic_risk_manager
             risk_info['mode'] = risk_manager.current_mode.value if hasattr(risk_manager.current_mode, 'value') else str(risk_manager.current_mode)
@@ -132,6 +134,7 @@ def get_status():
     }
 
     if _bot_instance and hasattr(_bot_instance, 'scan_progress'):
+        """
         try:
             scan_progress = _bot_instance.scan_progress
             total_candidates = len(scan_progress.get('top_candidates', []))
@@ -200,9 +203,11 @@ def get_system_connections():
             return jsonify(connections)
 
         if hasattr(_bot_instance, 'client'):
+            """
             connections['rest_api'] = True
 
         if _bot_instance and hasattr(_bot_instance, 'websocket_manager'):
+            """
             try:
                 ws_manager = _bot_instance.websocket_manager
                 if ws_manager is not None:
@@ -212,6 +217,7 @@ def get_system_connections():
             except:
                 pass
         elif _bot_instance and hasattr(_bot_instance, 'websocket_client'):
+            """
             try:
                 ws_client = _bot_instance.websocket_client
                 if ws_client is None:
@@ -222,6 +228,7 @@ def get_system_connections():
                 pass
 
         if _bot_instance and hasattr(_bot_instance, 'analyzer'):
+            """
             try:
                 analyzer = _bot_instance.analyzer
                 if analyzer is not None:
@@ -232,6 +239,7 @@ def get_system_connections():
                     is_gemini = 'Gemini' in analyzer_type or 'gemini' in analyzer_module.lower()
 
                     if analyzer_type == 'EnsembleAnalyzer' and hasattr(analyzer, 'analyzers'):
+                        """
                         from ai.ensemble_analyzer import AIModel
                         is_gemini = AIModel.GEMINI in analyzer.analyzers
 
@@ -270,6 +278,7 @@ def get_candidates():
             return jsonify([])
 
         if not hasattr(_bot_instance, 'ai_approved_candidates'):
+            """
             print("Error: bot_instance has no ai_approved_candidates")
             return jsonify([])
 
@@ -317,6 +326,7 @@ def get_scan_progress():
     """Get real-time scan progress"""
     try:
         if _bot_instance and hasattr(_bot_instance, 'scan_progress'):
+            """
             return jsonify(_bot_instance.scan_progress)
         return jsonify({
             'current_strategy': '',
@@ -347,6 +357,7 @@ def get_activities():
 
     try:
         if _bot_instance and hasattr(_bot_instance, 'monitor'):
+            """
             from utils.activity_monitor import get_monitor
             monitor = get_monitor()
             recent_activities = monitor.get_recent_activities(limit=50)
@@ -386,6 +397,7 @@ def get_trading_activity():
         activities = []
 
         if _bot_instance and hasattr(_bot_instance, 'monitor'):
+            """
             from utils.activity_monitor import get_monitor
             monitor = get_monitor()
             recent_activities = monitor.get_recent_activities(limit=50)
@@ -429,6 +441,7 @@ def update_features_config():
     try:
         new_config = request.json
         if save_features_config(new_config):
+            """
             return jsonify({'success': True, 'message': 'Configuration updated'})
         else:
             return jsonify({'success': False, 'message': 'Failed to save configuration'}), 500
@@ -455,6 +468,7 @@ def update_feature_toggle(feature_path: str):
         current[keys[-1]] = enabled
 
         if save_features_config(config):
+            """
             return jsonify({'success': True, 'message': f'Feature {feature_path} updated'})
         else:
             return jsonify({'success': False, 'message': 'Failed to save'}), 500
@@ -485,6 +499,7 @@ def save_settings():
         new_settings = request.json
 
         for category, values in new_settings.items():
+            """
             if isinstance(values, dict):
                 _unified_settings.update_category(category, values, save_immediately=False)
 
@@ -690,13 +705,16 @@ def get_websocket_subscriptions():
         }
 
         if _bot_instance and hasattr(_bot_instance, 'websocket_manager'):
+            """
             ws_manager = _bot_instance.websocket_manager
             if ws_manager and hasattr(ws_manager, 'get_subscription_info'):
+                """
                 try:
                     info = ws_manager.get_subscription_info()
                     subs = info.get('subscriptions', {})
 
                     for grp_no, sub_info in subs.items():
+                        """
                         stock_codes = sub_info.get('stock_codes', [])
                         types = sub_info.get('types', [])
 
@@ -719,6 +737,7 @@ def get_websocket_subscriptions():
                     print(f"웹소켓 구독 정보 조회 오류: {e}")
 
         if _bot_instance and hasattr(_bot_instance, 'account_api'):
+            """
             try:
                 holdings = _bot_instance.account_api.get_holdings()
                 if holdings:
@@ -726,6 +745,7 @@ def get_websocket_subscriptions():
                     for holding in holdings:
                         stock_code = str(holding.get('stk_cd', '')).strip()
                         if stock_code.startswith('A'):
+                            """
                             stock_code = stock_code[1:]
 
                         if stock_code and stock_code not in existing_codes:

@@ -135,6 +135,7 @@ class MomentumStrategy(BaseStrategy):
             매수 여부
         """
         if self.has_position(stock_code):
+            """
             logger.debug(f"{stock_code} 이미 보유 중")
             return False
         
@@ -184,6 +185,7 @@ class MomentumStrategy(BaseStrategy):
         current_price: int,
         available_cash: int
     ) -> int:
+        """
         포지션 크기 계산 (공통 유틸리티 사용)
 
         Args:
@@ -193,6 +195,7 @@ class MomentumStrategy(BaseStrategy):
 
         Returns:
             매수 수량
+        """
         if current_price == 0:
             return 0
 

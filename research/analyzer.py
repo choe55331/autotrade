@@ -126,6 +126,7 @@ class Analyzer:
         price: int = None,
         account_number: str = None
     ) -> int:
+        """
         매수 가능 수량 계산
         
         Args:
@@ -135,6 +136,7 @@ class Analyzer:
         
         Returns:
             매수 가능 수량 (주)
+        """
         available_cash = self.get_available_cash(account_number)
         
         if available_cash == 0:
@@ -161,6 +163,7 @@ class Analyzer:
         quantity: int,
         order_type: str = 'buy'
     ) -> Dict[str, int]:
+        """
         주문 금액 계산 (수수료 포함)
         
         Args:
@@ -176,6 +179,7 @@ class Analyzer:
                 'tax': 3000,
                 'total_amount': 1003150
             }
+        """
         order_amount = price * quantity
         commission = int(order_amount * 0.00015)
         
@@ -201,6 +205,7 @@ class Analyzer:
         self,
         daily_data: List[Dict[str, Any]]
     ) -> Dict[str, Any]:
+        """
         기술적 지표 계산
         
         Args:
@@ -216,6 +221,7 @@ class Analyzer:
                 'volume_ma5': 10000000,
                 'price_position': 0.85,
             }
+        """
         if not daily_data or len(daily_data) == 0:
             return {}
         
@@ -281,6 +287,7 @@ class Analyzer:
         
         changes = []
         for i in range(period):
+            """
             if i + 1 < len(closes):
                 change = closes[i] - closes[i + 1]
                 changes.append(change)
@@ -363,6 +370,7 @@ class Analyzer:
 
         else:
             if time(8, 0) <= current_time < time(8, 50):
+                """
                 is_trading_hours = True
                 market_type = 'NXT 프리마켓'
                 market_status = 'NXT 프리마켓 운영 중 (지정가만)'
@@ -370,12 +378,14 @@ class Analyzer:
                 order_type_limit = 'limit_only'
 
             elif time(8, 50) <= current_time < time(9, 0):
+                """
                 is_trading_hours = False
                 market_type = 'NXT 프리마켓 종료'
                 market_status = 'NXT 메인마켓 시작 대기'
                 is_test_mode = False
 
             elif time(9, 0) <= current_time < time(15, 20):
+                """
                 is_trading_hours = True
                 market_type = 'NXT 메인마켓'
                 market_status = 'NXT 메인마켓 운영 중'
@@ -383,6 +393,7 @@ class Analyzer:
                 order_type_limit = 'all'
 
             elif time(15, 20) <= current_time < time(15, 30):
+                """
                 is_trading_hours = True
                 market_type = 'KRX 종가 결정'
                 market_status = 'KRX 종가 결정 시간 (취소만 가능)'
@@ -390,12 +401,14 @@ class Analyzer:
                 can_cancel_only = True
 
             elif time(15, 30) <= current_time < time(15, 40):
+                """
                 is_trading_hours = False
                 market_type = 'NXT 일시 중단'
                 market_status = 'NXT 애프터마켓 시작 대기'
                 is_test_mode = False
 
             elif time(15, 40) <= current_time < time(20, 0):
+                """
                 is_trading_hours = True
                 market_type = 'NXT 애프터마켓'
                 market_status = 'NXT 애프터마켓 운영 중 (지정가만)'
@@ -407,8 +420,10 @@ class Analyzer:
                 is_test_mode = True
                 market_type = '테스트 모드'
                 if current_time < time(8, 0):
+                    """
                     market_status = '장 시작 전 (종가 테스트 모드)'
                 elif current_time >= time(20, 0):
+                    """
                     market_status = '장 종료 후 (종가 테스트 모드)'
 
         next_open = self._calculate_next_market_open(now)
@@ -432,6 +447,7 @@ class Analyzer:
         weekday = now.weekday()
 
         if weekday < 5 and current_time < time(8, 0):
+            """
             return datetime.combine(now.date(), time(8, 0))
 
         if weekday < 4:
@@ -450,6 +466,7 @@ class Analyzer:
         self,
         account_number: str = None
     ) -> Dict[str, Any]:
+        """
         포트폴리오 분석
         
         Args:
@@ -466,6 +483,7 @@ class Analyzer:
                 'holdings_count': 5,
                 'holdings': [보유 종목 리스트]
             }
+        """
         deposit = self.fetcher.get_deposit(account_number)
         cash = int(deposit.get('deposit_available', 0)) if deposit else 0
         

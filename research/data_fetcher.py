@@ -35,7 +35,7 @@ class DataFetcher:
     """
     키움증권 REST API 데이터 수집 클래스
 
-    ⚠️ 중요: DOSK API ID는 키움증권 내부 API ID입니다
+    WARNING: 중요: DOSK API ID는 키움증권 내부 API ID입니다
     - DOSK_XXXX는 한국투자증권이 아님!
     - 실제 요청은 키움증권 API 서버로 전송됨 (/api/dostk/...)
     - 모두 키움증권 REST API입니다
@@ -175,7 +175,7 @@ class DataFetcher:
         """
         종목 현재가 조회 (시간대별 자동 처리)
 
-        ✅ v5.16: NXT 시간대 자동 감지 및 _NX 접미사 처리
+        [OK] v5.16: NXT 시간대 자동 감지 및 _NX 접미사 처리
         - 08:00-09:00, 15:30-20:00: NXT 현재가 (_NX 접미사 사용)
         - 09:00-15:30: KRX 현재가 (기본 코드 사용)
 
@@ -284,6 +284,7 @@ class DataFetcher:
         start_date: str = None,
         end_date: str = None
     ) -> List[Dict[str, Any]]:
+        """
         일봉 데이터 조회 (검증된 API 사용: ka10081)
 
         Args:
@@ -304,6 +305,7 @@ class DataFetcher:
                 },
                 ...
             ]
+        """
         if not end_date:
             end_date = datetime.now().strftime('%Y%m%d')
 
@@ -325,19 +327,19 @@ class DataFetcher:
             if response:
                 return_code = response.get('return_code')
                 return_msg = response.get('return_msg', 'No message')
-                logger.info(f"📊 Return code: {return_code}")
-                logger.info(f"📊 Return message: {return_msg}")
+                logger.info(f" Return code: {return_code}")
+                logger.info(f" Return message: {return_msg}")
                 logger.info(f"📦 Response keys: {list(response.keys())}")
 
                 if return_code == 0:
                     daily_data = response.get('stk_dt_pole_chart_qry', [])
-                    logger.info(f"✅ {stock_code} 일봉 데이터 {len(daily_data)}개 조회 완료")
+                    logger.info(f"[OK] {stock_code} 일봉 데이터 {len(daily_data)}개 조회 완료")
 
                     if daily_data and len(daily_data) > 0:
-                        logger.info(f"📊 Sample data (first item): {daily_data[0]}")
+                        logger.info(f" Sample data (first item): {daily_data[0]}")
                     else:
-                        logger.warning(f"⚠️ stk_dt_pole_chart_qry exists but is empty or None: {daily_data}")
-                        logger.warning(f"⚠️ Full response: {response}")
+                        logger.warning(f"WARNING: stk_dt_pole_chart_qry exists but is empty or None: {daily_data}")
+                        logger.warning(f"WARNING: Full response: {response}")
 
                     standardized_data = []
                     for item in daily_data:
@@ -351,20 +353,20 @@ class DataFetcher:
                                 'volume': int(item.get('trde_qty', 0))
                             })
                         except (ValueError, TypeError) as e:
-                            logger.warning(f"⚠️ Error parsing data item: {e}, item={item}")
+                            logger.warning(f"WARNING: Error parsing data item: {e}, item={item}")
                             continue
 
                     return standardized_data
                 else:
-                    logger.error(f"❌ 일봉 조회 실패 (return_code={return_code}): {return_msg}")
-                    logger.error(f"❌ Full response: {response}")
+                    logger.error(f"[ERROR] 일봉 조회 실패 (return_code={return_code}): {return_msg}")
+                    logger.error(f"[ERROR] Full response: {response}")
                     return []
             else:
-                logger.error(f"❌ API 응답 없음 (response is None)")
+                logger.error(f"[ERROR] API 응답 없음 (response is None)")
                 return []
 
         except Exception as e:
-            logger.error(f"❌ 일봉 조회 중 예외 발생: {e}")
+            logger.error(f"[ERROR] 일봉 조회 중 예외 발생: {e}")
             import traceback
             traceback.print_exc()
             return []
@@ -374,6 +376,7 @@ class DataFetcher:
         stock_code: str,
         minute_type: str = '1'
     ) -> List[Dict[str, Any]]:
+        """
         분봉 데이터 조회 (과거 데이터 포함, 검증된 API 사용: ka10080)
 
         Args:
@@ -382,6 +385,7 @@ class DataFetcher:
 
         Returns:
             분봉 데이터 리스트
+        """
         base_dt = datetime.now().strftime('%Y%m%d')
 
         logger.info(f"📞 Calling ka10080 API for {stock_code} (minute_type: {minute_type}, base_dt: {base_dt})")
@@ -403,19 +407,19 @@ class DataFetcher:
             if response:
                 return_code = response.get('return_code')
                 return_msg = response.get('return_msg', 'No message')
-                logger.info(f"📊 Return code: {return_code}")
-                logger.info(f"📊 Return message: {return_msg}")
+                logger.info(f" Return code: {return_code}")
+                logger.info(f" Return message: {return_msg}")
                 logger.info(f"📦 Response keys: {list(response.keys())}")
 
                 if return_code == 0:
                     minute_data = response.get('stk_dt_pole_chart_qry', [])
-                    logger.info(f"✅ {stock_code} {minute_type}분봉 데이터 {len(minute_data)}개 조회 완료")
+                    logger.info(f"[OK] {stock_code} {minute_type}분봉 데이터 {len(minute_data)}개 조회 완료")
 
                     if minute_data and len(minute_data) > 0:
-                        logger.info(f"📊 Sample data (first item): {minute_data[0]}")
+                        logger.info(f" Sample data (first item): {minute_data[0]}")
                     else:
-                        logger.warning(f"⚠️ stk_dt_pole_chart_qry exists but is empty or None: {minute_data}")
-                        logger.warning(f"⚠️ Full response: {response}")
+                        logger.warning(f"WARNING: stk_dt_pole_chart_qry exists but is empty or None: {minute_data}")
+                        logger.warning(f"WARNING: Full response: {response}")
 
                     converted_data = []
                     for item in minute_data:
@@ -430,20 +434,20 @@ class DataFetcher:
                                 'volume': int(item.get('trde_qty', 0))
                             })
                         except (ValueError, TypeError) as e:
-                            logger.warning(f"⚠️ Error parsing data item: {e}, item={item}")
+                            logger.warning(f"WARNING: Error parsing data item: {e}, item={item}")
                             continue
 
                     return converted_data
                 else:
-                    logger.error(f"❌ 분봉 조회 실패 (return_code={return_code}): {return_msg}")
-                    logger.error(f"❌ Full response: {response}")
+                    logger.error(f"[ERROR] 분봉 조회 실패 (return_code={return_code}): {return_msg}")
+                    logger.error(f"[ERROR] Full response: {response}")
                     return []
             else:
-                logger.error(f"❌ API 응답 없음 (response is None)")
+                logger.error(f"[ERROR] API 응답 없음 (response is None)")
                 return []
 
         except Exception as e:
-            logger.error(f"❌ 분봉 조회 중 예외 발생: {e}")
+            logger.error(f"[ERROR] 분봉 조회 중 예외 발생: {e}")
             import traceback
             traceback.print_exc()
             return []
@@ -490,6 +494,7 @@ class DataFetcher:
         market: str = 'ALL',
         limit: int = 20
     ) -> List[Dict[str, Any]]:
+        """
         거래량 순위 조회
 
         Args:
@@ -498,6 +503,7 @@ class DataFetcher:
 
         Returns:
             거래량 순위 리스트
+        """
         try:
             from api.market import MarketAPI
             market_api = MarketAPI(self.client)
@@ -514,6 +520,7 @@ class DataFetcher:
         sort: str = 'rise',
         limit: int = 20
     ) -> List[Dict[str, Any]]:
+        """
         등락률 순위 조회
 
         Args:
@@ -523,6 +530,7 @@ class DataFetcher:
 
         Returns:
             등락률 순위 리스트
+        """
         try:
             from api.market import MarketAPI
             market_api = MarketAPI(self.client)
@@ -538,6 +546,7 @@ class DataFetcher:
         market: str = 'ALL',
         limit: int = 20
     ) -> List[Dict[str, Any]]:
+        """
         거래대금 순위 조회
 
         Args:
@@ -546,6 +555,7 @@ class DataFetcher:
 
         Returns:
             거래대금 순위 리스트
+        """
         try:
             from api.market import MarketAPI
             market_api = MarketAPI(self.client)
@@ -577,6 +587,7 @@ class DataFetcher:
         stock_code: str,
         date: str = None
     ) -> Optional[Dict[str, Any]]:
+        """
         투자자별 매매 동향 조회 (외국인, 기관)
 
         Args:
@@ -591,6 +602,7 @@ class DataFetcher:
                 'individual_net': -15000,
                 'foreign_hold_rate': 52.5
             }
+        """
         if not date:
             date = get_last_trading_date()
 
@@ -620,6 +632,7 @@ class DataFetcher:
         date: str = None,
         limit: int = 20
     ) -> List[Dict[str, Any]]:
+        """
         외국인 순매수 상위 종목 조회 (v5.9 NEW)
 
         Args:
@@ -639,6 +652,7 @@ class DataFetcher:
                 },
                 ...
             ]
+        """
         try:
             from api.market import MarketAPI
             market_api = MarketAPI(self.client)
@@ -662,6 +676,7 @@ class DataFetcher:
         date: str = None,
         limit: int = 20
     ) -> List[Dict[str, Any]]:
+        """
         외국인 순매도 상위 종목 조회 (v5.9 NEW)
 
         Args:
@@ -672,6 +687,7 @@ class DataFetcher:
 
         Returns:
             외국인 순매도 상위 종목 리스트
+        """
         try:
             from api.market import MarketAPI
             market_api = MarketAPI(self.client)
@@ -695,6 +711,7 @@ class DataFetcher:
         date: str = None,
         limit: int = 20
     ) -> List[Dict[str, Any]]:
+        """
         기관 순매수 상위 종목 조회 (v5.9 NEW)
 
         Args:
@@ -705,6 +722,7 @@ class DataFetcher:
 
         Returns:
             기관 순매수 상위 종목 리스트
+        """
         try:
             from api.market import MarketAPI
             market_api = MarketAPI(self.client)
@@ -728,6 +746,7 @@ class DataFetcher:
         date: str = None,
         limit: int = 20
     ) -> List[Dict[str, Any]]:
+        """
         기관 순매도 상위 종목 조회 (v5.9 NEW)
 
         Args:
@@ -738,6 +757,7 @@ class DataFetcher:
 
         Returns:
             기관 순매도 상위 종목 리스트
+        """
         try:
             from api.market import MarketAPI
             market_api = MarketAPI(self.client)

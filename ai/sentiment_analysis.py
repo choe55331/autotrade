@@ -73,6 +73,7 @@ class NewsSentimentAnalyzer:
     """
 
     def __init__(self):
+        """
         self.positive_keywords = {
             '상승', '증가', '호재', '성장', '긍정', '개선', '상향', '확대',
             '급등', '강세', '최고', '최대', '수익', '흑자', '이익', '실적',
@@ -181,6 +182,7 @@ class SocialMediaAnalyzer:
     """
 
     def __init__(self):
+        """
         self.post_cache: Dict[str, List[SocialMediaPost]] = {}
 
     def analyze_social(self, stock_code: str, hours_back: int = 24) -> Dict[str, Any]:
@@ -244,8 +246,8 @@ class SocialMediaAnalyzer:
 
     def _calculate_post_sentiment(self, text: str) -> float:
         """Calculate sentiment from post"""
-        positive_emojis = {'🚀', '📈', '💰', '🔥', '💪', '👍', '✅'}
-        negative_emojis = {'📉', '💩', '😢', '😭', '❌', '👎'}
+        positive_emojis = {'🚀', '', '', '', '💪', '👍', '[OK]'}
+        negative_emojis = {'', '💩', '😢', '😭', '[ERROR]', '👎'}
 
         pos_count = sum(text.count(emoji) for emoji in positive_emojis)
         neg_count = sum(text.count(emoji) for emoji in negative_emojis)
@@ -288,6 +290,7 @@ class SentimentAnalysisManager:
     """
 
     def __init__(self):
+        """
         self.news_analyzer = NewsSentimentAnalyzer()
         self.social_analyzer = SocialMediaAnalyzer()
         self.sentiment_history: Dict[str, List[float]] = {}
@@ -435,4 +438,4 @@ if __name__ == '__main__':
     for alert in alerts:
         print(f"  - [{alert['severity']}] {alert['message']}")
 
-    print("\n✅ Sentiment analysis ready")
+    print("\n[OK] Sentiment analysis ready")

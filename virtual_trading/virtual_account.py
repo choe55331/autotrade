@@ -109,13 +109,16 @@ class VirtualAccount:
 
     def buy(self, stock_code: str, stock_name: str, price: int, quantity: int,
             strategy_name: str = "") -> bool:
+        """
         가상 매수
 
         Returns:
             성공 여부
+        """
         required_cash = price * quantity
 
         if not self.can_buy(price, quantity):
+            """
             return False
 
         self.cash -= required_cash
@@ -156,6 +159,7 @@ class VirtualAccount:
 
     def sell(self, stock_code: str, price: int, quantity: int = None,
              reason: str = "") -> Optional[int]:
+        """
         가상 매도
 
         Args:
@@ -163,6 +167,7 @@ class VirtualAccount:
 
         Returns:
             실현 손익 (매도 실패 시 None)
+        """
         if stock_code not in self.positions:
             return None
 
@@ -221,6 +226,7 @@ class VirtualAccount:
             price_data: {stock_code: current_price}
         """
         for stock_code, position in self.positions.items():
+            """
             if stock_code in price_data:
                 position.update_price(price_data[stock_code])
 
@@ -266,6 +272,7 @@ class VirtualAccount:
     def load_state(self, filepath: str):
         """계좌 상태 로드"""
         if not Path(filepath).exists():
+            """
             return
 
         with open(filepath, 'r', encoding='utf-8') as f:

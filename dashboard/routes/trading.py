@@ -45,6 +45,7 @@ def set_control_status(enabled: bool) -> bool:
 def start_trading():
     """Start trading"""
     if set_control_status(True):
+        """
         if _socketio:
             _socketio.emit('trading_status', {'enabled': True})
         return jsonify({'success': True, 'message': 'Trading started'})
@@ -55,6 +56,7 @@ def start_trading():
 def stop_trading():
     """Stop trading"""
     if set_control_status(False):
+        """
         if _socketio:
             _socketio.emit('trading_status', {'enabled': False})
         return jsonify({'success': True, 'message': 'Trading stopped'})
@@ -157,6 +159,7 @@ def get_virtual_trading_status():
     """Get virtual trading status and performance"""
     try:
         if not _bot_instance or not hasattr(_bot_instance, 'virtual_trader'):
+            """
             return jsonify({
                 'success': False,
                 'message': 'Virtual trading not initialized',
@@ -191,6 +194,7 @@ def get_virtual_trading_account(strategy_name: str):
     """Get virtual trading account details for specific strategy"""
     try:
         if not _bot_instance or not hasattr(_bot_instance, 'virtual_trader'):
+            """
             return jsonify({'success': False, 'message': 'Virtual trading not initialized'})
 
         virtual_trader = _bot_instance.virtual_trader
@@ -205,6 +209,7 @@ def get_virtual_trading_account(strategy_name: str):
 
         positions = []
         for stock_code, position in account.positions.items():
+            """
             positions.append(position.to_dict())
 
         return jsonify({
@@ -223,6 +228,7 @@ def get_virtual_trading_trades():
     """Get virtual trading trade history"""
     try:
         if not _bot_instance or not hasattr(_bot_instance, 'trade_logger'):
+            """
             return jsonify({'success': False, 'message': 'Trade logger not initialized'})
 
         trade_logger = _bot_instance.trade_logger
@@ -251,6 +257,7 @@ def get_virtual_trades():
     """가상매매 전략별 거래 기록 조회"""
     try:
         if not _bot_instance or not hasattr(_bot_instance, 'virtual_trader'):
+            """
             return jsonify({
                 'success': False,
                 'message': '가상매매 미활성화'
@@ -260,6 +267,7 @@ def get_virtual_trades():
         trades_by_strategy = {}
 
         for strategy_name, account in virtual_trader.accounts.items():
+            """
             trades = account.trade_history[-50:] if account.trade_history else []
 
             trades = list(reversed(trades))
@@ -303,6 +311,7 @@ def run_backtest():
         historical_data = []
         base_price = 73000
         for i in range(100):
+            """
             price_change = np.random.uniform(-0.03, 0.03)
             close_price = base_price * (1 + price_change)
 
@@ -437,7 +446,7 @@ def emergency_stop():
             
             set_control_status(False)
             
-            logger.warning("⚠️ Emergency stop triggered")
+            logger.warning("WARNING: Emergency stop triggered")
             return jsonify({
                 'success': True,
                 'message': '긴급 정지 완료'
@@ -460,9 +469,11 @@ def sell_all_positions():
             return jsonify({'success': False, 'error': 'Bot instance not available'})
         
         if not hasattr(_bot_instance, 'trading_api'):
+            """
             return jsonify({'success': False, 'error': 'Trading API not available'})
         
         if hasattr(_bot_instance, 'account_api'):
+            """
             holdings = _bot_instance.account_api.get_holdings(market_type="KRX+NXT")
             
             if not holdings:
@@ -490,7 +501,7 @@ def sell_all_positions():
                     except Exception as e:
                         logger.error(f"Failed to sell {stock_code}: {e}")
             
-            logger.warning(f"⚠️ Sell all triggered: {sell_count} orders placed")
+            logger.warning(f"WARNING: Sell all triggered: {sell_count} orders placed")
             return jsonify({
                 'success': True,
                 'count': sell_count,
@@ -512,6 +523,7 @@ def pause_trading():
         
         current_status = {}
         if control_file.exists():
+            """
             with open(control_file, 'r', encoding='utf-8') as f:
                 current_status = json.load(f)
         
@@ -575,12 +587,14 @@ def quick_buy():
             return jsonify({'success': False, 'error': '봇 인스턴스가 연결되지 않았습니다'}), 503
 
         if hasattr(_bot_instance, 'market_status') and _bot_instance.market_status.get('is_test_mode'):
+            """
             return jsonify({
                 'success': False,
                 'error': '테스트 모드에서는 실제 주문을 실행할 수 없습니다'
             }), 403
 
         if hasattr(_bot_instance, 'portfolio_manager'):
+            """
             position_size = _bot_instance.portfolio_manager.calculate_position_size(price)
             quantity = int(position_size / price)
         else:
@@ -590,6 +604,7 @@ def quick_buy():
             return jsonify({'success': False, 'error': '매수 수량이 0입니다'}), 400
 
         if hasattr(_bot_instance, 'order_api'):
+            """
             order_response = _bot_instance.order_api.buy(
                 stock_code=stock_code,
                 quantity=quantity,
@@ -598,7 +613,7 @@ def quick_buy():
             )
 
             if order_response and order_response.get('status') == 'ordered':
-                logger.info(f"✅ Quick buy success: {stock_name}({stock_code}) {quantity}주 @ {price:,}원")
+                logger.info(f"[OK] Quick buy success: {stock_name}({stock_code}) {quantity}주 @ {price:,}원")
 
                 if _socketio:
                     _socketio.emit('trade_executed', {
@@ -619,7 +634,7 @@ def quick_buy():
                 })
             else:
                 error_msg = order_response.get('error', '알 수 없는 오류') if order_response else '주문 응답 없음'
-                logger.error(f"❌ Quick buy failed: {error_msg}")
+                logger.error(f"[ERROR] Quick buy failed: {error_msg}")
                 return jsonify({'success': False, 'error': error_msg}), 500
         else:
             return jsonify({'success': False, 'error': 'order_api가 연결되지 않았습니다'}), 503

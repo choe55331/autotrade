@@ -302,6 +302,7 @@ class AdvancedPortfolioOptimizer:
 
         allocations = []
         for sector, data in sector_data.items():
+            """
             weight = (data['value'] / total_value * 100) if total_value > 0 else 0
             avg_return = np.mean(data['returns']) if data['returns'] else 0
 
@@ -482,6 +483,7 @@ class AdvancedPortfolioOptimizer:
         best_weights = weights.copy()
 
         for _ in range(num_iterations):
+            """
             portfolio_return = np.dot(weights, expected_returns)
             portfolio_variance = np.dot(weights, np.dot(cov_matrix, weights))
             portfolio_volatility = np.sqrt(portfolio_variance)
@@ -492,6 +494,7 @@ class AdvancedPortfolioOptimizer:
                 best_weights = weights.copy()
 
             for i in range(num_stocks):
+                """
                 test_weights = weights.copy()
                 test_weights[i] += 0.001
                 test_weights = test_weights / np.sum(test_weights)
@@ -541,6 +544,7 @@ class AdvancedPortfolioOptimizer:
         weights = np.ones(num_stocks) / num_stocks
 
         for _ in range(100):
+            """
             portfolio_vol = np.sqrt(np.dot(weights, np.dot(cov_matrix, weights)))
             marginal_risk = np.dot(cov_matrix, weights) / (portfolio_vol + 1e-10)
             risk_contribution = weights * marginal_risk
@@ -587,6 +591,7 @@ class AdvancedPortfolioOptimizer:
         returns_dict = {}
 
         for stock_code, history in price_histories.items():
+            """
             if len(history) < 20:
                 logger.warning(f"Insufficient data for {stock_code}: {len(history)}")
                 continue
@@ -637,7 +642,7 @@ class AdvancedPortfolioOptimizer:
                 suggestions.append(OptimizationSuggestion(
                     type='reduce',
                     priority='high',
-                    title='⚠️ Concentration Risk: Largest position too big',
+                    title='WARNING: Concentration Risk: Largest position too big',
                     description=f'Largest position accounts for {metrics.largest_position_weight:.1f}% of portfolio',
                     action='Reduce largest position to below 25%',
                     impact='Risk reduction, improved stability'
@@ -659,7 +664,7 @@ class AdvancedPortfolioOptimizer:
             suggestions.append(OptimizationSuggestion(
                 type='add',
                 priority='high',
-                title='📈 Insufficient Diversification',
+                title=' Insufficient Diversification',
                 description=f'Diversification score: {metrics.diversification_score:.0f}/100 (Low)',
                 action='Add 3-5 positions to improve diversification',
                 impact='Risk reduction, return stability'
@@ -679,7 +684,7 @@ class AdvancedPortfolioOptimizer:
             suggestions.append(OptimizationSuggestion(
                 type='maintain',
                 priority='low',
-                title='✅ Excellent Portfolio Construction',
+                title='[OK] Excellent Portfolio Construction',
                 description=f'Diversification: {metrics.diversification_score:.0f}/100, Low concentration risk',
                 action='Maintain current portfolio structure',
                 impact='Stable risk-adjusted returns'

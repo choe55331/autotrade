@@ -32,6 +32,7 @@ class ThemeAnalyzer:
         limit: int = 10,
         min_profit_rate: float = 5.0
     ) -> List[Dict[str, Any]]:
+        """
         핫 테마 발굴
         
         Args:
@@ -40,6 +41,7 @@ class ThemeAnalyzer:
         
         Returns:
             핫 테마 리스트
+        """
         try:
             themes = self.theme_api.get_top_themes(limit=limit * 2)
             
@@ -72,6 +74,7 @@ class ThemeAnalyzer:
         theme_code: str,
         theme_name: str = ''
     ) -> Dict[str, Any]:
+        """
         테마 구성종목 분석
         
         Args:
@@ -80,6 +83,7 @@ class ThemeAnalyzer:
         
         Returns:
             분석 결과
+        """
         try:
             theme_data = self.theme_api.get_theme_stocks(theme_code)
             stocks = theme_data.get('stocks', [])
@@ -126,6 +130,7 @@ class ThemeAnalyzer:
         min_stock_change: float = 2.0,
         limit: int = 5
     ) -> List[Dict[str, Any]]:
+        """
         테마 기반 투자 후보 종목 추출
         
         Args:
@@ -135,6 +140,7 @@ class ThemeAnalyzer:
         
         Returns:
             투자 후보 종목 리스트
+        """
         candidates = []
         
         try:
@@ -150,6 +156,7 @@ class ThemeAnalyzer:
                     continue
                 
                 for stock in analysis.get('top_rising_stocks', []):
+                    """
                     change_rate = float(stock.get('flu_rt', '0'))
                     
                     if change_rate >= min_stock_change:

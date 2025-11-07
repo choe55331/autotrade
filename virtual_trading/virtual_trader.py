@@ -1,10 +1,11 @@
 """
 virtual_trading/virtual_trader.py
 가상 트레이더 - 여러 전략 동시 테스트
-"""
 
-v5.7.5: 12가지 다양한 실전 매매 전략 적용 (10개 → 12개 확장)
+
+v5.7.5: 12가지 다양한 실전 매매 전략 적용 (10개 -> 12개 확장)
 v6.0: Data enrichment 추가 - 모든 전략이 필요로 하는 데이터 자동 보강
+"""
 from typing import Dict, List, Optional, Callable
 from datetime import datetime, timedelta
 import logging
@@ -25,6 +26,7 @@ class TradingStrategy:
     """매수/매도 전략 정의"""
 
     def __init__(self, name: str, description: str = ""):
+        """
         self.name = name
         self.description = description
 
@@ -56,6 +58,7 @@ class TradingStrategy:
 
         stock_code = stock_data.get('stock_code')
         if account.has_position(stock_code):
+            """
             return False
 
         return True
@@ -70,6 +73,7 @@ class TradingStrategy:
 
     def should_sell(self, position: VirtualPosition, current_price: int,
                     days_held: int) -> tuple[bool, str]:
+        """
         매도 조건 확인
 
         Returns:
@@ -108,13 +112,13 @@ class VirtualTrader:
 
         self._create_default_strategies()
 
-        logger.info(f"💰 가상 트레이더 초기화 완료 (계좌당 {initial_cash:,}원, Data Enricher 활성화)")
+        logger.info(f" 가상 트레이더 초기화 완료 (계좌당 {initial_cash:,}원, Data Enricher 활성화)")
 
     def _create_default_strategies(self):
         """
         기본 전략들 생성
 
-        v5.7.5: 12가지 다양한 실전 매매 전략 적용 (10개 → 12개 확장)
+        v5.7.5: 12가지 다양한 실전 매매 전략 적용 (10개 -> 12개 확장)
         - 모멘텀추세, 평균회귀, 돌파매매, 가치투자, 스윙매매
         - MACD크로스, 역발상, 섹터순환, 급등추격, 배당성장
         - 기관추종, 거래량RSI (v5.7.5 신규)
@@ -124,10 +128,11 @@ class VirtualTrader:
         for strategy in diverse_strategies:
             self.add_diverse_strategy(strategy)
 
-        logger.info(f"✅ 12가지 다양한 전략 생성 완료 (v5.7.5)")
+        logger.info(f"[OK] 12가지 다양한 전략 생성 완료 (v5.7.5)")
 
         descriptions = get_strategy_descriptions()
         for name, desc in descriptions.items():
+            """
             logger.info(f"  - {name}: {desc}")
 
     def add_strategy(self, strategy: TradingStrategy):
@@ -137,7 +142,7 @@ class VirtualTrader:
             initial_cash=self.initial_cash,
             name=f"가상계좌-{strategy.name}"
         )
-        logger.info(f"📊 전략 추가: {strategy.name}")
+        logger.info(f" 전략 추가: {strategy.name}")
 
     def add_diverse_strategy(self, strategy: DiverseTradingStrategy):
         """v5.7: 다양한 전략 추가 (DiverseTradingStrategy)"""
@@ -146,7 +151,7 @@ class VirtualTrader:
             initial_cash=self.initial_cash,
             name=f"가상계좌-{strategy.name}"
         )
-        logger.info(f"📊 전략 추가: {strategy.name} - {strategy.description}")
+        logger.info(f" 전략 추가: {strategy.name} - {strategy.description}")
 
     def process_buy_signal(self, stock_data: Dict, ai_analysis: Dict = None, market_data: Dict = None):
         """
@@ -173,10 +178,12 @@ class VirtualTrader:
         enriched_market_data = self.data_enricher.enrich_market_context(market_data)
 
         for strategy_name, strategy in self.strategies.items():
+            """
             account = self.accounts[strategy_name]
 
             try:
                 if isinstance(strategy, DiverseTradingStrategy):
+                    """
                     should_buy = strategy.should_buy(enriched_stock_data, enriched_market_data, account)
                 else:
                     should_buy = strategy.should_buy(enriched_stock_data, ai_analysis, account)
@@ -188,6 +195,7 @@ class VirtualTrader:
                     quantity = strategy.calculate_quantity(price, account)
 
                     if quantity > 0 and account.can_buy(price, quantity):
+                        """
                         success = account.buy(
                             stock_code=stock_code,
                             stock_name=stock_name,
@@ -217,9 +225,11 @@ class VirtualTrader:
             stock_data_dict = {}
 
         for strategy_name, account in self.accounts.items():
+            """
             strategy = self.strategies[strategy_name]
 
             for stock_code, position in list(account.positions.items()):
+                """
                 if stock_code not in price_data:
                     continue
 
@@ -229,6 +239,7 @@ class VirtualTrader:
 
                 try:
                     if isinstance(strategy, DiverseTradingStrategy):
+                        """
                         stock_data = stock_data_dict.get(stock_code, {})
                         enriched_stock_data = self.data_enricher.enrich_stock_data(stock_data)
                         should_sell, reason = strategy.should_sell(
@@ -259,12 +270,14 @@ class VirtualTrader:
     def update_all_prices(self, price_data: Dict[str, int]):
         """모든 계좌의 포지션 가격 업데이트"""
         for account in self.accounts.values():
+            """
             account.update_positions(price_data)
 
     def get_all_summaries(self) -> Dict[str, Dict]:
         """모든 계좌 요약"""
         summaries = {}
         for strategy_name, account in self.accounts.items():
+            """
             summaries[strategy_name] = account.get_summary()
         return summaries
 
@@ -277,6 +290,7 @@ class VirtualTrader:
         best_pnl_rate = float('-inf')
 
         for strategy_name, account in self.accounts.items():
+            """
             pnl_rate = account.get_total_pnl_rate()
             if pnl_rate > best_pnl_rate:
                 best_pnl_rate = pnl_rate
@@ -287,17 +301,18 @@ class VirtualTrader:
     def print_performance(self):
         """성과 출력"""
         print("\n" + "="*80)
-        print("💰 가상매매 성과 요약")
+        print(" 가상매매 성과 요약")
         print("="*80)
 
         summaries = self.get_all_summaries()
 
         for strategy_name, summary in summaries.items():
+            """
             pnl = summary['total_pnl']
             pnl_rate = summary['total_pnl_rate']
             win_rate = summary['win_rate']
 
-            pnl_sign = "📈" if pnl >= 0 else "📉"
+            pnl_sign = "" if pnl >= 0 else ""
             pnl_color = "+" if pnl >= 0 else ""
 
             print(f"\n[{strategy_name}]")
@@ -312,6 +327,7 @@ class VirtualTrader:
             if account.trade_history:
                 print(f"\n  📝 거래 내역 (최근 {min(10, len(account.trade_history))}건):")
                 for i, trade in enumerate(account.trade_history[-10:], 1):
+                    """
                     trade_type = trade['type']
                     timestamp = trade.get('timestamp', 'N/A')
                     try:
@@ -331,7 +347,7 @@ class VirtualTrader:
                         pnl = trade.get('realized_pnl', 0)
                         pnl_rate = trade.get('realized_pnl_rate', 0.0)
                         reason = trade.get('reason', '')
-                        pnl_sign = "✅" if pnl > 0 else "❌"
+                        pnl_sign = "[OK]" if pnl > 0 else "[ERROR]"
                         print(f"     {i}. [{time_str}] 🔴 매도 {stock_name} {quantity}주 @ {price:,}원 "
                               f"({pnl:+,}원, {pnl_rate:+.2f}%) {pnl_sign} [{reason}]")
 
@@ -344,6 +360,7 @@ class VirtualTrader:
     def save_all_states(self, base_dir: str = "data/virtual_trading"):
         """모든 계좌 상태 저장"""
         for strategy_name, account in self.accounts.items():
+            """
             filename = f"{strategy_name}.json"
             filepath = f"{base_dir}/{filename}"
             account.save_state(filepath)
@@ -351,6 +368,7 @@ class VirtualTrader:
     def load_all_states(self, base_dir: str = "data/virtual_trading"):
         """모든 계좌 상태 로드"""
         for strategy_name, account in self.accounts.items():
+            """
             filename = f"{strategy_name}.json"
             filepath = f"{base_dir}/{filename}"
             account.load_state(filepath)

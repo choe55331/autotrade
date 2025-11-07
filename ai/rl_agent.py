@@ -1,7 +1,7 @@
 """
 Reinforcement Learning Agent
 DQN-based autonomous trading agent
-"""
+
 
 Features:
 - Deep Q-Network (DQN) for action selection
@@ -10,6 +10,7 @@ Features:
 - Epsilon-greedy exploration
 - Continuous learning from trades
 - Risk-aware reward function
+"""
 import json
 import numpy as np
 import random
@@ -106,6 +107,7 @@ class DQNAgent:
         epsilon_decay: float = 0.995,
         epsilon_min: float = 0.01
     ):
+        """
         Initialize DQN agent
 
         Args:
@@ -191,6 +193,7 @@ class DQNAgent:
         next_state: List[float],
         done: bool
     ):
+        """
         experience = RLExperience(
             state=state,
             action=action,
@@ -237,6 +240,7 @@ class DQNAgent:
         curr_portfolio_value: float,
         risk_taken: float = 0.0
     ) -> float:
+        """
         Calculate reward for action
 
         Args:
@@ -247,6 +251,7 @@ class DQNAgent:
 
         Returns:
             Reward value
+        """
         profit_pct = ((curr_portfolio_value - prev_portfolio_value) / prev_portfolio_value) * 100
         reward = profit_pct
 
@@ -279,6 +284,7 @@ class DQNAgent:
         curr_state: RLState,
         done: bool = False
     ):
+        """
         Perform one training step
 
         Args:
@@ -371,6 +377,7 @@ class DQNAgent:
         """Load model from disk"""
         try:
             if self.model_file.exists():
+                """
                 with open(self.model_file, 'r') as f:
                     data = json.load(f)
 

@@ -1,11 +1,12 @@
 """
 Deep Learning Models for Advanced Price Prediction
 Implements LSTM, Transformer, and CNN models
-"""
+
 
 Author: AutoTrade Pro
 Version: 4.1
 
+"""
 from dataclasses import dataclass, asdict
 from typing import List, Dict, Any, Optional, Tuple
 import numpy as np
@@ -21,7 +22,7 @@ try:
     TORCH_AVAILABLE = True
 except ImportError:
     TORCH_AVAILABLE = False
-    print("⚠️ PyTorch not available. Deep learning models will use mock predictions.")
+    print("WARNING: PyTorch not available. Deep learning models will use mock predictions.")
 
 
 @dataclass
@@ -44,6 +45,7 @@ class DeepLearningPrediction:
     timestamp: str = ""
 
     def __post_init__(self):
+        """
         if not self.timestamp:
             self.timestamp = datetime.now().isoformat()
 
@@ -77,6 +79,7 @@ class LSTMPricePredictor(nn.Module if TORCH_AVAILABLE else object):
 
     def __init__(self, input_size: int = 10, hidden_size: int = 128,
                  num_layers: int = 3, dropout: float = 0.2):
+        """
         if TORCH_AVAILABLE:
             super(LSTMPricePredictor, self).__init__()
 
@@ -148,6 +151,7 @@ class LSTMPricePredictor(nn.Module if TORCH_AVAILABLE else object):
 
         self.eval()
         with torch.no_grad():
+            """
             x = torch.FloatTensor(sequence).unsqueeze(0)
             predictions, attention_weights = self.forward(x)
             return predictions.numpy()[0], attention_weights.numpy()[0]
@@ -167,6 +171,7 @@ class TransformerPricePredictor(nn.Module if TORCH_AVAILABLE else object):
 
     def __init__(self, input_size: int = 10, d_model: int = 128,
                  nhead: int = 8, num_layers: int = 4, dropout: float = 0.1):
+        """
         if TORCH_AVAILABLE:
             super(TransformerPricePredictor, self).__init__()
 
@@ -239,6 +244,7 @@ class TransformerPricePredictor(nn.Module if TORCH_AVAILABLE else object):
 
         self.eval()
         with torch.no_grad():
+            """
             x = torch.FloatTensor(sequence).unsqueeze(0)
             predictions = self.forward(x)
             return predictions.numpy()[0]
@@ -257,6 +263,7 @@ class CNNPatternRecognizer(nn.Module if TORCH_AVAILABLE else object):
     """
 
     def __init__(self, input_channels: int = 5, sequence_length: int = 60):
+        """
         if TORCH_AVAILABLE:
             super(CNNPatternRecognizer, self).__init__()
 
@@ -342,6 +349,7 @@ class CNNPatternRecognizer(nn.Module if TORCH_AVAILABLE else object):
 
         self.eval()
         with torch.no_grad():
+            """
             x = torch.FloatTensor(chart_data).unsqueeze(0)
             price_pred, pattern_logits = self.forward(x)
 
@@ -364,6 +372,7 @@ class DeepLearningManager:
     """
 
     def __init__(self):
+        """
         self.lstm_model = LSTMPricePredictor()
         self.transformer_model = TransformerPricePredictor()
         self.cnn_model = CNNPatternRecognizer()
@@ -437,6 +446,7 @@ class DeepLearningManager:
 
     def predict(self, stock_code: str, stock_name: str,
                 historical_data: List[Dict], current_price: float) -> DeepLearningPrediction:
+        """
         Make ensemble prediction using all deep learning models
 
         Args:
@@ -447,6 +457,7 @@ class DeepLearningManager:
 
         Returns:
             Combined deep learning prediction
+        """
         sequence = self.prepare_sequence(historical_data)
         chart_data = self.prepare_chart_data(historical_data)
 

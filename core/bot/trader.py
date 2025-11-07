@@ -31,6 +31,7 @@ class TradeExecutor:
         alert_manager,
         monitor
     ):
+        """
         self.order_api = order_api
         self.account_api = account_api
         self.market_api = market_api
@@ -62,7 +63,8 @@ class TradeExecutor:
         """
         try:
             if self.market_status.get('can_cancel_only'):
-                logger.warning(f"⚠️  {self.market_status['market_type']}: 신규 매수 주문 불가")
+                """
+                logger.warning(f"WARNING:  {self.market_status['market_type']}: 신규 매수 주문 불가")
                 return False
 
             stock_code = candidate.code
@@ -113,7 +115,7 @@ class TradeExecutor:
                     scoring_percentage=scoring_result.percentage
                 )
 
-                logger.info(f"✅ {stock_name} 매수 성공 (주문번호: {order_no})")
+                logger.info(f"[OK] {stock_name} 매수 성공 (주문번호: {order_no})")
 
                 self.alert_manager.alert_position_opened(
                     stock_code=stock_code,
@@ -124,7 +126,7 @@ class TradeExecutor:
 
                 self.monitor.log_activity(
                     'buy',
-                    f'✅ {stock_name} 매수: {quantity}주 @ {current_price:,}원',
+                    f'[OK] {stock_name} 매수: {quantity}주 @ {current_price:,}원',
                     level='success'
                 )
 
@@ -155,7 +157,8 @@ class TradeExecutor:
         """
         try:
             if self.market_status.get('can_cancel_only'):
-                logger.warning(f"⚠️  {self.market_status['market_type']}: 신규 매도 주문 불가")
+                """
+                logger.warning(f"WARNING:  {self.market_status['market_type']}: 신규 매도 주문 불가")
                 return False
 
             logger.info(
@@ -188,7 +191,7 @@ class TradeExecutor:
                 )
 
                 log_level = 'success' if profit_loss >= 0 else 'warning'
-                logger.info(f"✅ {stock_name} 매도 성공 (주문번호: {order_no})")
+                logger.info(f"[OK] {stock_name} 매도 성공 (주문번호: {order_no})")
 
                 self.alert_manager.alert_position_closed(
                     stock_code=stock_code,
@@ -201,7 +204,7 @@ class TradeExecutor:
 
                 self.monitor.log_activity(
                     'sell',
-                    f'✅ {stock_name} 매도: {quantity}주 @ {price:,}원 (손익: {profit_loss:+,}원)',
+                    f'[OK] {stock_name} 매도: {quantity}주 @ {price:,}원 (손익: {profit_loss:+,}원)',
                     level=log_level
                 )
 
@@ -221,6 +224,7 @@ class TradeExecutor:
         from datetime import datetime
 
         if is_nxt_hours():
+            """
             now = datetime.now()
             if now.hour == 8:
                 return '61'

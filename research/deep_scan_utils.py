@@ -1,9 +1,10 @@
 """
 research/deep_scan_utils.py
 v5.7.5: Deep Scan 공통 유틸리티
-"""
+
 
 모든 스캔 전략에서 사용하는 Deep Scan 로직을 공통화
+"""
 import time
 from typing import List, Optional, Dict
 from datetime import datetime
@@ -121,6 +122,7 @@ def enrich_candidates_with_deep_scan(
     max_candidates: int = 20,
     verbose: bool = True
 ) -> List[StockCandidate]:
+    """
     v5.7.5: 모든 스캔 전략에서 사용하는 Deep Scan 공통 로직
 
     후보 종목들에 대해 상세 데이터를 조회하여 enrichment:
@@ -149,6 +151,7 @@ def enrich_candidates_with_deep_scan(
     top_candidates = candidates[:max_candidates]
 
     for idx, candidate in enumerate(top_candidates, 1):
+        """
         try:
             if verbose:
                 print(f"   [{idx}/{len(top_candidates)}] {candidate.name} ({candidate.code})")
@@ -263,10 +266,10 @@ def enrich_candidates_with_deep_scan(
                             buy_count += 1
                             total_net_buy += net_qty
                             if verbose:
-                                print(f" ✅ 순매수")
+                                print(f" [OK] 순매수")
                         elif net_qty < 0:
                             if verbose:
-                                print(f" ⚠️ 순매도")
+                                print(f" WARNING: 순매도")
                         else:
                             if verbose:
                                 print(f" - 변동없음")
@@ -359,6 +362,6 @@ def enrich_candidates_with_deep_scan(
             continue
 
     if verbose:
-        print(f"✅ Deep Scan 완료\n")
+        print(f"[OK] Deep Scan 완료\n")
 
     return candidates

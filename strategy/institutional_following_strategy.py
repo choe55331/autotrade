@@ -1,12 +1,13 @@
 """
 AutoTrade Pro v4.0 - 수급 추종 전략
 외국인/기관의 대량 매수를 포착하여 추종 매매
-"""
+
 
 주요 기능:
 - 외국인/기관 순매수 감지
 - 연속 매수일 추적
 - 수급 강도 계산
+"""
 import logging
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timedelta
@@ -124,6 +125,7 @@ class InstitutionalFollowingStrategy:
         self,
         n: int = 10
     ) -> List[tuple[str, float]]:
+        """
         수급이 강한 상위 종목 조회
 
         Args:
@@ -131,9 +133,11 @@ class InstitutionalFollowingStrategy:
 
         Returns:
             [(stock_code, strength), ...]
+        """
         stocks_with_strength = []
 
         for stock_code in self.data_history.keys():
+            """
             strength = self.calculate_buying_strength(stock_code)
             if strength > 0:
                 stocks_with_strength.append((stock_code, strength))
@@ -149,6 +153,7 @@ if __name__ == "__main__":
     base_date = datetime.now() - timedelta(days=10)
 
     for i in range(10):
+        """
         date = base_date + timedelta(days=i)
 
         data = InstitutionalData(

@@ -1,7 +1,7 @@
 """
 Advanced AI Package
 Next-generation AI trading system
-"""
+
 
 v4.0 Modules:
 - ML Predictor: Machine learning price prediction
@@ -26,6 +26,7 @@ v4.2 Modules:
 - Options Pricing: Black-Scholes, Greeks, strategies
 - High-Frequency Trading: Microsecond latency, arbitrage
 
+"""
 from .ensemble_analyzer import EnsembleAnalyzer, get_analyzer
 
 from .ml_predictor import MLPricePredictor, PricePrediction, get_ml_predictor

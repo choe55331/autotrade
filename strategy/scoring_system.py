@@ -1,12 +1,13 @@
 """
 strategy/scoring_system.py
 10가지 기준 스코어링 시스템 (440점 만점)
-"""
+
 
 v5.9 Performance Enhancements:
 - 캐싱: 동일 종목 중복 계산 방지 (30초 TTL)
 - 병렬 처리: 다중 종목 동시 스코어링
 - 성능 최적화: 30-50% 속도 향상
+"""
 from typing import Dict, Any, List
 from dataclasses import dataclass, field
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -89,7 +90,7 @@ class ScoringSystem:
         self.cache_manager = get_cache_manager() if enable_cache else None
         self.cache_ttl = 30
 
-        logger.info("📊 10가지 기준 스코어링 시스템 초기화 완료 (v5.9 - 캐싱/병렬 지원)")
+        logger.info(" 10가지 기준 스코어링 시스템 초기화 완료 (v5.9 - 캐싱/병렬 지원)")
 
         self.scan_type_weights = {
             'volume_based': {
@@ -231,7 +232,7 @@ class ScoringSystem:
         }.get(scan_type, scan_type)
 
         logger.info(
-            f"📊 스코어링 완료 [{scan_type_display}]: {stock_data.get('name', stock_data.get('code', 'Unknown'))} "
+            f" 스코어링 완료 [{scan_type_display}]: {stock_data.get('name', stock_data.get('code', 'Unknown'))} "
             f"총점 {result.total_score:.1f}/{result.max_score} ({result.percentage:.1f}%)"
         )
 
@@ -243,6 +244,7 @@ class ScoringSystem:
         scan_type: str = 'default',
         max_workers: int = 4
     ) -> List[Dict[str, Any]]:
+        """
         다중 종목 병렬 스코어링 (v5.9 NEW)
 
         Args:
@@ -252,6 +254,7 @@ class ScoringSystem:
 
         Returns:
             스코어링 결과 리스트 (원본 데이터 + 점수)
+        """
         if not stocks_data:
             return []
 
@@ -272,6 +275,7 @@ class ScoringSystem:
             }
 
             for future in as_completed(future_to_stock):
+                """
                 stock = future_to_stock[future]
                 try:
                     score = future.result()
@@ -284,7 +288,7 @@ class ScoringSystem:
 
         results.sort(key=lambda x: stocks_data.index(x) if x in stocks_data else 999)
 
-        logger.info(f"✅ 병렬 스코어링 완료: {len(results)}개 종목")
+        logger.info(f"[OK] 병렬 스코어링 완료: {len(results)}개 종목")
 
         return results
 
@@ -310,44 +314,44 @@ class ScoringSystem:
             print(f"   [거래량] {stock_code}: 현재={volume:,}주, 평균={avg_volume:,.0f}주, 비율={volume_ratio:.2f}배", end="")
 
             if volume_ratio >= 5.0:
-                print(f" → {max_score}점 (5배 이상)")
+                print(f" -> {max_score}점 (5배 이상)")
                 return max_score
             elif volume_ratio >= 3.0:
                 score = max_score * 0.75
-                print(f" → {score:.0f}점 (3배 이상)")
+                print(f" -> {score:.0f}점 (3배 이상)")
                 return score
             elif volume_ratio >= 2.0:
                 score = max_score * 0.5
-                print(f" → {score:.0f}점 (2배 이상)")
+                print(f" -> {score:.0f}점 (2배 이상)")
                 return score
             elif volume_ratio >= 1.0:
                 score = max_score * 0.25
-                print(f" → {score:.0f}점 (평균 이상)")
+                print(f" -> {score:.0f}점 (평균 이상)")
                 return score
             else:
-                print(f" → 0점 (평균 미만)")
+                print(f" -> 0점 (평균 미만)")
                 return 0.0
 
         print(f"   [거래량] {stock_code}: 현재={volume:,}주 (평균 데이터 없음)", end="")
 
         if volume >= 5_000_000:
             score = max_score * 0.8
-            print(f" → {score:.0f}점 (500만주 이상)")
+            print(f" -> {score:.0f}점 (500만주 이상)")
             return score
         elif volume >= 2_000_000:
             score = max_score * 0.6
-            print(f" → {score:.0f}점 (200만주 이상)")
+            print(f" -> {score:.0f}점 (200만주 이상)")
             return score
         elif volume >= 1_000_000:
             score = max_score * 0.4
-            print(f" → {score:.0f}점 (100만주 이상)")
+            print(f" -> {score:.0f}점 (100만주 이상)")
             return score
         elif volume >= 500_000:
             score = max_score * 0.2
-            print(f" → {score:.0f}점 (50만주 이상)")
+            print(f" -> {score:.0f}점 (50만주 이상)")
             return score
 
-        print(f" → 0점 (50만주 미만)")
+        print(f" -> 0점 (50만주 미만)")
         return 0.0
 
     def _score_price_momentum(self, stock_data: Dict[str, Any]) -> float:
@@ -429,15 +433,18 @@ class ScoringSystem:
             trend_score = 0.0
             try:
                 for key, values in institutional_trend.items():
+                    """
                     if isinstance(values, list) and len(values) > 0:
                         recent = values[0]
 
                         orgn_net = recent.get('orgn_netslmt', '0')
                         if orgn_net and not str(orgn_net).startswith('-'):
+                            """
                             trend_score += 5.0
 
                         for_net = recent.get('for_netslmt', '0')
                         if for_net and not str(for_net).startswith('-'):
+                            """
                             trend_score += 5.0
 
                         break
@@ -450,9 +457,9 @@ class ScoringSystem:
 
         final_score = min(score, max_score)
         if score_details:
-            print(f" → {final_score:.0f}점 ({', '.join(score_details)})")
+            print(f" -> {final_score:.0f}점 ({', '.join(score_details)})")
         else:
-            print(f" → 0점 (기준 미달)")
+            print(f" -> 0점 (기준 미달)")
 
         return final_score
 
@@ -503,7 +510,7 @@ class ScoringSystem:
         print(f"[DEBUG 체결강도] {stock_code}: execution_intensity={execution_intensity} (type={type(execution_intensity)})")
 
         if execution_intensity is None or execution_intensity == 0:
-            print(f"[DEBUG 체결강도] {stock_code}: 데이터 없음 또는 0 → 0점")
+            print(f"[DEBUG 체결강도] {stock_code}: 데이터 없음 또는 0 -> 0점")
             return 0.0
 
         min_value = 50
@@ -520,7 +527,7 @@ class ScoringSystem:
         else:
             score = 0.0
 
-        print(f"[DEBUG 체결강도] {stock_code}: {execution_intensity} → {score}점")
+        print(f"[DEBUG 체결강도] {stock_code}: {execution_intensity} -> {score}점")
         return score
 
     def _score_broker_activity(self, stock_data: Dict[str, Any]) -> float:
@@ -571,11 +578,11 @@ class ScoringSystem:
         print(f"[DEBUG 프로그램] {stock_code}: program_net_buy={program_net_buy} (type={type(program_net_buy)})")
 
         if program_net_buy is None:
-            print(f"[DEBUG 프로그램] {stock_code}: 데이터 없음 → 0점")
+            print(f"[DEBUG 프로그램] {stock_code}: 데이터 없음 -> 0점")
             return 0.0
 
         if program_net_buy <= 0:
-            print(f"[DEBUG 프로그램] {stock_code}: 음수 또는 0 → 0점")
+            print(f"[DEBUG 프로그램] {stock_code}: 음수 또는 0 -> 0점")
             return 0.0
 
         if program_net_buy >= 5_000_000:
@@ -589,7 +596,7 @@ class ScoringSystem:
         else:
             score = 0.0
 
-        print(f"[DEBUG 프로그램] {stock_code}: {program_net_buy:,}원 → {score}점")
+        print(f"[DEBUG 프로그램] {stock_code}: {program_net_buy:,}원 -> {score}점")
         return score
 
     def _score_technical_indicators(self, stock_data: Dict[str, Any]) -> float:
@@ -632,8 +639,10 @@ class ScoringSystem:
         macd_positive = False
         if macd is not None:
             if isinstance(macd, dict):
+                """
                 macd_positive = macd.get('macd', 0) > 0
             elif isinstance(macd, (int, float)):
+                """
                 macd_positive = macd > 0
 
         if macd_bullish or macd_positive:

@@ -151,21 +151,21 @@ def run_dashboard(bot=None, host: str = '0.0.0.0', port: int = 5000, debug: bool
             try:
                 realtime_chart_manager = RealtimeMinuteChartManager(bot_instance.websocket_manager)
                 market_set_chart_manager(realtime_chart_manager)
-                print("✅ Real-time minute chart manager initialized")
+                print("[OK] Real-time minute chart manager initialized")
             except Exception as e:
-                print(f"⚠️ Failed to initialize real-time minute chart manager: {e}")
+                print(f"WARNING: Failed to initialize real-time minute chart manager: {e}")
                 realtime_chart_manager = None
         else:
-            print("⚠️ RealtimeMinuteChartManager not available")
+            print("WARNING: RealtimeMinuteChartManager not available")
     else:
-        print("⚠️ WebSocket manager not available, real-time minute charts disabled")
+        print("WARNING: WebSocket manager not available, real-time minute charts disabled")
 
     print("=" * 80)
     print("🚀 AutoTrade Pro v5.4 - Modular AI-Powered Trading Dashboard")
     print("=" * 80)
     print(f"📱 Dashboard URL: http://localhost:{port}")
     print(f"🤖 AI Systems: 18 integrated (v4.0 + v4.1 + v4.2)")
-    print(f"📊 API Endpoints: 84 total")
+    print(f" API Endpoints: 84 total")
     print(f"🎨 Design: Apple-inspired minimalist UI")
     print(f"⚡ New in v5.4: Modular architecture, better maintainability")
     print(f"📁 Code Organization: routes/ + websocket/ + utils/")
