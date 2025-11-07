@@ -1,24 +1,24 @@
-"""
-virtual_trading/trade_logger.py
-거래 로그 및 분석
-"""
-from typing import Dict, List
-from datetime import datetime
-from pathlib import Path
+# 
+# virtual_trading/trade_logger.py
+# 거래 로그 및 분석
+# 
+# from typing import Dict, List
+# from datetime import datetime
+# from pathlib import Path
 import json
 
 
 class TradeLogger:
-    """거래 로거 - 모든 가상 거래 기록 및 분석"""
+    # 거래 로거 - 모든 가상 거래 기록 및 분석# 
 
     def __init__(self, log_dir: str = "data/virtual_trading/logs"):
-        """
+        # 
         self.log_dir = Path(log_dir)
         self.log_dir.mkdir(parents=True, exist_ok=True)
         self.trades: List[Dict] = []
 
     def log_trade(self, trade_data: Dict):
-        """거래 로그 기록"""
+        # 거래 로그 기록# 
         trade_record = {
             'timestamp': datetime.now().isoformat(),
             **trade_data
@@ -33,7 +33,7 @@ class TradeLogger:
 
     def log_buy(self, strategy: str, stock_code: str, stock_name: str,
                 price: int, quantity: int, reason: str = ""):
-        """
+        # 
         self.log_trade({
             'type': 'BUY',
             'strategy': strategy,
@@ -48,7 +48,7 @@ class TradeLogger:
     def log_sell(self, strategy: str, stock_code: str, stock_name: str,
                  price: int, quantity: int, realized_pnl: int,
                  pnl_rate: float, reason: str = ""):
-        """
+        # 
         self.log_trade({
             'type': 'SELL',
             'strategy': strategy,
@@ -63,7 +63,7 @@ class TradeLogger:
         })
 
     def get_trade_analysis(self, strategy: str = None) -> Dict:
-        """거래 분석"""
+        # 거래 분석# 
         if not self.trades:
             return {}
 
@@ -124,7 +124,7 @@ class TradeLogger:
         }
 
     def get_strategy_comparison(self) -> Dict[str, Dict]:
-        """전략별 비교"""
+        # 전략별 비교# 
         strategies = set(t['strategy'] for t in self.trades if 'strategy' in t)
         return {
             strategy: self.get_trade_analysis(strategy)
@@ -132,7 +132,7 @@ class TradeLogger:
         }
 
     def get_stock_analysis(self, stock_code: str) -> Dict:
-        """종목별 거래 분석"""
+        # 종목별 거래 분석# 
         stock_trades = [t for t in self.trades if t.get('stock_code') == stock_code]
 
         if not stock_trades:
@@ -157,7 +157,7 @@ class TradeLogger:
         }
 
     def get_recent_trades(self, limit: int = 10, strategy: str = None) -> List[Dict]:
-        """최근 거래 내역"""
+        # 최근 거래 내역# 
         trades = self.trades
         if strategy:
             trades = [t for t in trades if t.get('strategy') == strategy]
@@ -165,7 +165,7 @@ class TradeLogger:
         return sorted(trades, key=lambda x: x['timestamp'], reverse=True)[:limit]
 
     def print_summary(self):
-        """거래 요약 출력"""
+        # 거래 요약 출력# 
         analysis = self.get_trade_analysis()
 
         if not analysis:
@@ -197,19 +197,19 @@ class TradeLogger:
         print("="*60)
 
     def load_historical_trades(self, days: int = 7):
-        """과거 로그 파일 불러오기"""
+        # 과거 로그 파일 불러오기# 
         from datetime import timedelta
 
         today = datetime.now()
         loaded_count = 0
 
         for i in range(days):
-            """
+            # 
             date = (today - timedelta(days=i)).strftime('%Y%m%d')
             log_file = self.log_dir / f"trades_{date}.jsonl"
 
             if log_file.exists():
-                """
+                # 
                 with open(log_file, 'r', encoding='utf-8') as f:
                     for line in f:
                         try:
